@@ -11,12 +11,12 @@ const {NetworkClient} = NativeModules;
  * Generic client for making GET requests
  */
 class GenericClient {
-  get = (url: string, options?: object) => NetworkClient.get(url, options);
+  get = (url: string, options?: object) => NetworkClient.get(url, null, options);
 }
 
 export interface ApiClientInterface {
-  get(endpoint: string): any;
-  post(endpoint: string, body?: object): any;
+  get(endpoint: string, options?: object): any;
+  post(endpoint: string, options?: object, body?: object): any;
 }
 
 /**
@@ -29,9 +29,9 @@ class ApiClient implements ApiClientInterface {
       this.rootUrl = rootUrl;
   }
 
-  get = (endpoint: string) => NetworkClient.get(this.rootUrl, endpoint);
+  get = (endpoint: string, options?: object) => NetworkClient.get(this.rootUrl, endpoint, options);
 
-  post = (endpoint: string, body?: object) => NetworkClient.post(this.rootUrl, endpoint, body);
+  post = (endpoint: string, options?: object, body?: object) => NetworkClient.post(this.rootUrl, endpoint, options, body);
 }
 
 export interface WebSocketInterface {
@@ -82,8 +82,8 @@ async function getOrCreateWebSocket(wsUrl: string, options: object = {}, callbac
     return socket;
 }
 
-export default {
-    GenericClient: new GenericClient(),
+export default new GenericClient();
+export {
     getOrCreateNetworkClient,
     getOrCreateWebSocket,
 };
