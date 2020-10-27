@@ -16,6 +16,7 @@ export interface ApiClientInterface {
     get(endpoint: string, options?: RequestOptions): any;
     put(endpoint: string, options?: RequestOptions): any;
     post(endpoint: string, options?: RequestOptions): any;
+    patch(endpoint: string, options?: RequestOptions): any;
     delete(endpoint: string, options?: RequestOptions): any;
 
     getHeaders(): any;
@@ -23,9 +24,8 @@ export interface ApiClientInterface {
 }
 
 type iOSApiClientConfiguration = {
-    interceptorConfig?: object;
     redirectHandlerConfig?: object;
-    requestInterceptoConfig?: object;
+    requestInterceptorConfig?: object;
     serverTrustManagerConfig?: object;
     cachedResponseHandlerConfig?: object;
 };

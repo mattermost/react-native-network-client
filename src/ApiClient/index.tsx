@@ -36,6 +36,7 @@ class ApiClient implements ApiClientInterface {
   get = (endpoint: string, options?: RequestOptions) => NetworkClient.get(this.baseUrl, endpoint, options);
   put = (endpoint: string, options?: RequestOptions) => NetworkClient.put(this.baseUrl, endpoint, options);
   post = (endpoint: string, options?: RequestOptions) => NetworkClient.post(this.baseUrl, endpoint, options);
+  patch = (endpoint: string, options?: RequestOptions) => NetworkClient.patch(this.baseUrl, endpoint, options);
   delete = (endpoint: string, options?: RequestOptions) => NetworkClient.delete(this.baseUrl, endpoint, options);
 }
 

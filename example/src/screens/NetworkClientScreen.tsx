@@ -294,7 +294,7 @@ export default function GenericClientScreen({navigation, route}) {
 
     return (
         <SafeAreaView style={styles.container}>
-            <Text style={styles.label}>Cleint Headers</Text>
+            <Text style={styles.label}>Client Headers</Text>
             <View style={styles.clientHeadersContainer}>
                 {renderClientInfo()}
             </View>
