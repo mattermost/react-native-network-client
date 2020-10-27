@@ -9,7 +9,7 @@ import {
     TextInput,
     View,
 } from 'react-native';
-import NetworkClient, {ApiClientInterface} from 'react-native-network-client';
+import {getOrCreateApiClient} from 'react-native-network-client';
 import Modal from 'react-native-modal';
 
 const styles = StyleSheet.create({
@@ -29,10 +29,10 @@ interface CreateClientModalProps {
 }
 
 const CreateClientModal = ({visible, createClient}: CreateClientModalProps) => {
-    const [rootUrl, setRootUrl] = React.useState('');
+    const [baseUrl, setBaseUrl] = React.useState('');
 
     const create = async () => {
-        const client = await NetworkClient.getOrCreateNetworkClient(rootUrl);
+        const client = await getOrCreateApiClient(baseUrl);
         createClient(client);
     };
 
@@ -43,11 +43,11 @@ const CreateClientModal = ({visible, createClient}: CreateClientModalProps) => {
                     <TextInput
                         autoCapitalize='none'
                         placeholder='community.mattermost.com'
-                        value={rootUrl}
-                        onChangeText={setRootUrl}
+                        value={baseUrl}
+                        onChangeText={setBaseUrl}
                     />
                     <Button
-                        disabled={rootUrl.length === 0}
+                        disabled={baseUrl.length === 0}
                         title='Create'
                         onPress={create}
                     />

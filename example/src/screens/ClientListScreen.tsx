@@ -36,7 +36,7 @@ const styles = StyleSheet.create({
 
 const NetworkClient = ({name, client, navigate}) => {
     const viewClient = () => {
-        const screen = client.rootUrl ? 'NetworkClient' : 'GenericClient';
+        const screen = client.baseUrl ? 'NetworkClient' : 'GenericClient';
         navigate(screen, {name, client});
     };
 
@@ -46,8 +46,8 @@ const NetworkClient = ({name, client, navigate}) => {
                 <View style={styles.clientUrl}>
                     <Text>{name}</Text>
                     {
-                    client.rootUrl &&
-                    <Text>{client.rootUrl}</Text>
+                    client.baseUrl &&
+                    <Text>{client.baseUrl}</Text>
                     }
                 </View>
                 <View style={styles.clientAction}>
@@ -89,7 +89,7 @@ export default function CreateNetworkClientScreen({navigation, route}) {
             <WebSocketClient name={item.name} client={item.client} />
     );
 
-    const keyExtractor = (item) => (item.rootUrl || item.wsUrl || item.name);
+    const keyExtractor = (item) => (item.baseUrl || item.wsUrl || item.name);
 
     const goToCreateNetworkClient = () => navigation.navigate('CreateNetworkClient');
     const goToCreateWebSocketClient = () => navigation.navigate('CreateWebSocketClient');

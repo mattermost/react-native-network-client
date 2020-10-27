@@ -13,7 +13,8 @@ import {
     TextInput,
     View,
 } from 'react-native';
-import {getOrCreateNetworkClient} from 'react-native-network-client';
+import DeviceInfo from 'react-native-device-info';
+import {getOrCreateApiClient} from 'react-native-network-client';
 
 const styles = StyleSheet.create({
     container: {
@@ -86,24 +87,34 @@ const ConfigOption = ({index, option, updateOption}) => {
 
 export default function CreateNetworkClientScreen({navigation}) {
     const [name, setName] = useState('Mattermost Community Server');
-    const [rootUrl, setRootUrl] = useState('https://community.mattermost.com');
+    const [baseUrl, setbaseUrl] = useState('https://community.mattermost.com');
     const [configOptions, setConfigOptions] = useState([{key: '', value: ''}]);
     const scrollView = useRef(null);
 
-    const sanitizeOptions = () => {
-        const options = {};
-        configOptions.forEach(({key, value}) => {
-           if (key && value) {
-               options[key] = value;
-           } 
-        });
+    const sanitizeOptions = async () => {
+        // const options = {};
+        // configOptions.forEach(({key, value}) => {
+        //    if (key && value) {
+        //        options[key] = value;
+        //    } 
+        // });
+
+        // TEST MM OPTIONS
+        const userAgent = await DeviceInfo.getUserAgent();
+        const options = {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'User-Agent': userAgent,
+            },
+
+        }
 
         return options;
     }
 
     const createClient = async () => {
-        const options = sanitizeOptions(configOptions);
-        const client = await getOrCreateNetworkClient(rootUrl, options);
+        const options = await sanitizeOptions(configOptions);
+        const client = await getOrCreateApiClient(baseUrl, options);
         const createdClient = {
             name,
             client,
@@ -148,8 +159,8 @@ export default function CreateNetworkClientScreen({navigation}) {
             />
             <Text style={styles.label}>Root URL</Text>
             <TextInput
-                value={rootUrl}
-                onChangeText={setRootUrl}
+                value={baseUrl}
+                onChangeText={setbaseUrl}
                 placeholder='https://community.mattermost.com'
                 autoCapitalize='none'
                 style={styles.input}
@@ -164,7 +175,7 @@ export default function CreateNetworkClientScreen({navigation}) {
             <View style={styles.buttonContainer}>
                 <Button
                     title='Create'
-                    disabled={name.length === 0 || rootUrl.length === 0}
+                    disabled={name.length === 0 || baseUrl.length === 0}
                     onPress={createClient}
                 />
             </View>
