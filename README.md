@@ -11,11 +11,13 @@ npm install react-native-network-client
 ## Usage
 
 ```js
-import NetworkClient from "react-native-network-client";
+import GenericClient, {getOrCreateApiClient, getOrCreateWebSocketClient} from "react-native-network-client";
 
 // ...
 
-const result = await NetworkClient.getOrCreateNetworkClient("https://community.mattermost.com");
+const response = await GenericClient.get("https://community.mattermost.com");
+const apiClient = await NetworkClient.getOrCreateApiClient("https://community.mattermost.com");
+const wsClient = await NetworkClient.getOrCreateWebSocketClient("wss://community.mattermost.com");
 ```
 
 ## Contributing
