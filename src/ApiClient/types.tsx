@@ -8,6 +8,11 @@ export type RequestOptions = {
     body?: any;
 }
 
+export type Response = {
+    headers?: object;
+    data?: any,
+}
+
 export interface GenericClientInterface {
     get(endpoint: string, options?: RequestOptions): any;
 }

@@ -127,7 +127,7 @@ const RequestHeader = ({index, header, updateHeader}) => {
 }
 
 
-export default function GenericClientScreen({navigation, route}) {
+export default function NetworkClientScreen({navigation, route}) {
     const {name, client} = route.params;
 
     const [method, setMethod] = useState('GET');
@@ -150,16 +150,19 @@ export default function GenericClientScreen({navigation, route}) {
     const sanitizeHeaders = (headersArray) => {
         const headers = {};
         headersArray.forEach(({key, value}) => {
-           if (key && value) {
-            headers[key] = value;
-           } 
+            if (key && value) {
+                headers[key] = value;
+            } 
         });
 
         return headers;
     }
 
     const makeRequest = async () => {
-        const options = sanitizeHeaders(requestHeaders);
+        const options = {
+            headers: sanitizeHeaders(requestHeaders),
+            body: JSON.parse(body),
+        };
         let requestMethod;
         switch (method.toLowerCase().trim()) {
             case 'get':
