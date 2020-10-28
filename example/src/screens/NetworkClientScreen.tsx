@@ -161,21 +161,25 @@ export default function NetworkClientScreen({navigation, route}) {
     const makeRequest = async () => {
         const options = {
             headers: sanitizeHeaders(requestHeaders),
-            body: JSON.parse(body),
         };
-        let requestMethod;
-        switch (method.toLowerCase().trim()) {
-            case 'get':
-                requestMethod = client.get;
-                break;
-            case 'post':
-                requestMethod = client.post;
-                break;
-            default:
-                break;
+        const methodName = method.toLowerCase().trim();
+        if (methodName !== 'get' && body.length) {
+            try {
+                options.body = JSON.parse(body);
+            } catch(e) {
+                Alert.alert(
+                    'Error parsing Body',
+                    e.message,
+                    [{text: 'OK'}],
+                    {cancelable: false}
+                );
+
+                return;
+            }
         }
 
-        if (requestMethod) {
+        const requestMethod = client[methodName]
+        if (typeof requestMethod === 'function') {
             try {
                 const response = await requestMethod(endpoint, options);
                 setResponse(response);
@@ -321,7 +325,7 @@ export default function NetworkClientScreen({navigation, route}) {
                     style={styles.input}
                 />
             </View>
-            {method === 'POST' &&
+            {method !== 'GET' &&
             <View style={styles.inputContainer}>
                 <Text style={[styles.label, styles.inputLabel]}>Body</Text>
                 <TextInput
