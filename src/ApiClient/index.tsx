@@ -6,6 +6,7 @@ import isURL from 'validator/es/lib/isURL';
 
 import type {
   RequestOptions,
+  Response,
   GenericClientInterface,
   ApiClientInterface,
   ApiClientConfiguration,
@@ -30,14 +31,14 @@ class ApiClient implements ApiClientInterface {
       this.baseUrl = baseUrl;
   }
 
-  getHeaders = () => NetworkClient.getApiClientHeadersFor(this.baseUrl);
-  addHeaders = (headers: object) => NetworkClient.addApiClientHeadersFor(this.baseUrl, headers);
+  getHeaders = (): Promise<object> => NetworkClient.getApiClientHeadersFor(this.baseUrl);
+  addHeaders = (headers: object): void => NetworkClient.addApiClientHeadersFor(this.baseUrl, headers);
 
-  get = (endpoint: string, options?: RequestOptions) => NetworkClient.get(this.baseUrl, endpoint, options);
-  put = (endpoint: string, options?: RequestOptions) => NetworkClient.put(this.baseUrl, endpoint, options);
-  post = (endpoint: string, options?: RequestOptions) => NetworkClient.post(this.baseUrl, endpoint, options);
-  patch = (endpoint: string, options?: RequestOptions) => NetworkClient.patch(this.baseUrl, endpoint, options);
-  delete = (endpoint: string, options?: RequestOptions) => NetworkClient.delete(this.baseUrl, endpoint, options);
+  get = (endpoint: string, options?: RequestOptions): Promise<Response> => NetworkClient.get(this.baseUrl, endpoint, options);
+  put = (endpoint: string, options?: RequestOptions): Promise<Response> => NetworkClient.put(this.baseUrl, endpoint, options);
+  post = (endpoint: string, options?: RequestOptions): Promise<Response> => NetworkClient.post(this.baseUrl, endpoint, options);
+  patch = (endpoint: string, options?: RequestOptions): Promise<Response> => NetworkClient.patch(this.baseUrl, endpoint, options);
+  delete = (endpoint: string, options?: RequestOptions): Promise<Response> => NetworkClient.delete(this.baseUrl, endpoint, options);
 }
 
 const CLIENTS: {[key: string]: ApiClient} = {};
