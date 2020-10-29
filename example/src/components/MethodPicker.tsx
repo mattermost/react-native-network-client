@@ -15,19 +15,18 @@ const styles = StyleSheet.create({
     },
 });
 
-export const METHODS = {
-    GET: 'GET',
-    PUT: 'PUT',
-    POST: 'POST',
-    PATCH: 'PATCH',
-    DELETE: 'DELETE',
+export enum METHOD {
+    GET = 'GET',
+    PUT = 'PUT',
+    POST = 'POST',
+    PATCH = 'PATCH',
+    DELETE = 'DELETE',
 };
 
 export default function MethodPicker({wrapperStyle, onMethodPicked}) {
-    const [method, setMethod] = useState(METHODS.GET);
-    const items = Object.values(METHODS).map((method) => ({label: method, value: method}));
+    const [method, setMethod] = useState(METHOD.GET);
+    const items = Object.values(METHOD).map((method) => ({label: method, value: method}));
     const onChangeItem = (item) => {
-        console.log(item.value)
         setMethod(item.value);
         onMethodPicked(item.value);
     };

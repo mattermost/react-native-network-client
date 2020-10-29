@@ -17,7 +17,7 @@ import {
     View,
 } from 'react-native';
 
-import MethodPicker, {METHODS} from '../components/MethodPicker';
+import MethodPicker, {METHOD} from '../components/MethodPicker';
 
 const styles = StyleSheet.create({
     container: {
@@ -155,7 +155,7 @@ export default function GenericClientScreen({navigation, route}) {
             headers: sanitizeHeaders(requestHeaders),
         };
 
-        if (method !== METHODS.GET && body.length) {
+        if (method !== METHOD.GET && body.length) {
             try {
                 options.body = JSON.parse(body);
             } catch(e) {
@@ -273,7 +273,7 @@ export default function GenericClientScreen({navigation, route}) {
                     style={[styles.input, styles.textInput]}
                 />
             </View>
-            {method !== METHODS.GET &&
+            {method !== METHOD.GET &&
             <View style={styles.inputContainer}>
                 <Text style={[styles.label, styles.inputLabel]}>Body</Text>
                 <TextInput
