@@ -5,6 +5,7 @@ import React, {useState, useRef} from 'react';
 import {
     Alert,
     Button,
+    FlatList,
     Platform,
     PlatformColor,
     SafeAreaView,
@@ -12,53 +13,97 @@ import {
     StyleSheet,
     Text,
     TextInput,
+    TouchableOpacity,
     View,
 } from 'react-native';
+
+import MethodPicker, {METHODS} from '../components/MethodPicker';
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-    },
-    buttonContainer: {
-        flex: 1,
-        flexDirection: 'row',
-        justifyContent: 'space-evenly',
-        alignItems: 'flex-end',
+        marginBottom: 15,
     },
     label: {
         padding: 5,
     },
+    inputContainer: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    pickerContainer: {
+        zIndex: Platform.OS === 'ios' ? 10 : 0,
+    },
+    inputLabel: {
+        flex: 1,
+    },
     input: {
+        flex: 6,
         margin: 15,
         height: 40,
-        borderWidth: 1,
         padding: 5,
+    },
+    textInput: {
+        borderWidth: 1,
         ...Platform.select({
             ios: { borderColor: PlatformColor('link') },
             android: {
                 borderColor: PlatformColor('?attr/colorControlNormal')
             },
         }),
-     },
-     optionsLabelContainer: {
+    },
+    optionsLabelContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-     },
-     optionsContainer: {
-        flex: 8,
-     },
-     option: {
-         flexDirection: 'row',
-         justifyContent: 'space-evenly',
-     }
+    },
+    optionsContainer: {
+        flex: 1,
+    },
+    option: {
+        flexDirection: 'row',
+        justifyContent: 'space-evenly',
+    },
+    responseContainer: {
+        flex: 3,
+    },
+    responseScrollView: {
+        paddingHorizontal: 15,
+    },
+    responseHeadersContainer: {
+        flex: 1,
+    },
+    responseDataContainer: {
+        flex: 1,
+    },
+    responseHeader: {
+        marginLeft: 10,
+    },
+    responseTouchables: {
+        flex: 1,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+    },
+    separator: {
+        height: 0.5,
+        backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    },
+    link: {
+        ...Platform.select({
+            ios: { color: PlatformColor('link') },
+            android: {
+                color: PlatformColor('?attr/colorControlNormal')
+            },
+        }),
+    },
 });
 
-const ConfigOption = ({index, option, updateOption}) => {
-    const [key, setKey] = useState(option.key);
-    const [value, setValue] = useState(option.value);
+const RequestHeader = ({index, header, updateHeader}) => {
+    const [key, setKey] = useState(header.key);
+    const [value, setValue] = useState(header.value);
 
-    const doUpdateOption = () => {
-        updateOption(index, {key, value});
+    const doUpdateHeader = () => {
+        updateHeader(index, {key, value});
     }
 
     return (
@@ -68,101 +113,188 @@ const ConfigOption = ({index, option, updateOption}) => {
                 onChangeText={setKey}
                 placeholder='key'
                 autoCapitalize='none'
-                onBlur={doUpdateOption}
-                style={[styles.input, {flex: 1}]}
+                onBlur={doUpdateHeader}
+                style={[styles.input, styles.textInput, {flex: 1}]}
             />
             <TextInput
                 value={value}
                 onChangeText={setValue}
                 placeholder='value'
                 autoCapitalize='none'
-                onBlur={doUpdateOption}
-                style={[styles.input, {flex: 1}]}
+                onBlur={doUpdateHeader}
+                style={[styles.input, styles.textInput, {flex: 1}]}
             />
         </>
     );
 
 }
 
-
 export default function GenericClientScreen({navigation, route}) {
     const {name, client} = route.params;
 
+    const [method, setMethod] = useState('GET');
     const [url, setUrl] = useState('https://jsonplaceholder.typicode.com/todos/1');
-    const [configOptions, setConfigOptions] = useState([{key: '', value: ''}]);
+    const [body, setBody] = useState('');
+    const [requestHeaders, setRequestHeaders] = useState([{key: '', value: ''}]);
+    const [response, setResponse] = useState(null);
     const scrollView = useRef(null);
 
-    const sanitizeOptions = () => {
-        const options = {};
-        configOptions.forEach(({key, value}) => {
-           if (key && value) {
-               options[key] = value;
-           } 
+    const sanitizeHeaders = (headersArray) => {
+        const headers = {};
+        headersArray.forEach(({key, value}) => {
+            if (key && value) {
+                headers[key] = value;
+            } 
         });
 
-        return options;
+        return headers;
     }
 
-    makeRequest = async () => {
-        const options = sanitizeOptions(configOptions);
-        try {
-            const response = await client.get(url, options);
-            Alert.alert(
-                'Response',
-                JSON.stringify(response),
-                [{text: 'OK'}],
-                {cancelable: false}
-            );
-        } catch (e) {
+    const makeRequest = async () => {
+        const options = {
+            headers: sanitizeHeaders(requestHeaders),
+        };
+
+        if (method !== METHODS.GET && body.length) {
+            try {
+                options.body = JSON.parse(body);
+            } catch(e) {
+                Alert.alert(
+                    'Error parsing Body',
+                    e.message,
+                    [{text: 'OK'}],
+                    {cancelable: false}
+                );
+
+                return;
+            }
+        }
+
+        const requestMethod = client[method.toLowerCase()];
+        if (typeof requestMethod === 'function') {
+            try {
+                const response = await requestMethod(url, options);
+                setResponse(response);
+            } catch (e) {
+                Alert.alert(
+                    'Error',
+                    e.message,
+                    [{text: 'OK'}],
+                    {cancelable: false}
+                );
+            }
+        } else {
             Alert.alert(
                 'Error',
-                e.message,
+                'Invalid request method',
                 [{text: 'OK'}],
                 {cancelable: false}
             );
         }
     }
 
-    const addConfigOption = () => {
-        setConfigOptions([...configOptions, {key: '', value: ''}]);
+    const addRequestHeader = (header = {key: '', value: ''}) => {
+        setRequestHeaders([...requestHeaders, header]);
         scrollView.current.scrollToEnd();
     }
 
-    const updateConfigOption = (index, option) => {
-        const newConfigOptions = configOptions;
-        newConfigOptions[index] = option;
-        setConfigOptions(newConfigOptions);
+    const updateRequestHeader = (index, header) => {
+        const newRequestHeaders = requestHeaders;
+        newRequestHeaders[index] = header;
+        setRequestHeaders(newRequestHeaders);
     };
 
-    const renderConfigOptions = () => (
-        <ScrollView ref={scrollView} contentContainerStyle={styles.scrollViewContainer}>
+    const renderRequestHeaders = () => (
+        <ScrollView ref={scrollView}>
             {
-                configOptions.map((option, index) => (
-                    <View key={`option-${index}`} style={styles.option}>
-                        <ConfigOption index={index} option={option} updateOption={updateConfigOption} />
+                requestHeaders.map((header, index) => (
+                    <View key={`header-${index}`} style={styles.option}>
+                        <RequestHeader index={index} header={header} updateHeader={updateRequestHeader} />
                     </View>
                 ))
             }
         </ScrollView>
-    )
+    );
+
+    const renderResponseHeader = ({item}) => (
+        <View style={styles.responseHeader}>
+            <Text>Key: {item[0]}</Text>
+            <Text>Value: {item[1]}</Text>
+            <View style={styles.responseTouchables}>
+                <TouchableOpacity onPress={() => addRequestHeader({key: item[0], value: item[1]})}>
+                    <Text style={styles.link}>Add to request headers</Text>
+                </TouchableOpacity>
+            </View>
+        </View>
+    );
+    const responseHeaderKey = (item) => `response-header-${item[0]}`;
+    const renderSeparator = () => <View style={styles.separator} />
+
+    const renderResponse = () => {
+        if (response) {
+            return (
+                <>
+                    <View style={styles.responseHeadersContainer}>
+                        <Text style={styles.label}>Response</Text>
+                        <Text style={styles.label}>Headers</Text>
+                        <FlatList
+                            data={Object.entries(response.headers)}
+                            renderItem={renderResponseHeader}
+                            keyExtractor={responseHeaderKey}
+                            ItemSeparatorComponent={renderSeparator}
+                        />
+                    </View>
+                    <View style={styles.responseDataContainer}>
+                        <Text style={styles.label}>Data</Text>
+                        <ScrollView contentContainerStyle={styles.responseScrollView}>
+                            <Text>{JSON.stringify(response.data)}</Text>
+                        </ScrollView>
+                    </View>
+                </>
+            )
+        }
+
+        return null;
+    }
 
     return (
         <SafeAreaView style={styles.container}>
-            <Text style={styles.label}>Method: GET</Text>
-            <Text style={styles.label}>URL</Text>
-            <TextInput
-                value={url}
-                onChangeText={setUrl}
-                placeholder='https://jsonplaceholder.typicode.com/todos/1'
-                autoCapitalize='none'
-                style={styles.input}
-            />
+            <View style={[styles.inputContainer, styles.pickerContainer]}>
+                <Text style={[styles.label, styles.inputLabel]}>Method</Text>
+                <MethodPicker wrapperStyle={styles.input} onMethodPicked={setMethod} />
+            </View>
+            <View style={styles.inputContainer}>
+                <Text style={[styles.label, styles.inputLabel]}>URL</Text>
+                <TextInput
+                    value={url}
+                    onChangeText={setUrl}
+                    placeholder='https://jsonplaceholder.typicode.com/todos/1'
+                    autoCapitalize='none'
+                    style={[styles.input, styles.textInput]}
+                />
+            </View>
+            {method !== METHODS.GET &&
+            <View style={styles.inputContainer}>
+                <Text style={[styles.label, styles.inputLabel]}>Body</Text>
+                <TextInput
+                    value={body}
+                    onChangeText={setBody}
+                    placeholder='{"username": "johndoe"}'
+                    autoCapitalize='none'
+                    multiline={true}
+                    style={[styles.input, styles.textInput]}
+                />
+            </View>
+            }
             <View style={styles.optionsLabelContainer}>
-                <Text style={styles.label}>Request Options</Text>
-                <Button title='+' onPress={addConfigOption}/>
+                <Text style={styles.label}>Request Headers</Text>
+                <Button title='+' onPress={addRequestHeader}/>
             </View>
             <View style={styles.optionsContainer}>
-                {renderConfigOptions()}
+                {renderRequestHeaders()}
+            </View>
+            <View style={styles.responseContainer}>
+                {renderResponse()}
             </View>
             <View style={styles.buttonContainer}>
                 <Button
