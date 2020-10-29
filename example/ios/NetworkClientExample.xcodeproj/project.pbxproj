@@ -292,10 +292,7 @@
 				CODE_SIGN_ENTITLEMENTS = NetworkClientExample/NetworkClientExample.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = NO;
-<<<<<<< Updated upstream
-=======
 				DEVELOPMENT_TEAM = AYNB4BA5F7;
->>>>>>> Stashed changes
 				INFOPLIST_FILE = NetworkClientExample/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				OTHER_CFLAGS = (
@@ -307,7 +304,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.NetworkClientExample.$(PRODUCT_NAME:rfc1034identifier)";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.mattermost.react-native-network-client";
 				PRODUCT_NAME = NetworkClientExample;
 				SWIFT_OBJC_BRIDGING_HEADER = "NetworkClientExample-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -324,10 +321,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = NetworkClientExample/NetworkClientExample.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
-<<<<<<< Updated upstream
-=======
 				DEVELOPMENT_TEAM = AYNB4BA5F7;
->>>>>>> Stashed changes
 				INFOPLIST_FILE = NetworkClientExample/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				OTHER_CFLAGS = (
@@ -339,7 +333,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.NetworkClientExample.$(PRODUCT_NAME:rfc1034identifier)";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.mattermost.react-native-network-client";
 				PRODUCT_NAME = NetworkClientExample;
 				SWIFT_OBJC_BRIDGING_HEADER = "NetworkClientExample-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
