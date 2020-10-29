@@ -3,6 +3,6 @@
 export * from 'react-native';
 declare module 'react-native' {
   export interface NativeModulesStatic {
-      NetworkClient: NetworkClient
+      NetworkClient: NativeNetworkClient
   }
 }
