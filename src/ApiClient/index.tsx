@@ -58,6 +58,10 @@ async function getOrCreateApiClient(baseUrl: string, config: ApiClientConfigurat
     return networkClient;
 }
 
+function removeApiClient(baseUrl: string): Promise<void> {
+  return NetworkClient.removeApiClientFor(baseUrl);
+}
+
 const isValidBaseURL = (baseUrl: string) => {
   return isURL(baseUrl, {
     protocols: ['http', 'https'],
@@ -70,4 +74,5 @@ const isValidBaseURL = (baseUrl: string) => {
 export {
   GenericClient,
   getOrCreateApiClient,
+  removeApiClient,
 };
