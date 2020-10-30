@@ -292,10 +292,7 @@
 				CODE_SIGN_ENTITLEMENTS = NetworkClientExample/NetworkClientExample.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = NO;
-<<<<<<< Updated upstream
-=======
 				DEVELOPMENT_TEAM = AYNB4BA5F7;
->>>>>>> Stashed changes
 				INFOPLIST_FILE = NetworkClientExample/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				OTHER_CFLAGS = (
@@ -324,10 +321,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = NetworkClientExample/NetworkClientExample.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
-<<<<<<< Updated upstream
-=======
 				DEVELOPMENT_TEAM = AYNB4BA5F7;
->>>>>>> Stashed changes
 				INFOPLIST_FILE = NetworkClientExample/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				OTHER_CFLAGS = (
