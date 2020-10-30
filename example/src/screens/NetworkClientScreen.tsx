@@ -17,6 +17,8 @@ import {
     View,
 } from 'react-native';
 
+import MethodPicker, {METHOD} from '../components/MethodPicker';
+
 const styles = StyleSheet.create({
     container: {
         flex: 1,
@@ -30,6 +32,9 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
     },
+    pickerContainer: {
+        zIndex: Platform.OS === 'ios' ? 10 : 0,
+    },
     inputLabel: {
         flex: 1,
     },
@@ -37,15 +42,17 @@ const styles = StyleSheet.create({
         flex: 6,
         margin: 15,
         height: 40,
-        borderWidth: 1,
         padding: 5,
+    },
+    textInput: {
+        borderWidth: 1,
         ...Platform.select({
             ios: { borderColor: PlatformColor('link') },
             android: {
                 borderColor: PlatformColor('?attr/colorControlNormal')
             },
         }),
-     },
+    },
     clientHeadersContainer: {
         flex: 1,
         paddingHorizontal: 15,
@@ -92,7 +99,7 @@ const styles = StyleSheet.create({
                 color: PlatformColor('?attr/colorControlNormal')
             },
         }),
-    }
+    },
 });
 
 const RequestHeader = ({index, header, updateHeader}) => {
@@ -111,7 +118,7 @@ const RequestHeader = ({index, header, updateHeader}) => {
                 placeholder='key'
                 autoCapitalize='none'
                 onBlur={doUpdateHeader}
-                style={[styles.input, {flex: 1}]}
+                style={[styles.input, styles.textInput, {flex: 1}]}
             />
             <TextInput
                 value={value}
@@ -119,13 +126,12 @@ const RequestHeader = ({index, header, updateHeader}) => {
                 placeholder='value'
                 autoCapitalize='none'
                 onBlur={doUpdateHeader}
-                style={[styles.input, {flex: 1}]}
+                style={[styles.input, styles.textInput, {flex: 1}]}
             />
         </>
     );
 
 }
-
 
 export default function NetworkClientScreen({navigation, route}) {
     const {name, client} = route.params;
@@ -161,21 +167,25 @@ export default function NetworkClientScreen({navigation, route}) {
     const makeRequest = async () => {
         const options = {
             headers: sanitizeHeaders(requestHeaders),
-            body: JSON.parse(body),
         };
-        let requestMethod;
-        switch (method.toLowerCase().trim()) {
-            case 'get':
-                requestMethod = client.get;
-                break;
-            case 'post':
-                requestMethod = client.post;
-                break;
-            default:
-                break;
+
+        if (method !== METHOD.GET && body.length) {
+            try {
+                options.body = JSON.parse(body);
+            } catch(e) {
+                Alert.alert(
+                    'Error parsing Body',
+                    e.message,
+                    [{text: 'OK'}],
+                    {cancelable: false}
+                );
+
+                return;
+            }
         }
 
-        if (requestMethod) {
+        const requestMethod = client[method.toLowerCase()];
+        if (typeof requestMethod === 'function') {
             try {
                 const response = await requestMethod(endpoint, options);
                 setResponse(response);
@@ -293,23 +303,15 @@ export default function NetworkClientScreen({navigation, route}) {
         return null;
     }
 
-    const doSetMethod = (method) => setMethod(method.trim().toUpperCase());
-
     return (
         <SafeAreaView style={styles.container}>
             <Text style={styles.label}>Client Headers</Text>
             <View style={styles.clientHeadersContainer}>
                 {renderClientInfo()}
             </View>
-            <View style={styles.inputContainer}>
+            <View style={[styles.inputContainer, styles.pickerContainer]}>
                 <Text style={[styles.label, styles.inputLabel]}>Method</Text>
-                <TextInput
-                    value={method}
-                    onChangeText={doSetMethod}
-                    placeholder='GET'
-                    autoCapitalize='none'
-                    style={styles.input}
-                />
+                <MethodPicker wrapperStyle={styles.input} onMethodPicked={setMethod} />
             </View>
             <View style={styles.inputContainer}>
                 <Text style={[styles.label, styles.inputLabel]}>URL</Text>
@@ -318,10 +320,10 @@ export default function NetworkClientScreen({navigation, route}) {
                     onChangeText={setEndpoint}
                     placeholder='/todos/1'
                     autoCapitalize='none'
-                    style={styles.input}
+                    style={[styles.input, styles.textInput]}
                 />
             </View>
-            {method === 'POST' &&
+            {method !== METHOD.GET &&
             <View style={styles.inputContainer}>
                 <Text style={[styles.label, styles.inputLabel]}>Body</Text>
                 <TextInput
@@ -330,7 +332,7 @@ export default function NetworkClientScreen({navigation, route}) {
                     placeholder='{"username": "johndoe"}'
                     autoCapitalize='none'
                     multiline={true}
-                    style={styles.input}
+                    style={[styles.input, styles.textInput]}
                 />
             </View>
             }

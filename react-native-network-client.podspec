@@ -19,4 +19,5 @@ Pod::Spec.new do |s|
 
   s.dependency "React"
   s.dependency "Alamofire", "~> 5.2"
+  s.dependency "SwiftyJSON", "~> 4.0"
 end

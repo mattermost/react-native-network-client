@@ -27,33 +27,55 @@ class SessionManager {
 
     // TODO
     // Configure sesssion:
-    //  * RequestInterceptor
+    //  * RequestInterceptor?
     //  * ServerTrustManager
     //  * RedirectHandler
     //  * CachedResponseHandler
     //  * EventMonitor(s)
-    func createSession(for rootUrl:String, withConfig config:URLSessionConfiguration = URLSessionConfiguration.af.default) -> Void {
-        var session = getSession(for: rootUrl)
+    func createSession(for baseUrl:String, withConfig config:URLSessionConfiguration = URLSessionConfiguration.af.default) -> Void {
+        var session = getSession(for: baseUrl)
         if (session != nil) {
             return
         }
     
-        let storage = TestStorage()
-        let requestInterceptor = RequestInterceptor(storage: storage)
-        session = Session(configuration: config, interceptor: requestInterceptor)
-        sessions[rootUrl] = session
+        session = Session(configuration: config)
+        sessions[baseUrl] = session
+    }
+
+    func getSessionHeaders(for baseUrl:String) -> [AnyHashable : Any]? {
+        guard let session = getSession(for: baseUrl) else {
+            return [:]
+        }
+
+        return session.sessionConfiguration.httpAdditionalHeaders
+    }
+
+    func addSessionHeaders(for baseUrl:String, additionalHeaders:Dictionary<String, String>) -> Void {
+        guard let prevSession = getSession(for: baseUrl) else {
+            return
+        }
+
+        closeSession(for: baseUrl)
+
+        let config = prevSession.sessionConfiguration
+        let previousHeaders = config.httpAdditionalHeaders ?? [:]
+        let newHeaders = previousHeaders.merging(additionalHeaders) {(_, new) in new}
+        config.httpAdditionalHeaders = newHeaders
+
+        let newSession = Session(configuration: config, interceptor: prevSession.interceptor)
+        sessions[baseUrl] = newSession
     }
     
-    func getSession(for rootUrl:String) -> Session? {
-        return sessions[rootUrl]
+    func getSession(for baseUrl:String) -> Session? {
+        return sessions[baseUrl]
     }
     
-    func closeSession(for rootUrl:String) -> Void {
-        guard let session = getSession(for: rootUrl) else {
+    func closeSession(for baseUrl:String) -> Void {
+        guard let session = getSession(for: baseUrl) else {
             return
         }
         
         session.session.invalidateAndCancel()
-        sessions.removeValue(forKey: rootUrl)
+        sessions.removeValue(forKey: baseUrl)
     }
 }

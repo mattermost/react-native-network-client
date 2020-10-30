@@ -11,6 +11,10 @@ const {NetworkClient} = NativeModules;
  */
 class GenericClient implements GenericClientInterface {
     get = (url: string, options?: RequestOptions): Promise<Response> => NetworkClient.get(url, null, options);
+    put = (url: string, options?: RequestOptions): Promise<Response> => NetworkClient.put(url, null, options);
+    post = (url: string, options?: RequestOptions): Promise<Response> => NetworkClient.post(url, null, options);
+    patch = (url: string, options?: RequestOptions): Promise<Response> => NetworkClient.patch(url, null, options);
+    delete = (url: string, options?: RequestOptions): Promise<Response> => NetworkClient.delete(url, null, options);
 }
 
 /**
