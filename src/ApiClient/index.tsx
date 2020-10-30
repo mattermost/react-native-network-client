@@ -4,52 +4,44 @@
 import {NativeModules} from 'react-native';
 import isURL from 'validator/es/lib/isURL';
 
-import type {
-  RequestOptions,
-  Response,
-  GenericClientInterface,
-  ApiClientInterface,
-  ApiClientConfiguration,
-} from './types';
-
 const {NetworkClient} = NativeModules;
 
 /**
  * Generic client for making GET requests
  */
 class GenericClient implements GenericClientInterface {
-  get = (url: string, options?: RequestOptions) => NetworkClient.get(url, null, options);
-  put = (url: string, options?: RequestOptions): Promise<Response> => NetworkClient.put(url, null, options);
-  post = (url: string, options?: RequestOptions): Promise<Response> => NetworkClient.post(url, null, options);
-  patch = (url: string, options?: RequestOptions): Promise<Response> => NetworkClient.patch(url, null, options);
-  delete = (url: string, options?: RequestOptions): Promise<Response> => NetworkClient.delete(url, null, options);
+    get = (url: string, options?: RequestOptions): Promise<Response> => NetworkClient.get(url, null, options);
+    put = (url: string, options?: RequestOptions): Promise<Response> => NetworkClient.put(url, null, options);
+    post = (url: string, options?: RequestOptions): Promise<Response> => NetworkClient.post(url, null, options);
+    patch = (url: string, options?: RequestOptions): Promise<Response> => NetworkClient.patch(url, null, options);
+    delete = (url: string, options?: RequestOptions): Promise<Response> => NetworkClient.delete(url, null, options);
 }
 
 /**
  * Configurable client for consuming a REST API
  */
 class ApiClient implements ApiClientInterface {
-  baseUrl: string;
+    baseUrl: string;
 
-  constructor(baseUrl: string) {
-      this.baseUrl = baseUrl;
-  }
+    constructor(baseUrl: string) {
+        this.baseUrl = baseUrl;
+    }
 
-  getHeaders = (): Promise<object> => NetworkClient.getApiClientHeadersFor(this.baseUrl);
-  addHeaders = (headers: object): void => NetworkClient.addApiClientHeadersFor(this.baseUrl, headers);
+    getHeaders = (): Promise<Headers> => NetworkClient.getApiClientHeadersFor(this.baseUrl);
+    addHeaders = (headers: Headers): Promise<void> => NetworkClient.addApiClientHeadersFor(this.baseUrl, headers);
 
-  get = (endpoint: string, options?: RequestOptions): Promise<Response> => NetworkClient.get(this.baseUrl, endpoint, options);
-  put = (endpoint: string, options?: RequestOptions): Promise<Response> => NetworkClient.put(this.baseUrl, endpoint, options);
-  post = (endpoint: string, options?: RequestOptions): Promise<Response> => NetworkClient.post(this.baseUrl, endpoint, options);
-  patch = (endpoint: string, options?: RequestOptions): Promise<Response> => NetworkClient.patch(this.baseUrl, endpoint, options);
-  delete = (endpoint: string, options?: RequestOptions): Promise<Response> => NetworkClient.delete(this.baseUrl, endpoint, options);
+    get = (endpoint: string, options?: RequestOptions): Promise<Response> => NetworkClient.get(this.baseUrl, endpoint, options);
+    put = (endpoint: string, options?: RequestOptions): Promise<Response> => NetworkClient.put(this.baseUrl, endpoint, options);
+    post = (endpoint: string, options?: RequestOptions): Promise<Response> => NetworkClient.post(this.baseUrl, endpoint, options);
+    patch = (endpoint: string, options?: RequestOptions): Promise<Response> => NetworkClient.patch(this.baseUrl, endpoint, options);
+    delete = (endpoint: string, options?: RequestOptions): Promise<Response> => NetworkClient.delete(this.baseUrl, endpoint, options);
 }
 
 const CLIENTS: {[key: string]: ApiClient} = {};
 
-async function getOrCreateApiClient(baseUrl: string, config: ApiClientConfiguration = {}): Promise<ApiClient>  {
+async function getOrCreateApiClient(baseUrl: string, config: ApiClientConfiguration = {}): Promise<ApiClient> {
     if (!isValidBaseURL(baseUrl)) {
-      throw new Error('baseUrl must be a valid API base URL');
+        throw new Error('baseUrl must be a valid API base URL');
     }
 
     let networkClient = CLIENTS[baseUrl];
@@ -63,15 +55,15 @@ async function getOrCreateApiClient(baseUrl: string, config: ApiClientConfigurat
 }
 
 const isValidBaseURL = (baseUrl: string) => {
-  return isURL(baseUrl, {
-    protocols: ['http', 'https'],
-    require_protocol: true,
-    require_valid_protocol: true,
-    require_host: true,
-  });
-}
+    return isURL(baseUrl, {
+        protocols: ['http', 'https'],
+        require_protocol: true,
+        require_valid_protocol: true,
+        require_host: true,
+    });
+};
 
 export {
-  GenericClient,
-  getOrCreateApiClient,
+    GenericClient,
+    getOrCreateApiClient,
 };
