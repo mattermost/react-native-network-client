@@ -1,4 +1,4 @@
-package com.reactnativenetworkclient
+package com.mattermost.networkclient
 
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule

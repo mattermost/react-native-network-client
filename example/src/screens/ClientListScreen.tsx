@@ -3,7 +3,7 @@
 
 import React, {useState, useEffect} from 'react';
 import {Button, FlatList, SafeAreaView, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
-import GenericClient from 'react-native-network-client';
+import GenericClient from '@mattermost/react-native-network-client';
 
 const styles = StyleSheet.create({
     container: {
