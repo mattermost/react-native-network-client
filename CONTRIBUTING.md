@@ -23,13 +23,13 @@ npm run example start
 To run the example app on Android:
 
 ```sh
-npm run example android
+npm run example run android
 ```
 
 To run the example app on iOS:
 
 ```sh
-npm run example ios
+npm run example run ios
 ```
 
 Make sure your code passes TypeScript and ESLint. Run the following to verify:
@@ -51,9 +51,9 @@ Remember to add tests for your change if possible. Run the unit tests by:
 npm run test
 ```
 
-To edit the Objective-C files, open `example/ios/AwesomeExample.xcworkspace` in XCode and find the source files at `Pods > Development Pods > awesome`.
+To edit the Objective-C files, open `example/ios/NetworkClientExample.xcworkspace` in XCode and find the source files at `Pods > Development Pods > react-native-network-client`.
 
-To edit the Kotlin files, open `example/android` in Android studio and find the source files at `awesome` under `Android`.
+To edit the Kotlin files, open `example/android` in Android studio and find the source files at `reactnativenetworkclient` under `Android`.
 
 ### Commit message convention
 

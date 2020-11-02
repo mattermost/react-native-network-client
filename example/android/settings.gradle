@@ -2,5 +2,5 @@ rootProject.name = 'NetworkClientExample'
 apply from: file("../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesSettingsGradle(settings)
 include ':app'
 
-include ':reactnativenetworkclient'
-project(':reactnativenetworkclient').projectDir = new File(rootProject.projectDir, '../../android')
+include ':mattermost.networkclient'
+project(':mattermost.networkclient').projectDir = new File(rootProject.projectDir, '../../android')
