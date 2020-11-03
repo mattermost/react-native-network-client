@@ -12,6 +12,8 @@ interface NativeNetworkClient {
     removeApiClientFor(baseUrl: string): Promise<void>;
     getApiClientHeadersFor(baseUrl: string): Promise<Headers>;
     addApiClientHeadersFor(baseUrl: string, headers: Headers): Promise<void>;
+    removeApiClientHeadersFor(baseUrl: string, headers: string[]): Promise<void>;
+    clearApiClientHeadersFor(baseUrl: string): Promise<void>;
 
     getWebSocketClientsList(): Promise<string[]>;
     createWebSocketClientFor(wsUrl: string, callbacks: WebSocketCallbacks, config?: WebSocketClientConfiguration);

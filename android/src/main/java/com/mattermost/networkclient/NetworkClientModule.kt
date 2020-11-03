@@ -38,15 +38,34 @@ class NetworkClientModule(reactContext: ReactApplicationContext) : ReactContextB
 
     @ReactMethod
     fun getApiClientHeadersFor(baseUrl: String, promise: Promise ) {
+        val build = sessions[baseUrl]?.build()
+        promise.resolve(build?.headers)
     }
 
     @ReactMethod
     fun addApiClientHeadersFor(baseUrl: String, headers: Headers, promise: Promise ) {
-        promise.resolve(sessions[baseUrl]?.headers(headers))
+        for ((k,v) in headers){
+            sessions[baseUrl]?.addHeader(k,v);
+        }
+        promise.resolve("")
     }
 
     @ReactMethod
-    fun get(baseUrl: String, endpoint: String?, options: Object, promise: Promise){
+    fun removeApiClientHeadersFor(baseUrl: String, headers: Array<String>, promise: Promise ) {
+        for (h in headers){
+            sessions[baseUrl]?.removeHeader(h);
+        }
+        promise.resolve("")
+    }
+
+    @ReactMethod
+    fun clearApiClientHeadersFor(baseUrl: string, promise: Promise){
+        val h: Headers = Headers();
+        sessions[baseUrl]?.headers(h)
+    }
+
+    @ReactMethod
+    fun get(baseUrl: String, endpoint: String?, options: kotlin.Any, promise: Promise){
         val request = sessions[baseUrl]?.url("${baseUrl}/${endpoint}")?.build();
         client.newCall(request!!).execute().use{ response ->
             if (!response.isSuccessful) promise.reject("Unexpected code $response")
@@ -55,18 +74,40 @@ class NetworkClientModule(reactContext: ReactApplicationContext) : ReactContextB
     }
 
     @ReactMethod
-    fun post(baseUrl: String, endpoint: String?, options: Object, promise: Promise){
-
+    fun post(baseUrl: String, endpoint: String?, options: kotlin.Any, promise: Promise){
+        val request = sessions[baseUrl]?.url("${baseUrl}/${endpoint}")?.post(options.body)?.build();
+        client.newCall(request!!).execute().use{ response ->
+            if (!response.isSuccessful) promise.reject("Unexpected code $response")
+            promise.resolve(response)
+        }
     }
 
     @ReactMethod
-    fun put(baseUrl: String, endpoint: String?, options: Object, promise: Promise){}
+    fun put(baseUrl: String, endpoint: String?, options: Object, promise: Promise){
+        val request = sessions[baseUrl]?.url("${baseUrl}/${endpoint}")?.put(options.body)?.build();
+        client.newCall(request!!).execute().use{ response ->
+            if (!response.isSuccessful) promise.reject("Unexpected code $response")
+            promise.resolve(response)
+        }
+    }
 
     @ReactMethod
-    fun path(baseUrl: String, endpoint: String?, options: Object, promise: Promise){}
+    fun patch(baseUrl: String, endpoint: String?, options: Object, promise: Promise){
+        val request = sessions[baseUrl]?.url("${baseUrl}/${endpoint}")?.patch(options.body)?.build();
+        client.newCall(request!!).execute().use{ response ->
+            if (!response.isSuccessful) promise.reject("Unexpected code $response")
+            promise.resolve(response)
+        }
+    }
 
     @ReactMethod
-    fun delete(baseUrl: String, endpoint: String?, options: Object, promise: Promise){}
+    fun delete(baseUrl: String, endpoint: String?, options: Object, promise: Promise){
+        val request = sessions[baseUrl]?.url("${baseUrl}/${endpoint}")?.delete(options.body)?.build();
+        client.newCall(request!!).execute().use{ response ->
+            if (!response.isSuccessful) promise.reject("Unexpected code $response")
+            promise.resolve(response)
+        }
+    }
 
     
 }
