@@ -2,7 +2,7 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "react-native-network-client": ["./src/index"]
+      "@mattermost/react-native-network-client": ["./src/index"]
     },
     "allowUnreachableCode": false,
     "allowUnusedLabels": false,
@@ -23,6 +23,5 @@
     "skipLibCheck": true,
     "strict": true,
     "target": "esnext",
-  },
-  "exclude": ["example/*"]
+  }
 }
