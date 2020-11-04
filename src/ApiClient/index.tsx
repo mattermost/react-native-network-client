@@ -14,6 +14,16 @@ import type {
 
 const {NetworkClient} = NativeModules;
 
+const CLIENTS: {[key: string]: ApiClient} = {};
+
+class UndefinedClient extends Error {
+  constructor(baseUrl: string) {
+    super();
+    this.name = 'UndefinedClient';
+    this.message = `Client for ${baseUrl} not found.`;
+  }
+}
+
 /**
  * Generic client for making GET requests
  */
@@ -34,14 +44,19 @@ class ApiClient implements ApiClientInterface {
   getHeaders = (): Promise<object> => NetworkClient.getApiClientHeadersFor(this.baseUrl);
   addHeaders = (headers: object): void => NetworkClient.addApiClientHeadersFor(this.baseUrl, headers);
 
-  get = (endpoint: string, options?: RequestOptions): Promise<Response> => NetworkClient.get(this.baseUrl, endpoint, options);
+  get = (endpoint: string, options?: RequestOptions): Promise<Response> => {
+    if (!CLIENTS[this.baseUrl]) {
+      return Promise.reject(new UndefinedClient(this.baseUrl));
+    }
+    
+    return NetworkClient.get(this.baseUrl, endpoint, options);
+  }
+
   put = (endpoint: string, options?: RequestOptions): Promise<Response> => NetworkClient.put(this.baseUrl, endpoint, options);
   post = (endpoint: string, options?: RequestOptions): Promise<Response> => NetworkClient.post(this.baseUrl, endpoint, options);
   patch = (endpoint: string, options?: RequestOptions): Promise<Response> => NetworkClient.patch(this.baseUrl, endpoint, options);
   delete = (endpoint: string, options?: RequestOptions): Promise<Response> => NetworkClient.delete(this.baseUrl, endpoint, options);
 }
-
-const CLIENTS: {[key: string]: ApiClient} = {};
 
 async function getOrCreateApiClient(baseUrl: string, config: ApiClientConfiguration = {}): Promise<ApiClient>  {
     if (!isValidBaseURL(baseUrl)) {
@@ -58,8 +73,9 @@ async function getOrCreateApiClient(baseUrl: string, config: ApiClientConfigurat
     return networkClient;
 }
 
-function removeApiClient(baseUrl: string): Promise<void> {
-  return NetworkClient.removeApiClientFor(baseUrl);
+function removeApiClient(client: ApiClient): Promise<void> {
+  delete CLIENTS[client.baseUrl];
+  return NetworkClient.removeApiClientFor(client.baseUrl);
 }
 
 const isValidBaseURL = (baseUrl: string) => {

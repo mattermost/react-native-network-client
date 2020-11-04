@@ -42,8 +42,9 @@ async function getOrCreateWebSocketClient(wsUrl: string, callbacks: WebSocketCal
     return websocket;
 }
 
-function removeWebSocketClient(wsUrl: string): Promise<void> {
-  return NetworkClient.removeWebSocketClientFor(wsUrl);
+function removeWebSocketClient(websocket: WebSocketClient): Promise<void> {
+  delete SOCKETS[websocket.wsUrl];
+  return NetworkClient.removeWebSocketClientFor(websocket.wsUrl);
 }
 
 const isValidWebSocketURL = (wsUrl: string) => {

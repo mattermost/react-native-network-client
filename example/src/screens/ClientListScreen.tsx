@@ -2,8 +2,17 @@
 // See LICENSE.txt for license information.
 
 import React, {useState, useEffect} from 'react';
-import {Button, FlatList, SafeAreaView, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
-import GenericClient from 'react-native-network-client';
+import {
+    Alert,
+    Button,
+    FlatList,
+    SafeAreaView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from 'react-native';
+import GenericClient, {removeApiClient} from 'react-native-network-client';
 
 const styles = StyleSheet.create({
     container: {
@@ -40,8 +49,18 @@ const NetworkClient = ({name, client, navigate}) => {
         navigate(screen, {name, client});
     };
 
+    const removeClient = () => {
+        client.baseUrl &&
+        Alert.alert(
+            'Remove Client',
+            '',
+            [{text: 'Cancel'}, {text: 'OK', onPress: () => removeApiClient(client)}],
+            {cancelable: true}
+        );
+    }
+
     return (
-        <TouchableOpacity style={styles.row} onPress={viewClient}>
+        <TouchableOpacity style={styles.row} onPress={viewClient} onLongPress={removeClient}>
             <>
                 <View style={styles.clientUrl}>
                     <Text>{name}</Text>

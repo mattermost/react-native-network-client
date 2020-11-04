@@ -24,6 +24,11 @@ class NetworkClient: NSObject {
         resolve(SessionManager.default.createSession(for: baseUrl))
     }
 
+    @objc(removeApiClientFor:withResolver:withRejecter:)
+    func removeApiClientFor(baseUrl: String, resolve:RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {        
+        resolve(SessionManager.default.closeSession(for: baseUrl))
+    }
+
     @objc(addApiClientHeadersFor:withHeaders:)
     func addApiClientHeadersFor(baseUrl: String, headers: Dictionary<String, String>) -> Void {
         SessionManager.default.addSessionHeaders(for: baseUrl, additionalHeaders: headers)
