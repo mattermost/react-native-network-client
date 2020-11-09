@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+type Headers = Record<string, string>;
+
 type RequestOptions = {
-    headers?: Record<string, string>;
+    headers?: Headers;
     body?: Record<string, string>;
 }
-
-type Headers = Record<string, string>;
 
 type Response = {
     headers?: Headers;

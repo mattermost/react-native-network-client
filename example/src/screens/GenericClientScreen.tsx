@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type { RouteProp } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
 import React, {useState, useRef} from 'react';
 import {
     Alert,
@@ -91,14 +93,29 @@ const styles = StyleSheet.create({
     link: {
         ...Platform.select({
             ios: { color: PlatformColor('link') },
-            android: {
-                color: PlatformColor('?attr/colorControlNormal')
-            },
+            // android: {
+            //     color: PlatformColor('?attr/colorControlNormal')
+            // },
         }),
     },
 });
 
-const RequestHeader = ({index, header, updateHeader}) => {
+type GenericClientScreenNavigationProp = StackNavigationProp<
+  RootStackParamList,
+  'GenericClient'
+>;
+
+type GenericClientScreenRouteProp = RouteProp< {params: {client: ApiClientInterface, name?: string} }, 'params'>;
+
+
+type GenericClientScreenProps = {
+  navigation: GenericClientScreenNavigationProp;
+  route: GenericClientScreenRouteProp
+};
+
+
+type RequestHeaderProps = {index: number, header: {key: string, value: string}, updateHeader: (index: number, header: {key: string, value: string}) => void}
+const RequestHeader = ({index, header, updateHeader}: RequestHeaderProps) => {
     const [key, setKey] = useState(header.key);
     const [value, setValue] = useState(header.value);
 
@@ -129,29 +146,25 @@ const RequestHeader = ({index, header, updateHeader}) => {
 
 }
 
-export default function GenericClientScreen({navigation, route}) {
-    const {name, client} = route.params;
+export default function GenericClientScreen({route}: GenericClientScreenProps) {
+    const {client} = route.params;
 
     const [method, setMethod] = useState('GET');
     const [url, setUrl] = useState('https://jsonplaceholder.typicode.com/todos/1');
     const [body, setBody] = useState('');
     const [requestHeaders, setRequestHeaders] = useState([{key: '', value: ''}]);
-    const [response, setResponse] = useState(null);
+    const [response, setResponse] = useState<Response | null>(null);
     const scrollView = useRef(null);
 
-    const sanitizeHeaders = (headersArray) => {
-        const headers = {};
-        headersArray.forEach(({key, value}) => {
-            if (key && value) {
-                headers[key] = value;
-            } 
-        });
-
+    const sanitizeHeaders = (headersArray: {key: string, value: string}[]) => {
+        const headers = headersArray
+            .filter( (k,v) => k && v)
+            .reduce( (prev, cur) => prev[cur.key] = cur.value , {} as any)
         return headers;
     }
 
     const makeRequest = async () => {
-        const options = {
+        const options: {headers: Headers, body?: Record<string, string>} = {
             headers: sanitizeHeaders(requestHeaders),
         };
 
@@ -170,7 +183,8 @@ export default function GenericClientScreen({navigation, route}) {
             }
         }
 
-        const requestMethod = client[method.toLowerCase()];
+        // const requestMethod = client[method.toLowerCase()];
+        const requestMethod = client.get
         if (typeof requestMethod === 'function') {
             try {
                 const response = await requestMethod(url, options);
@@ -195,10 +209,10 @@ export default function GenericClientScreen({navigation, route}) {
 
     const addRequestHeader = (header = {key: '', value: ''}) => {
         setRequestHeaders([...requestHeaders, header]);
-        scrollView.current.scrollToEnd();
+        // scrollView.current.scrollToEnd();
     }
 
-    const updateRequestHeader = (index, header) => {
+    const updateRequestHeader = (index: number, header: {key: string, value: string}) => {
         const newRequestHeaders = requestHeaders;
         newRequestHeaders[index] = header;
         setRequestHeaders(newRequestHeaders);
@@ -216,7 +230,7 @@ export default function GenericClientScreen({navigation, route}) {
         </ScrollView>
     );
 
-    const renderResponseHeader = ({item}) => (
+    const renderResponseHeader = ({item}: {item: string[]}) => (
         <View style={styles.responseHeader}>
             <Text>Key: {item[0]}</Text>
             <Text>Value: {item[1]}</Text>
@@ -227,7 +241,7 @@ export default function GenericClientScreen({navigation, route}) {
             </View>
         </View>
     );
-    const responseHeaderKey = (item) => `response-header-${item[0]}`;
+    const responseHeaderKey = (item: string[]) => `response-header-${item[0]}`;
     const renderSeparator = () => <View style={styles.separator} />
 
     const renderResponse = () => {
@@ -238,7 +252,7 @@ export default function GenericClientScreen({navigation, route}) {
                         <Text style={styles.label}>Response</Text>
                         <Text style={styles.label}>Headers</Text>
                         <FlatList
-                            data={Object.entries(response.headers)}
+                            data={Object.entries(response.headers!)}
                             renderItem={renderResponseHeader}
                             keyExtractor={responseHeaderKey}
                             ItemSeparatorComponent={renderSeparator}
@@ -288,7 +302,7 @@ export default function GenericClientScreen({navigation, route}) {
             }
             <View style={styles.optionsLabelContainer}>
                 <Text style={styles.label}>Request Headers</Text>
-                <Button title='+' onPress={addRequestHeader}/>
+                <Button title='+' onPress={addRequestHeader as any}/>
             </View>
             <View style={styles.optionsContainer}>
                 {renderRequestHeaders()}
@@ -296,7 +310,7 @@ export default function GenericClientScreen({navigation, route}) {
             <View style={styles.responseContainer}>
                 {renderResponse()}
             </View>
-            <View style={styles.buttonContainer}>
+            <View>
                 <Button
                     title='Make Request'
                     disabled={url.length === 0}

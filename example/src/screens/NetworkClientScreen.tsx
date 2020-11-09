@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type { RouteProp } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
 import React, {useState, useRef, useEffect} from 'react';
 import {
     Alert,
@@ -18,6 +20,22 @@ import {
 } from 'react-native';
 
 import MethodPicker, {METHOD} from '../components/MethodPicker';
+
+type NetworkClientScreenNavigationProp = StackNavigationProp<
+  RootStackParamList,
+  'NetworkClient'
+>;
+
+type NetworkClientScreenRouteProp = RouteProp< {params: {client: ApiClientInterface, name?: string} }, 'params'>;
+
+
+type NetworkClientScreenProps = {
+  navigation: NetworkClientScreenNavigationProp;
+  route: NetworkClientScreenRouteProp
+};
+
+// type Client = {type: string, client: GenericClientInterface, name: string, baseUrl?: string, wsUrl?: string}
+
 
 const styles = StyleSheet.create({
     container: {
@@ -48,9 +66,9 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         ...Platform.select({
             ios: { borderColor: PlatformColor('link') },
-            android: {
-                borderColor: PlatformColor('?attr/colorControlNormal')
-            },
+            // android: {
+            //     borderColor: PlatformColor('?attr/colorControlNormal')
+            // },
         }),
     },
     clientHeadersContainer: {
@@ -102,7 +120,8 @@ const styles = StyleSheet.create({
     },
 });
 
-const RequestHeader = ({index, header, updateHeader}) => {
+type RequestHeaderProps = {index: number, header: {key: string, value: string}, updateHeader: (index: number, header: {key: string, value: string}) => void}
+const RequestHeader = ({index, header, updateHeader}: RequestHeaderProps) => {
     const [key, setKey] = useState(header.key);
     const [value, setValue] = useState(header.value);
 
@@ -133,15 +152,15 @@ const RequestHeader = ({index, header, updateHeader}) => {
 
 }
 
-export default function NetworkClientScreen({navigation, route}) {
-    const {name, client} = route.params;
+export default function NetworkClientScreen({route}: NetworkClientScreenProps) {
+    const {client} = route.params;
 
     const [method, setMethod] = useState('GET');
     const [endpoint, setEndpoint] = useState('/api/v4/system/ping');
     const [body, setBody] = useState('');
     const [requestHeaders, setRequestHeaders] = useState([{key: '', value: ''}]);
-    const [clientHeaders, setClientHeaders] = useState(null);
-    const [response, setResponse] = useState(null);
+    const [clientHeaders, setClientHeaders] = useState<Headers | null>(null);
+    const [response, setResponse] = useState<Response | null>(null);
     const scrollView = useRef(null);
 
     const getClientHeaders = async () => {
@@ -153,19 +172,15 @@ export default function NetworkClientScreen({navigation, route}) {
         getClientHeaders();
     }, []);
 
-    const sanitizeHeaders = (headersArray) => {
-        const headers = {};
-        headersArray.forEach(({key, value}) => {
-            if (key && value) {
-                headers[key] = value;
-            } 
-        });
-
+    const sanitizeHeaders = (headersArray: {key: string, value: string}[]) => {
+        const headers = headersArray
+            .filter( (k,v) => k && v)
+            .reduce( (prev, cur) => prev[cur.key] = cur.value , {} as any)
         return headers;
     }
 
     const makeRequest = async () => {
-        const options = {
+        const options: {headers: Headers, body?: Record<string, string>} = {
             headers: sanitizeHeaders(requestHeaders),
         };
 
@@ -184,7 +199,8 @@ export default function NetworkClientScreen({navigation, route}) {
             }
         }
 
-        const requestMethod = client[method.toLowerCase()];
+        // const requestMethod = client[method.toLowerCase()];
+        const requestMethod = client.get
         if (typeof requestMethod === 'function') {
             try {
                 const response = await requestMethod(endpoint, options);
@@ -209,10 +225,10 @@ export default function NetworkClientScreen({navigation, route}) {
 
     const addRequestHeader = (header = {key: '', value: ''}) => {
         setRequestHeaders([...requestHeaders, header]);
-        scrollView.current.scrollToEnd();
+        // scrollView.current.scrollToEnd();
     }
 
-    const updateRequestHeader = (index, header) => {
+    const updateRequestHeader = (index: number, header: {key: string, value: string}) => {
         const newRequestHeaders = requestHeaders;
         newRequestHeaders[index] = header;
         setRequestHeaders(newRequestHeaders);
@@ -230,7 +246,7 @@ export default function NetworkClientScreen({navigation, route}) {
         </ScrollView>
     );
 
-    const renderClientHeader = ({item}) => (
+    const renderClientHeader = ({item}: {item: string[]}) => (
         <View>
             <Text>Key: {item[0]}</Text>
             <Text>Value: {item[1]}</Text>
@@ -252,14 +268,14 @@ export default function NetworkClientScreen({navigation, route}) {
         }
     }
 
-    const clientHeaderKey = (item) => `client-header-${item[0]}`;
+    const clientHeaderKey = (item: string[]) => `client-header-${item[0]}`;
 
-    const addClientHeader = async ({key, value}) => {
+    const addClientHeader = async ({key, value}: {key: string, value: string}) => {
         await client.addHeaders({[key]: value});
         getClientHeaders();
     };
 
-    const renderResponseHeader = ({item}) => (
+    const renderResponseHeader = ({item}: {item: string[]}) => (
         <View style={styles.responseHeader}>
             <Text>Key: {item[0]}</Text>
             <Text>Value: {item[1]}</Text>
@@ -273,7 +289,7 @@ export default function NetworkClientScreen({navigation, route}) {
             </View>
         </View>
     );
-    const responseHeaderKey = (item) => `response-header-${item[0]}`;
+    const responseHeaderKey = (item: string[]) => `response-header-${item[0]}`;
     const renderSeparator = () => <View style={styles.separator} />
 
     const renderResponse = () => {
@@ -284,7 +300,7 @@ export default function NetworkClientScreen({navigation, route}) {
                         <Text style={styles.label}>Response</Text>
                         <Text style={styles.label}>Headers</Text>
                         <FlatList
-                            data={Object.entries(response.headers)}
+                            data={Object.entries(response.headers!)}
                             renderItem={renderResponseHeader}
                             keyExtractor={responseHeaderKey}
                             ItemSeparatorComponent={renderSeparator}
@@ -338,7 +354,7 @@ export default function NetworkClientScreen({navigation, route}) {
             }
             <View style={styles.optionsLabelContainer}>
                 <Text style={styles.label}>Request Headers</Text>
-                <Button title='+' onPress={addRequestHeader}/>
+                <Button title='+' onPress={addRequestHeader as any}/>
             </View>
             <View style={styles.optionsContainer}>
                 {renderRequestHeaders()}

@@ -1,9 +1,7 @@
 package com.mattermost.networkclient
 
-import com.facebook.react.bridge.ReactApplicationContext
-import com.facebook.react.bridge.ReactContextBaseJavaModule
-import com.facebook.react.bridge.ReactMethod
-import com.facebook.react.bridge.Promise
+import com.facebook.react.bridge.*
+
 import okhttp3.Headers
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -27,13 +25,13 @@ class NetworkClientModule(reactContext: ReactApplicationContext) : ReactContextB
     fun createApiClientFor(baseUrl: String, config: Object, promise: Promise ) {
         // @to-do: try/catch
         sessions[baseUrl] = Request.Builder().url(baseUrl);
-        promise.resolve("")
+        promise.resolve(void)
     }
 
     @ReactMethod
     fun removeApiClientFor(baseUrl: String, promise: Promise ) {
         sessions.remove(baseUrl);
-        promise.resolve("");
+        promise.resolve(void);
     }
 
     @ReactMethod
@@ -43,29 +41,32 @@ class NetworkClientModule(reactContext: ReactApplicationContext) : ReactContextB
     }
 
     @ReactMethod
-    fun addApiClientHeadersFor(baseUrl: String, headers: Headers, promise: Promise ) {
+    fun addApiClientHeadersFor(baseUrl: String, headers: ReadableMap, promise: Promise ) {
+        val headers = headers.toHashMap()
         for ((k,v) in headers){
-            sessions[baseUrl]?.addHeader(k,v);
+            sessions[baseUrl]?.addHeader(k,v as String);
         }
-        promise.resolve("")
+        promise.resolve(void)
     }
 
     @ReactMethod
-    fun removeApiClientHeadersFor(baseUrl: String, headers: Array<String>, promise: Promise ) {
+    fun removeApiClientHeadersFor(baseUrl: String, headers: ReadableArray, promise: Promise ) {
+        val headers = headers.toArrayList();
         for (h in headers){
-            sessions[baseUrl]?.removeHeader(h);
+            sessions[baseUrl]?.removeHeader(h as String);
         }
-        promise.resolve("")
+        promise.resolve(void)
     }
 
     @ReactMethod
-    fun clearApiClientHeadersFor(baseUrl: string, promise: Promise){
-        val h: Headers = Headers();
-        sessions[baseUrl]?.headers(h)
+    fun clearApiClientHeadersFor(baseUrl: String, promise: Promise){
+        val build = sessions[baseUrl]?.build()
+        build?.headers?.forEach { (k,v) -> sessions[baseUrl]?.removeHeader(k) }
+        promise.resolve(void)
     }
 
     @ReactMethod
-    fun get(baseUrl: String, endpoint: String?, options: kotlin.Any, promise: Promise){
+    fun get(baseUrl: String, endpoint: String?, options: ReadableMap, promise: Promise){
         val request = sessions[baseUrl]?.url("${baseUrl}/${endpoint}")?.build();
         client.newCall(request!!).execute().use{ response ->
             if (!response.isSuccessful) promise.reject("Unexpected code $response")
@@ -75,7 +76,7 @@ class NetworkClientModule(reactContext: ReactApplicationContext) : ReactContextB
 
     @ReactMethod
     fun post(baseUrl: String, endpoint: String?, options: kotlin.Any, promise: Promise){
-        val request = sessions[baseUrl]?.url("${baseUrl}/${endpoint}")?.post(options.body)?.build();
+        val request = sessions[baseUrl]?.url("${baseUrl}/${endpoint}")?.post(options)?.build();
         client.newCall(request!!).execute().use{ response ->
             if (!response.isSuccessful) promise.reject("Unexpected code $response")
             promise.resolve(response)
@@ -84,7 +85,7 @@ class NetworkClientModule(reactContext: ReactApplicationContext) : ReactContextB
 
     @ReactMethod
     fun put(baseUrl: String, endpoint: String?, options: Object, promise: Promise){
-        val request = sessions[baseUrl]?.url("${baseUrl}/${endpoint}")?.put(options.body)?.build();
+        val request = sessions[baseUrl]?.url("${baseUrl}/${endpoint}")?.put(options)?.build();
         client.newCall(request!!).execute().use{ response ->
             if (!response.isSuccessful) promise.reject("Unexpected code $response")
             promise.resolve(response)
@@ -93,7 +94,7 @@ class NetworkClientModule(reactContext: ReactApplicationContext) : ReactContextB
 
     @ReactMethod
     fun patch(baseUrl: String, endpoint: String?, options: Object, promise: Promise){
-        val request = sessions[baseUrl]?.url("${baseUrl}/${endpoint}")?.patch(options.body)?.build();
+        val request = sessions[baseUrl]?.url("${baseUrl}/${endpoint}")?.patch(options)?.build();
         client.newCall(request!!).execute().use{ response ->
             if (!response.isSuccessful) promise.reject("Unexpected code $response")
             promise.resolve(response)
