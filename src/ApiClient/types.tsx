@@ -17,7 +17,7 @@ export interface GenericClientInterface {
     get(endpoint: string, options?: RequestOptions): any;
 }
 
-export interface ApiClientInterface {
+export interface APIClientInterface {
     get(endpoint: string, options?: RequestOptions): any;
     put(endpoint: string, options?: RequestOptions): any;
     post(endpoint: string, options?: RequestOptions): any;
@@ -28,12 +28,12 @@ export interface ApiClientInterface {
     addHeaders(headers: object): any;
 }
 
-type iOSApiClientConfiguration = {
+type iOSAPIClientConfiguration = {
     redirectHandlerConfig?: object;
     requestInterceptorConfig?: object;
     serverTrustManagerConfig?: object;
     cachedResponseHandlerConfig?: object;
 };
-type AndroidApiClientConfiguration = {};
+type AndroidAPIClientConfiguration = {};
 
-export type ApiClientConfiguration = iOSApiClientConfiguration | AndroidApiClientConfiguration;
+export type APIClientConfiguration = iOSAPIClientConfiguration | AndroidAPIClientConfiguration;

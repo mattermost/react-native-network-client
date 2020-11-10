@@ -3,8 +3,7 @@
 
 import {
     GenericClient,
-    getOrCreateApiClient,
-    removeApiClient,
+    getOrCreateAPIClient,
 } from './ApiClient';
 import {
     getOrCreateWebSocketClient,
@@ -13,8 +12,7 @@ import {
 
 export default new GenericClient();
 export {
-    getOrCreateApiClient,
-    removeApiClient,
+    getOrCreateAPIClient,
     getOrCreateWebSocketClient,
     removeWebSocketClient,
 };

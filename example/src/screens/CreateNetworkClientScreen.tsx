@@ -14,7 +14,7 @@ import {
     View,
 } from 'react-native';
 import DeviceInfo from 'react-native-device-info';
-import {getOrCreateApiClient} from 'react-native-network-client';
+import {getOrCreateAPIClient} from 'react-native-network-client';
 
 const styles = StyleSheet.create({
     container: {
@@ -114,7 +114,7 @@ export default function CreateNetworkClientScreen({navigation}) {
 
     const createClient = async () => {
         const options = await sanitizeOptions(configOptions);
-        const client = await getOrCreateApiClient(baseUrl, options);
+        const client = await getOrCreateAPIClient(baseUrl, options);
         const createdClient = {
             name,
             client,

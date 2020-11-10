@@ -12,7 +12,7 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
-import GenericClient, {removeApiClient} from 'react-native-network-client';
+import GenericClient from 'react-native-network-client';
 
 const styles = StyleSheet.create({
     container: {
@@ -54,7 +54,7 @@ const NetworkClient = ({name, client, navigate}) => {
         Alert.alert(
             'Remove Client',
             '',
-            [{text: 'Cancel'}, {text: 'OK', onPress: () => removeApiClient(client)}],
+            [{text: 'Cancel'}, {text: 'OK', onPress: () => client.invalidate()}],
             {cancelable: true}
         );
     }
