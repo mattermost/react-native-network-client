@@ -5,14 +5,10 @@ import {
     GenericClient,
     getOrCreateAPIClient,
 } from './ApiClient';
-import {
-    getOrCreateWebSocketClient,
-    removeWebSocketClient,
-} from './WebSocketClient';
+import {getOrCreateWebSocketClient} from './WebSocketClient';
 
 export default new GenericClient();
 export {
     getOrCreateAPIClient,
     getOrCreateWebSocketClient,
-    removeWebSocketClient,
 };

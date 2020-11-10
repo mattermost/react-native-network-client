@@ -17,7 +17,7 @@ RCT_EXTERN_METHOD(invalidateClientFor:(NSString *)baseUrl withResolver:(RCTPromi
 
 RCT_EXTERN_METHOD(getClientHeadersFor:(NSString *)baseUrl withResolver:(RCTPromiseResolveBlock)resolve withRejecter:(RCTPromiseRejectBlock)reject)
 
-RCT_EXTERN_METHOD(addClientHeadersFor:(NSString *)baseUrl withHeaders:(NSDictionary *)headers)
+RCT_EXTERN_METHOD(addClientHeadersFor:(NSString *)baseUrl withHeaders:(NSDictionary *)headers withResolver:(RCTPromiseResolveBlock)resolve withRejecter:(RCTPromiseRejectBlock)reject)
 
 RCT_EXTERN_METHOD(get:(NSString *)baseUrl forEndpoint:(NSString *)endpoint withOptions:(NSDictionary *)options withResolver:(RCTPromiseResolveBlock)resolve withRejecter:(RCTPromiseRejectBlock)reject)
 

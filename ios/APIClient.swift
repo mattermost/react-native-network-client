@@ -14,7 +14,7 @@ import SwiftyJSON
 class APIClient: NSObject {
     
     @objc(createClientFor:withOptions:withResolver:withRejecter:)
-    func createClientFor(baseUrl: String, options: Dictionary<String, Any>?, resolve:RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
+    func createClientFor(baseUrl: String, options: Dictionary<String, Any>?, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
         if let options = options {
             let config = optionsToURLSessionConfiguration(options: options)
             resolve(SessionManager.default.createSession(for: baseUrl, withConfig: config))
@@ -25,24 +25,34 @@ class APIClient: NSObject {
     }
 
     @objc(invalidateClientFor:withResolver:withRejecter:)
-    func invalidateClientFor(baseUrl: String, resolve:RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {        
+    func invalidateClientFor(baseUrl: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {        
         resolve(SessionManager.default.invalidateSession(for: baseUrl))
     }
 
-    @objc(addClientHeadersFor:withHeaders:)
-    func addClientHeadersFor(baseUrl: String, headers: Dictionary<String, String>) -> Void {
-        SessionManager.default.addSessionHeaders(for: baseUrl, additionalHeaders: headers)
+    @objc(addClientHeadersFor:withHeaders:withResolver:withRejecter:)
+    func addClientHeadersFor(baseUrl: String, headers: Dictionary<String, String>, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
+        if SessionManager.default.getSession(for: baseUrl) == nil {
+            rejectInvalidSession(reject: reject, baseUrl: baseUrl)
+            return
+        }
+
+        resolve(SessionManager.default.addSessionHeaders(for: baseUrl, additionalHeaders: headers))
     }
 
     @objc(getClientHeadersFor:withResolver:withRejecter:)
-    func getClientHeadersFor(baseUrl: String, resolve: @escaping RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
+    func getClientHeadersFor(baseUrl: String, resolve: @escaping RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
+        if SessionManager.default.getSession(for: baseUrl) == nil {
+            rejectInvalidSession(reject: reject, baseUrl: baseUrl)
+            return
+        }
+
         resolve(SessionManager.default.getSessionHeaders(for: baseUrl))
     }
     
     @objc(get:forEndpoint:withOptions:withResolver:withRejecter:)
-    func get(baseUrl: String, endpoint: String, options: Dictionary<String, Any>, resolve: @escaping RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
+    func get(baseUrl: String, endpoint: String, options: Dictionary<String, Any>, resolve: @escaping RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
         guard let session = SessionManager.default.getSession(for: baseUrl) else {
-            reject("code", "Session for \(baseUrl) has been invalidated", nil)
+            rejectInvalidSession(reject: reject, baseUrl: baseUrl)
             return
         }
 
@@ -56,9 +66,9 @@ class APIClient: NSObject {
     }
 
     @objc(put:forEndpoint:withOptions:withResolver:withRejecter:)
-    func put(baseUrl: String, endpoint: String, options: Dictionary<String, Any>, resolve: @escaping RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
+    func put(baseUrl: String, endpoint: String, options: Dictionary<String, Any>, resolve: @escaping RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
         guard let session = SessionManager.default.getSession(for: baseUrl) else {
-            reject("code", "Session for \(baseUrl) has been invalidated", nil)
+            rejectInvalidSession(reject: reject, baseUrl: baseUrl)
             return
         }
 
@@ -74,9 +84,9 @@ class APIClient: NSObject {
     }
     
     @objc(post:forEndpoint:withOptions:withResolver:withRejecter:)
-    func post(baseUrl: String, endpoint: String, options: Dictionary<String, Any>, resolve: @escaping RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
+    func post(baseUrl: String, endpoint: String, options: Dictionary<String, Any>, resolve: @escaping RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
         guard let session = SessionManager.default.getSession(for: baseUrl) else {
-            reject("code", "Session for \(baseUrl) has been invalidated", nil)
+            rejectInvalidSession(reject: reject, baseUrl: baseUrl)
             return
         }
 
@@ -92,9 +102,9 @@ class APIClient: NSObject {
     }
 
     @objc(patch:forEndpoint:withOptions:withResolver:withRejecter:)
-    func patch(baseUrl: String, endpoint: String, options: Dictionary<String, Any>, resolve: @escaping RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
+    func patch(baseUrl: String, endpoint: String, options: Dictionary<String, Any>, resolve: @escaping RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
         guard let session = SessionManager.default.getSession(for: baseUrl) else {
-            reject("code", "Session for \(baseUrl) has been invalidated", nil)
+            rejectInvalidSession(reject: reject, baseUrl: baseUrl)
             return
         }
 
@@ -110,9 +120,9 @@ class APIClient: NSObject {
     }
 
     @objc(delete:forEndpoint:withOptions:withResolver:withRejecter:)
-    func delete(baseUrl: String, endpoint: String, options: Dictionary<String, Any>, resolve: @escaping RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
+    func delete(baseUrl: String, endpoint: String, options: Dictionary<String, Any>, resolve: @escaping RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
         guard let session = SessionManager.default.getSession(for: baseUrl) else {
-            reject("code", "Session for \(baseUrl) has been invalidated", nil)
+            rejectInvalidSession(reject: reject, baseUrl: baseUrl)
             return
         }
 
@@ -143,5 +153,11 @@ class APIClient: NSObject {
             httpHeaders.add(name: name, value: value)
         }
         return httpHeaders
+    }
+
+    func rejectInvalidSession(reject: RCTPromiseRejectBlock, baseUrl: String) -> Void {
+        let message = "Session for \(baseUrl) has been invalidated"
+        let error = NSError(domain: "com.mattermost.react-native-network-client", code: NSCoderValueNotFoundError, userInfo: [NSLocalizedDescriptionKey: message])
+        reject("\(error.code)", message, error)
     }
 }

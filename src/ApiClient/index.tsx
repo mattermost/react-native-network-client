@@ -37,7 +37,7 @@ class APIClient implements APIClientInterface {
   }
 
   getHeaders = (): Promise<object> => NativeAPIClient.getClientHeadersFor(this.baseUrl);
-  addHeaders = (headers: object): void => NativeAPIClient.addClientHeadersFor(this.baseUrl, headers);
+  addHeaders = (headers: object): Promise<void> => NativeAPIClient.addClientHeadersFor(this.baseUrl, headers);
   invalidate = (): Promise<void> => {
     delete CLIENTS[this.baseUrl];
 
@@ -51,19 +51,21 @@ class APIClient implements APIClientInterface {
   delete = (endpoint: string, options?: RequestOptions): Promise<Response> => NativeAPIClient.delete(this.baseUrl, endpoint, options);
 }
 
-async function getOrCreateAPIClient(baseUrl: string, config: APIClientConfiguration = {}): Promise<APIClient>  {
+async function getOrCreateAPIClient(baseUrl: string, config: APIClientConfiguration = {}): Promise<{client: APIClient, created: boolean}>  {
     if (!isValidBaseURL(baseUrl)) {
       throw new Error('baseUrl must be a valid API base URL');
     }
 
+    let created = false;
     let client = CLIENTS[baseUrl];
     if (!client) {
         await NativeAPIClient.createClientFor(baseUrl, config);
+        created = true;
         client = new APIClient(baseUrl);
         CLIENTS[baseUrl] = client;
     }
 
-    return client;
+    return {client, created};
 }
 
 const isValidBaseURL = (baseUrl: string) => {

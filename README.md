@@ -16,8 +16,8 @@ import GenericClient, {getOrCreateAPIClient, getOrCreateWebSocketClient} from "r
 // ...
 
 const response = await GenericClient.get("https://community.mattermost.com");
-const apiClient = await getOrCreateAPIClient("https://community.mattermost.com");
-const wsClient = await getOrCreateWebSocketClient("wss://community.mattermost.com");
+const {client: apiClient, created} = await getOrCreateAPIClient("https://community.mattermost.com");
+const {client: wsClient, created} = await getOrCreateWebSocketClient("wss://community.mattermost.com");
 ```
 
 ## Contributing
