@@ -129,8 +129,8 @@ class NetworkClient: NSObject {
     }
 
     func getRedirectHandlerFrom(options: Dictionary<String, Any>) -> RedirectHandler? {
-        if let redirectHandlerConfig = RCTConvert.nsDictionary(options["redirectHandlerConfig"])  {
-            return Redirector(behavior: redirectHandlerConfig["follow"] as! Bool ? .follow : .doNotFollow)
+        if let followValue = options["followRedirects"] {
+            return Redirector(behavior: RCTConvert.bool(followValue) ? .follow : .doNotFollow)
         }
 
         return nil

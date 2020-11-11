@@ -17,22 +17,31 @@ class GenericClient implements GenericClientInterface {
     delete = (url: string, options?: RequestOptions): Promise<Response> => NetworkClient.delete(url, null, options);
 }
 
+const DEFAULT_API_CLIENT_CONFIG: ApiClientConfiguration = {
+    followRedirects: true,
+};
+
 /**
  * Configurable client for consuming a REST API
  */
 class ApiClient implements ApiClientInterface {
     baseUrl: string;
-    followRedirects: boolean = true;
+    config: ApiClientConfiguration;
 
-    constructor(baseUrl: string, config: ApiClientConfiguration) {
+    constructor(baseUrl: string, config: ApiClientConfiguration = {}) {
         this.baseUrl = baseUrl;
-        if (config?.redirectHandlerConfig) {
-            this.followRedirects = config.redirectHandlerConfig.follow as boolean;
-        }
+        this.config = Object.assign({}, DEFAULT_API_CLIENT_CONFIG, config);
     }
 
     getHeaders = (): Promise<Headers> => NetworkClient.getApiClientHeadersFor(this.baseUrl);
-    addHeaders = (headers: Headers): Promise<void> => NetworkClient.addApiClientHeadersFor(this.baseUrl, headers);
+    addHeaders = (headers: Headers): Promise<void> => {
+        this.config.headers = {
+            ...this.config.headers,
+            ...headers,
+        };
+
+        return NetworkClient.addApiClientHeadersFor(this.baseUrl, headers);
+    }
 
     get = (endpoint: string, options?: RequestOptions): Promise<Response> => NetworkClient.get(this.baseUrl, endpoint, options);
     put = (endpoint: string, options?: RequestOptions): Promise<Response> => NetworkClient.put(this.baseUrl, endpoint, options);

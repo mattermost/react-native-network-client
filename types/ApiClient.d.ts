@@ -30,13 +30,9 @@ interface ApiClientInterface {
     addHeaders(headers: Headers): Promise<void>;
 };
 
-type RedirectHandlerConfig = {
-    follow: boolean;
-};
-
 type iOSApiClientConfiguration = {
     headers?: Headers;
-    redirectHandlerConfig?: RedirectHandlerConfig;
+    followRedirects: Boolean;
     requestInterceptorConfig?: Record<string, string>;
     serverTrustManagerConfig?: Record<string, string>;
     cachedResponseHandlerConfig?: Record<string, string>;

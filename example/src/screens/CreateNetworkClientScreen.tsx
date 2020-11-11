@@ -126,9 +126,7 @@ export default function CreateNetworkClientScreen({navigation}) {
         const headers = await sanitizeHeaders();
         const options = {
             headers,
-            redirectHandlerConfig: {
-                follow: followRedirects,
-            },
+            followRedirects,
         };
         const client = await getOrCreateApiClient(baseUrl, options);
         const createdClient = {
