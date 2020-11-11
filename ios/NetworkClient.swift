@@ -45,7 +45,7 @@ class NetworkClient: NSObject {
         if let session = SessionManager.default.getSession(for: baseUrl) {
             let url = URL(string: baseUrl)!.appendingPathComponent(endpoint)
             session.request(url, method: .get, headers: headers).responseJSON { json in
-                resolve(["headers": json.response?.allHeaderFields, "data": json.value, "code": json.response?.statusCode])
+                self.resolveJSONResponse(resolve: resolve, json: json)
             }
         } else {
             AF.request(baseUrl, method: .get, headers: headers).responseJSON { json in
@@ -65,7 +65,7 @@ class NetworkClient: NSObject {
             let url = URL(string: baseUrl)!.appendingPathComponent(endpoint)
             let encoder = JSONParameterEncoder.default
             session.request(url, method: .put, parameters: parameters, encoder: encoder, headers: headers).responseJSON { json in
-                resolve(["headers": json.response?.allHeaderFields, "data": json.value, "code": json.response?.statusCode])
+                self.resolveJSONResponse(resolve: resolve, json: json)
             }
         }
     }
@@ -81,7 +81,7 @@ class NetworkClient: NSObject {
             let url = URL(string: baseUrl)!.appendingPathComponent(endpoint)
             let encoder = JSONParameterEncoder.default
             session.request(url, method: .post, parameters: parameters, encoder: encoder, headers: headers).responseJSON { json in
-                resolve(["headers": json.response?.allHeaderFields, "data": json.value, "code": json.response?.statusCode])
+                self.resolveJSONResponse(resolve: resolve, json: json)
             }
         }
     }
@@ -97,7 +97,7 @@ class NetworkClient: NSObject {
             let url = URL(string: baseUrl)!.appendingPathComponent(endpoint)
             let encoder = JSONParameterEncoder.default
             session.request(url, method: .patch, parameters: parameters, encoder: encoder, headers: headers).responseJSON { json in
-                resolve(["headers": json.response?.allHeaderFields, "data": json.value, "code": json.response?.statusCode])
+                self.resolveJSONResponse(resolve: resolve, json: json)
             }
         }
     }
@@ -113,7 +113,7 @@ class NetworkClient: NSObject {
             let url = URL(string: baseUrl)!.appendingPathComponent(endpoint)
             let encoder = JSONParameterEncoder.default
             session.request(url, method: .delete, parameters: parameters, encoder: encoder, headers: headers).responseJSON { json in
-                resolve(["headers": json.response?.allHeaderFields, "data": json.value, "code": json.response?.statusCode])
+                self.resolveJSONResponse(resolve: resolve, json: json)
             }
         }
     }
@@ -142,5 +142,14 @@ class NetworkClient: NSObject {
             httpHeaders.add(name: name, value: value)
         }
         return httpHeaders
+    }
+
+    func resolveJSONResponse(resolve: @escaping RCTPromiseResolveBlock, json: AFDataResponse<Any>) {
+        resolve([
+            "headers": json.response?.allHeaderFields,
+            "data": json.value,
+            "code": json.response?.statusCode,
+            "lastRequestedUrl": json.response?.url?.absoluteString
+        ])
     }
 }

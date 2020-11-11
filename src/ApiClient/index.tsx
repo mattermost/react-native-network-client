@@ -22,9 +22,13 @@ class GenericClient implements GenericClientInterface {
  */
 class ApiClient implements ApiClientInterface {
     baseUrl: string;
+    followRedirects: boolean = true;
 
-    constructor(baseUrl: string) {
+    constructor(baseUrl: string, config: ApiClientConfiguration) {
         this.baseUrl = baseUrl;
+        if (config?.redirectHandlerConfig) {
+            this.followRedirects = config.redirectHandlerConfig.follow as boolean;
+        }
     }
 
     getHeaders = (): Promise<Headers> => NetworkClient.getApiClientHeadersFor(this.baseUrl);
@@ -47,7 +51,7 @@ async function getOrCreateApiClient(baseUrl: string, config: ApiClientConfigurat
     let networkClient = CLIENTS[baseUrl];
     if (!networkClient) {
         await NetworkClient.createApiClientFor(baseUrl, config);
-        networkClient = new ApiClient(baseUrl);
+        networkClient = new ApiClient(baseUrl, config);
         CLIENTS[baseUrl] = networkClient;
     }
 

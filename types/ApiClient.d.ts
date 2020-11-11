@@ -12,6 +12,7 @@ type Response = {
     headers?: Headers;
     data?: Record<string, string>;
     code: Int;
+    lastRequestedUrl: string;
 };
 
 interface GenericClientInterface {

@@ -281,7 +281,7 @@ export default function NetworkClientScreen({navigation, route}) {
             return (
                 <>
                     <View style={styles.responseHeadersContainer}>
-                        <Text style={styles.label}>Response: {response.code}</Text>
+                        <Text style={styles.label}>Response: {response.code}, {response.lastRequestedUrl}</Text>
                         <Text style={styles.label}>Headers</Text>
                         <FlatList
                             data={Object.entries(response.headers)}
