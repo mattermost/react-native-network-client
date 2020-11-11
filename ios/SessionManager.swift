@@ -29,16 +29,15 @@ class SessionManager {
     // Configure sesssion:
     //  * RequestInterceptor?
     //  * ServerTrustManager
-    //  * RedirectHandler
     //  * CachedResponseHandler
     //  * EventMonitor(s)
-    func createSession(for baseUrl:String, withConfig config:URLSessionConfiguration = URLSessionConfiguration.af.default) -> Void {
+    func createSession(for baseUrl:String, withConfiguration configuration:URLSessionConfiguration = URLSessionConfiguration.af.default, withRedirectHandler redirectHandler:RedirectHandler? = nil) -> Void {
         var session = getSession(for: baseUrl)
         if (session != nil) {
             return
         }
     
-        session = Session(configuration: config)
+        session = Session(configuration: configuration, redirectHandler: redirectHandler)
         sessions[baseUrl] = session
     }
 

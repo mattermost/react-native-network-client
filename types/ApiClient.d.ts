@@ -4,18 +4,19 @@
 type RequestOptions = {
     headers?: Record<string, string>;
     body?: Record<string, string>;
-}
+};
 
 type Headers = Record<string, string>;
 
 type Response = {
     headers?: Headers;
     data?: Record<string, string>;
-}
+    code: Int;
+};
 
 interface GenericClientInterface {
     get(endpoint: string, options?: RequestOptions): Promise<Response>;
-}
+};
 
 interface ApiClientInterface {
     get(endpoint: string, options?: RequestOptions): Promise<Response>;
@@ -26,10 +27,15 @@ interface ApiClientInterface {
 
     getHeaders(): Promise<Headers>;
     addHeaders(headers: Headers): Promise<void>;
-}
+};
+
+type RedirectHandlerConfig = {
+    follow: boolean;
+};
 
 type iOSApiClientConfiguration = {
-    redirectHandlerConfig?: Record<string, string>;
+    headers?: Headers;
+    redirectHandlerConfig?: RedirectHandlerConfig;
     requestInterceptorConfig?: Record<string, string>;
     serverTrustManagerConfig?: Record<string, string>;
     cachedResponseHandlerConfig?: Record<string, string>;
