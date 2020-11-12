@@ -1,5 +1,5 @@
 //
-//  NetworkClient.m
+//  APIClient.m
 //  NetworkClient
 //
 //  Created by Miguel Alatzar on 10/6/20.
@@ -9,13 +9,15 @@
 
 #import <React/RCTBridgeModule.h>
 
-@interface RCT_EXTERN_MODULE(NetworkClient, NSObject)
+@interface RCT_EXTERN_MODULE(APIClient, NSObject)
 
-RCT_EXTERN_METHOD(createApiClientFor:(NSString *)baseUrl withOptions:(NSDictionary *)options withResolver:(RCTPromiseResolveBlock)resolve withRejecter:(RCTPromiseRejectBlock)reject)
+RCT_EXTERN_METHOD(createClientFor:(NSString *)baseUrl withOptions:(NSDictionary *)options withResolver:(RCTPromiseResolveBlock)resolve withRejecter:(RCTPromiseRejectBlock)reject)
 
-RCT_EXTERN_METHOD(getApiClientHeadersFor:(NSString *)baseUrl withResolver:(RCTPromiseResolveBlock)resolve withRejecter:(RCTPromiseRejectBlock)reject)
+RCT_EXTERN_METHOD(invalidateClientFor:(NSString *)baseUrl withResolver:(RCTPromiseResolveBlock)resolve withRejecter:(RCTPromiseRejectBlock)reject)
 
-RCT_EXTERN_METHOD(addApiClientHeadersFor:(NSString *)baseUrl withHeaders:(NSDictionary *)headers)
+RCT_EXTERN_METHOD(getClientHeadersFor:(NSString *)baseUrl withResolver:(RCTPromiseResolveBlock)resolve withRejecter:(RCTPromiseRejectBlock)reject)
+
+RCT_EXTERN_METHOD(addClientHeadersFor:(NSString *)baseUrl withHeaders:(NSDictionary *)headers withResolver:(RCTPromiseResolveBlock)resolve withRejecter:(RCTPromiseRejectBlock)reject)
 
 RCT_EXTERN_METHOD(get:(NSString *)baseUrl forEndpoint:(NSString *)endpoint withOptions:(NSDictionary *)options withResolver:(RCTPromiseResolveBlock)resolve withRejecter:(RCTPromiseRejectBlock)reject)
 

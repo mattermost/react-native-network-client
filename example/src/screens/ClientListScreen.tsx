@@ -2,7 +2,16 @@
 // See LICENSE.txt for license information.
 
 import React, {useState, useEffect} from 'react';
-import {Button, FlatList, SafeAreaView, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import {
+    Alert,
+    Button,
+    FlatList,
+    SafeAreaView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from 'react-native';
 import GenericClient from '@mattermost/react-native-network-client';
 
 const styles = StyleSheet.create({
@@ -34,14 +43,29 @@ const styles = StyleSheet.create({
     }
   });
 
-const NetworkClient = ({name, client, navigate}) => {
+const NetworkClient = ({name, index, client, deleteClient, navigate}) => {
     const viewClient = () => {
         const screen = client.baseUrl ? 'NetworkClient' : 'GenericClient';
         navigate(screen, {name, client});
     };
 
+    const invalidateClient = () => {
+        client.invalidate();
+        deleteClient(index);
+    }
+
+    const removeClient = () => {
+        client.baseUrl &&
+        Alert.alert(
+            'Remove Client',
+            '',
+            [{text: 'Cancel'}, {text: 'OK', onPress: invalidateClient}],
+            {cancelable: true}
+        );
+    }
+
     return (
-        <TouchableOpacity style={styles.row} onPress={viewClient}>
+        <TouchableOpacity style={styles.row} onPress={viewClient} onLongPress={removeClient}>
             <>
                 <View style={styles.clientUrl}>
                     <Text>{name}</Text>
@@ -82,10 +106,14 @@ export default function CreateNetworkClientScreen({navigation, route}) {
             setClients([...clients, route.params.client]);
         }
     }, [route.params?.client]);
+    
+    const deleteClient = (clientIndex) => {
+        setClients(clients.filter((client, index) => clientIndex !== index));
+    }
 
-    const renderItem = ({item}) => (
+    const renderItem = ({item, index}) => (
         item.type === 'network' ?
-            <NetworkClient name={item.name} client={item.client} navigate={navigation.navigate} /> :
+            <NetworkClient name={item.name} index={index} client={item.client} deleteClient={deleteClient} navigate={navigation.navigate} /> :
             <WebSocketClient name={item.name} client={item.client} />
     );
 

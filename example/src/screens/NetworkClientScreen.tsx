@@ -145,8 +145,12 @@ export default function NetworkClientScreen({navigation, route}) {
     const scrollView = useRef(null);
 
     const getClientHeaders = async () => {
-        const headers = await client.getHeaders();
-        setClientHeaders(headers);
+        try {
+            const headers = await client.getHeaders();
+            setClientHeaders(headers);
+        } catch (e) {
+            // Do nothing.
+        }
     }
 
     useEffect(() => {        
@@ -187,6 +191,7 @@ export default function NetworkClientScreen({navigation, route}) {
         const requestMethod = client[method.toLowerCase()];
         if (typeof requestMethod === 'function') {
             try {
+                // client.get
                 const response = await requestMethod(endpoint, options);
                 setResponse(response);
             } catch (e) {

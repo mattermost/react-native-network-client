@@ -3,6 +3,7 @@
 
 import React, {useState, useRef} from 'react';
 import {
+    Alert,
     Button,
     Platform,
     PlatformColor,
@@ -14,7 +15,7 @@ import {
     View,
 } from 'react-native';
 import DeviceInfo from 'react-native-device-info';
-import {getOrCreateApiClient} from '@mattermost/react-native-network-client';
+import {getOrCreateAPIClient} from '@mattermost/react-native-network-client';
 
 const styles = StyleSheet.create({
     container: {
@@ -114,7 +115,17 @@ export default function CreateNetworkClientScreen({navigation}) {
 
     const createClient = async () => {
         const options = await sanitizeOptions(configOptions);
-        const client = await getOrCreateApiClient(baseUrl, options);
+        const {client, created} = await getOrCreateAPIClient(baseUrl, options);
+        if (!created) {
+            Alert.alert(
+                'Error',
+                `A client for ${baseUrl} already exists`,
+                [{text: 'OK'}],
+                {cancelable: false}
+            );
+            return;
+        }
+
         const createdClient = {
             name,
             client,

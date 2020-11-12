@@ -17,7 +17,7 @@ interface GenericClientInterface {
     get(endpoint: string, options?: RequestOptions): Promise<Response>;
 }
 
-interface ApiClientInterface {
+interface APIClientInterface {
     get(endpoint: string, options?: RequestOptions): Promise<Response>;
     put(endpoint: string, options?: RequestOptions): Promise<Response>;
     post(endpoint: string, options?: RequestOptions): Promise<Response>;
@@ -28,12 +28,12 @@ interface ApiClientInterface {
     addHeaders(headers: Headers): Promise<void>;
 }
 
-type iOSApiClientConfiguration = {
+type iOSAPIClientConfiguration = {
     redirectHandlerConfig?: Record<string, string>;
     requestInterceptorConfig?: Record<string, string>;
     serverTrustManagerConfig?: Record<string, string>;
     cachedResponseHandlerConfig?: Record<string, string>;
 };
-type AndroidApiClientConfiguration = Partial<Record<string, Record<string, string>>>;
+type AndroidAPIClientConfiguration = Partial<Record<string, Record<string, string>>>;
 
-type ApiClientConfiguration = iOSApiClientConfiguration | AndroidApiClientConfiguration;
+type APIClientInterface = iOSAPIClientConfiguration | AndroidAPIClientConfiguration;
