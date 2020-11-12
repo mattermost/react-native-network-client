@@ -6,10 +6,10 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 
 import ClientListScreen from './screens/ClientListScreen';
-import CreateNetworkClientScreen from './screens/CreateNetworkClientScreen';
+import CreateAPIClientScreen from './screens/CreateAPIClientScreen';
 import CreateWebSocketClientScreen from './screens/CreateWebSocketClientScreen';
 import GenericClientScreen from './screens/GenericClientScreen';
-import NetworkClientScreen from './screens/NetworkClientScreen';
+import APIClientScreen from './screens/APIClientScreen';
 
 const Stack = createStackNavigator();
 
@@ -18,10 +18,10 @@ function App() {
         <NavigationContainer>
             <Stack.Navigator initialRouteName='ClientListScreen'>
                 <Stack.Screen name='ClientList' component={ClientListScreen} />
-                <Stack.Screen name='CreateNetworkClient' component={CreateNetworkClientScreen} />
+                <Stack.Screen name='CreateAPIClient' component={CreateAPIClientScreen} />
                 <Stack.Screen name='CreateWebSocketClient' component={CreateWebSocketClientScreen} />
                 <Stack.Screen name='GenericClient' component={GenericClientScreen} />
-                <Stack.Screen name='NetworkClient' component={NetworkClientScreen} />
+                <Stack.Screen name='APIClient' component={APIClientScreen} />
             </Stack.Navigator>
         </NavigationContainer>
     );

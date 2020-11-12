@@ -10,6 +10,10 @@ const CLIENTS: {[key: string]: APIClient} = {};
 
 const DEFAULT_API_CLIENT_CONFIG: APIClientConfiguration = {
     followRedirects: true,
+    allowsCellularAccess: true,
+    waitsForConnectivity: false,
+    timeoutIntervalForRequest: 60,
+    timeoutIntervalForResource: 60,
 };
 
 /**

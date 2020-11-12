@@ -54,89 +54,48 @@ class APIClient: NSObject {
     
     @objc(get:forEndpoint:withOptions:withResolver:withRejecter:)
     func get(baseUrl: String, endpoint: String, options: Dictionary<String, Any>, resolve: @escaping RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
-        guard let session = SessionManager.default.getSession(for: baseUrl) else {
-            rejectInvalidSession(reject: reject, baseUrl: baseUrl)
-            return
-        }
-
-        let optionsHeaders = options["headers"] as? Dictionary<String, String> ?? [:]
-        let headers = optionsHeadersToHTTPHeaders(headers: optionsHeaders)
-        let url = URL(string: baseUrl)!.appendingPathComponent(endpoint)
-
-        session.request(url, method: .get, headers: headers).responseJSON { json in
-            self.resolveJSONResponse(resolve: resolve, json: json)
-        }
+        handleRequest(method: .get, baseUrl: baseUrl, endpoint: endpoint, options: JSON(options), resolve: resolve, reject: reject)
     }
 
     @objc(put:forEndpoint:withOptions:withResolver:withRejecter:)
     func put(baseUrl: String, endpoint: String, options: Dictionary<String, Any>, resolve: @escaping RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
-        guard let session = SessionManager.default.getSession(for: baseUrl) else {
-            rejectInvalidSession(reject: reject, baseUrl: baseUrl)
-            return
-        }
-
-        let parameters = JSON(options["body"])
-        let optionsHeaders = options["headers"] as? Dictionary<String, String> ?? [:]
-        let headers = optionsHeadersToHTTPHeaders(headers: optionsHeaders)
-        let url = URL(string: baseUrl)!.appendingPathComponent(endpoint)
-        let encoder = JSONParameterEncoder.default
-
-        session.request(url, method: .put, parameters: parameters, encoder: encoder, headers: headers).responseJSON { json in
-            self.resolveJSONResponse(resolve: resolve, json: json)
-        }
+        handleRequest(method: .put, baseUrl: baseUrl, endpoint: endpoint, options: JSON(options), resolve: resolve, reject: reject)
     }
     
     @objc(post:forEndpoint:withOptions:withResolver:withRejecter:)
     func post(baseUrl: String, endpoint: String, options: Dictionary<String, Any>, resolve: @escaping RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
-        guard let session = SessionManager.default.getSession(for: baseUrl) else {
-            rejectInvalidSession(reject: reject, baseUrl: baseUrl)
-            return
-        }
-
-        let parameters = JSON(options["body"])
-        let optionsHeaders = options["headers"] as? Dictionary<String, String> ?? [:]
-        let headers = optionsHeadersToHTTPHeaders(headers: optionsHeaders)
-        let url = URL(string: baseUrl)!.appendingPathComponent(endpoint)
-        let encoder = JSONParameterEncoder.default
-
-        session.request(url, method: .post, parameters: parameters, encoder: encoder, headers: headers).responseJSON { json in
-            self.resolveJSONResponse(resolve: resolve, json: json)
-        }
+        handleRequest(method: .post, baseUrl: baseUrl, endpoint: endpoint, options: JSON(options), resolve: resolve, reject: reject)
     }
 
     @objc(patch:forEndpoint:withOptions:withResolver:withRejecter:)
     func patch(baseUrl: String, endpoint: String, options: Dictionary<String, Any>, resolve: @escaping RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
-        guard let session = SessionManager.default.getSession(for: baseUrl) else {
-            rejectInvalidSession(reject: reject, baseUrl: baseUrl)
-            return
-        }
-
-        let parameters = JSON(options["body"])
-        let optionsHeaders = options["headers"] as? Dictionary<String, String> ?? [:]
-        let headers = optionsHeadersToHTTPHeaders(headers: optionsHeaders)
-        let url = URL(string: baseUrl)!.appendingPathComponent(endpoint)
-        let encoder = JSONParameterEncoder.default
-
-        session.request(url, method: .patch, parameters: parameters, encoder: encoder, headers: headers).responseJSON { json in
-            self.resolveJSONResponse(resolve: resolve, json: json)
-        }
+        handleRequest(method: .patch, baseUrl: baseUrl, endpoint: endpoint, options: JSON(options), resolve: resolve, reject: reject)
     }
 
     @objc(delete:forEndpoint:withOptions:withResolver:withRejecter:)
     func delete(baseUrl: String, endpoint: String, options: Dictionary<String, Any>, resolve: @escaping RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
+        handleRequest(method: .delete, baseUrl: baseUrl, endpoint: endpoint, options: JSON(options), resolve: resolve, reject: reject)
+    }
+    
+    func handleRequest(method: HTTPMethod, baseUrl: String, endpoint: String, options: JSON, resolve: @escaping RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
         guard let session = SessionManager.default.getSession(for: baseUrl) else {
             rejectInvalidSession(reject: reject, baseUrl: baseUrl)
             return
         }
 
-        let parameters = JSON(options["body"])
-        let optionsHeaders = options["headers"] as? Dictionary<String, String> ?? [:]
-        let headers = optionsHeadersToHTTPHeaders(headers: optionsHeaders)
+        let headers = getHTTPHeadersFrom(options: options)
+        let requestModifer = getRequestModifierFrom(options: options)
         let url = URL(string: baseUrl)!.appendingPathComponent(endpoint)
-        let encoder = JSONParameterEncoder.default
-
-        session.request(url, method: .delete, parameters: parameters, encoder: encoder, headers: headers).responseJSON { json in
-            self.resolveJSONResponse(resolve: resolve, json: json)
+        let parameters = options["body"] == JSON.null ? nil : options["body"]
+        let encoder: ParameterEncoder = parameters != nil ? JSONParameterEncoder.default : URLEncodedFormParameterEncoder.default
+        
+        session.request(url, method: method, parameters: parameters, encoder: encoder, headers: headers, requestModifier: requestModifer).responseJSON { json in
+            resolve([
+                "headers": json.response?.allHeaderFields,
+                "data": json.value,
+                "code": json.response?.statusCode,
+                "lastRequestedUrl": json.response?.url?.absoluteString
+            ])
         }
     }
     
@@ -147,6 +106,24 @@ class APIClient: NSObject {
             config.httpAdditionalHeaders = headers
         }
         
+        if let value = options["allowsCellularAccess"] {
+            config.allowsCellularAccess = RCTConvert.bool(value)
+        }
+
+        if let value = options["timeoutIntervalForRequest"] {
+            config.timeoutIntervalForRequest = RCTConvert.double(value)
+        }
+
+        if let value = options["timeoutIntervalForResource"] {
+            config.timeoutIntervalForResource = RCTConvert.double(value)
+        }
+        
+        if #available(iOS 11.0, *) {
+            if let value = options["waitsForConnectivity"] {
+                config.waitsForConnectivity = RCTConvert.bool(value)
+            }
+        }
+
         return config
     }
 
@@ -157,27 +134,29 @@ class APIClient: NSObject {
 
         return nil
     }
-    
-    func optionsHeadersToHTTPHeaders(headers: Dictionary<String, String>) -> HTTPHeaders {
-        var httpHeaders = HTTPHeaders()
-        for (name, value) in headers {
-            httpHeaders.add(name: name, value: value)
+
+    func getHTTPHeadersFrom(options: JSON) -> HTTPHeaders? {
+        if let headers = options["headers"].dictionary {
+            var httpHeaders = HTTPHeaders()
+            for (name, value) in headers {
+                httpHeaders.add(name: name, value: value.stringValue)
+            }
+            return httpHeaders
         }
-        return httpHeaders
+        
+        return nil
+    }
+    
+    func getRequestModifierFrom(options: JSON) -> Session.RequestModifier? {
+        if let timeoutInterval = options["timeoutInterval"].double {
+            return { $0.timeoutInterval = timeoutInterval }
+        }
+        return nil
     }
 
     func rejectInvalidSession(reject: RCTPromiseRejectBlock, baseUrl: String) -> Void {
         let message = "Session for \(baseUrl) has been invalidated"
         let error = NSError(domain: "com.mattermost.react-native-network-client", code: NSCoderValueNotFoundError, userInfo: [NSLocalizedDescriptionKey: message])
         reject("\(error.code)", message, error)
-    }
-
-    func resolveJSONResponse(resolve: @escaping RCTPromiseResolveBlock, json: AFDataResponse<Any>) {
-        resolve([
-            "headers": json.response?.allHeaderFields,
-            "data": json.value,
-            "code": json.response?.statusCode,
-            "lastRequestedUrl": json.response?.url?.absoluteString
-        ])
     }
 }
