@@ -3,6 +3,7 @@
 
 import React, {useState, useRef, useEffect} from 'react';
 import {
+    Alert,
     Button,
     Platform,
     PlatformColor,
@@ -15,7 +16,7 @@ import {
 } from 'react-native';
 import CheckBox from '@react-native-community/checkbox';
 import DeviceInfo from 'react-native-device-info';
-import {getOrCreateApiClient} from '@mattermost/react-native-network-client';
+import {getOrCreateAPIClient} from '@mattermost/react-native-network-client';
 
 const styles = StyleSheet.create({
     container: {
@@ -128,7 +129,16 @@ export default function CreateNetworkClientScreen({navigation}) {
             headers,
             followRedirects,
         };
-        const client = await getOrCreateApiClient(baseUrl, options);
+        const {client, created} = await getOrCreateAPIClient(baseUrl, options);
+        if (!created) {
+            Alert.alert(
+                'Error',
+                `A client for ${baseUrl} already exists`,
+                [{text: 'OK'}],
+                {cancelable: false}
+            );
+            return;
+        }
         const createdClient = {
             name,
             client,

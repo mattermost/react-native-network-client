@@ -1,5 +1,5 @@
 //
-//  NetworkClient-Bridging-Header.h
+//  APIClient-Bridging-Header.h
 //  NetworkClient
 //
 //  Created by Miguel Alatzar on 10/6/20.

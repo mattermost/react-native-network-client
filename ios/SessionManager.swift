@@ -54,7 +54,7 @@ class SessionManager {
             return
         }
 
-        closeSession(for: baseUrl)
+        invalidateSession(for: baseUrl)
 
         let config = prevSession.sessionConfiguration
         let previousHeaders = config.httpAdditionalHeaders ?? [:]
@@ -69,7 +69,7 @@ class SessionManager {
         return sessions[baseUrl]
     }
     
-    func closeSession(for baseUrl:String) -> Void {
+    func invalidateSession(for baseUrl:String) -> Void {
         guard let session = getSession(for: baseUrl) else {
             return
         }

@@ -4,7 +4,10 @@
 import {NativeModules} from 'react-native';
 import isURL from 'validator/es/lib/isURL';
 
+// TODO: export a native WebSocket client
 const {NetworkClient} = NativeModules;
+
+const SOCKETS: {[key: string]: WebSocketClient} = {};
 
 /**
  * Configurable Websocket client
@@ -17,23 +20,28 @@ class WebSocketClient implements WebSocketClientInterface {
     }
 
     disconnect = () => NetworkClient.disconnectWebSocketFor(this.wsUrl);
+    invalidate = (): Promise<void> => {
+      delete SOCKETS[this.wsUrl];
+  
+      return NetworkClient.invalidateWebSocketClientFor(this.baseUrl);
+    }
 }
 
-const SOCKETS: {[key: string]: WebSocketClient} = {};
-
-async function getOrCreateWebSocketClient(wsUrl: string, callbacks: WebSocketCallbacks, config: WebSocketClientConfiguration = {}): Promise<WebSocketClient> {
+async function getOrCreateWebSocketClient(wsUrl: string, callbacks: WebSocketCallbacks, config: WebSocketClientConfiguration = {}): Promise<{client: WebSocketClient, created: boolean}> {
     if (!isValidWebSocketURL(wsUrl)) {
         throw new Error('baseUrl must be a valid WebSocket URL');
     }
 
+    let created = false;
     let websocket = SOCKETS[wsUrl];
     if (!websocket) {
+        created = true;
         await NetworkClient.createWebSocketClientFor(wsUrl, callbacks, config);
         websocket = new WebSocketClient(wsUrl);
         SOCKETS[wsUrl] = websocket;
     }
 
-    return websocket;
+    return {client: websocket, created};
 }
 
 const isValidWebSocketURL = (wsUrl: string) => {
