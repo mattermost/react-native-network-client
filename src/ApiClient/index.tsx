@@ -4,14 +4,6 @@
 import {NativeModules} from 'react-native';
 import isURL from 'validator/es/lib/isURL';
 
-import type {
-  RequestOptions,
-  Response,
-  GenericClientInterface,
-  APIClientInterface,
-  APIClientConfiguration,
-} from './types';
-
 const {
   GenericClient: NativeGenericClient,
   APIClient: NativeAPIClient,
@@ -23,7 +15,11 @@ const CLIENTS: {[key: string]: APIClient} = {};
  * Generic client for making GET requests
  */
 class GenericClient implements GenericClientInterface {
-  get = (url: string, options?: RequestOptions) => NativeGenericClient.get(url, options);
+  get = (url: string, options?: RequestOptions): Promise<Response> => NativeGenericClient.get(url, options);
+  put = (url: string, options?: RequestOptions): Promise<Response> => NativeGenericClient.put(url, options);
+  post = (url: string, options?: RequestOptions): Promise<Response> => NativeGenericClient.post(url, options);
+  patch = (url: string, options?: RequestOptions): Promise<Response> => NativeGenericClient.patch(url, options);
+  delete = (url: string, options?: RequestOptions): Promise<Response> => NativeGenericClient.delete(url, options);
 }
 
 /**
@@ -32,12 +28,12 @@ class GenericClient implements GenericClientInterface {
 class APIClient implements APIClientInterface {
   baseUrl: string;
 
-  constructor(baseUrl: string) {
-      this.baseUrl = baseUrl;
-  }
+    constructor(baseUrl: string) {
+        this.baseUrl = baseUrl;
+    }
 
-  getHeaders = (): Promise<object> => NativeAPIClient.getClientHeadersFor(this.baseUrl);
-  addHeaders = (headers: object): Promise<void> => NativeAPIClient.addClientHeadersFor(this.baseUrl, headers);
+  getHeaders = (): Promise<Headers> => NativeAPIClient.getClientHeadersFor(this.baseUrl);
+  addHeaders = (headers: Headers): Promise<void> => NativeAPIClient.addClientHeadersFor(this.baseUrl, headers);
   invalidate = (): Promise<void> => {
     delete CLIENTS[this.baseUrl];
 
@@ -53,7 +49,7 @@ class APIClient implements APIClientInterface {
 
 async function getOrCreateAPIClient(baseUrl: string, config: APIClientConfiguration = {}): Promise<{client: APIClient, created: boolean}>  {
     if (!isValidBaseURL(baseUrl)) {
-      throw new Error('baseUrl must be a valid API base URL');
+        throw new Error('baseUrl must be a valid API base URL');
     }
 
     let created = false;
@@ -69,13 +65,13 @@ async function getOrCreateAPIClient(baseUrl: string, config: APIClientConfigurat
 }
 
 const isValidBaseURL = (baseUrl: string) => {
-  return isURL(baseUrl, {
-    protocols: ['http', 'https'],
-    require_protocol: true,
-    require_valid_protocol: true,
-    require_host: true,
-  });
-}
+    return isURL(baseUrl, {
+        protocols: ['http', 'https'],
+        require_protocol: true,
+        require_valid_protocol: true,
+        require_host: true,
+    });
+};
 
 export {
   GenericClient,

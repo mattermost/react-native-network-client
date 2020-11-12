@@ -15,7 +15,7 @@ import {
     View,
 } from 'react-native';
 import DeviceInfo from 'react-native-device-info';
-import {getOrCreateAPIClient} from 'react-native-network-client';
+import {getOrCreateAPIClient} from '@mattermost/react-native-network-client';
 
 const styles = StyleSheet.create({
     container: {

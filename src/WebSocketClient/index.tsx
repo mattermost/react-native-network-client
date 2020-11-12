@@ -4,13 +4,7 @@
 import {NativeModules} from 'react-native';
 import isURL from 'validator/es/lib/isURL';
 
-import type {
-    WebSocketClientInterface,
-    WebSocketCallbacks,
-    WebSocketClientConfiguration,
-  } from './types';
-
-  // TODO: export a native WebSocket client
+// TODO: export a native WebSocket client
 const {NetworkClient} = NativeModules;
 
 const SOCKETS: {[key: string]: WebSocketClient} = {};
@@ -51,12 +45,12 @@ async function getOrCreateWebSocketClient(wsUrl: string, callbacks: WebSocketCal
 }
 
 const isValidWebSocketURL = (wsUrl: string) => {
-  return isURL(wsUrl, {
-    protocols: ['ws', 'wss'],
-    require_protocol: true,
-    require_valid_protocol: true,
-    require_host: true,
-  });
-}
+    return isURL(wsUrl, {
+        protocols: ['ws', 'wss'],
+        require_protocol: true,
+        require_valid_protocol: true,
+        require_host: true,
+    });
+};
 
 export {getOrCreateWebSocketClient};
