@@ -16,10 +16,17 @@ type Response = {
 };
 
 interface GenericClientInterface {
-    get(endpoint: string, options?: RequestOptions): Promise<Response>;
+    get(url: string, options?: RequestOptions): Promise<Response>;
+    put(url: string, options?: RequestOptions): Promise<Response>;
+    post(url: string, options?: RequestOptions): Promise<Response>;
+    patch(url: string, options?: RequestOptions): Promise<Response>;
+    delete(url: string, options?: RequestOptions): Promise<Response>;
 };
 
 interface APIClientInterface {
+    baseUrl: string;
+    config: APIClientConfiguration;
+
     get(endpoint: string, options?: RequestOptions): Promise<Response>;
     put(endpoint: string, options?: RequestOptions): Promise<Response>;
     post(endpoint: string, options?: RequestOptions): Promise<Response>;
@@ -28,6 +35,7 @@ interface APIClientInterface {
 
     getHeaders(): Promise<Headers>;
     addHeaders(headers: Headers): Promise<void>;
+    invalidate(): Promise<void>;
 };
 
 type iOSAPIClientConfiguration = {

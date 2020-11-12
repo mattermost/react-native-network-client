@@ -4,23 +4,9 @@
 import {NativeModules} from 'react-native';
 import isURL from 'validator/es/lib/isURL';
 
-const {
-  GenericClient: NativeGenericClient,
-  APIClient: NativeAPIClient,
-} = NativeModules;
+const {APIClient: NativeAPIClient} = NativeModules;
 
 const CLIENTS: {[key: string]: APIClient} = {};
-
-/**
- * Generic client for making GET requests
- */
-class GenericClient implements GenericClientInterface {
-  get = (url: string, options?: RequestOptions): Promise<Response> => NativeGenericClient.get(url, options);
-  put = (url: string, options?: RequestOptions): Promise<Response> => NativeGenericClient.put(url, options);
-  post = (url: string, options?: RequestOptions): Promise<Response> => NativeGenericClient.post(url, options);
-  patch = (url: string, options?: RequestOptions): Promise<Response> => NativeGenericClient.patch(url, options);
-  delete = (url: string, options?: RequestOptions): Promise<Response> => NativeGenericClient.delete(url, options);
-}
 
 const DEFAULT_API_CLIENT_CONFIG: APIClientConfiguration = {
     followRedirects: true,
@@ -86,7 +72,4 @@ const isValidBaseURL = (baseUrl: string) => {
     });
 };
 
-export {
-  GenericClient,
-  getOrCreateAPIClient,
-};
+export {getOrCreateAPIClient};
