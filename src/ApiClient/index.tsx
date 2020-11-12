@@ -57,14 +57,14 @@ async function getOrCreateApiClient(baseUrl: string, config: ApiClientConfigurat
         throw new Error('baseUrl must be a valid API base URL');
     }
 
-    let networkClient = CLIENTS[baseUrl];
-    if (!networkClient) {
-        await NetworkClient.createApiClientFor(baseUrl, config);
-        networkClient = new ApiClient(baseUrl, config);
-        CLIENTS[baseUrl] = networkClient;
+    let client = CLIENTS[baseUrl];
+    if (!client) {
+        client = new ApiClient(baseUrl, config);
+        await NetworkClient.createApiClientFor(client.baseUrl, client.config);
+        CLIENTS[baseUrl] = client;
     }
 
-    return networkClient;
+    return client;
 }
 
 const isValidBaseURL = (baseUrl: string) => {
