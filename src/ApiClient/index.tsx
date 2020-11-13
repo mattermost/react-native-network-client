@@ -14,6 +14,7 @@ const DEFAULT_API_CLIENT_CONFIG: APIClientConfiguration = {
     waitsForConnectivity: false,
     timeoutIntervalForRequest: 60,
     timeoutIntervalForResource: 60,
+    httpMaximumConnectionsPerHost: 10,
 };
 
 /**

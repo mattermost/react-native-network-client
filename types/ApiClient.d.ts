@@ -46,6 +46,7 @@ type iOSAPIClientConfiguration = {
     waitsForConnectivity: boolean;
     timeoutIntervalForRequest: number;
     timeoutIntervalForResource: number;
+    httpMaximumConnectionsPerHost: number;
     requestInterceptorConfig?: Record<string, string>;
     serverTrustManagerConfig?: Record<string, string>;
     cachedResponseHandlerConfig?: Record<string, string>;

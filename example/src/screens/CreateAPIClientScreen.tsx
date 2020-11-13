@@ -103,6 +103,7 @@ export default function CreateAPIClientScreen({navigation}) {
     const [waitsForConnectivity, setWaitsForConnectivity] = useState(false);
     const [timeoutIntervalForRequest, setTimeoutIntervalForRequest] = useState('60');
     const [timeoutIntervalForResource, setTimeoutIntervalForResource] = useState('60');
+    const [httpMaximumConnectionsPerHost, setHttpMaximumConnectionsPerHost] = useState('10');
     const scrollView = useRef(null);
 
     // TEST MM default headers
@@ -139,6 +140,7 @@ export default function CreateAPIClientScreen({navigation}) {
             waitsForConnectivity,
             timeoutIntervalForRequest: Number(timeoutIntervalForRequest),
             timeoutIntervalForResource: Number(timeoutIntervalForResource),
+            httpMaximumConnectionsPerHost: Number(httpMaximumConnectionsPerHost),
         };
         const {client, created} = await getOrCreateAPIClient(baseUrl, options);
         if (!created) {
@@ -257,6 +259,19 @@ export default function CreateAPIClientScreen({navigation}) {
                             placeholder='60'
                             style={styles.input}
                             keyboardType={'numeric'}
+                        />
+                    </View>
+                </View>
+
+                <View style={styles.inputContainer}>
+                    <Text style={styles.label}>Max Connections</Text>
+                    <View style={styles.numericInputContainer}>
+                        <TextInput
+                            value={httpMaximumConnectionsPerHost}
+                            onChangeText={setHttpMaximumConnectionsPerHost}
+                            placeholder='10'
+                            style={styles.input}
+                            keyboardType='numeric'
                         />
                     </View>
                 </View>

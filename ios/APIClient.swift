@@ -117,6 +117,10 @@ class APIClient: NSObject {
         if let value = options["timeoutIntervalForResource"] {
             config.timeoutIntervalForResource = RCTConvert.double(value)
         }
+
+        if let value = options["httpMaximumConnectionsPerHost"] {
+            config.httpMaximumConnectionsPerHost = RCTConvert.nsInteger(value)
+        }
         
         if #available(iOS 11.0, *) {
             if let value = options["waitsForConnectivity"] {
