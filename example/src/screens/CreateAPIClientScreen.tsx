@@ -98,13 +98,22 @@ export default function CreateAPIClientScreen({navigation}) {
     const [name, setName] = useState('HTTP Google Redirect Test');
     const [baseUrl, setbaseUrl] = useState('http://google.com');
     const [clientHeaders, setClientHeaders] = useState([]);
-    const [followRedirects, setFollowRedirects] = useState(true);
-    const [allowsCellularAccess, setAllowsCellularAccess] = useState(true);
-    const [waitsForConnectivity, setWaitsForConnectivity] = useState(false);
-    const [timeoutIntervalForRequest, setTimeoutIntervalForRequest] = useState('60');
-    const [timeoutIntervalForResource, setTimeoutIntervalForResource] = useState('60');
-    const [httpMaximumConnectionsPerHost, setHttpMaximumConnectionsPerHost] = useState('10');
+    const [sessionOptions, setSessionOptions] = useState({
+        followRedirects: true,
+        allowsCellularAccess: true,
+        waitsForConnectivity: false,
+        timeoutIntervalForRequest: '30',
+        timeoutIntervalForResource: '30',
+        httpMaximumConnectionsPerHost: '10',
+    });
     const scrollView = useRef(null);
+
+    const setFollowRedirects = (followRedirects) => setSessionOptions({...sessionOptions, followRedirects});
+    const setAllowsCellularAccess = (allowsCellularAccess) => setSessionOptions({...sessionOptions, allowsCellularAccess});
+    const setWaitsForConnectivity = (waitsForConnectivity) => setSessionOptions({...sessionOptions, waitsForConnectivity});
+    const setTimeoutIntervalForRequest = (timeoutIntervalForRequest) => setSessionOptions({...sessionOptions, timeoutIntervalForRequest});
+    const setTimeoutIntervalForResource = (timeoutIntervalForResource) => setSessionOptions({...sessionOptions, timeoutIntervalForResource});
+    const setHttpMaximumConnectionsPerHost = (httpMaximumConnectionsPerHost) => setSessionOptions({...sessionOptions, httpMaximumConnectionsPerHost});
 
     // TEST MM default headers
     const addDefaultHeaders = async () => {
@@ -120,7 +129,7 @@ export default function CreateAPIClientScreen({navigation}) {
     }, []);
 
 
-    const sanitizeHeaders = async () => {
+    const sanitizeHeaders = () => {
         const headers = {};
         clientHeaders.forEach(({key, value}) => {
            if (key && value) {
@@ -131,16 +140,19 @@ export default function CreateAPIClientScreen({navigation}) {
         return headers;
     }
 
+    const parseSessionOptions = () => ({
+        ...sessionOptions,
+        timeoutIntervalForRequest: Number(sessionOptions.timeoutIntervalForRequest),
+        timeoutIntervalForResource: Number(sessionOptions.timeoutIntervalForResource),
+        httpMaximumConnectionsPerHost: Number(sessionOptions.httpMaximumConnectionsPerHost),
+    });
+
     const createClient = async () => {
-        const headers = await sanitizeHeaders();
+        const headers = sanitizeHeaders();
+        const sessionOptions = parseSessionOptions();
         const options = {
             headers,
-            followRedirects,
-            allowsCellularAccess,
-            waitsForConnectivity,
-            timeoutIntervalForRequest: Number(timeoutIntervalForRequest),
-            timeoutIntervalForResource: Number(timeoutIntervalForResource),
-            httpMaximumConnectionsPerHost: Number(httpMaximumConnectionsPerHost),
+            ...sessionOptions,
         };
         const {client, created} = await getOrCreateAPIClient(baseUrl, options);
         if (!created) {
@@ -216,7 +228,7 @@ export default function CreateAPIClientScreen({navigation}) {
                 <View style={styles.inputContainer}>
                     <Text style={styles.label}>Follow Redirects?</Text>
                     <CheckBox
-                        value={followRedirects}
+                        value={sessionOptions.followRedirects}
                         onValueChange={setFollowRedirects}
                     />
                 </View>
@@ -224,7 +236,7 @@ export default function CreateAPIClientScreen({navigation}) {
                 <View style={styles.inputContainer}>
                     <Text style={styles.label}>Allow Cellular Access?</Text>
                     <CheckBox
-                        value={allowsCellularAccess}
+                        value={sessionOptions.allowsCellularAccess}
                         onValueChange={setAllowsCellularAccess}
                     />
                 </View>
@@ -232,7 +244,7 @@ export default function CreateAPIClientScreen({navigation}) {
                 <View style={styles.inputContainer}>
                     <Text style={styles.label}>Waits For Connectivity?</Text>
                     <CheckBox
-                        value={waitsForConnectivity}
+                        value={sessionOptions.waitsForConnectivity}
                         onValueChange={setWaitsForConnectivity}
                     />
                 </View>
@@ -241,7 +253,7 @@ export default function CreateAPIClientScreen({navigation}) {
                     <Text style={styles.label}>Timeout Interval For Request</Text>
                     <View style={styles.numericInputContainer}>
                         <TextInput
-                            value={timeoutIntervalForRequest}
+                            value={sessionOptions.timeoutIntervalForRequest}
                             onChangeText={setTimeoutIntervalForRequest}
                             placeholder='60'
                             style={styles.input}
@@ -254,7 +266,7 @@ export default function CreateAPIClientScreen({navigation}) {
                     <Text style={styles.label}>Timeout Interval For Resource</Text>
                     <View style={styles.numericInputContainer}>
                         <TextInput
-                            value={timeoutIntervalForResource}
+                            value={sessionOptions.timeoutIntervalForResource}
                             onChangeText={setTimeoutIntervalForResource}
                             placeholder='60'
                             style={styles.input}
@@ -267,7 +279,7 @@ export default function CreateAPIClientScreen({navigation}) {
                     <Text style={styles.label}>Max Connections</Text>
                     <View style={styles.numericInputContainer}>
                         <TextInput
-                            value={httpMaximumConnectionsPerHost}
+                            value={sessionOptions.httpMaximumConnectionsPerHost}
                             onChangeText={setHttpMaximumConnectionsPerHost}
                             placeholder='10'
                             style={styles.input}
