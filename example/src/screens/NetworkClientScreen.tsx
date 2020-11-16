@@ -137,7 +137,7 @@ export default function NetworkClientScreen({navigation, route}) {
     const {name, client} = route.params;
 
     const [method, setMethod] = useState('GET');
-    const [endpoint, setEndpoint] = useState('/api/v4/system/ping');
+    const [endpoint, setEndpoint] = useState('/');
     const [body, setBody] = useState('');
     const [requestHeaders, setRequestHeaders] = useState([{key: '', value: ''}]);
     const [clientHeaders, setClientHeaders] = useState(null);
@@ -286,7 +286,7 @@ export default function NetworkClientScreen({navigation, route}) {
             return (
                 <>
                     <View style={styles.responseHeadersContainer}>
-                        <Text style={styles.label}>Response</Text>
+                        <Text style={styles.label}>Response: {response.code}, {response.lastRequestedUrl}</Text>
                         <Text style={styles.label}>Headers</Text>
                         <FlatList
                             data={Object.entries(response.headers)}

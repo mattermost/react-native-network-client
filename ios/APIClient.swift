@@ -16,8 +16,11 @@ class APIClient: NSObject {
     @objc(createClientFor:withOptions:withResolver:withRejecter:)
     func createClientFor(baseUrl: String, options: Dictionary<String, Any>?, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
         if let options = options {
-            let config = optionsToURLSessionConfiguration(options: options)
-            resolve(SessionManager.default.createSession(for: baseUrl, withConfig: config))
+            let configuration = getURLSessionConfigurationFrom(options: options)
+            let redirectHandler = getRedirectHandlerFrom(options: options)
+
+            resolve(SessionManager.default.createSession(for: baseUrl, withConfiguration: configuration, withRedirectHandler: redirectHandler))
+
             return
         }
         
@@ -60,8 +63,8 @@ class APIClient: NSObject {
         let headers = optionsHeadersToHTTPHeaders(headers: optionsHeaders)
         let url = URL(string: baseUrl)!.appendingPathComponent(endpoint)
 
-        session.request(url, method: .get, headers: headers).responseJSON { response in
-            resolve(["headers": response.response?.allHeaderFields, "data": response.value])
+        session.request(url, method: .get, headers: headers).responseJSON { json in
+            self.resolveJSONResponse(resolve: resolve, json: json)
         }
     }
 
@@ -78,8 +81,8 @@ class APIClient: NSObject {
         let url = URL(string: baseUrl)!.appendingPathComponent(endpoint)
         let encoder = JSONParameterEncoder.default
 
-        session.request(url, method: .put, parameters: parameters, encoder: encoder, headers: headers).responseJSON { response in
-            resolve(["headers": response.response?.allHeaderFields, "data": response.value])
+        session.request(url, method: .put, parameters: parameters, encoder: encoder, headers: headers).responseJSON { json in
+            self.resolveJSONResponse(resolve: resolve, json: json)
         }
     }
     
@@ -96,8 +99,8 @@ class APIClient: NSObject {
         let url = URL(string: baseUrl)!.appendingPathComponent(endpoint)
         let encoder = JSONParameterEncoder.default
 
-        session.request(url, method: .post, parameters: parameters, encoder: encoder, headers: headers).responseJSON { response in
-            resolve(["headers": response.response?.allHeaderFields, "data": response.value])
+        session.request(url, method: .post, parameters: parameters, encoder: encoder, headers: headers).responseJSON { json in
+            self.resolveJSONResponse(resolve: resolve, json: json)
         }
     }
 
@@ -114,8 +117,8 @@ class APIClient: NSObject {
         let url = URL(string: baseUrl)!.appendingPathComponent(endpoint)
         let encoder = JSONParameterEncoder.default
 
-        session.request(url, method: .patch, parameters: parameters, encoder: encoder, headers: headers).responseJSON { response in
-            resolve(["headers": response.response?.allHeaderFields, "data": response.value])
+        session.request(url, method: .patch, parameters: parameters, encoder: encoder, headers: headers).responseJSON { json in
+            self.resolveJSONResponse(resolve: resolve, json: json)
         }
     }
 
@@ -132,19 +135,27 @@ class APIClient: NSObject {
         let url = URL(string: baseUrl)!.appendingPathComponent(endpoint)
         let encoder = JSONParameterEncoder.default
 
-        session.request(url, method: .delete, parameters: parameters, encoder: encoder, headers: headers).responseJSON { response in
-            resolve(["headers": response.response?.allHeaderFields, "data": response.value])
+        session.request(url, method: .delete, parameters: parameters, encoder: encoder, headers: headers).responseJSON { json in
+            self.resolveJSONResponse(resolve: resolve, json: json)
         }
     }
     
-    func optionsToURLSessionConfiguration(options: Dictionary<String, Any>) -> URLSessionConfiguration {
+    func getURLSessionConfigurationFrom(options: Dictionary<String, Any>) -> URLSessionConfiguration {
         let config = URLSessionConfiguration.default
         
-        if let httpAdditionalHeaders = RCTConvert.nsDictionary(options["additionalHeaders"]) {
-            config.httpAdditionalHeaders = httpAdditionalHeaders
+        if let headers = RCTConvert.nsDictionary(options["headers"]) {
+            config.httpAdditionalHeaders = headers
         }
         
         return config
+    }
+
+    func getRedirectHandlerFrom(options: Dictionary<String, Any>) -> RedirectHandler? {
+        if let followValue = options["followRedirects"] {
+            return Redirector(behavior: RCTConvert.bool(followValue) ? .follow : .doNotFollow)
+        }
+
+        return nil
     }
     
     func optionsHeadersToHTTPHeaders(headers: Dictionary<String, String>) -> HTTPHeaders {
@@ -159,5 +170,14 @@ class APIClient: NSObject {
         let message = "Session for \(baseUrl) has been invalidated"
         let error = NSError(domain: "com.mattermost.react-native-network-client", code: NSCoderValueNotFoundError, userInfo: [NSLocalizedDescriptionKey: message])
         reject("\(error.code)", message, error)
+    }
+
+    func resolveJSONResponse(resolve: @escaping RCTPromiseResolveBlock, json: AFDataResponse<Any>) {
+        resolve([
+            "headers": json.response?.allHeaderFields,
+            "data": json.value,
+            "code": json.response?.statusCode,
+            "lastRequestedUrl": json.response?.url?.absoluteString
+        ])
     }
 }

@@ -4,41 +4,40 @@
 import {NativeModules} from 'react-native';
 import isURL from 'validator/es/lib/isURL';
 
-const {
-  GenericClient: NativeGenericClient,
-  APIClient: NativeAPIClient,
-} = NativeModules;
+const {APIClient: NativeAPIClient} = NativeModules;
 
 const CLIENTS: {[key: string]: APIClient} = {};
 
-/**
- * Generic client for making GET requests
- */
-class GenericClient implements GenericClientInterface {
-  get = (url: string, options?: RequestOptions): Promise<Response> => NativeGenericClient.get(url, options);
-  put = (url: string, options?: RequestOptions): Promise<Response> => NativeGenericClient.put(url, options);
-  post = (url: string, options?: RequestOptions): Promise<Response> => NativeGenericClient.post(url, options);
-  patch = (url: string, options?: RequestOptions): Promise<Response> => NativeGenericClient.patch(url, options);
-  delete = (url: string, options?: RequestOptions): Promise<Response> => NativeGenericClient.delete(url, options);
-}
+const DEFAULT_API_CLIENT_CONFIG: APIClientConfiguration = {
+    followRedirects: true,
+};
 
 /**
  * Configurable client for consuming a REST API
  */
 class APIClient implements APIClientInterface {
-  baseUrl: string;
+    baseUrl: string;
+    config: APIClientConfiguration;
 
-    constructor(baseUrl: string) {
+    constructor(baseUrl: string, config: APIClientConfiguration = {}) {
         this.baseUrl = baseUrl;
+        this.config = Object.assign({}, DEFAULT_API_CLIENT_CONFIG, config);
     }
 
-  getHeaders = (): Promise<Headers> => NativeAPIClient.getClientHeadersFor(this.baseUrl);
-  addHeaders = (headers: Headers): Promise<void> => NativeAPIClient.addClientHeadersFor(this.baseUrl, headers);
-  invalidate = (): Promise<void> => {
-    delete CLIENTS[this.baseUrl];
+    getHeaders = (): Promise<Headers> => NativeAPIClient.getClientHeadersFor(this.baseUrl);
+    addHeaders = (headers: Headers): Promise<void> => {
+        this.config.headers = {
+            ...this.config.headers,
+            ...headers,
+        };
 
-    return NativeAPIClient.invalidateClientFor(this.baseUrl);
-  }
+        return NativeAPIClient.addClientHeadersFor(this.baseUrl, headers);
+    }
+    invalidate = (): Promise<void> => {
+        delete CLIENTS[this.baseUrl];
+
+        return NativeAPIClient.invalidateClientFor(this.baseUrl);
+    }
 
   get = (endpoint: string, options?: RequestOptions): Promise<Response> => NativeAPIClient.get(this.baseUrl, endpoint, options);
   put = (endpoint: string, options?: RequestOptions): Promise<Response> => NativeAPIClient.put(this.baseUrl, endpoint, options);
@@ -55,10 +54,10 @@ async function getOrCreateAPIClient(baseUrl: string, config: APIClientConfigurat
     let created = false;
     let client = CLIENTS[baseUrl];
     if (!client) {
-        await NativeAPIClient.createClientFor(baseUrl, config);
-        created = true;
-        client = new APIClient(baseUrl);
+        client = new APIClient(baseUrl, config);
+        await NativeAPIClient.createClientFor(client.baseUrl, client.config);
         CLIENTS[baseUrl] = client;
+        created = true;
     }
 
     return {client, created};
@@ -73,7 +72,4 @@ const isValidBaseURL = (baseUrl: string) => {
     });
 };
 
-export {
-  GenericClient,
-  getOrCreateAPIClient,
-};
+export {getOrCreateAPIClient};

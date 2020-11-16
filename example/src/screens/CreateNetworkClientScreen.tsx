@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useRef} from 'react';
+import React, {useState, useRef, useEffect} from 'react';
 import {
     Alert,
     Button,
@@ -14,6 +14,7 @@ import {
     TextInput,
     View,
 } from 'react-native';
+import CheckBox from '@react-native-community/checkbox';
 import DeviceInfo from 'react-native-device-info';
 import {getOrCreateAPIClient} from '@mattermost/react-native-network-client';
 
@@ -42,25 +43,29 @@ const styles = StyleSheet.create({
             },
         }),
      },
-     optionsLabelContainer: {
+     headersLabelContainer: {
         flexDirection: 'row',
         alignItems: 'center',
      },
-     optionsContainer: {
+     headersContainer: {
         flex: 8,
      },
-     option: {
-         flexDirection: 'row',
-         justifyContent: 'space-evenly',
-     }
+     header: {
+        flexDirection: 'row',
+        justifyContent: 'space-evenly',
+     },
+    followRedirectsContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+     },
 });
 
-const ConfigOption = ({index, option, updateOption}) => {
-    const [key, setKey] = useState(option.key);
-    const [value, setValue] = useState(option.value);
+const ClientHeader = ({index, header, updateHeader}) => {
+    const [key, setKey] = useState(header.key);
+    const [value, setValue] = useState(header.value);
 
-    const doUpdateOption = () => {
-        updateOption(index, {key, value});
+    const doUpdateHeader = () => {
+        updateHeader(index, {key, value});
     }
 
     return (
@@ -70,7 +75,7 @@ const ConfigOption = ({index, option, updateOption}) => {
                 onChangeText={setKey}
                 placeholder='key'
                 autoCapitalize='none'
-                onBlur={doUpdateOption}
+                onBlur={doUpdateHeader}
                 style={[styles.input, {flex: 1}]}
             />
             <TextInput
@@ -78,7 +83,7 @@ const ConfigOption = ({index, option, updateOption}) => {
                 onChangeText={setValue}
                 placeholder='value'
                 autoCapitalize='none'
-                onBlur={doUpdateOption}
+                onBlur={doUpdateHeader}
                 style={[styles.input, {flex: 1}]}
             />
         </>
@@ -87,34 +92,43 @@ const ConfigOption = ({index, option, updateOption}) => {
 }
 
 export default function CreateNetworkClientScreen({navigation}) {
-    const [name, setName] = useState('Mattermost Community Server');
-    const [baseUrl, setbaseUrl] = useState('https://community.mattermost.com');
-    const [configOptions, setConfigOptions] = useState([{key: '', value: ''}]);
+    const [name, setName] = useState('HTTP Google Redirect Test');
+    const [baseUrl, setbaseUrl] = useState('http://google.com');
+    const [clientHeaders, setClientHeaders] = useState([]);
+    const [followRedirects, setFollowRedirects] = useState(true);
     const scrollView = useRef(null);
 
-    const sanitizeOptions = async () => {
-        // const options = {};
-        // configOptions.forEach(({key, value}) => {
-        //    if (key && value) {
-        //        options[key] = value;
-        //    } 
-        // });
-
-        // TEST MM OPTIONS
+    // TEST MM default headers
+    const addDefaultHeaders = async () => {
         const userAgent = await DeviceInfo.getUserAgent();
-        const options = {
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'User-Agent': userAgent,
-            },
+        setClientHeaders([
+            {key: 'X-Requested-With', value: 'XMLHttpRequest'},
+            {key: 'User-Agent', value: userAgent},
+            {key: '', value: ''},
+        ]);
+    }
+    useEffect(() => {
+        addDefaultHeaders();
+    }, []);
 
-        }
 
-        return options;
+    const sanitizeHeaders = async () => {
+        const headers = {};
+        clientHeaders.forEach(({key, value}) => {
+           if (key && value) {
+               headers[key] = value;
+           } 
+        });
+
+        return headers;
     }
 
     const createClient = async () => {
-        const options = await sanitizeOptions(configOptions);
+        const headers = await sanitizeHeaders();
+        const options = {
+            headers,
+            followRedirects,
+        };
         const {client, created} = await getOrCreateAPIClient(baseUrl, options);
         if (!created) {
             Alert.alert(
@@ -125,7 +139,6 @@ export default function CreateNetworkClientScreen({navigation}) {
             );
             return;
         }
-
         const createdClient = {
             name,
             client,
@@ -135,23 +148,23 @@ export default function CreateNetworkClientScreen({navigation}) {
         navigation.navigate('ClientList', {client: createdClient});
     }
 
-    const addConfigOption = () => {
-        setConfigOptions([...configOptions, {key: '', value: ''}]);
+    const addClientHeader = () => {
+        setClientHeaders([...clientHeaders, {key: '', value: ''}]);
         scrollView.current.scrollToEnd();
     }
 
-    const updateConfigOption = (index, option) => {
-        const newConfigOptions = configOptions;
-        newConfigOptions[index] = option;
-        setConfigOptions(newConfigOptions);
+    const updateClientHeader = (index, header) => {
+        const newClientHeaders = clientHeaders;
+        newClientHeaders[index] = header;
+        setClientHeaders(newClientHeaders);
     };
 
-    const renderConfigOptions = () => (
+    const renderClientHeaders = () => (
         <ScrollView ref={scrollView} contentContainerStyle={styles.scrollViewContainer}>
             {
-                configOptions.map((option, index) => (
-                    <View key={`option-${index}`} style={styles.option}>
-                        <ConfigOption index={index} option={option} updateOption={updateConfigOption} />
+                clientHeaders.map((header, index) => (
+                    <View key={`header-${index}`} style={styles.header}>
+                        <ClientHeader index={index} header={header} updateHeader={updateClientHeader} />
                     </View>
                 ))
             }
@@ -168,6 +181,7 @@ export default function CreateNetworkClientScreen({navigation}) {
                 autoCapitalize='none'
                 style={styles.input}
             />
+
             <Text style={styles.label}>Root URL</Text>
             <TextInput
                 value={baseUrl}
@@ -176,13 +190,24 @@ export default function CreateNetworkClientScreen({navigation}) {
                 autoCapitalize='none'
                 style={styles.input}
             />
-            <View style={styles.optionsLabelContainer}>
-                <Text style={styles.label}>Configuration Options</Text>
-                <Button title='+' onPress={addConfigOption}/>
+
+            <View style={styles.followRedirectsContainer}>
+                <Text style={styles.label}>Follow Redirects?</Text>
+                <CheckBox
+                    value={followRedirects}
+                    onValueChange={setFollowRedirects}
+                    style={styles.checkbox}
+                />
             </View>
-            <View style={styles.optionsContainer}>
-                {renderConfigOptions()}
+
+            <View style={styles.headersLabelContainer}>
+                <Text style={styles.label}>Client Headers</Text>
+                <Button title='+' onPress={addClientHeader}/>
             </View>
+            <View style={styles.headersContainer}>
+                {renderClientHeaders()}
+            </View>
+
             <View style={styles.buttonContainer}>
                 <Button
                     title='Create'

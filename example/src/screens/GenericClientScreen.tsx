@@ -133,7 +133,7 @@ export default function GenericClientScreen({navigation, route}) {
     const {name, client} = route.params;
 
     const [method, setMethod] = useState('GET');
-    const [url, setUrl] = useState('https://jsonplaceholder.typicode.com/todos/1');
+    const [url, setUrl] = useState('http://google.com');//'https://jsonplaceholder.typicode.com/todos/1');
     const [body, setBody] = useState('');
     const [requestHeaders, setRequestHeaders] = useState([{key: '', value: ''}]);
     const [response, setResponse] = useState(null);
@@ -235,7 +235,7 @@ export default function GenericClientScreen({navigation, route}) {
             return (
                 <>
                     <View style={styles.responseHeadersContainer}>
-                        <Text style={styles.label}>Response</Text>
+                        <Text style={styles.label}>Response: {response.code}</Text>
                         <Text style={styles.label}>Headers</Text>
                         <FlatList
                             data={Object.entries(response.headers)}
