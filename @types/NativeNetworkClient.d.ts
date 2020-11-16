@@ -7,10 +7,15 @@ interface NativeNetworkClient {
     patch(baseUrl: string, endpoint: string | null, options?: RequestOptions): Promise<Response>;
     delete(baseUrl: string, endpoint: string | null, options?: RequestOptions): Promise<Response>;
 
+    getApiClientsList(): Promise<string[]>;
+    createApiClientFor(baseUrl: string, config?: ApiClientConfiguration): Promise<void>;
+    removeApiClientFor(baseUrl: string): Promise<void>;
     getApiClientHeadersFor(baseUrl: string): Promise<Headers>;
     addApiClientHeadersFor(baseUrl: string, headers: Headers): Promise<void>;
-    createApiClientFor(baseUrl: string, config?: ApiClientConfiguration): Promise<void>;
+    removeApiClientHeadersFor(baseUrl: string, headers: string[]): Promise<void>;
+    clearApiClientHeadersFor(baseUrl: string): Promise<void>;
 
-    disconnectWebSocketFor(wsUrl: string);
+    getWebSocketClientsList(): Promise<string[]>;
     createWebSocketClientFor(wsUrl: string, callbacks: WebSocketCallbacks, config?: WebSocketClientConfiguration);
+    disconnectWebSocketFor(wsUrl: string);
 }

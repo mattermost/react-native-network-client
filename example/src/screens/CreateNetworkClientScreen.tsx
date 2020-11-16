@@ -3,7 +3,6 @@
 
 import React, {useState, useRef} from 'react';
 import {
-    Alert,
     Button,
     Platform,
     PlatformColor,
@@ -16,6 +15,20 @@ import {
 } from 'react-native';
 import DeviceInfo from 'react-native-device-info';
 import {getOrCreateAPIClient} from '@mattermost/react-native-network-client';
+import type { StackNavigationProp } from '@react-navigation/stack';
+
+type CreateNetworkClientScreenNavigationProp = StackNavigationProp<
+  RootStackParamList,
+  'CreateNetworkClient'
+>;
+
+type CreateNetworkClientScreenProps = {
+  navigation: CreateNetworkClientScreenNavigationProp;
+//   route: CreateNetworkClientScreenRouteProp
+};
+
+// type Client = {type: string, client: GenericClientInterface, name: string, baseUrl?: string, wsUrl?: string}
+
 
 const styles = StyleSheet.create({
     container: {
@@ -37,9 +50,9 @@ const styles = StyleSheet.create({
         padding: 5,
         ...Platform.select({
             ios: { borderColor: PlatformColor('link') },
-            android: {
-                borderColor: PlatformColor('?attr/colorControlNormal')
-            },
+            // android: {
+            //     borderColor: PlatformColor('?attr/colorControlNormal')
+            // },
         }),
      },
      optionsLabelContainer: {
@@ -55,7 +68,9 @@ const styles = StyleSheet.create({
      }
 });
 
-const ConfigOption = ({index, option, updateOption}) => {
+
+type ConfigOptionProps = {index: number, option: {key: string, value: string}, updateOption: (index: number, option: {key: string, value:string}) => void}
+const ConfigOption = ({index, option, updateOption}: ConfigOptionProps) => {
     const [key, setKey] = useState(option.key);
     const [value, setValue] = useState(option.value);
 
@@ -86,7 +101,7 @@ const ConfigOption = ({index, option, updateOption}) => {
 
 }
 
-export default function CreateNetworkClientScreen({navigation}) {
+export default function CreateNetworkClientScreen({navigation}: CreateNetworkClientScreenProps) {
     const [name, setName] = useState('Mattermost Community Server');
     const [baseUrl, setbaseUrl] = useState('https://community.mattermost.com');
     const [configOptions, setConfigOptions] = useState([{key: '', value: ''}]);
@@ -114,18 +129,8 @@ export default function CreateNetworkClientScreen({navigation}) {
     }
 
     const createClient = async () => {
-        const options = await sanitizeOptions(configOptions);
-        const {client, created} = await getOrCreateAPIClient(baseUrl, options);
-        if (!created) {
-            Alert.alert(
-                'Error',
-                `A client for ${baseUrl} already exists`,
-                [{text: 'OK'}],
-                {cancelable: false}
-            );
-            return;
-        }
-
+        const options = await sanitizeOptions();
+        const client = await getOrCreateAPIClient(baseUrl, options);
         const createdClient = {
             name,
             client,
@@ -137,17 +142,17 @@ export default function CreateNetworkClientScreen({navigation}) {
 
     const addConfigOption = () => {
         setConfigOptions([...configOptions, {key: '', value: ''}]);
-        scrollView.current.scrollToEnd();
+        // scrollView.current.scrollToEnd();
     }
 
-    const updateConfigOption = (index, option) => {
+    const updateConfigOption = (index: number, option: {key: string, value: string}) => {
         const newConfigOptions = configOptions;
         newConfigOptions[index] = option;
         setConfigOptions(newConfigOptions);
     };
 
     const renderConfigOptions = () => (
-        <ScrollView ref={scrollView} contentContainerStyle={styles.scrollViewContainer}>
+        <ScrollView ref={scrollView}>
             {
                 configOptions.map((option, index) => (
                     <View key={`option-${index}`} style={styles.option}>

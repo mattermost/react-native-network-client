@@ -5,8 +5,8 @@ import {NativeModules} from 'react-native';
 import isURL from 'validator/es/lib/isURL';
 
 const {
-  GenericClient: NativeGenericClient,
-  APIClient: NativeAPIClient,
+    GenericClient: NativeGenericClient,
+    APIClient: NativeAPIClient,
 } = NativeModules;
 
 const CLIENTS: {[key: string]: APIClient} = {};
@@ -25,19 +25,19 @@ class GenericClient implements GenericClientInterface {
 /**
  * Configurable client for consuming a REST API
  */
-class APIClient implements APIClientInterface {
+class APIClient implements ApiClientInterface {
   baseUrl: string;
 
-    constructor(baseUrl: string) {
-        this.baseUrl = baseUrl;
-    }
+  constructor(baseUrl: string) {
+      this.baseUrl = baseUrl;
+  }
 
   getHeaders = (): Promise<Headers> => NativeAPIClient.getClientHeadersFor(this.baseUrl);
   addHeaders = (headers: Headers): Promise<void> => NativeAPIClient.addClientHeadersFor(this.baseUrl, headers);
   invalidate = (): Promise<void> => {
-    delete CLIENTS[this.baseUrl];
+      delete CLIENTS[this.baseUrl];
 
-    return NativeAPIClient.invalidateClientFor(this.baseUrl);
+      return NativeAPIClient.invalidateClientFor(this.baseUrl);
   }
 
   get = (endpoint: string, options?: RequestOptions): Promise<Response> => NativeAPIClient.get(this.baseUrl, endpoint, options);
@@ -47,7 +47,7 @@ class APIClient implements APIClientInterface {
   delete = (endpoint: string, options?: RequestOptions): Promise<Response> => NativeAPIClient.delete(this.baseUrl, endpoint, options);
 }
 
-async function getOrCreateAPIClient(baseUrl: string, config: APIClientConfiguration = {}): Promise<{client: APIClient, created: boolean}>  {
+async function getOrCreateAPIClient(baseUrl: string, config: ApiClientConfiguration = {}): Promise<{client: APIClient, created: boolean}> {
     if (!isValidBaseURL(baseUrl)) {
         throw new Error('baseUrl must be a valid API base URL');
     }
@@ -74,6 +74,6 @@ const isValidBaseURL = (baseUrl: string) => {
 };
 
 export {
-  GenericClient,
-  getOrCreateAPIClient,
+    GenericClient,
+    getOrCreateAPIClient,
 };
