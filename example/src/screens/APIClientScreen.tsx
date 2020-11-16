@@ -32,6 +32,9 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
     },
+    numericInputContainer: {
+        flex: 0.5,
+    },
     pickerContainer: {
         zIndex: Platform.OS === 'ios' ? 10 : 0,
     },
@@ -133,11 +136,12 @@ const RequestHeader = ({index, header, updateHeader}) => {
 
 }
 
-export default function NetworkClientScreen({navigation, route}) {
+export default function APIClientScreen({navigation, route}) {
     const {name, client} = route.params;
 
     const [method, setMethod] = useState('GET');
     const [endpoint, setEndpoint] = useState('/');
+    const [timeoutInterval, setTimeoutInterval] = useState('');
     const [body, setBody] = useState('');
     const [requestHeaders, setRequestHeaders] = useState([{key: '', value: ''}]);
     const [clientHeaders, setClientHeaders] = useState(null);
@@ -173,6 +177,10 @@ export default function NetworkClientScreen({navigation, route}) {
             headers: sanitizeHeaders(requestHeaders),
         };
 
+        if (timeoutInterval.length) {
+            options.timeoutInterval = Number(timeoutInterval);
+        }
+
         if (method !== METHOD.GET && body.length) {
             try {
                 options.body = JSON.parse(body);
@@ -191,7 +199,6 @@ export default function NetworkClientScreen({navigation, route}) {
         const requestMethod = client[method.toLowerCase()];
         if (typeof requestMethod === 'function') {
             try {
-                // client.get
                 const response = await requestMethod(endpoint, options);
                 setResponse(response);
             } catch (e) {
@@ -327,6 +334,18 @@ export default function NetworkClientScreen({navigation, route}) {
                     autoCapitalize='none'
                     style={[styles.input, styles.textInput]}
                 />
+            </View>
+            <View style={styles.inputContainer}>
+                <Text style={[styles.label, styles.inputLabel]}>Timeout Interval</Text>
+                <View style={styles.numericInputContainer}>
+                    <TextInput
+                        value={timeoutInterval}
+                        onChangeText={setTimeoutInterval}
+                        placeholder='10'
+                        style={[styles.input, styles.textInput]}
+                        keyboardType='numeric'
+                    />
+                </View>
             </View>
             {method !== METHOD.GET &&
             <View style={styles.inputContainer}>

@@ -4,6 +4,7 @@
 type RequestOptions = {
     headers?: Record<string, string>;
     body?: Record<string, string>;
+    timeoutInterval?: number;
 };
 
 type Headers = Record<string, string>;
@@ -40,7 +41,12 @@ interface APIClientInterface {
 
 type iOSAPIClientConfiguration = {
     headers?: Headers;
-    followRedirects: Boolean;
+    followRedirects: boolean;
+    allowsCellularAccess: boolean;
+    waitsForConnectivity: boolean;
+    timeoutIntervalForRequest: number;
+    timeoutIntervalForResource: number;
+    httpMaximumConnectionsPerHost: number;
     requestInterceptorConfig?: Record<string, string>;
     serverTrustManagerConfig?: Record<string, string>;
     cachedResponseHandlerConfig?: Record<string, string>;

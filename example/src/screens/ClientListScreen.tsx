@@ -45,7 +45,7 @@ const styles = StyleSheet.create({
 
 const NetworkClient = ({name, index, client, deleteClient, navigate}) => {
     const viewClient = () => {
-        const screen = client.baseUrl ? 'NetworkClient' : 'GenericClient';
+        const screen = client.baseUrl ? 'APIClient' : 'GenericClient';
         navigate(screen, {name, client});
     };
 
@@ -98,7 +98,7 @@ const ItemSeparator = () => (
     <View style={styles.separator} />
 );
 
-export default function CreateNetworkClientScreen({navigation, route}) {
+export default function ClientListScreen({navigation, route}) {
     const [clients, setClients] = useState([{type: 'network', client: GenericClient, name: 'Generic Client'}]);
 
     useEffect(() => {
@@ -119,7 +119,7 @@ export default function CreateNetworkClientScreen({navigation, route}) {
 
     const keyExtractor = (item) => (item.baseUrl || item.wsUrl || item.name);
 
-    const goToCreateNetworkClient = () => navigation.navigate('CreateNetworkClient');
+    const goToCreateAPIClient = () => navigation.navigate('CreateAPIClient');
     const goToCreateWebSocketClient = () => navigation.navigate('CreateWebSocketClient');
 
     return (
@@ -132,8 +132,8 @@ export default function CreateNetworkClientScreen({navigation, route}) {
             />
             <View style={styles.buttonContainer}>
                 <Button
-                    title='Add Network Client'
-                    onPress={goToCreateNetworkClient}
+                    title='Add API Client'
+                    onPress={goToCreateAPIClient}
                 />
                 <Button
                     title='Add WebSocket Client'
