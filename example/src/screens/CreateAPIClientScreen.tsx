@@ -122,7 +122,7 @@ export default function CreateAPIClientScreen({navigation}) {
     const setTimeoutIntervalForRequest = (timeoutIntervalForRequest) => setSessionOptions({...sessionOptions, timeoutIntervalForRequest});
     const setTimeoutIntervalForResource = (timeoutIntervalForResource) => setSessionOptions({...sessionOptions, timeoutIntervalForResource});
     const setHttpMaximumConnectionsPerHost = (httpMaximumConnectionsPerHost) => setSessionOptions({...sessionOptions, httpMaximumConnectionsPerHost});
-    const toggleRetryPolicyType = (on) => setRetryPolicyOptions({...retryPolicyOptions, type: on ? 'exponential' : ''});
+    const toggleRetryPolicyType = (on) => setRetryPolicyOptions({...retryPolicyOptions, type: on ? EXPONENTIAL_RETRY : ''});
     const setRetryLimit = (retryLimit) => setRetryPolicyOptions({...retryPolicyOptions, retryLimit});
     const setExponentialBackoffBase = (exponentialBackoffBase) => setRetryPolicyOptions({...retryPolicyOptions, exponentialBackoffBase});
     const setExponentialBackoffScale = (exponentialBackoffScale) => setRetryPolicyOptions({...retryPolicyOptions, exponentialBackoffScale});
@@ -228,7 +228,7 @@ export default function CreateAPIClientScreen({navigation}) {
     );
 
     const renderRetryPolicyOptions = () => {
-        const checked = retryPolicyOptions.type === 'exponential';
+        const checked = retryPolicyOptions.type === EXPONENTIAL_RETRY;
         const checkbox = (
             <View style={styles.inputContainer}>
                 <Text style={styles.label}>Retries with exponential backoff?</Text>

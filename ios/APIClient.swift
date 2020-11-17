@@ -17,7 +17,8 @@ class APIClient: NSObject {
     
     @objc(createClientFor:withOptions:withResolver:withRejecter:)
     func createClientFor(baseUrl: String, options: Dictionary<String, Any>?, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
-        if let options = options {
+        let options = JSON(options)
+        if options != JSON.null {
             let configuration = getURLSessionConfigurationFrom(options: options)
             let redirectHandler = getRedirectHandlerFrom(options: options)
             let interceptor = getInterceptorFrom(options: options)
@@ -86,13 +87,19 @@ class APIClient: NSObject {
             return
         }
 
-        let headers = getHTTPHeadersFrom(options: options)
-        let requestModifer = getRequestModifierFrom(options: options)
         let url = URL(string: baseUrl)!.appendingPathComponent(endpoint)
         let parameters = options["body"] == JSON.null ? nil : options["body"]
         let encoder: ParameterEncoder = parameters != nil ? JSONParameterEncoder.default : URLEncodedFormParameterEncoder.default
+        let headers = getHTTPHeadersFrom(options: options)
+        let requestModifer = getRequestModifierFrom(options: options)
+        let interceptor = getInterceptorFrom(options: options)
         
-        session.request(url, method: method, parameters: parameters, encoder: encoder, headers: headers, requestModifier: requestModifer).responseJSON { json in
+        if let interceptor = interceptor {
+            debugPrint(interceptor)
+        } else {
+            print("NO INTERCEPTOR")
+        }
+        session.request(url, method: method, parameters: parameters, encoder: encoder, headers: headers, interceptor: interceptor, requestModifier: requestModifer).responseJSON { json in
             resolve([
                 "headers": json.response?.allHeaderFields,
                 "data": json.value,
@@ -102,63 +109,73 @@ class APIClient: NSObject {
         }
     }
     
-    func getURLSessionConfigurationFrom(options: Dictionary<String, Any>) -> URLSessionConfiguration {
+    func getURLSessionConfigurationFrom(options: JSON) -> URLSessionConfiguration {
         let config = URLSessionConfiguration.default
         
-        if let headers = RCTConvert.nsDictionary(options["headers"]) {
+        if let headers = options["headers"].dictionary {
             config.httpAdditionalHeaders = headers
         }
         
-        if let value = options["allowsCellularAccess"] {
-            config.allowsCellularAccess = RCTConvert.bool(value)
+        if options["allowsCellularAccess"].exists() {
+            config.allowsCellularAccess = options["allowsCellularAccess"].boolValue
         }
 
-        if let value = options["timeoutIntervalForRequest"] {
-            config.timeoutIntervalForRequest = RCTConvert.double(value)
+        if options["timeoutIntervalForRequest"].exists() {
+            config.timeoutIntervalForRequest = options["timeoutIntervalForRequest"].doubleValue
         }
 
-        if let value = options["timeoutIntervalForResource"] {
-            config.timeoutIntervalForResource = RCTConvert.double(value)
+        if options["timeoutIntervalForResource"].exists() {
+            config.timeoutIntervalForResource = options["timeoutIntervalForResource"].doubleValue
         }
 
-        if let value = options["httpMaximumConnectionsPerHost"] {
-            config.httpMaximumConnectionsPerHost = RCTConvert.nsInteger(value)
+        if options["httpMaximumConnectionsPerHost"].exists() {
+            config.httpMaximumConnectionsPerHost = options["httpMaximumConnectionsPerHost"].intValue
         }
         
         if #available(iOS 11.0, *) {
-            if let value = options["waitsForConnectivity"] {
-                config.waitsForConnectivity = RCTConvert.bool(value)
+            if options["waitsForConnectivity"].exists() {
+                config.waitsForConnectivity = options["waitsForConnectivity"].boolValue
             }
         }
 
         return config
     }
 
-    func getRedirectHandlerFrom(options: Dictionary<String, Any>) -> RedirectHandler? {
-        if let followValue = options["followRedirects"] {
-            return Redirector(behavior: RCTConvert.bool(followValue) ? .follow : .doNotFollow)
+    func getRedirectHandlerFrom(options: JSON) -> RedirectHandler? {
+        if options["followRedirects"].exists() {
+            return Redirector(behavior: options["followRedirects"].boolValue ? .follow : .doNotFollow)
         }
 
         return nil
     }
     
-    func getInterceptorFrom(options: Dictionary<String, Any>) -> Interceptor? {
+    func getInterceptorFrom(options: JSON) -> Interceptor? {
         let adapters = getRequestAdaptersFrom(options: options)
         let retriers = getRequestRetriersFrom(options: options)
 
-        return Interceptor(adapters: adapters, retriers: retriers)
+        if (!adapters.isEmpty && !retriers.isEmpty) {
+            return Interceptor(adapters: adapters, retriers: retriers)
+        }
+        if (!adapters.isEmpty) {
+            return Interceptor(adapters: adapters)
+        }
+        if (!retriers.isEmpty) {
+            return Interceptor(retriers: retriers)
+        }
+        
+        return nil
     }
     
-    func getRequestAdaptersFrom(options: Dictionary<String, Any>) -> [RequestAdapter] {
+    func getRequestAdaptersFrom(options: JSON) -> [RequestAdapter] {
         let adapters = [RequestAdapter]()
         
         return adapters
     }
 
-    func getRequestRetriersFrom(options: Dictionary<String, Any>) -> [RequestRetrier] {
+    func getRequestRetriersFrom(options: JSON) -> [RequestRetrier] {
         var retriers = [RequestRetrier]()
 
-        let configuration = JSON(options["retryPolicyConfiguration"])
+        let configuration = options["retryPolicyConfiguration"]
         if configuration["type"].string == EXPONENTIAL_RETRY {
             let retryLimit = configuration["retryLimit"].uInt ?? RetryPolicy.defaultRetryLimit
             let exponentialBackoffBase = configuration["exponentialBackoffBase"].uInt ?? RetryPolicy.defaultExponentialBackoffBase

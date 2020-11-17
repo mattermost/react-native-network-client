@@ -5,6 +5,7 @@ type RequestOptions = {
     headers?: Record<string, string>;
     body?: Record<string, string>;
     timeoutInterval?: number;
+    retryPolicyConfiguration?: RetryPolicyConfiguration;
 };
 
 type Headers = Record<string, string>;
