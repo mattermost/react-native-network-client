@@ -39,6 +39,16 @@ interface APIClientInterface {
     invalidate(): Promise<void>;
 };
 
+enum RETRY_POLICY_TYPE {
+    EXPONENTIAL = 'exponential',
+}
+type RetryPolicyConfiguration = {
+    type: RETRY_POLICY_TYPE;
+    retryLimit?: Number;
+    exponentialBackoffBase?: Number;
+    exponentialBackoffScale?: Number;
+}
+
 type iOSAPIClientConfiguration = {
     headers?: Headers;
     followRedirects: boolean;
@@ -47,6 +57,7 @@ type iOSAPIClientConfiguration = {
     timeoutIntervalForRequest: number;
     timeoutIntervalForResource: number;
     httpMaximumConnectionsPerHost: number;
+    retryPolicyConfiguration?: RetryPolicyConfiguration;
     requestInterceptorConfig?: Record<string, string>;
     serverTrustManagerConfig?: Record<string, string>;
     cachedResponseHandlerConfig?: Record<string, string>;

@@ -18,6 +18,8 @@ import CheckBox from '@react-native-community/checkbox';
 import DeviceInfo from 'react-native-device-info';
 import {getOrCreateAPIClient} from '@mattermost/react-native-network-client';
 
+const EXPONENTIAL_RETRY = 'exponential';
+
 const styles = StyleSheet.create({
     container: {
         flex: 1,
@@ -106,6 +108,12 @@ export default function CreateAPIClientScreen({navigation}) {
         timeoutIntervalForResource: '30',
         httpMaximumConnectionsPerHost: '10',
     });
+    const [retryPolicyOptions, setRetryPolicyOptions] = useState({
+        type: '',
+        retryLimit: '',
+        exponentialBackoffBase: '',
+        exponentialBackoffScale: '',
+    });
     const scrollView = useRef(null);
 
     const setFollowRedirects = (followRedirects) => setSessionOptions({...sessionOptions, followRedirects});
@@ -114,6 +122,10 @@ export default function CreateAPIClientScreen({navigation}) {
     const setTimeoutIntervalForRequest = (timeoutIntervalForRequest) => setSessionOptions({...sessionOptions, timeoutIntervalForRequest});
     const setTimeoutIntervalForResource = (timeoutIntervalForResource) => setSessionOptions({...sessionOptions, timeoutIntervalForResource});
     const setHttpMaximumConnectionsPerHost = (httpMaximumConnectionsPerHost) => setSessionOptions({...sessionOptions, httpMaximumConnectionsPerHost});
+    const toggleRetryPolicyType = (on) => setRetryPolicyOptions({...retryPolicyOptions, type: on ? 'exponential' : ''});
+    const setRetryLimit = (retryLimit) => setRetryPolicyOptions({...retryPolicyOptions, retryLimit});
+    const setExponentialBackoffBase = (exponentialBackoffBase) => setRetryPolicyOptions({...retryPolicyOptions, exponentialBackoffBase});
+    const setExponentialBackoffScale = (exponentialBackoffScale) => setRetryPolicyOptions({...retryPolicyOptions, exponentialBackoffScale});
 
     // TEST MM default headers
     const addDefaultHeaders = async () => {
@@ -147,13 +159,32 @@ export default function CreateAPIClientScreen({navigation}) {
         httpMaximumConnectionsPerHost: Number(sessionOptions.httpMaximumConnectionsPerHost),
     });
 
+    const parseRetryPolicyOptions = () => {
+        if (retryPolicyOptions.type !== EXPONENTIAL_RETRY) {
+            return null;
+        }
+
+        return Object.keys(retryPolicyOptions).reduce((options, key) => {
+            let value = Number(retryPolicyOptions[key]);
+            if (value) {
+                options[key] = value;
+            }
+
+            return options;
+        }, {type: EXPONENTIAL_RETRY});
+    };
+
     const createClient = async () => {
         const headers = sanitizeHeaders();
-        const sessionOptions = parseSessionOptions();
         const options = {
             headers,
-            ...sessionOptions,
+            ...parseSessionOptions(),
         };
+        const retryPolicyConfiguration = parseRetryPolicyOptions();
+        if (retryPolicyConfiguration) {
+            options.retryPolicyConfiguration = retryPolicyConfiguration;
+        }
+
         const {client, created} = await getOrCreateAPIClient(baseUrl, options);
         if (!created) {
             Alert.alert(
@@ -194,7 +225,71 @@ export default function CreateAPIClientScreen({navigation}) {
                 ))
             }
         </ScrollView>
-    )
+    );
+
+    const renderRetryPolicyOptions = () => {
+        const checked = retryPolicyOptions.type === 'exponential';
+        const checkbox = (
+            <View style={styles.inputContainer}>
+                <Text style={styles.label}>Retries with exponential backoff?</Text>
+                <CheckBox
+                    value={checked}
+                    onValueChange={toggleRetryPolicyType}
+                />
+            </View>
+        );
+
+        let options;
+        if (checked) {
+            options = (
+                <>
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.label}>Retry Limit</Text>
+                        <View style={styles.numericInputContainer}>
+                            <TextInput
+                                value={retryPolicyOptions.retryLimit}
+                                onChangeText={setRetryLimit}
+                                placeholder='2'
+                                style={styles.input}
+                                keyboardType='numeric'
+                            />
+                        </View>
+                    </View>
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.label}>Exponential backoff base</Text>
+                        <View style={styles.numericInputContainer}>
+                            <TextInput
+                                value={retryPolicyOptions.exponentialBackoffBase}
+                                onChangeText={setExponentialBackoffBase}
+                                placeholder='2'
+                                style={styles.input}
+                                keyboardType='numeric'
+                            />
+                        </View>
+                    </View>
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.label}>Exponential backoff scale</Text>
+                        <View style={styles.numericInputContainer}>
+                            <TextInput
+                                value={retryPolicyOptions.exponentialBackoffScale}
+                                onChangeText={setExponentialBackoffScale}
+                                placeholder='0.5'
+                                style={styles.input}
+                                keyboardType='decimal-pad'
+                            />
+                        </View>
+                    </View>
+                </>
+            );
+        }
+
+        return (
+            <>
+                {checkbox}
+                {options}
+            </>
+        );
+    }
 
     return (
         <SafeAreaView style={styles.container}>
@@ -248,6 +343,8 @@ export default function CreateAPIClientScreen({navigation}) {
                         onValueChange={setWaitsForConnectivity}
                     />
                 </View>
+
+                {renderRetryPolicyOptions()}
 
                 <View style={styles.inputContainer}>
                     <Text style={styles.label}>Timeout Interval For Request</Text>

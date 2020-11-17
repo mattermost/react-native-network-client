@@ -10,6 +10,8 @@
 import Alamofire
 import SwiftyJSON
 
+let EXPONENTIAL_RETRY = "exponential"
+
 @objc(APIClient)
 class APIClient: NSObject {
     
@@ -18,8 +20,9 @@ class APIClient: NSObject {
         if let options = options {
             let configuration = getURLSessionConfigurationFrom(options: options)
             let redirectHandler = getRedirectHandlerFrom(options: options)
+            let interceptor = getInterceptorFrom(options: options)
 
-            resolve(SessionManager.default.createSession(for: baseUrl, withConfiguration: configuration, withRedirectHandler: redirectHandler))
+            resolve(SessionManager.default.createSession(for: baseUrl, withConfiguration: configuration, withInterceptor: interceptor, withRedirectHandler: redirectHandler))
 
             return
         }
@@ -137,6 +140,35 @@ class APIClient: NSObject {
         }
 
         return nil
+    }
+    
+    func getInterceptorFrom(options: Dictionary<String, Any>) -> Interceptor? {
+        let adapters = getRequestAdaptersFrom(options: options)
+        let retriers = getRequestRetriersFrom(options: options)
+
+        return Interceptor(adapters: adapters, retriers: retriers)
+    }
+    
+    func getRequestAdaptersFrom(options: Dictionary<String, Any>) -> [RequestAdapter] {
+        let adapters = [RequestAdapter]()
+        
+        return adapters
+    }
+
+    func getRequestRetriersFrom(options: Dictionary<String, Any>) -> [RequestRetrier] {
+        var retriers = [RequestRetrier]()
+
+        let configuration = JSON(options["retryPolicyConfiguration"])
+        if configuration["type"].string == EXPONENTIAL_RETRY {
+            let retryLimit = configuration["retryLimit"].uInt ?? RetryPolicy.defaultRetryLimit
+            let exponentialBackoffBase = configuration["exponentialBackoffBase"].uInt ?? RetryPolicy.defaultExponentialBackoffBase
+            let exponentialBackoffScale = configuration["exponentialBackoffScale"].double ?? RetryPolicy.defaultExponentialBackoffScale
+
+            let retryPolicy = RetryPolicy(retryLimit: retryLimit, exponentialBackoffBase: exponentialBackoffBase, exponentialBackoffScale: exponentialBackoffScale)
+            retriers.append(retryPolicy)
+        }
+
+        return retriers
     }
 
     func getHTTPHeadersFrom(options: JSON) -> HTTPHeaders? {
