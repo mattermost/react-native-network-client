@@ -381,20 +381,19 @@ DEPENDENCIES:
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
 SPEC REPOS:
-  https://github.com/CocoaPods/Specs.git:
+  trunk:
     - Alamofire
     - boost-for-react-native
+    - CocoaAsyncSocket
     - CocoaLibEvent
+    - Flipper
     - Flipper-DoubleConversion
     - Flipper-Folly
     - Flipper-Glog
     - Flipper-PeerTalk
     - Flipper-RSocket
-    - OpenSSL-Universal
-  trunk:
-    - CocoaAsyncSocket
-    - Flipper
     - FlipperKit
+    - OpenSSL-Universal
     - SwiftyJSON
     - YogaKit
 
@@ -510,7 +509,7 @@ SPEC CHECKSUMS:
   React-RCTText: 65a6de06a7389098ce24340d1d3556015c38f746
   React-RCTVibration: 8e9fb25724a0805107fc1acc9075e26f814df454
   ReactCommon: 4167844018c9ed375cc01a843e9ee564399e53c3
-  RNCCheckbox: 0d96d7725fecba464d0af856e93ce66dde780d75
+  RNCCheckbox: 5313bf49c2977c1c8f7135434fc01dc80f86bf0b
   RNCMaskedView: f5c7d14d6847b7b44853f7acb6284c1da30a3459
   RNDeviceInfo: a37a15a98822c31c3982cb28eba6d336ba4d0968
   RNGestureHandler: 7a5833d0f788dbd107fbb913e09aa0c1ff333c39

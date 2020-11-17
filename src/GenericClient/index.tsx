@@ -9,11 +9,11 @@ const {GenericClient: NativeGenericClient} = NativeModules;
  * Generic client for making requests
  */
 class GenericClient implements GenericClientInterface {
-  get = (url: string, options?: RequestOptions): Promise<Response> => NativeGenericClient.get(url, options);
-  put = (url: string, options?: RequestOptions): Promise<Response> => NativeGenericClient.put(url, options);
-  post = (url: string, options?: RequestOptions): Promise<Response> => NativeGenericClient.post(url, options);
-  patch = (url: string, options?: RequestOptions): Promise<Response> => NativeGenericClient.patch(url, options);
-  delete = (url: string, options?: RequestOptions): Promise<Response> => NativeGenericClient.delete(url, options);
+  get = (url: string, options?: RequestOptions): Promise<ClientResponse> => NativeGenericClient.get(url, options);
+  put = (url: string, options?: RequestOptions): Promise<ClientResponse> => NativeGenericClient.put(url, options);
+  post = (url: string, options?: RequestOptions): Promise<ClientResponse> => NativeGenericClient.post(url, options);
+  patch = (url: string, options?: RequestOptions): Promise<ClientResponse> => NativeGenericClient.patch(url, options);
+  delete = (url: string, options?: RequestOptions): Promise<ClientResponse> => NativeGenericClient.delete(url, options);
 }
 
 export default new GenericClient();

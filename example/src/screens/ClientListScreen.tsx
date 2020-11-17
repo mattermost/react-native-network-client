@@ -13,6 +13,7 @@ import {
     View,
 } from 'react-native';
 import GenericClient from '@mattermost/react-native-network-client';
+import type { Client, ClientListScreenProps } from 'example/@types/navigation';
 
 const styles = StyleSheet.create({
     container: {
@@ -43,14 +44,15 @@ const styles = StyleSheet.create({
     }
   });
 
-const NetworkClient = ({name, index, client, deleteClient, navigate}) => {
-    const viewClient = () => {
+type NetworkClientProps = {name: string, index: number, client: Client["client"], deleteClient: (index: number) => void, navigate: (screen: string, {}: {name: string, client: Client["client"]}) => void}
+const NetworkClient = ({name, index, client, deleteClient, navigate}: NetworkClientProps) => {
+const viewClient = () => {
         const screen = client.baseUrl ? 'APIClient' : 'GenericClient';
         navigate(screen, {name, client});
     };
 
     const invalidateClient = () => {
-        client.invalidate();
+        client.invalidate!();
         deleteClient(index);
     }
 
@@ -82,7 +84,8 @@ const NetworkClient = ({name, index, client, deleteClient, navigate}) => {
     );
 }
 
-const WebSocketClient = ({name, client}) => (
+type WebSocketClientProps = {name: string, client: Client}
+const WebSocketClient = ({name, client}: WebSocketClientProps) => (
     <View style={styles.row}>
         <View style={styles.clientUrl}>
             <Text>{name}</Text>
@@ -98,8 +101,8 @@ const ItemSeparator = () => (
     <View style={styles.separator} />
 );
 
-export default function ClientListScreen({navigation, route}) {
-    const [clients, setClients] = useState([{type: 'network', client: GenericClient, name: 'Generic Client'}]);
+export default function ClientListScreen({navigation, route}: ClientListScreenProps) {
+    const [clients, setClients] = useState<Client[]>([{type: 'network', client: GenericClient, name: 'Generic Client'}]);
 
     useEffect(() => {
         if (route.params?.client) {
@@ -107,17 +110,17 @@ export default function ClientListScreen({navigation, route}) {
         }
     }, [route.params?.client]);
     
-    const deleteClient = (clientIndex) => {
-        setClients(clients.filter((client, index) => clientIndex !== index));
+    const deleteClient = (clientIndex: number) => {
+        setClients(clients.filter((_, index) => clientIndex !== index));
     }
 
-    const renderItem = ({item, index}) => (
+    const renderItem = ({item, index}: {item: Client, index: number}) => (
         item.type === 'network' ?
             <NetworkClient name={item.name} index={index} client={item.client} deleteClient={deleteClient} navigate={navigation.navigate} /> :
-            <WebSocketClient name={item.name} client={item.client} />
+            <WebSocketClient name={item.name} client={item} />
     );
 
-    const keyExtractor = (item) => (item.baseUrl || item.wsUrl || item.name);
+    const keyExtractor = (item: Client) => (item.baseUrl || item.wsUrl || item.name);
 
     const goToCreateAPIClient = () => navigation.navigate('CreateAPIClient');
     const goToCreateWebSocketClient = () => navigation.navigate('CreateWebSocketClient');

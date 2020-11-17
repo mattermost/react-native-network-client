@@ -29,10 +29,10 @@ class APIClient implements APIClientInterface {
         this.config = Object.assign({}, DEFAULT_API_CLIENT_CONFIG, config);
     }
 
-    getHeaders = (): Promise<Headers> => NativeAPIClient.getClientHeadersFor(this.baseUrl);
-    addHeaders = (headers: Headers): Promise<void> => {
+    getHeaders = (): Promise<ClientHeaders> => NativeAPIClient.getClientHeadersFor(this.baseUrl);
+    addHeaders = (headers: ClientHeaders): Promise<void> => {
         this.config.headers = {
-            ...this.config.headers,
+            ...this.config.headers as Record<string, unknown>,
             ...headers,
         };
 
@@ -44,14 +44,14 @@ class APIClient implements APIClientInterface {
         return NativeAPIClient.invalidateClientFor(this.baseUrl);
     }
 
-  get = (endpoint: string, options?: RequestOptions): Promise<Response> => NativeAPIClient.get(this.baseUrl, endpoint, options);
-  put = (endpoint: string, options?: RequestOptions): Promise<Response> => NativeAPIClient.put(this.baseUrl, endpoint, options);
-  post = (endpoint: string, options?: RequestOptions): Promise<Response> => NativeAPIClient.post(this.baseUrl, endpoint, options);
-  patch = (endpoint: string, options?: RequestOptions): Promise<Response> => NativeAPIClient.patch(this.baseUrl, endpoint, options);
-  delete = (endpoint: string, options?: RequestOptions): Promise<Response> => NativeAPIClient.delete(this.baseUrl, endpoint, options);
+  get = (endpoint: string, options?: RequestOptions): Promise<ClientResponse> => NativeAPIClient.get(this.baseUrl, endpoint, options);
+  put = (endpoint: string, options?: RequestOptions): Promise<ClientResponse> => NativeAPIClient.put(this.baseUrl, endpoint, options);
+  post = (endpoint: string, options?: RequestOptions): Promise<ClientResponse> => NativeAPIClient.post(this.baseUrl, endpoint, options);
+  patch = (endpoint: string, options?: RequestOptions): Promise<ClientResponse> => NativeAPIClient.patch(this.baseUrl, endpoint, options);
+  delete = (endpoint: string, options?: RequestOptions): Promise<ClientResponse> => NativeAPIClient.delete(this.baseUrl, endpoint, options);
 }
 
-async function getOrCreateAPIClient(baseUrl: string, config: APIClientConfiguration = {}): Promise<{client: APIClient, created: boolean}>  {
+async function getOrCreateAPIClient(baseUrl: string, config: APIClientConfiguration = {}): Promise<{client: APIClient, created: boolean}> {
     if (!isValidBaseURL(baseUrl)) {
         throw new Error('baseUrl must be a valid API base URL');
     }

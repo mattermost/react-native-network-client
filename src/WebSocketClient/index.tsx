@@ -4,7 +4,7 @@
 import {NativeModules} from 'react-native';
 import isURL from 'validator/es/lib/isURL';
 
-// TODO: export a native WebSocket client
+// @to-do: export a native WebSocket client
 const {NetworkClient} = NativeModules;
 
 const SOCKETS: {[key: string]: WebSocketClient} = {};
@@ -21,9 +21,8 @@ class WebSocketClient implements WebSocketClientInterface {
 
     disconnect = () => NetworkClient.disconnectWebSocketFor(this.wsUrl);
     invalidate = (): Promise<void> => {
-      delete SOCKETS[this.wsUrl];
-  
-      return NetworkClient.invalidateWebSocketClientFor(this.baseUrl);
+        delete SOCKETS[this.wsUrl];
+        return NetworkClient.invalidateWebSocketClientFor(this.wsUrl);
     }
 }
 

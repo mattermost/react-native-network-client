@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type { APIClientScreenProps } from 'example/@types/navigation';
 import React, {useState, useRef, useEffect} from 'react';
 import {
     Alert,
@@ -105,7 +106,8 @@ const styles = StyleSheet.create({
     },
 });
 
-const RequestHeader = ({index, header, updateHeader}) => {
+type RequestHeaderProps = {index: number, header: ClientHeaders, updateHeader: (index: number, header: {key: string, value: string}) => void}
+const RequestHeader = ({index, header, updateHeader}: RequestHeaderProps) => {
     const [key, setKey] = useState(header.key);
     const [value, setValue] = useState(header.value);
 
@@ -136,21 +138,21 @@ const RequestHeader = ({index, header, updateHeader}) => {
 
 }
 
-export default function APIClientScreen({navigation, route}) {
-    const {name, client} = route.params;
+export default function APIClientScreen({route}: APIClientScreenProps) {
+    const {client} = route.params;
 
     const [method, setMethod] = useState('GET');
     const [endpoint, setEndpoint] = useState('/');
     const [timeoutInterval, setTimeoutInterval] = useState('');
     const [body, setBody] = useState('');
     const [requestHeaders, setRequestHeaders] = useState([{key: '', value: ''}]);
-    const [clientHeaders, setClientHeaders] = useState(null);
-    const [response, setResponse] = useState(null);
-    const scrollView = useRef(null);
+    const [clientHeaders, setClientHeaders] = useState<ClientHeaders>();
+    const [response, setResponse] = useState<ClientResponse>();
+    const scrollView = useRef<ScrollView | null>(null);
 
     const getClientHeaders = async () => {
         try {
-            const headers = await client.getHeaders();
+            const headers = await client.getHeaders!();
             setClientHeaders(headers);
         } catch (e) {
             // Do nothing.
@@ -161,19 +163,15 @@ export default function APIClientScreen({navigation, route}) {
         getClientHeaders();
     }, []);
 
-    const sanitizeHeaders = (headersArray) => {
-        const headers = {};
-        headersArray.forEach(({key, value}) => {
-            if (key && value) {
-                headers[key] = value;
-            } 
-        });
-
+    const sanitizeHeaders = (headersArray: {key: string, value: string}[]) => {
+        const headers = headersArray
+            .filter( (k,v) => k && v)
+            .reduce( (prev, cur) => prev[cur.key] = cur.value, {} as any)
         return headers;
     }
 
     const makeRequest = async () => {
-        const options = {
+        const options: APIClientConfiguration= {
             headers: sanitizeHeaders(requestHeaders),
         };
 
@@ -196,35 +194,48 @@ export default function APIClientScreen({navigation, route}) {
             }
         }
 
-        const requestMethod = client[method.toLowerCase()];
-        if (typeof requestMethod === 'function') {
-            try {
-                const response = await requestMethod(endpoint, options);
-                setResponse(response);
-            } catch (e) {
-                Alert.alert(
-                    'Error',
-                    e.message,
-                    [{text: 'OK'}],
-                    {cancelable: false}
-                );
+        try{
+            switch(method){
+                case METHOD.GET:
+                    var response = await client.get(endpoint, options);
+                    setResponse(response);
+                    break;
+                case METHOD.POST:
+                    var response = await client.post(endpoint, options);
+                    setResponse(response);
+                    break;
+                case METHOD.PUT:
+                    var response = await client.put(endpoint, options);
+                    setResponse(response);
+                    break;
+                case METHOD.PATCH:
+                    var response = await client.patch(endpoint, options);
+                    setResponse(response);
+                    break;
+                case METHOD.DELETE:
+                    var response = await client.delete(endpoint, options);
+                    setResponse(response);
+                    break;
+                default:
+                    throw new Error('Invalid request method')
             }
-        } else {
+        } catch (e) {
             Alert.alert(
                 'Error',
-                'Invalid request method',
+                e.message,
                 [{text: 'OK'}],
                 {cancelable: false}
             );
         }
+        
     }
 
     const addRequestHeader = (header = {key: '', value: ''}) => {
         setRequestHeaders([...requestHeaders, header]);
-        scrollView.current.scrollToEnd();
+        scrollView!.current!.scrollToEnd();
     }
 
-    const updateRequestHeader = (index, header) => {
+    const updateRequestHeader = (index: number, header: {key: string, value: string}) => {
         const newRequestHeaders = requestHeaders;
         newRequestHeaders[index] = header;
         setRequestHeaders(newRequestHeaders);
@@ -242,7 +253,7 @@ export default function APIClientScreen({navigation, route}) {
         </ScrollView>
     );
 
-    const renderClientHeader = ({item}) => (
+    const renderClientHeader = ({item}: {item: string[]}) => (
         <View>
             <Text>Key: {item[0]}</Text>
             <Text>Value: {item[1]}</Text>
@@ -264,14 +275,14 @@ export default function APIClientScreen({navigation, route}) {
         }
     }
 
-    const clientHeaderKey = (item) => `client-header-${item[0]}`;
+    const clientHeaderKey = (item: string[]) => `client-header-${item[0]}`;
 
-    const addClientHeader = async ({key, value}) => {
-        await client.addHeaders({[key]: value});
+    const addClientHeader = async ({key, value}: {key: string, value: string}) => {
+        await client.addHeaders!({[key]: value});
         getClientHeaders();
     };
 
-    const renderResponseHeader = ({item}) => (
+    const renderResponseHeader = ({item}: {item: string[]}) => (
         <View style={styles.responseHeader}>
             <Text>Key: {item[0]}</Text>
             <Text>Value: {item[1]}</Text>
@@ -285,7 +296,7 @@ export default function APIClientScreen({navigation, route}) {
             </View>
         </View>
     );
-    const responseHeaderKey = (item) => `response-header-${item[0]}`;
+    const responseHeaderKey = (item: string[]) => `response-header-${item[0]}`;
     const renderSeparator = () => <View style={styles.separator} />
 
     const renderResponse = () => {
@@ -296,7 +307,7 @@ export default function APIClientScreen({navigation, route}) {
                         <Text style={styles.label}>Response: {response.code}, {response.lastRequestedUrl}</Text>
                         <Text style={styles.label}>Headers</Text>
                         <FlatList
-                            data={Object.entries(response.headers)}
+                            data={Object.entries(response.headers!)}
                             renderItem={renderResponseHeader}
                             keyExtractor={responseHeaderKey}
                             ItemSeparatorComponent={renderSeparator}
@@ -362,7 +373,7 @@ export default function APIClientScreen({navigation, route}) {
             }
             <View style={styles.optionsLabelContainer}>
                 <Text style={styles.label}>Request Headers</Text>
-                <Button title='+' onPress={addRequestHeader}/>
+                <Button title='+' onPress={addRequestHeader as any}/>
             </View>
             <View style={styles.optionsContainer}>
                 {renderRequestHeaders()}
