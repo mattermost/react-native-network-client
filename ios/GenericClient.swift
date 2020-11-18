@@ -15,67 +15,101 @@ class GenericClient: NSObject {
 
     @objc(get:withOptions:withResolver:withRejecter:)
     func get(url: String, options: Dictionary<String, Any>, resolve: @escaping RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
-        let optionsHeaders = options["headers"] as? Dictionary<String, String> ?? [:]
-        let headers = optionsHeadersToHTTPHeaders(headers: optionsHeaders)
-
-        AF.request(url, method: .get, headers: headers).responseJSON { response in
-            resolve(["headers": response.response?.allHeaderFields, "data": response.value])
-        }
+        handleRequest(method: .get, url: url, options: JSON(options), resolve: resolve, reject: reject)
     }
     
     @objc(put:withOptions:withResolver:withRejecter:)
     func put(url: String, options: Dictionary<String, Any>, resolve: @escaping RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
-        let parameters = JSON(options["body"])
-        let optionsHeaders = options["headers"] as? Dictionary<String, String> ?? [:]
-        let headers = optionsHeadersToHTTPHeaders(headers: optionsHeaders)
-        let encoder = JSONParameterEncoder.default
-
-        AF.request(url, method: .put, parameters: parameters, encoder: encoder, headers: headers).responseJSON { response in
-            resolve(["headers": response.response?.allHeaderFields, "data": response.value])
-        }
+        handleRequest(method: .put, url: url, options: JSON(options), resolve: resolve, reject: reject)
     }
     
     @objc(post:withOptions:withResolver:withRejecter:)
     func post(url: String, options: Dictionary<String, Any>, resolve: @escaping RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
-        let parameters = JSON(options["body"])
-        let optionsHeaders = options["headers"] as? Dictionary<String, String> ?? [:]
-        let headers = optionsHeadersToHTTPHeaders(headers: optionsHeaders)
-        let encoder = JSONParameterEncoder.default
-
-        AF.request(url, method: .post, parameters: parameters, encoder: encoder, headers: headers).responseJSON { response in
-            resolve(["headers": response.response?.allHeaderFields, "data": response.value])
-        }
+        handleRequest(method: .post, url: url, options: JSON(options), resolve: resolve, reject: reject)
     }
     
     @objc(patch:withOptions:withResolver:withRejecter:)
     func patch(url: String, options: Dictionary<String, Any>, resolve: @escaping RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
-        let parameters = JSON(options["body"])
-        let optionsHeaders = options["headers"] as? Dictionary<String, String> ?? [:]
-        let headers = optionsHeadersToHTTPHeaders(headers: optionsHeaders)
-        let encoder = JSONParameterEncoder.default
-
-        AF.request(url, method: .patch, parameters: parameters, encoder: encoder, headers: headers).responseJSON { response in
-            resolve(["headers": response.response?.allHeaderFields, "data": response.value])
-        }
+        handleRequest(method: .patch, url: url, options: JSON(options), resolve: resolve, reject: reject)
     }
     
     @objc(delete:withOptions:withResolver:withRejecter:)
     func delete(url: String, options: Dictionary<String, Any>, resolve: @escaping RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
-        let parameters = JSON(options["body"])
-        let optionsHeaders = options["headers"] as? Dictionary<String, String> ?? [:]
-        let headers = optionsHeadersToHTTPHeaders(headers: optionsHeaders)
-        let encoder = JSONParameterEncoder.default
+        handleRequest(method: .delete, url: url, options: JSON(options), resolve: resolve, reject: reject)
+    }
+    
+    func handleRequest(method: HTTPMethod, url: String, options: JSON, resolve: @escaping RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
+        let parameters = options["body"] == JSON.null ? nil : options["body"]
+        let encoder: ParameterEncoder = parameters != nil ? JSONParameterEncoder.default : URLEncodedFormParameterEncoder.default
+        let headers = getHTTPHeadersFrom(options: options)
+        let requestModifer = getRequestModifierFrom(options: options)
+        let interceptor = getInterceptorFrom(options: options)
 
-        AF.request(url, method: .delete, parameters: parameters, encoder: encoder, headers: headers).responseJSON { response in
-            resolve(["headers": response.response?.allHeaderFields, "data": response.value])
+        AF.request(url, method: method, parameters: parameters, encoder: encoder, headers: headers, interceptor: interceptor, requestModifier: requestModifer).responseJSON { json in
+            resolve([
+                "headers": json.response?.allHeaderFields,
+                "data": json.value,
+                "code": json.response?.statusCode,
+                "lastRequestedUrl": json.response?.url?.absoluteString
+            ])
         }
     }
 
-    func optionsHeadersToHTTPHeaders(headers: Dictionary<String, String>) -> HTTPHeaders {
-        var httpHeaders = HTTPHeaders()
-        for (name, value) in headers {
-            httpHeaders.add(name: name, value: value)
+    func getInterceptorFrom(options: JSON) -> Interceptor? {
+        let adapters = getRequestAdaptersFrom(options: options)
+        let retriers = getRequestRetriersFrom(options: options)
+
+        if (!adapters.isEmpty && !retriers.isEmpty) {
+            return Interceptor(adapters: adapters, retriers: retriers)
         }
-        return httpHeaders
+        if (!adapters.isEmpty) {
+            return Interceptor(adapters: adapters)
+        }
+        if (!retriers.isEmpty) {
+            return Interceptor(retriers: retriers)
+        }
+        
+        return nil
+    }
+    
+    func getRequestAdaptersFrom(options: JSON) -> [RequestAdapter] {
+        let adapters = [RequestAdapter]()
+        
+        return adapters
+    }
+
+    func getRequestRetriersFrom(options: JSON) -> [RequestRetrier] {
+        var retriers = [RequestRetrier]()
+
+        let configuration = options["retryPolicyConfiguration"]
+        if configuration["type"].string == EXPONENTIAL_RETRY {
+            let retryLimit = configuration["retryLimit"].uInt ?? RetryPolicy.defaultRetryLimit
+            let exponentialBackoffBase = configuration["exponentialBackoffBase"].uInt ?? RetryPolicy.defaultExponentialBackoffBase
+            let exponentialBackoffScale = configuration["exponentialBackoffScale"].double ?? RetryPolicy.defaultExponentialBackoffScale
+
+            let retryPolicy = RetryPolicy(retryLimit: retryLimit, exponentialBackoffBase: exponentialBackoffBase, exponentialBackoffScale: exponentialBackoffScale)
+            retriers.append(retryPolicy)
+        }
+
+        return retriers
+    }
+
+    func getHTTPHeadersFrom(options: JSON) -> HTTPHeaders? {
+        if let headers = options["headers"].dictionary {
+            var httpHeaders = HTTPHeaders()
+            for (name, value) in headers {
+                httpHeaders.add(name: name, value: value.stringValue)
+            }
+            return httpHeaders
+        }
+        
+        return nil
+    }
+    
+    func getRequestModifierFrom(options: JSON) -> Session.RequestModifier? {
+        if let timeoutInterval = options["timeoutInterval"].double {
+            return { $0.timeoutInterval = timeoutInterval }
+        }
+        return nil
     }
 }

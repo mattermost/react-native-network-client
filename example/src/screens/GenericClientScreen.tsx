@@ -16,8 +16,11 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
+import CheckBox from '@react-native-community/checkbox';
 
 import MethodPicker, {METHOD} from '../components/MethodPicker';
+
+const EXPONENTIAL_RETRY = 'exponential';
 
 const styles = StyleSheet.create({
     container: {
@@ -134,10 +137,23 @@ export default function GenericClientScreen({navigation, route}) {
 
     const [method, setMethod] = useState('GET');
     const [url, setUrl] = useState('http://google.com');//'https://jsonplaceholder.typicode.com/todos/1');
+    const [timeoutInterval, setTimeoutInterval] = useState('');
     const [body, setBody] = useState('');
     const [requestHeaders, setRequestHeaders] = useState([{key: '', value: ''}]);
     const [response, setResponse] = useState(null);
+    const [retryPolicyOptions, setRetryPolicyOptions] = useState({
+        type: '',
+        retryLimit: '',
+        exponentialBackoffBase: '',
+        exponentialBackoffScale: '',
+    });
+
     const scrollView = useRef(null);
+
+    const toggleRetryPolicyType = (on) => setRetryPolicyOptions({...retryPolicyOptions, type: on ? EXPONENTIAL_RETRY : ''});
+    const setRetryLimit = (retryLimit) => setRetryPolicyOptions({...retryPolicyOptions, retryLimit});
+    const setExponentialBackoffBase = (exponentialBackoffBase) => setRetryPolicyOptions({...retryPolicyOptions, exponentialBackoffBase});
+    const setExponentialBackoffScale = (exponentialBackoffScale) => setRetryPolicyOptions({...retryPolicyOptions, exponentialBackoffScale});
 
     const sanitizeHeaders = (headersArray) => {
         const headers = {};
@@ -150,10 +166,34 @@ export default function GenericClientScreen({navigation, route}) {
         return headers;
     }
 
+    const parseRetryPolicyOptions = () => {
+        if (retryPolicyOptions.type !== EXPONENTIAL_RETRY) {
+            return null;
+        }
+
+        return Object.keys(retryPolicyOptions).reduce((options, key) => {
+            let value = Number(retryPolicyOptions[key]);
+            if (value) {
+                options[key] = value;
+            }
+
+            return options;
+        }, {type: EXPONENTIAL_RETRY});
+    };
+
     const makeRequest = async () => {
         const options = {
             headers: sanitizeHeaders(requestHeaders),
         };
+
+        if (timeoutInterval.length) {
+            options.timeoutInterval = Number(timeoutInterval);
+        }
+
+        const retryPolicyConfiguration = parseRetryPolicyOptions();
+        if (retryPolicyConfiguration) {
+            options.retryPolicyConfiguration = retryPolicyConfiguration;
+        }
 
         if (method !== METHOD.GET && body.length) {
             try {
@@ -257,6 +297,70 @@ export default function GenericClientScreen({navigation, route}) {
         return null;
     }
 
+    const renderRetryPolicyOptions = () => {
+        const checked = retryPolicyOptions.type === EXPONENTIAL_RETRY;
+        const checkbox = (
+            <View style={styles.inputContainer}>
+                <Text style={styles.label}>Retries with exponential backoff?</Text>
+                <CheckBox
+                    value={checked}
+                    onValueChange={toggleRetryPolicyType}
+                />
+            </View>
+        );
+
+        let options;
+        if (checked) {
+            options = (
+                <>
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.label}>Retry Limit</Text>
+                        <View style={styles.numericInputContainer}>
+                            <TextInput
+                                value={retryPolicyOptions.retryLimit}
+                                onChangeText={setRetryLimit}
+                                placeholder='2'
+                                style={styles.input}
+                                keyboardType='numeric'
+                            />
+                        </View>
+                    </View>
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.label}>Exponential backoff base</Text>
+                        <View style={styles.numericInputContainer}>
+                            <TextInput
+                                value={retryPolicyOptions.exponentialBackoffBase}
+                                onChangeText={setExponentialBackoffBase}
+                                placeholder='2'
+                                style={styles.input}
+                                keyboardType='numeric'
+                            />
+                        </View>
+                    </View>
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.label}>Exponential backoff scale</Text>
+                        <View style={styles.numericInputContainer}>
+                            <TextInput
+                                value={retryPolicyOptions.exponentialBackoffScale}
+                                onChangeText={setExponentialBackoffScale}
+                                placeholder='0.5'
+                                style={styles.input}
+                                keyboardType='decimal-pad'
+                            />
+                        </View>
+                    </View>
+                </>
+            );
+        }
+
+        return (
+            <>
+                {checkbox}
+                {options}
+            </>
+        );
+    }
+
     return (
         <SafeAreaView style={styles.container}>
             <View style={[styles.inputContainer, styles.pickerContainer]}>
@@ -272,6 +376,21 @@ export default function GenericClientScreen({navigation, route}) {
                     autoCapitalize='none'
                     style={[styles.input, styles.textInput]}
                 />
+            </View>
+
+            {renderRetryPolicyOptions()}
+
+            <View style={styles.inputContainer}>
+                <Text style={[styles.label, styles.inputLabel]}>Timeout Interval</Text>
+                <View style={styles.numericInputContainer}>
+                    <TextInput
+                        value={timeoutInterval}
+                        onChangeText={setTimeoutInterval}
+                        placeholder='10'
+                        style={[styles.input, styles.textInput]}
+                        keyboardType='numeric'
+                    />
+                </View>
             </View>
             {method !== METHOD.GET &&
             <View style={styles.inputContainer}>
