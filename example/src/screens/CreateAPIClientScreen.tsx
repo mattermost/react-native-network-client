@@ -97,8 +97,8 @@ const ClientHeader = ({index, header, updateHeader}) => {
 }
 
 export default function CreateAPIClientScreen({navigation}) {
-    const [name, setName] = useState('HTTP Google Redirect Test');
-    const [baseUrl, setbaseUrl] = useState('http://google.com');
+    const [name, setName] = useState('Mattermost');
+    const [baseUrl, setbaseUrl] = useState('https://community.mattermost.com');
     const [clientHeaders, setClientHeaders] = useState([]);
     const [sessionOptions, setSessionOptions] = useState({
         followRedirects: true,
@@ -107,6 +107,7 @@ export default function CreateAPIClientScreen({navigation}) {
         timeoutIntervalForRequest: '30',
         timeoutIntervalForResource: '30',
         httpMaximumConnectionsPerHost: '10',
+        cancelRequestsOnUnauthorized: false,
     });
     const [retryPolicyOptions, setRetryPolicyOptions] = useState({
         type: '',
@@ -122,6 +123,7 @@ export default function CreateAPIClientScreen({navigation}) {
     const setTimeoutIntervalForRequest = (timeoutIntervalForRequest) => setSessionOptions({...sessionOptions, timeoutIntervalForRequest});
     const setTimeoutIntervalForResource = (timeoutIntervalForResource) => setSessionOptions({...sessionOptions, timeoutIntervalForResource});
     const setHttpMaximumConnectionsPerHost = (httpMaximumConnectionsPerHost) => setSessionOptions({...sessionOptions, httpMaximumConnectionsPerHost});
+    const setCancelRequestsOnUnauthorized = (cancelRequestsOnUnauthorized) => setSessionOptions({...sessionOptions, cancelRequestsOnUnauthorized});
     const toggleRetryPolicyType = (on) => setRetryPolicyOptions({...retryPolicyOptions, type: on ? EXPONENTIAL_RETRY : ''});
     const setRetryLimit = (retryLimit) => setRetryPolicyOptions({...retryPolicyOptions, retryLimit});
     const setExponentialBackoffBase = (exponentialBackoffBase) => setRetryPolicyOptions({...retryPolicyOptions, exponentialBackoffBase});
@@ -176,9 +178,10 @@ export default function CreateAPIClientScreen({navigation}) {
 
     const createClient = async () => {
         const headers = sanitizeHeaders();
+        const sessionConfiguration = parseSessionOptions();
         const options = {
             headers,
-            ...parseSessionOptions(),
+            sessionConfiguration,
         };
         const retryPolicyConfiguration = parseRetryPolicyOptions();
         if (retryPolicyConfiguration) {
@@ -341,6 +344,14 @@ export default function CreateAPIClientScreen({navigation}) {
                     <CheckBox
                         value={sessionOptions.waitsForConnectivity}
                         onValueChange={setWaitsForConnectivity}
+                    />
+                </View>
+
+                <View style={styles.inputContainer}>
+                    <Text style={styles.label}>Cancel Requests On Unauthorized?</Text>
+                    <CheckBox
+                        value={sessionOptions.cancelRequestsOnUnauthorized}
+                        onValueChange={setCancelRequestsOnUnauthorized}
                     />
                 </View>
 

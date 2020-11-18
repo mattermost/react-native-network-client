@@ -40,6 +40,16 @@ interface APIClientInterface {
     invalidate(): Promise<void>;
 };
 
+type SessionConfiguration = {
+    followRedirects?: boolean;
+    allowsCellularAccess?: boolean;
+    waitsForConnectivity?: boolean;
+    timeoutIntervalForRequest?: number;
+    timeoutIntervalForResource?: number;
+    httpMaximumConnectionsPerHost?: number;
+    cancelRequestsOnUnauthorized?: boolean;
+}
+
 enum RETRY_POLICY_TYPE {
     EXPONENTIAL = 'exponential',
 }
@@ -52,12 +62,7 @@ type RetryPolicyConfiguration = {
 
 type iOSAPIClientConfiguration = {
     headers?: Headers;
-    followRedirects: boolean;
-    allowsCellularAccess: boolean;
-    waitsForConnectivity: boolean;
-    timeoutIntervalForRequest: number;
-    timeoutIntervalForResource: number;
-    httpMaximumConnectionsPerHost: number;
+    sessionConfiguration?: SessionConfiguration;
     retryPolicyConfiguration?: RetryPolicyConfiguration;
     requestInterceptorConfig?: Record<string, string>;
     serverTrustManagerConfig?: Record<string, string>;

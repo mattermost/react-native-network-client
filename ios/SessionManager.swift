@@ -10,12 +10,6 @@
 import Foundation
 import Alamofire
 
-extension Session: Equatable {
-    static public func == (lhs: Session, rhs: Session) -> Bool {
-        return lhs.session == rhs.session
-    }
-}
-
 class SessionManager {
 
     public static let `default` = SessionManager()
@@ -30,13 +24,18 @@ class SessionManager {
     //  * ServerTrustManager
     //  * CachedResponseHandler
     //  * EventMonitor(s)
-    func createSession(for baseUrl:String, withConfiguration configuration:URLSessionConfiguration = URLSessionConfiguration.af.default, withInterceptor interceptor:Interceptor? = nil, withRedirectHandler redirectHandler:RedirectHandler? = nil) -> Void {
+    func createSession(for baseUrl:String,
+                       withConfiguration configuration:URLSessionConfiguration = URLSessionConfiguration.af.default,
+                       withInterceptor interceptor:Interceptor? = nil,
+                       withRedirectHandler redirectHandler:RedirectHandler? = nil,
+                       withCancelRequestsOnUnauthorized cancelRequestsOnUnauthorized:Bool = false) -> Void {
         var session = getSession(for: baseUrl)
         if (session != nil) {
             return
         }
 
         session = Session(configuration: configuration, interceptor: interceptor, redirectHandler: redirectHandler)
+        session?.cancelRequestsOnUnauthorized = cancelRequestsOnUnauthorized
 
         sessions[baseUrl] = session
     }

@@ -22,8 +22,9 @@ class APIClient: NSObject {
             let configuration = getURLSessionConfigurationFrom(options: options)
             let redirectHandler = getRedirectHandlerFrom(options: options)
             let interceptor = getInterceptorFrom(options: options)
+            let cancelRequestsOnUnauthorized = options["sessionConfiguration"]["cancelRequestsOnUnauthorized"].boolValue
 
-            resolve(SessionManager.default.createSession(for: baseUrl, withConfiguration: configuration, withInterceptor: interceptor, withRedirectHandler: redirectHandler))
+            resolve(SessionManager.default.createSession(for: baseUrl, withConfiguration: configuration, withInterceptor: interceptor, withRedirectHandler: redirectHandler, withCancelRequestsOnUnauthorized: cancelRequestsOnUnauthorized))
 
             return
         }
@@ -53,7 +54,8 @@ class APIClient: NSObject {
             return
         }
 
-        resolve(SessionManager.default.getSessionHeaders(for: baseUrl))
+        let headers = JSON(SessionManager.default.getSessionHeaders(for: baseUrl)).dictionaryObject
+        resolve(headers)
     }
     
     @objc(get:forEndpoint:withOptions:withResolver:withRejecter:)
@@ -93,13 +95,12 @@ class APIClient: NSObject {
         let headers = getHTTPHeadersFrom(options: options)
         let requestModifer = getRequestModifierFrom(options: options)
         let interceptor = getInterceptorFrom(options: options)
-        
-        if let interceptor = interceptor {
-            debugPrint(interceptor)
-        } else {
-            print("NO INTERCEPTOR")
-        }
+
         session.request(url, method: method, parameters: parameters, encoder: encoder, headers: headers, interceptor: interceptor, requestModifier: requestModifer).responseJSON { json in
+            if json.response?.statusCode == 401 && session.cancelRequestsOnUnauthorized {
+                session.cancelAllRequests()
+            }
+
             resolve([
                 "headers": json.response?.allHeaderFields,
                 "data": json.value,
@@ -116,25 +117,27 @@ class APIClient: NSObject {
             config.httpAdditionalHeaders = headers
         }
         
-        if options["allowsCellularAccess"].exists() {
-            config.allowsCellularAccess = options["allowsCellularAccess"].boolValue
+        let sessionOptions = options["sessionConfiguration"]
+        debugPrint(sessionOptions)
+        if sessionOptions["allowsCellularAccess"].exists() {
+            config.allowsCellularAccess = sessionOptions["allowsCellularAccess"].boolValue
         }
 
-        if options["timeoutIntervalForRequest"].exists() {
-            config.timeoutIntervalForRequest = options["timeoutIntervalForRequest"].doubleValue
+        if sessionOptions["timeoutIntervalForRequest"].exists() {
+            config.timeoutIntervalForRequest = sessionOptions["timeoutIntervalForRequest"].doubleValue
         }
 
-        if options["timeoutIntervalForResource"].exists() {
-            config.timeoutIntervalForResource = options["timeoutIntervalForResource"].doubleValue
+        if sessionOptions["timeoutIntervalForResource"].exists() {
+            config.timeoutIntervalForResource = sessionOptions["timeoutIntervalForResource"].doubleValue
         }
 
-        if options["httpMaximumConnectionsPerHost"].exists() {
-            config.httpMaximumConnectionsPerHost = options["httpMaximumConnectionsPerHost"].intValue
+        if sessionOptions["httpMaximumConnectionsPerHost"].exists() {
+            config.httpMaximumConnectionsPerHost = sessionOptions["httpMaximumConnectionsPerHost"].intValue
         }
         
         if #available(iOS 11.0, *) {
-            if options["waitsForConnectivity"].exists() {
-                config.waitsForConnectivity = options["waitsForConnectivity"].boolValue
+            if sessionOptions["waitsForConnectivity"].exists() {
+                config.waitsForConnectivity = sessionOptions["waitsForConnectivity"].boolValue
             }
         }
 

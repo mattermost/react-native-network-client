@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		4991797E255A0D0600C32F78 /* GenericClient.m in Sources */ = {isa = PBXBuildFile; fileRef = 4991797D255A0D0600C32F78 /* GenericClient.m */; };
 		49917982255A0D8900C32F78 /* GenericClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49917981255A0D8900C32F78 /* GenericClient.swift */; };
+		49EBD3B72565C19F00C7C102 /* Session+NetworkClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49EBD3B62565C19F00C7C102 /* Session+NetworkClient.swift */; };
 		49FE4ECA252CD49600EC2942 /* RequestInterceptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49FE4EC9252CD49600EC2942 /* RequestInterceptor.swift */; };
 		49FE4ECC252E839900EC2942 /* APIClient.m in Sources */ = {isa = PBXBuildFile; fileRef = B3E7B5891CC2AC0600A0062D /* APIClient.m */; };
 		49FE4F25252EBC6B00EC2942 /* TestStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49FE4F24252EBC6B00EC2942 /* TestStorage.swift */; };
@@ -33,6 +34,7 @@
 		4991797C255A0CEC00C32F78 /* GenericClient-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "GenericClient-Bridging-Header.h"; sourceTree = "<group>"; };
 		4991797D255A0D0600C32F78 /* GenericClient.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = GenericClient.m; sourceTree = "<group>"; };
 		49917981255A0D8900C32F78 /* GenericClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenericClient.swift; sourceTree = "<group>"; };
+		49EBD3B62565C19F00C7C102 /* Session+NetworkClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Session+NetworkClient.swift"; sourceTree = "<group>"; };
 		49FE4EC9252CD49600EC2942 /* RequestInterceptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RequestInterceptor.swift; sourceTree = "<group>"; };
 		49FE4F24252EBC6B00EC2942 /* TestStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestStorage.swift; sourceTree = "<group>"; };
 		53A730F5250AA8E40058A8B4 /* SessionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionManager.swift; sourceTree = "<group>"; };
@@ -63,6 +65,7 @@
 		58B511D21A9E6C8500147676 = {
 			isa = PBXGroup;
 			children = (
+				49EBD3B62565C19F00C7C102 /* Session+NetworkClient.swift */,
 				53A730F5250AA8E40058A8B4 /* SessionManager.swift */,
 				49FE4F24252EBC6B00EC2942 /* TestStorage.swift */,
 				F4FF95D6245B92E800C19C63 /* APIClient.swift */,
@@ -139,6 +142,7 @@
 				49FE4F25252EBC6B00EC2942 /* TestStorage.swift in Sources */,
 				49FE4ECA252CD49600EC2942 /* RequestInterceptor.swift in Sources */,
 				F4FF95D7245B92E800C19C63 /* APIClient.swift in Sources */,
+				49EBD3B72565C19F00C7C102 /* Session+NetworkClient.swift in Sources */,
 				49FE4ECC252E839900EC2942 /* APIClient.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
