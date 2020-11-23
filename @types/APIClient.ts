@@ -5,7 +5,7 @@ type ClientHeaders = Record<string, string>;
 
 type RequestOptions = {
     headers?: ClientHeaders;
-    body?: Record<string, unknown>;
+    body?: Record<string, unknown> | string;
     timeoutInterval?: number;
 };
 
@@ -58,6 +58,10 @@ type iOSAPIClientConfiguration = {
     serverTrustManagerConfig?: Record<string, string>;
     cachedResponseHandlerConfig?: Record<string, string>;
 };
-type AndroidAPIClientConfiguration = Partial<Record<string, unknown>>;
+
+type AndroidAPIClientConfiguration = {
+    headers?: ClientHeaders;
+    [key: string]: unknown;
+};
 
 type APIClientConfiguration = iOSAPIClientConfiguration | AndroidAPIClientConfiguration;

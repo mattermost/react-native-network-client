@@ -32,7 +32,7 @@ class APIClient implements APIClientInterface {
     getHeaders = (): Promise<ClientHeaders> => NativeAPIClient.getClientHeadersFor(this.baseUrl);
     addHeaders = (headers: ClientHeaders): Promise<void> => {
         this.config.headers = {
-            ...this.config.headers as Record<string, unknown>,
+            ...this.config.headers as Record<string, string>,
             ...headers,
         };
 
