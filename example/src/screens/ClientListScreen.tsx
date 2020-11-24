@@ -47,17 +47,19 @@ const styles = StyleSheet.create({
 type NetworkClientProps = {name: string, index: number, client: Client["client"], deleteClient: (index: number) => void, navigate: (screen: string, {}: {name: string, client: Client["client"]}) => void}
 const NetworkClient = ({name, index, client, deleteClient, navigate}: NetworkClientProps) => {
 const viewClient = () => {
-        const screen = client.baseUrl ? 'APIClient' : 'GenericClient';
+        const screen = 'baseUrl' in client ? 'APIClient' : 'GenericClient';
         navigate(screen, {name, client});
     };
 
     const invalidateClient = () => {
-        client.invalidate!();
-        deleteClient(index);
+        if('baseUrl' in client){
+            client.invalidate!();
+            deleteClient(index);
+        }
     }
 
     const removeClient = () => {
-        client.baseUrl &&
+        'baseUrl' in client &&
         Alert.alert(
             'Remove Client',
             '',
@@ -72,7 +74,7 @@ const viewClient = () => {
                 <View style={styles.clientUrl}>
                     <Text>{name}</Text>
                     {
-                    client.baseUrl &&
+                    'baseUrl' in client &&
                     <Text>{client.baseUrl}</Text>
                     }
                 </View>

@@ -107,18 +107,18 @@ export default function CreateAPIClientScreen({navigation}: CreateAPIClientScree
         followRedirects: true,
         allowsCellularAccess: true,
         waitsForConnectivity: false,
-        timeoutIntervalForRequest: '30',
-        timeoutIntervalForResource: '30',
-        httpMaximumConnectionsPerHost: '10',
+        timeoutIntervalForRequest: 30,
+        timeoutIntervalForResource: 30,
+        httpMaximumConnectionsPerHost: 10,
     });
     const scrollView = useRef<ScrollView>(null);
 
     const setFollowRedirects = (followRedirects: boolean) => setSessionOptions({...sessionOptions, followRedirects});
     const setAllowsCellularAccess = (allowsCellularAccess: boolean) => setSessionOptions({...sessionOptions, allowsCellularAccess});
     const setWaitsForConnectivity = (waitsForConnectivity: boolean) => setSessionOptions({...sessionOptions, waitsForConnectivity});
-    const setTimeoutIntervalForRequest = (timeoutIntervalForRequest: string) => setSessionOptions({...sessionOptions, timeoutIntervalForRequest});
-    const setTimeoutIntervalForResource = (timeoutIntervalForResource: string) => setSessionOptions({...sessionOptions, timeoutIntervalForResource});
-    const setHttpMaximumConnectionsPerHost = (httpMaximumConnectionsPerHost: string) => setSessionOptions({...sessionOptions, httpMaximumConnectionsPerHost});
+    const setTimeoutIntervalForRequest = (timeoutIntervalForRequest: string) => setSessionOptions({...sessionOptions, timeoutIntervalForRequest: parseInt(timeoutIntervalForRequest)})
+    const setTimeoutIntervalForResource = (timeoutIntervalForResource: string) => setSessionOptions({...sessionOptions, timeoutIntervalForResource: parseInt(timeoutIntervalForResource)});
+    const setHttpMaximumConnectionsPerHost = (httpMaximumConnectionsPerHost: string) => setSessionOptions({...sessionOptions, httpMaximumConnectionsPerHost: parseInt(httpMaximumConnectionsPerHost)});
 
     // TEST MM default headers
     const addDefaultHeaders = async () => {
@@ -255,7 +255,7 @@ export default function CreateAPIClientScreen({navigation}: CreateAPIClientScree
                     <Text style={styles.label}>Timeout Interval For Request</Text>
                     <View style={styles.numericInputContainer}>
                         <TextInput
-                            value={sessionOptions.timeoutIntervalForRequest as string}
+                            value={`${sessionOptions.timeoutIntervalForRequest}`}
                             onChangeText={setTimeoutIntervalForRequest}
                             placeholder='60'
                             style={styles.input}
@@ -268,7 +268,7 @@ export default function CreateAPIClientScreen({navigation}: CreateAPIClientScree
                     <Text style={styles.label}>Timeout Interval For Resource</Text>
                     <View style={styles.numericInputContainer}>
                         <TextInput
-                            value={sessionOptions.timeoutIntervalForResource as string}
+                            value={`${sessionOptions.timeoutIntervalForResource}`}
                             onChangeText={setTimeoutIntervalForResource}
                             placeholder='60'
                             style={styles.input}

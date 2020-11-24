@@ -151,11 +151,13 @@ export default function APIClientScreen({route}: APIClientScreenProps) {
     const scrollView = useRef<ScrollView | null>(null);
 
     const getClientHeaders = async () => {
-        try {
-            const headers = await client.getHeaders!();
-            setClientHeaders(headers);
-        } catch (e) {
-            // Do nothing.
+        if('getHeaders' in client) {
+            try {
+                const headers = await client.getHeaders!();
+                setClientHeaders(headers);
+            } catch (e) {
+                // Do nothing.
+            }
         }
     }
 
@@ -278,7 +280,7 @@ export default function APIClientScreen({route}: APIClientScreenProps) {
     const clientHeaderKey = (item: string[]) => `client-header-${item[0]}`;
 
     const addClientHeader = async ({key, value}: {key: string, value: string}) => {
-        await client.addHeaders!({[key]: value});
+        if('addHeaders' in client) await client.addHeaders!({[key]: value});
         getClientHeaders();
     };
 
