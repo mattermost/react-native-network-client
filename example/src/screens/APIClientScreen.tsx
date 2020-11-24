@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type { APIClientScreenProps } from 'example/@types/navigation';
-import React, {useState, useRef, useEffect} from 'react';
+import type { APIClientScreenProps } from "example/@types/navigation";
+import React, { useState, useRef, useEffect } from "react";
 import {
     Alert,
     Button,
@@ -16,9 +16,9 @@ import {
     TextInput,
     TouchableOpacity,
     View,
-} from 'react-native';
+} from "react-native";
 
-import MethodPicker, {METHOD} from '../components/MethodPicker';
+import MethodPicker, { METHOD } from "../components/MethodPicker";
 
 const styles = StyleSheet.create({
     container: {
@@ -30,14 +30,14 @@ const styles = StyleSheet.create({
     },
     inputContainer: {
         flex: 1,
-        flexDirection: 'row',
-        alignItems: 'center',
+        flexDirection: "row",
+        alignItems: "center",
     },
     numericInputContainer: {
         flex: 0.5,
     },
     pickerContainer: {
-        zIndex: Platform.OS === 'ios' ? 10 : 0,
+        zIndex: Platform.OS === "ios" ? 10 : 0,
     },
     inputLabel: {
         flex: 1,
@@ -51,9 +51,9 @@ const styles = StyleSheet.create({
     textInput: {
         borderWidth: 1,
         ...Platform.select({
-            ios: { borderColor: PlatformColor('link') },
+            ios: { borderColor: PlatformColor("link") },
             android: {
-                borderColor: PlatformColor('?attr/colorControlNormal')
+                borderColor: PlatformColor("?attr/colorControlNormal"),
             },
         }),
     },
@@ -62,15 +62,15 @@ const styles = StyleSheet.create({
         paddingHorizontal: 15,
     },
     optionsLabelContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
+        flexDirection: "row",
+        alignItems: "center",
     },
     optionsContainer: {
         flex: 1,
     },
     option: {
-        flexDirection: 'row',
-        justifyContent: 'space-evenly',
+        flexDirection: "row",
+        justifyContent: "space-evenly",
     },
     responseContainer: {
         flex: 3,
@@ -89,69 +89,77 @@ const styles = StyleSheet.create({
     },
     responseTouchables: {
         flex: 1,
-        flexDirection: 'row',
-        justifyContent: 'space-between',
+        flexDirection: "row",
+        justifyContent: "space-between",
     },
     separator: {
         height: 0.5,
-        backgroundColor: 'rgba(0, 0, 0, 0.3)',
+        backgroundColor: "rgba(0, 0, 0, 0.3)",
     },
     link: {
         ...Platform.select({
-            ios: { color: PlatformColor('link') },
+            ios: { color: PlatformColor("link") },
             android: {
-                color: PlatformColor('?attr/colorControlNormal')
+                color: PlatformColor("?attr/colorControlNormal"),
             },
         }),
     },
 });
 
-type RequestHeaderProps = {index: number, header: ClientHeaders, updateHeader: (index: number, header: {key: string, value: string}) => void}
-const RequestHeader = ({index, header, updateHeader}: RequestHeaderProps) => {
+type RequestHeaderProps = {
+    index: number;
+    header: ClientHeaders;
+    updateHeader: (
+        index: number,
+        header: { key: string; value: string }
+    ) => void;
+};
+const RequestHeader = ({ index, header, updateHeader }: RequestHeaderProps) => {
     const [key, setKey] = useState(header.key);
     const [value, setValue] = useState(header.value);
 
     const doUpdateHeader = () => {
-        updateHeader(index, {key, value});
-    }
+        updateHeader(index, { key, value });
+    };
 
     return (
         <>
             <TextInput
                 value={key}
                 onChangeText={setKey}
-                placeholder='key'
-                autoCapitalize='none'
+                placeholder="key"
+                autoCapitalize="none"
                 onBlur={doUpdateHeader}
-                style={[styles.input, styles.textInput, {flex: 1}]}
+                style={[styles.input, styles.textInput, { flex: 1 }]}
             />
             <TextInput
                 value={value}
                 onChangeText={setValue}
-                placeholder='value'
-                autoCapitalize='none'
+                placeholder="value"
+                autoCapitalize="none"
                 onBlur={doUpdateHeader}
-                style={[styles.input, styles.textInput, {flex: 1}]}
+                style={[styles.input, styles.textInput, { flex: 1 }]}
             />
         </>
     );
+};
 
-}
+export default function APIClientScreen({ route }: APIClientScreenProps) {
+    const { client } = route.params;
 
-export default function APIClientScreen({route}: APIClientScreenProps) {
-    const {client} = route.params;
-
-    const [method, setMethod] = useState('GET');
-    const [endpoint, setEndpoint] = useState('/');
-    const [timeoutInterval, setTimeoutInterval] = useState('');
-    const [body, setBody] = useState('');
-    const [requestHeaders, setRequestHeaders] = useState([{key: '', value: ''}]);
+    const [method, setMethod] = useState("GET");
+    const [endpoint, setEndpoint] = useState("/");
+    const [timeoutInterval, setTimeoutInterval] = useState("");
+    const [body, setBody] = useState("");
+    const [requestHeaders, setRequestHeaders] = useState([
+        { key: "", value: "" },
+    ]);
     const [clientHeaders, setClientHeaders] = useState<ClientHeaders>();
     const [response, setResponse] = useState<ClientResponse>();
     const scrollView = useRef<ScrollView | null>(null);
 
     const getClientHeaders = async () => {
-        if('getHeaders' in client) {
+        if ("getHeaders" in client) {
             try {
                 const headers = await client.getHeaders!();
                 setClientHeaders(headers);
@@ -159,21 +167,23 @@ export default function APIClientScreen({route}: APIClientScreenProps) {
                 // Do nothing.
             }
         }
-    }
+    };
 
-    useEffect(() => {        
+    useEffect(() => {
         getClientHeaders();
     }, []);
 
-    const sanitizeHeaders = (headersArray: {key: string, value: string}[]) => {
+    const sanitizeHeaders = (
+        headersArray: { key: string; value: string }[]
+    ) => {
         const headers = headersArray
-            .filter( (k,v) => k && v)
-            .reduce( (prev, cur) => prev[cur.key] = cur.value, {} as any)
+            .filter((k, v) => k && v)
+            .reduce((prev, cur) => (prev[cur.key] = cur.value), {} as any);
         return headers;
-    }
+    };
 
     const makeRequest = async () => {
-        const options: APIClientConfiguration= {
+        const options: APIClientConfiguration = {
             headers: sanitizeHeaders(requestHeaders),
         };
 
@@ -184,20 +194,17 @@ export default function APIClientScreen({route}: APIClientScreenProps) {
         if (method !== METHOD.GET && body.length) {
             try {
                 options.body = JSON.parse(body);
-            } catch(e) {
-                Alert.alert(
-                    'Error parsing Body',
-                    e.message,
-                    [{text: 'OK'}],
-                    {cancelable: false}
-                );
+            } catch (e) {
+                Alert.alert("Error parsing Body", e.message, [{ text: "OK" }], {
+                    cancelable: false,
+                });
 
                 return;
             }
         }
 
-        try{
-            switch(method){
+        try {
+            switch (method) {
                 case METHOD.GET:
                     var response = await client.get(endpoint, options);
                     setResponse(response);
@@ -219,25 +226,24 @@ export default function APIClientScreen({route}: APIClientScreenProps) {
                     setResponse(response);
                     break;
                 default:
-                    throw new Error('Invalid request method')
+                    throw new Error("Invalid request method");
             }
         } catch (e) {
-            Alert.alert(
-                'Error',
-                e.message,
-                [{text: 'OK'}],
-                {cancelable: false}
-            );
+            Alert.alert("Error", e.message, [{ text: "OK" }], {
+                cancelable: false,
+            });
         }
-        
-    }
+    };
 
-    const addRequestHeader = (header = {key: '', value: ''}) => {
+    const addRequestHeader = (header = { key: "", value: "" }) => {
         setRequestHeaders([...requestHeaders, header]);
         scrollView!.current!.scrollToEnd();
-    }
+    };
 
-    const updateRequestHeader = (index: number, header: {key: string, value: string}) => {
+    const updateRequestHeader = (
+        index: number,
+        header: { key: string; value: string }
+    ) => {
         const newRequestHeaders = requestHeaders;
         newRequestHeaders[index] = header;
         setRequestHeaders(newRequestHeaders);
@@ -245,17 +251,19 @@ export default function APIClientScreen({route}: APIClientScreenProps) {
 
     const renderRequestHeaders = () => (
         <ScrollView ref={scrollView}>
-            {
-                requestHeaders.map((header, index) => (
-                    <View key={`header-${index}`} style={styles.option}>
-                        <RequestHeader index={index} header={header} updateHeader={updateRequestHeader} />
-                    </View>
-                ))
-            }
+            {requestHeaders.map((header, index) => (
+                <View key={`header-${index}`} style={styles.option}>
+                    <RequestHeader
+                        index={index}
+                        header={header}
+                        updateHeader={updateRequestHeader}
+                    />
+                </View>
+            ))}
         </ScrollView>
     );
 
-    const renderClientHeader = ({item}: {item: string[]}) => (
+    const renderClientHeader = ({ item }: { item: string[] }) => (
         <View>
             <Text>Key: {item[0]}</Text>
             <Text>Value: {item[1]}</Text>
@@ -271,42 +279,59 @@ export default function APIClientScreen({route}: APIClientScreenProps) {
                     keyExtractor={clientHeaderKey}
                     ItemSeparatorComponent={renderSeparator}
                 />
-            )
+            );
         } else {
-            return <Text>None</Text>
+            return <Text>None</Text>;
         }
-    }
+    };
 
     const clientHeaderKey = (item: string[]) => `client-header-${item[0]}`;
 
-    const addClientHeader = async ({key, value}: {key: string, value: string}) => {
-        if('addHeaders' in client) await client.addHeaders!({[key]: value});
+    const addClientHeader = async ({
+        key,
+        value,
+    }: {
+        key: string;
+        value: string;
+    }) => {
+        if ("addHeaders" in client) await client.addHeaders!({ [key]: value });
         getClientHeaders();
     };
 
-    const renderResponseHeader = ({item}: {item: string[]}) => (
+    const renderResponseHeader = ({ item }: { item: string[] }) => (
         <View style={styles.responseHeader}>
             <Text>Key: {item[0]}</Text>
             <Text>Value: {item[1]}</Text>
             <View style={styles.responseTouchables}>
-                <TouchableOpacity onPress={() => addClientHeader({key: item[0], value: item[1]})}>
+                <TouchableOpacity
+                    onPress={() =>
+                        addClientHeader({ key: item[0], value: item[1] })
+                    }
+                >
                     <Text style={styles.link}>Add to client headers</Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => addRequestHeader({key: item[0], value: item[1]})}>
+                <TouchableOpacity
+                    onPress={() =>
+                        addRequestHeader({ key: item[0], value: item[1] })
+                    }
+                >
                     <Text style={styles.link}>Add to request headers</Text>
                 </TouchableOpacity>
             </View>
         </View>
     );
     const responseHeaderKey = (item: string[]) => `response-header-${item[0]}`;
-    const renderSeparator = () => <View style={styles.separator} />
+    const renderSeparator = () => <View style={styles.separator} />;
 
     const renderResponse = () => {
         if (response) {
             return (
                 <>
                     <View style={styles.responseHeadersContainer}>
-                        <Text style={styles.label}>Response: {response.code}, {response.lastRequestedUrl}</Text>
+                        <Text style={styles.label}>
+                            Response: {response.code},{" "}
+                            {response.lastRequestedUrl}
+                        </Text>
                         <Text style={styles.label}>Headers</Text>
                         <FlatList
                             data={Object.entries(response.headers!)}
@@ -317,16 +342,18 @@ export default function APIClientScreen({route}: APIClientScreenProps) {
                     </View>
                     <View style={styles.responseDataContainer}>
                         <Text style={styles.label}>Data</Text>
-                        <ScrollView contentContainerStyle={styles.responseScrollView}>
+                        <ScrollView
+                            contentContainerStyle={styles.responseScrollView}
+                        >
                             <Text>{JSON.stringify(response.data)}</Text>
                         </ScrollView>
                     </View>
                 </>
-            )
+            );
         }
 
         return null;
-    }
+    };
 
     return (
         <SafeAreaView style={styles.container}>
@@ -336,55 +363,58 @@ export default function APIClientScreen({route}: APIClientScreenProps) {
             </View>
             <View style={[styles.inputContainer, styles.pickerContainer]}>
                 <Text style={[styles.label, styles.inputLabel]}>Method</Text>
-                <MethodPicker wrapperStyle={styles.input} onMethodPicked={setMethod} />
+                <MethodPicker
+                    wrapperStyle={styles.input}
+                    onMethodPicked={setMethod}
+                />
             </View>
             <View style={styles.inputContainer}>
                 <Text style={[styles.label, styles.inputLabel]}>URL</Text>
                 <TextInput
                     value={endpoint}
                     onChangeText={setEndpoint}
-                    placeholder='/todos/1'
-                    autoCapitalize='none'
+                    placeholder="/todos/1"
+                    autoCapitalize="none"
                     style={[styles.input, styles.textInput]}
                 />
             </View>
             <View style={styles.inputContainer}>
-                <Text style={[styles.label, styles.inputLabel]}>Timeout Interval</Text>
+                <Text style={[styles.label, styles.inputLabel]}>
+                    Timeout Interval
+                </Text>
                 <View style={styles.numericInputContainer}>
                     <TextInput
                         value={timeoutInterval}
                         onChangeText={setTimeoutInterval}
-                        placeholder='10'
+                        placeholder="10"
                         style={[styles.input, styles.textInput]}
-                        keyboardType='numeric'
+                        keyboardType="numeric"
                     />
                 </View>
             </View>
-            {method !== METHOD.GET &&
-            <View style={styles.inputContainer}>
-                <Text style={[styles.label, styles.inputLabel]}>Body</Text>
-                <TextInput
-                    value={body}
-                    onChangeText={setBody}
-                    placeholder='{"username": "johndoe"}'
-                    autoCapitalize='none'
-                    multiline={true}
-                    style={[styles.input, styles.textInput]}
-                />
-            </View>
-            }
+            {method !== METHOD.GET && (
+                <View style={styles.inputContainer}>
+                    <Text style={[styles.label, styles.inputLabel]}>Body</Text>
+                    <TextInput
+                        value={body}
+                        onChangeText={setBody}
+                        placeholder='{"username": "johndoe"}'
+                        autoCapitalize="none"
+                        multiline={true}
+                        style={[styles.input, styles.textInput]}
+                    />
+                </View>
+            )}
             <View style={styles.optionsLabelContainer}>
                 <Text style={styles.label}>Request Headers</Text>
-                <Button title='+' onPress={addRequestHeader as any}/>
+                <Button title="+" onPress={addRequestHeader as any} />
             </View>
             <View style={styles.optionsContainer}>
                 {renderRequestHeaders()}
             </View>
-            <View style={styles.responseContainer}>
-                {renderResponse()}
-            </View>
+            <View style={styles.responseContainer}>{renderResponse()}</View>
             <Button
-                title='Make Request'
+                title="Make Request"
                 disabled={endpoint.length === 0}
                 onPress={makeRequest}
             />

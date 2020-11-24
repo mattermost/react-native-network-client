@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useRef, useEffect} from 'react';
+import React, { useState, useRef, useEffect } from "react";
 import {
     Alert,
     Button,
@@ -13,11 +13,11 @@ import {
     Text,
     TextInput,
     View,
-} from 'react-native';
-import CheckBox from '@react-native-community/checkbox';
-import DeviceInfo from 'react-native-device-info';
-import {getOrCreateAPIClient} from '@mattermost/react-native-network-client';
-import type { CreateAPIClientScreenProps } from 'example/@types/navigation';
+} from "react-native";
+import CheckBox from "@react-native-community/checkbox";
+import DeviceInfo from "react-native-device-info";
+import { getOrCreateAPIClient } from "@mattermost/react-native-network-client";
+import type { CreateAPIClientScreenProps } from "example/@types/navigation";
 
 const styles = StyleSheet.create({
     scrollViewContainer: {
@@ -27,9 +27,9 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     inputContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
         padding: 10,
     },
     textInputContainer: {
@@ -48,62 +48,74 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         padding: 5,
         ...Platform.select({
-            ios: { borderColor: PlatformColor('link') },
+            ios: { borderColor: PlatformColor("link") },
             android: {
-                borderColor: PlatformColor('?attr/colorControlNormal')
+                borderColor: PlatformColor("?attr/colorControlNormal"),
             },
         }),
-     },
-     headersLabelContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-     },
-     headersContainer: {
+    },
+    headersLabelContainer: {
+        flexDirection: "row",
+        alignItems: "center",
+    },
+    headersContainer: {
         flex: 8,
-     },
-     header: {
-        flexDirection: 'row',
-        justifyContent: 'space-evenly',
-     },
+    },
+    header: {
+        flexDirection: "row",
+        justifyContent: "space-evenly",
+    },
 });
 
-type ClientHeaderProps = {index: number, header: {key: string, value: string}, updateHeader: (index: number, header: {key: string, value: string}) => void}
-const ClientHeader = ({index, header, updateHeader}: ClientHeaderProps) => {
+type ClientHeaderProps = {
+    index: number;
+    header: { key: string; value: string };
+    updateHeader: (
+        index: number,
+        header: { key: string; value: string }
+    ) => void;
+};
+const ClientHeader = ({ index, header, updateHeader }: ClientHeaderProps) => {
     const [key, setKey] = useState(header.key);
     const [value, setValue] = useState(header.value);
 
     const doUpdateHeader = () => {
-        updateHeader(index, {key, value});
-    }
+        updateHeader(index, { key, value });
+    };
 
     return (
         <>
             <TextInput
                 value={key}
                 onChangeText={setKey}
-                placeholder='key'
-                autoCapitalize='none'
+                placeholder="key"
+                autoCapitalize="none"
                 onBlur={doUpdateHeader}
-                style={[styles.input, {flex: 1}]}
+                style={[styles.input, { flex: 1 }]}
             />
             <TextInput
                 value={value}
                 onChangeText={setValue}
-                placeholder='value'
-                autoCapitalize='none'
+                placeholder="value"
+                autoCapitalize="none"
                 onBlur={doUpdateHeader}
-                style={[styles.input, {flex: 1}]}
+                style={[styles.input, { flex: 1 }]}
             />
         </>
     );
+};
 
-}
-
-export default function CreateAPIClientScreen({navigation}: CreateAPIClientScreenProps) {
-    const [name, setName] = useState('HTTP Google Redirect Test');
-    const [baseUrl, setbaseUrl] = useState('http://google.com');
-    const [clientHeaders, setClientHeaders] = useState<{key: string, value: string}[]>([]);
-    const [sessionOptions, setSessionOptions] = useState<APIClientConfiguration>({
+export default function CreateAPIClientScreen({
+    navigation,
+}: CreateAPIClientScreenProps) {
+    const [name, setName] = useState("HTTP Google Redirect Test");
+    const [baseUrl, setbaseUrl] = useState("http://google.com");
+    const [clientHeaders, setClientHeaders] = useState<
+        { key: string; value: string }[]
+    >([]);
+    const [sessionOptions, setSessionOptions] = useState<
+        APIClientConfiguration
+    >({
         followRedirects: true,
         allowsCellularAccess: true,
         waitsForConnectivity: false,
@@ -113,40 +125,66 @@ export default function CreateAPIClientScreen({navigation}: CreateAPIClientScree
     });
     const scrollView = useRef<ScrollView>(null);
 
-    const setFollowRedirects = (followRedirects: boolean) => setSessionOptions({...sessionOptions, followRedirects});
-    const setAllowsCellularAccess = (allowsCellularAccess: boolean) => setSessionOptions({...sessionOptions, allowsCellularAccess});
-    const setWaitsForConnectivity = (waitsForConnectivity: boolean) => setSessionOptions({...sessionOptions, waitsForConnectivity});
-    const setTimeoutIntervalForRequest = (timeoutIntervalForRequest: string) => setSessionOptions({...sessionOptions, timeoutIntervalForRequest: parseInt(timeoutIntervalForRequest)})
-    const setTimeoutIntervalForResource = (timeoutIntervalForResource: string) => setSessionOptions({...sessionOptions, timeoutIntervalForResource: parseInt(timeoutIntervalForResource)});
-    const setHttpMaximumConnectionsPerHost = (httpMaximumConnectionsPerHost: string) => setSessionOptions({...sessionOptions, httpMaximumConnectionsPerHost: parseInt(httpMaximumConnectionsPerHost)});
+    const setFollowRedirects = (followRedirects: boolean) =>
+        setSessionOptions({ ...sessionOptions, followRedirects });
+    const setAllowsCellularAccess = (allowsCellularAccess: boolean) =>
+        setSessionOptions({ ...sessionOptions, allowsCellularAccess });
+    const setWaitsForConnectivity = (waitsForConnectivity: boolean) =>
+        setSessionOptions({ ...sessionOptions, waitsForConnectivity });
+    const setTimeoutIntervalForRequest = (timeoutIntervalForRequest: string) =>
+        setSessionOptions({
+            ...sessionOptions,
+            timeoutIntervalForRequest: parseInt(timeoutIntervalForRequest),
+        });
+    const setTimeoutIntervalForResource = (
+        timeoutIntervalForResource: string
+    ) =>
+        setSessionOptions({
+            ...sessionOptions,
+            timeoutIntervalForResource: parseInt(timeoutIntervalForResource),
+        });
+    const setHttpMaximumConnectionsPerHost = (
+        httpMaximumConnectionsPerHost: string
+    ) =>
+        setSessionOptions({
+            ...sessionOptions,
+            httpMaximumConnectionsPerHost: parseInt(
+                httpMaximumConnectionsPerHost
+            ),
+        });
 
     // TEST MM default headers
     const addDefaultHeaders = async () => {
         const userAgent = await DeviceInfo.getUserAgent();
         setClientHeaders([
-            {key: 'X-Requested-With', value: 'XMLHttpRequest'},
-            {key: 'User-Agent', value: userAgent},
-            {key: '', value: ''},
+            { key: "X-Requested-With", value: "XMLHttpRequest" },
+            { key: "User-Agent", value: userAgent },
+            { key: "", value: "" },
         ]);
-    }
+    };
     useEffect(() => {
         addDefaultHeaders();
     }, []);
 
-
     const sanitizeHeaders = () => {
         const headers = {};
         clientHeaders
-            .filter( (k,v) => k && v)
-            .reduce( (prev, cur) => prev[cur.key] = cur.value, {} as any)
+            .filter((k, v) => k && v)
+            .reduce((prev, cur) => (prev[cur.key] = cur.value), {} as any);
         return headers;
-    }
+    };
 
     const parseSessionOptions = () => ({
         ...sessionOptions,
-        timeoutIntervalForRequest: Number(sessionOptions.timeoutIntervalForRequest),
-        timeoutIntervalForResource: Number(sessionOptions.timeoutIntervalForResource),
-        httpMaximumConnectionsPerHost: Number(sessionOptions.httpMaximumConnectionsPerHost),
+        timeoutIntervalForRequest: Number(
+            sessionOptions.timeoutIntervalForRequest
+        ),
+        timeoutIntervalForResource: Number(
+            sessionOptions.timeoutIntervalForResource
+        ),
+        httpMaximumConnectionsPerHost: Number(
+            sessionOptions.httpMaximumConnectionsPerHost
+        ),
     });
 
     const createClient = async () => {
@@ -156,47 +194,58 @@ export default function CreateAPIClientScreen({navigation}: CreateAPIClientScree
             headers,
             ...sessionOptions,
         };
-        const {client, created} = await getOrCreateAPIClient(baseUrl, options);
+        const { client, created } = await getOrCreateAPIClient(
+            baseUrl,
+            options
+        );
         if (!created) {
             Alert.alert(
-                'Error',
+                "Error",
                 `A client for ${baseUrl} already exists`,
-                [{text: 'OK'}],
-                {cancelable: false}
+                [{ text: "OK" }],
+                { cancelable: false }
             );
             return;
         }
         const createdClient = {
             name,
             client,
-            type: 'network',
+            type: "network",
         };
 
-        navigation.navigate('ClientList', {client: createdClient});
-    }
+        navigation.navigate("ClientList", { client: createdClient });
+    };
 
     const addClientHeader = () => {
-        setClientHeaders([...clientHeaders, {key: '', value: ''}]);
+        setClientHeaders([...clientHeaders, { key: "", value: "" }]);
         scrollView!.current!.scrollToEnd();
-    }
+    };
 
-    const updateClientHeader = (index: number, header: {key: string, value: string}) => {
+    const updateClientHeader = (
+        index: number,
+        header: { key: string; value: string }
+    ) => {
         const newClientHeaders = clientHeaders;
         newClientHeaders[index] = header;
         setClientHeaders(newClientHeaders);
     };
 
     const renderClientHeaders = () => (
-        <ScrollView ref={scrollView} contentContainerStyle={styles.scrollViewContainer}>
-            {
-                clientHeaders.map((header, index) => (
-                    <View key={`header-${index}`} style={styles.header}>
-                        <ClientHeader index={index} header={header} updateHeader={updateClientHeader} />
-                    </View>
-                ))
-            }
+        <ScrollView
+            ref={scrollView}
+            contentContainerStyle={styles.scrollViewContainer}
+        >
+            {clientHeaders.map((header, index) => (
+                <View key={`header-${index}`} style={styles.header}>
+                    <ClientHeader
+                        index={index}
+                        header={header}
+                        updateHeader={updateClientHeader}
+                    />
+                </View>
+            ))}
         </ScrollView>
-    )
+    );
 
     return (
         <SafeAreaView style={styles.container}>
@@ -207,8 +256,8 @@ export default function CreateAPIClientScreen({navigation}: CreateAPIClientScree
                         <TextInput
                             value={name}
                             onChangeText={setName}
-                            placeholder='Mattermost Community Server'
-                            autoCapitalize='none'
+                            placeholder="Mattermost Community Server"
+                            autoCapitalize="none"
                             style={styles.input}
                         />
                     </View>
@@ -220,8 +269,8 @@ export default function CreateAPIClientScreen({navigation}: CreateAPIClientScree
                         <TextInput
                             value={baseUrl}
                             onChangeText={setbaseUrl}
-                            placeholder='https://community.mattermost.com'
-                            autoCapitalize='none'
+                            placeholder="https://community.mattermost.com"
+                            autoCapitalize="none"
                             style={styles.input}
                         />
                     </View>
@@ -252,27 +301,31 @@ export default function CreateAPIClientScreen({navigation}: CreateAPIClientScree
                 </View>
 
                 <View style={styles.inputContainer}>
-                    <Text style={styles.label}>Timeout Interval For Request</Text>
+                    <Text style={styles.label}>
+                        Timeout Interval For Request
+                    </Text>
                     <View style={styles.numericInputContainer}>
                         <TextInput
                             value={`${sessionOptions.timeoutIntervalForRequest}`}
                             onChangeText={setTimeoutIntervalForRequest}
-                            placeholder='60'
+                            placeholder="60"
                             style={styles.input}
-                            keyboardType='numeric'
+                            keyboardType="numeric"
                         />
                     </View>
                 </View>
 
                 <View style={styles.inputContainer}>
-                    <Text style={styles.label}>Timeout Interval For Resource</Text>
+                    <Text style={styles.label}>
+                        Timeout Interval For Resource
+                    </Text>
                     <View style={styles.numericInputContainer}>
                         <TextInput
                             value={`${sessionOptions.timeoutIntervalForResource}`}
                             onChangeText={setTimeoutIntervalForResource}
-                            placeholder='60'
+                            placeholder="60"
                             style={styles.input}
-                            keyboardType={'numeric'}
+                            keyboardType={"numeric"}
                         />
                     </View>
                 </View>
@@ -281,18 +334,20 @@ export default function CreateAPIClientScreen({navigation}: CreateAPIClientScree
                     <Text style={styles.label}>Max Connections</Text>
                     <View style={styles.numericInputContainer}>
                         <TextInput
-                            value={sessionOptions.httpMaximumConnectionsPerHost as string}
+                            value={
+                                sessionOptions.httpMaximumConnectionsPerHost as string
+                            }
                             onChangeText={setHttpMaximumConnectionsPerHost}
-                            placeholder='10'
+                            placeholder="10"
                             style={styles.input}
-                            keyboardType='numeric'
+                            keyboardType="numeric"
                         />
                     </View>
                 </View>
 
                 <View style={styles.headersLabelContainer}>
                     <Text style={styles.label}>Client Headers</Text>
-                    <Button title='+' onPress={addClientHeader}/>
+                    <Button title="+" onPress={addClientHeader} />
                 </View>
                 <View style={styles.headersContainer}>
                     {renderClientHeaders()}
@@ -300,7 +355,7 @@ export default function CreateAPIClientScreen({navigation}: CreateAPIClientScree
             </ScrollView>
 
             <Button
-                title='Create'
+                title="Create"
                 disabled={name.length === 0 || baseUrl.length === 0}
                 onPress={createClient}
             />
