@@ -18,4 +18,5 @@ target 'NetworkClientExample' do
 
   # Pods for NetworkClientExample
   pod 'react-native-network-client', :path => '../..'
+  pod 'RNVectorIcons', :path => '../node_modules/react-native-vector-icons'
 end
