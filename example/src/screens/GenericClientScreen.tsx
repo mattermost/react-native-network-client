@@ -161,7 +161,7 @@ export default function GenericClientScreen({
     };
 
     const makeRequest = async () => {
-        const options: APIClientConfiguration = {
+        const options: RequestOptions = {
             headers: sanitizeHeaders(requestHeaders),
         };
 
