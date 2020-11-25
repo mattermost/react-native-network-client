@@ -118,7 +118,6 @@ class APIClient: NSObject {
         }
         
         let sessionOptions = options["sessionConfiguration"]
-        debugPrint(sessionOptions)
         if sessionOptions["allowsCellularAccess"].exists() {
             config.allowsCellularAccess = sessionOptions["allowsCellularAccess"].boolValue
         }

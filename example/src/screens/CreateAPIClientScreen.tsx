@@ -17,7 +17,7 @@ import {
 import CheckBox from "@react-native-community/checkbox";
 import DeviceInfo from "react-native-device-info";
 import NumericInput from "react-native-numeric-input";
-import { getOrCreateAPIClient } from "@mattermost/react-native-network-client";
+import { getOrCreateAPIClient, Constants } from "@mattermost/react-native-network-client";
 import type { Client, CreateAPIClientScreenProps } from "example/@types/navigation";
 
 const styles = StyleSheet.create({
@@ -152,7 +152,7 @@ export default function CreateAPIClientScreen({
     const toggleRetryPolicyType = (on: boolean) =>
         setRetryPolicyConfiguration({
             ...retryPolicyConfiguration,
-            type: on ? "exponential" : undefined,
+            type: on ? Constants.EXPONENTIAL_RETRY : undefined,
         });
     const setRetryLimit = (retryLimit: number) =>
         setRetryPolicyConfiguration({ ...retryPolicyConfiguration, retryLimit });
