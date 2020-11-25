@@ -188,12 +188,9 @@ export default function GenericClientScreen({
     const makeRequest = async () => {
         const options: RequestOptions = {
             headers: sanitizeHeaders(requestHeaders),
+            timeoutInterval,
             retryPolicyConfiguration,
         };
-
-        if (timeoutInterval.length) {
-            options.timeoutInterval = Number(timeoutInterval);
-        }
 
         if (method !== METHOD.GET && body.length) {
             try {

@@ -205,14 +205,11 @@ export default function APIClientScreen({ route }: APIClientScreenProps) {
     };
 
     const makeRequest = async () => {
-        const options: APIClientConfiguration = {
+        const options: RequestOptions = {
             headers: sanitizeHeaders(requestHeaders),
+            timeoutInterval,
             retryPolicyConfiguration,
         };
-
-        if (timeoutInterval.length) {
-            options.timeoutInterval = Number(timeoutInterval);
-        }
 
         if (method !== METHOD.GET && body.length) {
             try {

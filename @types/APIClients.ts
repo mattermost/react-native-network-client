@@ -1,9 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import { NativeModules } from "react-native";
-const { RNNCConstants } = NativeModules;
-
 type ClientHeaders = Record<string, string>;
 
 type RequestOptions = {
@@ -53,11 +50,8 @@ type SessionConfiguration = {
     cancelRequestsOnUnauthorized?: boolean;
 };
 
-enum RETRY_POLICY_TYPE {
-    EXPONENTIAL = RNNCConstants.EXPONENTIAL_RETRY,
-}
 type RetryPolicyConfiguration = {
-    type?: RETRY_POLICY_TYPE;
+    type?: NativeConstants["EXPONENTIAL_RETRY"];
     retryLimit?: number;
     exponentialBackoffBase?: number;
     exponentialBackoffScale?: number;
