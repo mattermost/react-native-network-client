@@ -1,5 +1,5 @@
 //
-//  APIClient-Bridging-Header.h
+//  RNNCAPIClient-Bridging-Header.h
 //  NetworkClient
 //
 //  Created by Miguel Alatzar on 10/6/20.

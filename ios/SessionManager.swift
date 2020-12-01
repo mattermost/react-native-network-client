@@ -13,7 +13,7 @@ import Alamofire
 class SessionManager {
 
     public static let `default` = SessionManager()
-    internal var sessions: [String: Session] = [:]
+    internal var sessions: [URL: Session] = [:]
     
     func sessionCount() -> Int {
         return sessions.count
@@ -24,7 +24,7 @@ class SessionManager {
     //  * ServerTrustManager
     //  * CachedResponseHandler
     //  * EventMonitor(s)
-    func createSession(for baseUrl:String,
+    func createSession(for baseUrl:URL,
                        withConfiguration configuration:URLSessionConfiguration = URLSessionConfiguration.af.default,
                        withInterceptor interceptor:Interceptor? = nil,
                        withRedirectHandler redirectHandler:RedirectHandler? = nil,
@@ -40,7 +40,7 @@ class SessionManager {
         sessions[baseUrl] = session
     }
 
-    func getSessionHeaders(for baseUrl:String) -> [AnyHashable : Any]? {
+    func getSessionHeaders(for baseUrl:URL) -> [AnyHashable : Any]? {
         guard let session = getSession(for: baseUrl) else {
             return [:]
         }
@@ -48,7 +48,7 @@ class SessionManager {
         return session.sessionConfiguration.httpAdditionalHeaders
     }
 
-    func addSessionHeaders(for baseUrl:String, additionalHeaders:Dictionary<String, String>) -> Void {
+    func addSessionHeaders(for baseUrl:URL, additionalHeaders:Dictionary<String, String>) -> Void {
         guard let prevSession = getSession(for: baseUrl) else {
             return
         }
@@ -64,11 +64,11 @@ class SessionManager {
         sessions[baseUrl] = newSession
     }
     
-    func getSession(for baseUrl:String) -> Session? {
+    func getSession(for baseUrl:URL) -> Session? {
         return sessions[baseUrl]
     }
     
-    func invalidateSession(for baseUrl:String) -> Void {
+    func invalidateSession(for baseUrl:URL) -> Void {
         guard let session = getSession(for: baseUrl) else {
             return
         }
