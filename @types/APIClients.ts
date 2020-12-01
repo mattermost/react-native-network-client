@@ -48,6 +48,10 @@ type SessionConfiguration = {
     timeoutIntervalForResource?: number;
     httpMaximumConnectionsPerHost?: number;
     cancelRequestsOnUnauthorized?: boolean;
+    authenticationType?:
+        | NativeConstants["BASIC_AUTHENTICATION"]
+        | NativeConstants["BEARER_AUTHENTICATION"]
+        | NativeConstants["COOKIE_AUTHENTICATION"];
 };
 
 type RetryPolicyConfiguration = {

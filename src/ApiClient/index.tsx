@@ -17,6 +17,7 @@ const DEFAULT_API_CLIENT_CONFIG: APIClientConfiguration = {
         timeoutIntervalForResource: 30,
         httpMaximumConnectionsPerHost: 10,
         cancelRequestsOnUnauthorized: false,
+        authenticationType: null,
     },
 };
 

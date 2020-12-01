@@ -2,4 +2,7 @@
 // See LICENSE.txt for license information.
 interface NativeConstants {
     EXPONENTIAL_RETRY: string;
+    BASIC_AUTHENTICATION: string;
+    BEARER_AUTHENTICATION: string;
+    COOKIE_AUTHENTICATION: string;
 }
