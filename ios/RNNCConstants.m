@@ -16,10 +16,7 @@ RCT_EXPORT_MODULE();
 - (NSDictionary *)constantsToExport
 {
   return @{
-    @"EXPONENTIAL_RETRY": @"exponential",
-    @"BASIC_AUTHENTICATION": @"basic_authentication",
-    @"BEARER_AUTHENTICATION": @"bearer_authentication",
-    @"COOKIE_AUTHENTICATION": @"cookie_authentication"
+    @"EXPONENTIAL_RETRY": @"exponential"
   };
 }
 

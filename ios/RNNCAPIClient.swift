@@ -9,6 +9,7 @@
 
 import Alamofire
 import SwiftyJSON
+import SwiftKeychainWrapper
 
 @objc(RNNCAPIClient)
 class RNNCAPIClient: NetworkClient {
@@ -26,8 +27,16 @@ class RNNCAPIClient: NetworkClient {
             let redirectHandler = getRedirectHandler(from: options)
             let interceptor = getInterceptor(from: options)
             let cancelRequestsOnUnauthorized = options["sessionConfiguration"]["cancelRequestsOnUnauthorized"].boolValue
+            let bearerAuthTokenResponseHeader = options["requestAdapterConfiguration"]["bearerAuthTokenResponseHeader"].string
 
-            resolve(SessionManager.default.createSession(for: baseUrl, withConfiguration: configuration, withInterceptor: interceptor, withRedirectHandler: redirectHandler, withCancelRequestsOnUnauthorized: cancelRequestsOnUnauthorized))
+            resolve(
+                SessionManager.default.createSession(for: baseUrl,
+                                                     withConfiguration: configuration,
+                                                     withInterceptor: interceptor,
+                                                     withRedirectHandler: redirectHandler,
+                                                     withCancelRequestsOnUnauthorized: cancelRequestsOnUnauthorized,
+                                                     withBearerAuthTokenResponseHeader: bearerAuthTokenResponseHeader)
+            )
 
             return
         }
@@ -41,6 +50,8 @@ class RNNCAPIClient: NetworkClient {
             rejectMalformed(url: baseUrlString, withRejecter: reject)
             return
         }
+
+        KeychainWrapper.standard.removeObject(forKey: baseUrl.host!)
 
         resolve(SessionManager.default.invalidateSession(for: baseUrl))
     }
@@ -115,11 +126,21 @@ class RNNCAPIClient: NetworkClient {
         let url = baseUrl.appendingPathComponent(endpoint)
         handleRequest(for: url, withMethod: method, withSession: session, withOptions: options, withResolver: resolve, withRejecter: reject)
     }
+
+    override func handleResponse(for session: Session, withUrl url: URL, withData data: AFDataResponse<Any>) {
+        if data.response?.statusCode == 401 && session.cancelRequestsOnUnauthorized {
+            session.cancelAllRequests()
+        } else if let tokenHeader = session.bearerAuthTokenResponseHeader {
+            if let token = data.response?.allHeaderFields[tokenHeader] as? String {
+                KeychainWrapper.standard.set(token, forKey: url.host!)
+            }
+        }
+    }
     
     func getURLSessionConfiguration(from options: JSON) -> URLSessionConfiguration {
         let config = URLSessionConfiguration.default
         
-        if let headers = options["headers"].dictionary {
+        if let headers = options["headers"].dictionaryObject {
             config.httpAdditionalHeaders = headers
         }
         

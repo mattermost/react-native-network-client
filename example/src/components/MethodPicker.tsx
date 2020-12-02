@@ -25,7 +25,7 @@ export enum METHOD {
 
 type MethodPickerProps = {
     wrapperStyle: StyleProp<ViewStyle>;
-    onMethodPicked: Dispatch<SetStateAction<string>>;
+    onMethodPicked: Dispatch<SetStateAction<METHOD>>;
 };
 export default function MethodPicker({
     wrapperStyle,

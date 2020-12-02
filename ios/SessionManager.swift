@@ -28,7 +28,8 @@ class SessionManager {
                        withConfiguration configuration:URLSessionConfiguration = URLSessionConfiguration.af.default,
                        withInterceptor interceptor:Interceptor? = nil,
                        withRedirectHandler redirectHandler:RedirectHandler? = nil,
-                       withCancelRequestsOnUnauthorized cancelRequestsOnUnauthorized:Bool = false) -> Void {
+                       withCancelRequestsOnUnauthorized cancelRequestsOnUnauthorized:Bool = false,
+                       withBearerAuthTokenResponseHeader bearerAuthTokenResponseHeader:String? = nil) -> Void {
         var session = getSession(for: baseUrl)
         if (session != nil) {
             return
@@ -36,6 +37,7 @@ class SessionManager {
 
         session = Session(configuration: configuration, interceptor: interceptor, redirectHandler: redirectHandler)
         session?.cancelRequestsOnUnauthorized = cancelRequestsOnUnauthorized
+        session?.bearerAuthTokenResponseHeader = bearerAuthTokenResponseHeader
 
         sessions[baseUrl] = session
     }
@@ -49,19 +51,23 @@ class SessionManager {
     }
 
     func addSessionHeaders(for baseUrl:URL, additionalHeaders:Dictionary<String, String>) -> Void {
-        guard let prevSession = getSession(for: baseUrl) else {
+        guard let previousSession = getSession(for: baseUrl) else {
             return
         }
 
         invalidateSession(for: baseUrl)
 
-        let config = prevSession.sessionConfiguration
-        let previousHeaders = config.httpAdditionalHeaders ?? [:]
+        let configuration = previousSession.sessionConfiguration
+        let previousHeaders = configuration.httpAdditionalHeaders ?? [:]
         let newHeaders = previousHeaders.merging(additionalHeaders) {(_, new) in new}
-        config.httpAdditionalHeaders = newHeaders
+        configuration.httpAdditionalHeaders = newHeaders
 
-        let newSession = Session(configuration: config, interceptor: prevSession.interceptor)
-        sessions[baseUrl] = newSession
+        createSession(for: baseUrl,
+                      withConfiguration: configuration,
+                      withInterceptor: previousSession.interceptor as? Interceptor,
+                      withRedirectHandler: previousSession.redirectHandler,
+                      withCancelRequestsOnUnauthorized: previousSession.cancelRequestsOnUnauthorized,
+                      withBearerAuthTokenResponseHeader: previousSession.bearerAuthTokenResponseHeader)
     }
     
     func getSession(for baseUrl:URL) -> Session? {

@@ -26,8 +26,6 @@ import type {
     CreateAPIClientScreenProps,
 } from "example/@types/navigation";
 
-import AuthenticationPicker from "../components/AuthenticationPicker";
-
 const styles = StyleSheet.create({
     scrollViewContainer: {
         flex: 1,
@@ -41,14 +39,11 @@ const styles = StyleSheet.create({
         alignItems: "center",
         padding: 10,
     },
-    pickerContainer: {
-        zIndex: Platform.OS === "ios" ? 10 : 0,
-    },
-    picker: {
-        flex: 1,
-    },
     textInputContainer: {
         flex: 5,
+    },
+    smallTextInputContainer: {
+        flex: 2,
     },
     numericInputContainer: {
         flex: 0.5,
@@ -138,7 +133,6 @@ export default function CreateAPIClientScreen({
         timeoutIntervalForResource: 30,
         httpMaximumConnectionsPerHost: 10,
         cancelRequestsOnUnauthorized: false,
-        authenticationType: undefined,
     });
     const [retryPolicyConfiguration, setRetryPolicyConfiguration] = useState<
         RetryPolicyConfiguration
@@ -147,6 +141,12 @@ export default function CreateAPIClientScreen({
         retryLimit: 2,
         exponentialBackoffBase: 2,
         exponentialBackoffScale: 0.5,
+    });
+    const [
+        requestAdapterConfiguration,
+        setRequestAdapterConfiguration,
+    ] = useState<RequestAdapterConfiguration>({
+        bearerAuthTokenResponseHeader: "",
     });
     const scrollView = useRef<ScrollView>(null);
 
@@ -188,13 +188,6 @@ export default function CreateAPIClientScreen({
             ...sessionConfiguration,
             cancelRequestsOnUnauthorized,
         });
-    const setAuthenticationType = (authenticationType: string) =>
-        setSessionConfiguration({
-            ...sessionConfiguration,
-            authenticationType: authenticationType.length
-                ? authenticationType
-                : undefined,
-        });
     const toggleRetryPolicyType = (on: boolean) =>
         setRetryPolicyConfiguration({
             ...retryPolicyConfiguration,
@@ -215,6 +208,13 @@ export default function CreateAPIClientScreen({
             ...retryPolicyConfiguration,
             exponentialBackoffScale,
         });
+    const setBearerAuthTokenResponseHeader = (
+        bearerAuthTokenResponseHeader: string
+    ) =>
+        setRequestAdapterConfiguration({
+            ...requestAdapterConfiguration,
+            bearerAuthTokenResponseHeader,
+        });
 
     // TEST MM default headers
     const addDefaultHeaders = async () => {
@@ -228,13 +228,15 @@ export default function CreateAPIClientScreen({
     useEffect(() => {
         addDefaultHeaders();
     }, []);
+    // END TEST MM default headers
 
     const sanitizeHeaders = () => {
-        const headers = {};
-        clientHeaders
-            .filter((k, v) => k && v)
-            .reduce((prev, cur) => (prev[cur.key] = cur.value), {} as any);
-        return headers;
+        return clientHeaders
+            .filter(({ key, value }) => key && value)
+            .reduce(
+                (prev, cur) => ({ ...prev, [cur.key]: cur.value }),
+                {} as any
+            );
     };
 
     const createClient = async () => {
@@ -243,6 +245,7 @@ export default function CreateAPIClientScreen({
             headers,
             sessionConfiguration,
             retryPolicyConfiguration,
+            requestAdapterConfiguration,
         };
 
         const { client, created } = await getOrCreateAPIClient(
@@ -400,11 +403,19 @@ export default function CreateAPIClientScreen({
                     </View>
                 </View>
 
-                <View style={[styles.inputContainer, styles.pickerContainer]}>
-                    <Text style={styles.label}>Authentication</Text>
-                    <View style={styles.picker}>
-                        <AuthenticationPicker
-                            onAuthenticationPicked={setAuthenticationType}
+                <View style={styles.inputContainer}>
+                    <Text style={styles.label}>
+                        Bearer Auth Token Response Header
+                    </Text>
+                    <View style={styles.smallTextInputContainer}>
+                        <TextInput
+                            value={
+                                requestAdapterConfiguration.bearerAuthTokenResponseHeader
+                            }
+                            onChangeText={setBearerAuthTokenResponseHeader}
+                            placeholder="token"
+                            autoCapitalize="none"
+                            style={styles.input}
                         />
                     </View>
                 </View>
