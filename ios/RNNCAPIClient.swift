@@ -16,7 +16,7 @@ class RNNCAPIClient: NetworkClient {
     
     @objc(createClientFor:withOptions:withResolver:withRejecter:)
     func createClientFor(baseUrlString: String, options: Dictionary<String, Any>?, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
-        guard let baseUrl = URL(string: baseUrlString) else {
+        guard let host = URL(string: baseUrlString)?.host else {
             rejectMalformed(url: baseUrlString, withRejecter: reject)
             return
         }
@@ -30,7 +30,7 @@ class RNNCAPIClient: NetworkClient {
             let bearerAuthTokenResponseHeader = options["requestAdapterConfiguration"]["bearerAuthTokenResponseHeader"].string
 
             resolve(
-                SessionManager.default.createSession(for: baseUrl,
+                SessionManager.default.createSession(for: host,
                                                      withConfiguration: configuration,
                                                      withInterceptor: interceptor,
                                                      withRedirectHandler: redirectHandler,
@@ -41,49 +41,49 @@ class RNNCAPIClient: NetworkClient {
             return
         }
         
-        resolve(SessionManager.default.createSession(for: baseUrl))
+        resolve(SessionManager.default.createSession(for: host))
     }
 
     @objc(invalidateClientFor:withResolver:withRejecter:)
     func invalidateClientFor(baseUrlString: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {        
-        guard let baseUrl = URL(string: baseUrlString) else {
+        guard let host = URL(string: baseUrlString)?.host else {
             rejectMalformed(url: baseUrlString, withRejecter: reject)
             return
         }
 
-        KeychainWrapper.standard.removeObject(forKey: baseUrl.host!)
+        KeychainWrapper.standard.removeObject(forKey: host)
 
-        resolve(SessionManager.default.invalidateSession(for: baseUrl))
+        resolve(SessionManager.default.invalidateSession(for: host))
     }
 
     @objc(addClientHeadersFor:withHeaders:withResolver:withRejecter:)
     func addClientHeadersFor(baseUrlString: String, headers: Dictionary<String, String>, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
-        guard let baseUrl = URL(string: baseUrlString) else {
+        guard let host = URL(string: baseUrlString)?.host else {
             rejectMalformed(url: baseUrlString, withRejecter: reject)
             return
         }
 
-        if SessionManager.default.getSession(for: baseUrl) == nil {
-            rejectInvalidSession(for: baseUrl, withRejecter: reject)
+        if SessionManager.default.getSession(for: host) == nil {
+            rejectInvalidSession(for: host, withRejecter: reject)
             return
         }
 
-        resolve(SessionManager.default.addSessionHeaders(for: baseUrl, additionalHeaders: headers))
+        resolve(SessionManager.default.addSessionHeaders(for: host, additionalHeaders: headers))
     }
 
     @objc(getClientHeadersFor:withResolver:withRejecter:)
     func getClientHeadersFor(baseUrlString: String, resolve: @escaping RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
-        guard let baseUrl = URL(string: baseUrlString) else {
+        guard let host = URL(string: baseUrlString)?.host else {
             rejectMalformed(url: baseUrlString, withRejecter: reject)
             return
         }
 
-        if SessionManager.default.getSession(for: baseUrl) == nil {
-            rejectInvalidSession(for: baseUrl, withRejecter: reject)
+        if SessionManager.default.getSession(for: host) == nil {
+            rejectInvalidSession(for: host, withRejecter: reject)
             return
         }
 
-        let headers = JSON(SessionManager.default.getSessionHeaders(for: baseUrl)).dictionaryObject
+        let headers = JSON(SessionManager.default.getSessionHeaders(for: host)).dictionaryObject
         resolve(headers)
     }
     
@@ -113,17 +113,22 @@ class RNNCAPIClient: NetworkClient {
     }
     
     func handleRequest(for baseUrlString: String, withEndpoint endpoint: String, withMethod method: HTTPMethod, withOptions options: JSON, withResolver resolve: @escaping RCTPromiseResolveBlock, withRejecter reject: RCTPromiseRejectBlock) -> Void {
-        guard let baseUrl = URL(string: baseUrlString) else {
+        guard let baseUrl = URL(string: baseUrlString), let host = baseUrl.host else {
             rejectMalformed(url: baseUrlString, withRejecter: reject)
             return
         }
     
-        guard let session = SessionManager.default.getSession(for: baseUrl) else {
-            rejectInvalidSession(for: baseUrl, withRejecter: reject)
+        guard let session = SessionManager.default.getSession(for: host) else {
+            rejectInvalidSession(for: host, withRejecter: reject)
             return
         }
 
         let url = baseUrl.appendingPathComponent(endpoint)
+        if let storage = session.session.configuration.httpCookieStorage, let cookies = storage.cookies {
+            for cookie in cookies {
+                storage.deleteCookie(cookie)
+            }
+        }
         handleRequest(for: url, withMethod: method, withSession: session, withOptions: options, withResolver: resolve, withRejecter: reject)
     }
 
@@ -170,8 +175,8 @@ class RNNCAPIClient: NetworkClient {
         return config
     }
 
-    func rejectInvalidSession(for baseUrl: URL, withRejecter reject: RCTPromiseRejectBlock) -> Void {
-        let message = "Session for \(baseUrl.absoluteString) has been invalidated"
+    func rejectInvalidSession(for host: String, withRejecter reject: RCTPromiseRejectBlock) -> Void {
+        let message = "Session for \(host) has been invalidated"
         let error = NSError(domain: "com.mattermost.react-native-network-client", code: NSCoderValueNotFoundError, userInfo: [NSLocalizedDescriptionKey: message])
         reject("\(error.code)", message, error)
     }

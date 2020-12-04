@@ -19,6 +19,7 @@ import {
 } from "react-native";
 import CheckBox from "@react-native-community/checkbox";
 import NumericInput from "react-native-numeric-input";
+import FastImage from "react-native-fast-image";
 import { Constants } from "@mattermost/react-native-network-client";
 
 import MethodPicker, { METHOD } from "../components/MethodPicker";
@@ -459,6 +460,16 @@ export default function APIClientScreen({ route }: APIClientScreenProps) {
 
     return (
         <SafeAreaView style={styles.container}>
+            {/* TODO: Create separate screen for testing FastImage swizzling */}
+            <FastImage
+                style={{ width: 200, height: 200 }}
+                source={{
+                    uri:
+                        "https://community.mattermost.com/api/v4/files/wucfrscnz7gojmqkskdoic9bra/preview",
+                    priority: FastImage.priority.normal,
+                }}
+                resizeMode={FastImage.resizeMode.contain}
+            />
             <Text style={styles.label}>Client Headers</Text>
             <View style={styles.clientHeadersContainer}>
                 {renderClientInfo()}
