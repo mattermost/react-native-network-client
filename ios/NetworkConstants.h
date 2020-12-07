@@ -1,5 +1,5 @@
 //
-//  RNNCConstants.h
+//  NetworkConstants.h
 //  NetworkClient
 //
 //  Created by Miguel Alatzar on 11/24/20.
@@ -9,5 +9,5 @@
 
 #import <React/RCTBridgeModule.h>
 
-@interface RNNCConstants : NSObject <RCTBridgeModule>
+@interface NetworkConstants : NSObject <RCTBridgeModule>
 @end

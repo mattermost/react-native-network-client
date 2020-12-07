@@ -1,5 +1,5 @@
 //
-//  RNNCAPIClient.swift
+//  APIClient.swift
 //  NetworkClient
 //
 //  Created by Miguel Alatzar on 10/6/20.
@@ -11,8 +11,8 @@ import Alamofire
 import SwiftyJSON
 import SwiftKeychainWrapper
 
-@objc(RNNCAPIClient)
-class RNNCAPIClient: NetworkClient {
+@objc(APIClient)
+class APIClient: NetworkClient {
     
     @objc(createClientFor:withOptions:withResolver:withRejecter:)
     func createClientFor(baseUrlString: String, options: Dictionary<String, Any>?, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
