@@ -8,7 +8,7 @@ import com.facebook.react.bridge.Arguments;
 
 class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
 
-    var client = OkHttpClient();
+    var sessionsClient = mutableMapOf<String, OkHttpClient.Builder>();
     var sessions = mutableMapOf<String, Request.Builder>()
 
     override fun getName(): String {
@@ -18,7 +18,12 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     @ReactMethod
     fun createClientFor(baseUrl: String, config: ReadableMap, promise: Promise){
         try {
+            sessionsClient[baseUrl] = OkHttpClient().newBuilder();
             sessions[baseUrl] = Request.Builder().url(baseUrl);
+
+            val followRedirect = config.getBoolean("followRedirect")
+            if(followRedirect) sessionsClient[baseUrl]!!.followRedirects(followRedirect)
+
             promise.resolve(sessions[baseUrl]);
         } catch (err: Throwable){
             promise.reject(err)
