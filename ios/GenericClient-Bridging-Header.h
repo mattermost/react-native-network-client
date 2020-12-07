@@ -1,8 +1,8 @@
 //
-//  RNNCAPIClient-Bridging-Header.h
+//  GenericClient-Bridging-Header.h
 //  NetworkClient
 //
-//  Created by Miguel Alatzar on 10/6/20.
+//  Created by Miguel Alatzar on 11/9/20.
 //  Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 //  See LICENSE.txt for license information.
 //

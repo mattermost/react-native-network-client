@@ -15,7 +15,7 @@ protocol ResponseHandler {
 }
 
 class NetworkClient: NSObject, ResponseHandler {
-    let CONSTANTS = RNNCConstants().constantsToExport() as! Dictionary<String, String>
+    let CONSTANTS = NetworkConstants().constantsToExport() as! Dictionary<String, String>
 
     func get(url: String, withSession session: Session, withOptions options: JSON, withResolver resolve: @escaping RCTPromiseResolveBlock, withRejecter reject: RCTPromiseRejectBlock) -> Void {
         handleRequest(for: url, withMethod: .get, withSession: session, withOptions: options, withResolver: resolve, withRejecter: reject)
