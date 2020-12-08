@@ -73,6 +73,12 @@ class APIClient implements APIClientInterface {
         options?: RequestOptions
     ): Promise<ClientResponse> =>
         NativeAPIClient.delete(this.baseUrl, endpoint, options);
+    upload = (
+        endpoint: string,
+        fileUrl: string,
+        options?: UploadRequestOptions
+    ): Promise<ClientResponse> =>
+        NativeAPIClient.upload(this.baseUrl, endpoint, fileUrl, options);
 }
 
 async function getOrCreateAPIClient(

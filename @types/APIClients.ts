@@ -10,6 +10,10 @@ type RequestOptions = {
     retryPolicyConfiguration?: RetryPolicyConfiguration;
 };
 
+type UploadRequestOptions = RequestOptions & {
+    skipBytes?: number;
+};
+
 type ClientResponse = {
     headers?: ClientHeaders;
     data?: Record<string, unknown>;
@@ -34,6 +38,11 @@ interface APIClientInterface {
     post(endpoint: string, options?: RequestOptions): Promise<ClientResponse>;
     patch(endpoint: string, options?: RequestOptions): Promise<ClientResponse>;
     delete(endpoint: string, options?: RequestOptions): Promise<ClientResponse>;
+    upload(
+        endpoint: string,
+        fileUrl: string,
+        options?: UploadRequestOptions
+    ): Promise<ClientResponse>;
 
     getHeaders(): Promise<ClientHeaders>;
     addHeaders(headers: ClientHeaders): Promise<void>;

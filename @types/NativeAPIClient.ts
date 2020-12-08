@@ -1,5 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
+
 interface NativeAPIClient {
     get(
         baseUrl: string,
@@ -25,6 +26,12 @@ interface NativeAPIClient {
         baseUrl: string,
         endpoint: string | null,
         options?: RequestOptions
+    ): Promise<ClientResponse>;
+    upload(
+        baseUrl: string,
+        endpoint: string | null,
+        fileUrl: string,
+        options?: UploadRequestOptions
     ): Promise<ClientResponse>;
 
     createClientFor(
