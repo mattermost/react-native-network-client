@@ -4,6 +4,7 @@
 import GenericClient from "./GenericClient";
 import { getOrCreateAPIClient } from "./APIClient";
 import { getOrCreateWebSocketClient } from "./WebSocketClient";
+import Constants from "./Constants";
 
 export default GenericClient;
-export { getOrCreateAPIClient, getOrCreateWebSocketClient };
+export { getOrCreateAPIClient, getOrCreateWebSocketClient, Constants };

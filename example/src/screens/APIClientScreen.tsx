@@ -17,6 +17,9 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
+import CheckBox from "@react-native-community/checkbox";
+import NumericInput from "react-native-numeric-input";
+import { Constants } from "@mattermost/react-native-network-client";
 
 import MethodPicker, { METHOD } from "../components/MethodPicker";
 
@@ -29,12 +32,10 @@ const styles = StyleSheet.create({
         padding: 5,
     },
     inputContainer: {
-        flex: 1,
         flexDirection: "row",
+        justifyContent: "space-between",
         alignItems: "center",
-    },
-    numericInputContainer: {
-        flex: 0.5,
+        padding: 10,
     },
     pickerContainer: {
         zIndex: Platform.OS === "ios" ? 10 : 0,
@@ -149,14 +150,35 @@ export default function APIClientScreen({ route }: APIClientScreenProps) {
 
     const [method, setMethod] = useState("GET");
     const [endpoint, setEndpoint] = useState("/");
-    const [timeoutInterval, setTimeoutInterval] = useState("");
+    const [timeoutInterval, setTimeoutInterval] = useState(30);
     const [body, setBody] = useState("");
     const [requestHeaders, setRequestHeaders] = useState([
         { key: "", value: "" },
     ]);
     const [clientHeaders, setClientHeaders] = useState<ClientHeaders>();
     const [response, setResponse] = useState<ClientResponse>();
+    const [retryPolicyConfiguration, setRetryPolicyConfiguration] = useState<
+        RetryPolicyConfiguration
+    >({
+        type: undefined,
+        retryLimit: 2,
+        exponentialBackoffBase: 2,
+        exponentialBackoffScale: 0.5,
+    });
+
     const scrollView = useRef<ScrollView | null>(null);
+
+    const toggleRetryPolicyType = (on: boolean) =>
+        setRetryPolicyConfiguration({
+            ...retryPolicyConfiguration,
+            type: on ? Constants.EXPONENTIAL_RETRY : undefined,
+        });
+    const setRetryLimit = (retryLimit: number) =>
+        setRetryPolicyConfiguration({ ...retryPolicyConfiguration, retryLimit });
+    const setExponentialBackoffBase = (exponentialBackoffBase: number) =>
+        setRetryPolicyConfiguration({ ...retryPolicyConfiguration, exponentialBackoffBase });
+    const setExponentialBackoffScale = (exponentialBackoffScale: number) =>
+        setRetryPolicyConfiguration({ ...retryPolicyConfiguration, exponentialBackoffScale });
 
     const getClientHeaders = async () => {
         if ("getHeaders" in client) {
@@ -183,13 +205,11 @@ export default function APIClientScreen({ route }: APIClientScreenProps) {
     };
 
     const makeRequest = async () => {
-        const options: APIClientConfiguration = {
+        const options: RequestOptions = {
             headers: sanitizeHeaders(requestHeaders),
+            timeoutInterval,
+            retryPolicyConfiguration,
         };
-
-        if (timeoutInterval.length) {
-            options.timeoutInterval = Number(timeoutInterval);
-        }
 
         if (method !== METHOD.GET && body.length) {
             try {
@@ -355,6 +375,69 @@ export default function APIClientScreen({ route }: APIClientScreenProps) {
         return null;
     };
 
+    const renderRetryPolicyConfiguration = () => {
+        const checked = Boolean(retryPolicyConfiguration.type);
+        const checkbox = (
+            <View style={styles.inputContainer}>
+                <Text style={styles.label}>Retries with exponential backoff?</Text>
+                <CheckBox
+                    value={checked}
+                    onValueChange={toggleRetryPolicyType}
+                />
+            </View>
+        );
+
+        let options;
+        if (checked) {
+            options = (
+                <>
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.label}>Retry Limit</Text>
+                        <View>
+                            <NumericInput
+                                value={retryPolicyConfiguration.retryLimit}
+                                onChange={setRetryLimit}
+                                totalHeight={35}
+                                minValue={0}
+                            />
+                        </View>
+                    </View>
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.label}>Exponential backoff base</Text>
+                        <View>
+                            <NumericInput
+                                value={retryPolicyConfiguration.exponentialBackoffBase}
+                                onChange={setExponentialBackoffBase}
+                                totalHeight={35}
+                                minValue={2}
+                            />
+                        </View>
+                    </View>
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.label}>Exponential backoff scale</Text>
+                        <View>
+                            <NumericInput
+                                value={retryPolicyConfiguration.exponentialBackoffScale}
+                                onChange={setExponentialBackoffScale}
+                                totalHeight={35}
+                                minValue={0}
+                                valueType='real'
+                                step={0.1}
+                            />
+                        </View>
+                    </View>
+                </>
+            );
+        }
+
+        return (
+            <>
+                {checkbox}
+                {options}
+            </>
+        );
+    }
+
     return (
         <SafeAreaView style={styles.container}>
             <Text style={styles.label}>Client Headers</Text>
@@ -362,7 +445,7 @@ export default function APIClientScreen({ route }: APIClientScreenProps) {
                 {renderClientInfo()}
             </View>
             <View style={[styles.inputContainer, styles.pickerContainer]}>
-                <Text style={[styles.label, styles.inputLabel]}>Method</Text>
+                <Text style={[styles.label]}>Method</Text>
                 <MethodPicker
                     wrapperStyle={styles.input}
                     onMethodPicked={setMethod}
@@ -378,20 +461,23 @@ export default function APIClientScreen({ route }: APIClientScreenProps) {
                     style={[styles.input, styles.textInput]}
                 />
             </View>
+
             <View style={styles.inputContainer}>
                 <Text style={[styles.label, styles.inputLabel]}>
                     Timeout Interval
                 </Text>
-                <View style={styles.numericInputContainer}>
-                    <TextInput
+                <View>
+                    <NumericInput
                         value={timeoutInterval}
-                        onChangeText={setTimeoutInterval}
-                        placeholder="10"
-                        style={[styles.input, styles.textInput]}
-                        keyboardType="numeric"
+                        onChange={setTimeoutInterval}
+                        totalHeight={35}
+                        minValue={0}
                     />
                 </View>
             </View>
+
+            {renderRetryPolicyConfiguration()}
+            
             {method !== METHOD.GET && (
                 <View style={styles.inputContainer}>
                     <Text style={[styles.label, styles.inputLabel]}>Body</Text>

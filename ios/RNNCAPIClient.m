@@ -1,5 +1,5 @@
 //
-//  APIClient.m
+//  RNNCAPIClient.m
 //  NetworkClient
 //
 //  Created by Miguel Alatzar on 10/6/20.
@@ -9,7 +9,7 @@
 
 #import <React/RCTBridgeModule.h>
 
-@interface RCT_EXTERN_MODULE(APIClient, NSObject)
+@interface RCT_EXTERN_MODULE(RNNCAPIClient, NSObject)
 
 RCT_EXTERN_METHOD(createClientFor:(NSString *)baseUrl withOptions:(NSDictionary *)options withResolver:(RCTPromiseResolveBlock)resolve withRejecter:(RCTPromiseRejectBlock)reject)
 

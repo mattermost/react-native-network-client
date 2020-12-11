@@ -16,8 +16,9 @@ import {
 } from "react-native";
 import CheckBox from "@react-native-community/checkbox";
 import DeviceInfo from "react-native-device-info";
-import { getOrCreateAPIClient } from "@mattermost/react-native-network-client";
-import type { CreateAPIClientScreenProps } from "example/@types/navigation";
+import NumericInput from "react-native-numeric-input";
+import { getOrCreateAPIClient, Constants } from "@mattermost/react-native-network-client";
+import type { Client, CreateAPIClientScreenProps } from "example/@types/navigation";
 
 const styles = StyleSheet.create({
     scrollViewContainer: {
@@ -108,13 +109,13 @@ const ClientHeader = ({ index, header, updateHeader }: ClientHeaderProps) => {
 export default function CreateAPIClientScreen({
     navigation,
 }: CreateAPIClientScreenProps) {
-    const [name, setName] = useState("HTTP Google Redirect Test");
-    const [baseUrl, setbaseUrl] = useState("http://google.com");
+    const [name, setName] = useState("Mattermost");
+    const [baseUrl, setbaseUrl] = useState("https://community.mattermost.com");
     const [clientHeaders, setClientHeaders] = useState<
         { key: string; value: string }[]
     >([]);
-    const [sessionOptions, setSessionOptions] = useState<
-        APIClientConfiguration
+    const [sessionConfiguration, setSessionConfiguration] = useState<
+        SessionConfiguration
     >({
         followRedirects: true,
         allowsCellularAccess: true,
@@ -122,36 +123,43 @@ export default function CreateAPIClientScreen({
         timeoutIntervalForRequest: 30,
         timeoutIntervalForResource: 30,
         httpMaximumConnectionsPerHost: 10,
+        cancelRequestsOnUnauthorized: false,
+    });
+    const [retryPolicyConfiguration, setRetryPolicyConfiguration] = useState<
+        RetryPolicyConfiguration
+    >({
+        type: undefined,
+        retryLimit: 2,
+        exponentialBackoffBase: 2,
+        exponentialBackoffScale: 0.5,
     });
     const scrollView = useRef<ScrollView>(null);
 
     const setFollowRedirects = (followRedirects: boolean) =>
-        setSessionOptions({ ...sessionOptions, followRedirects });
+        setSessionConfiguration({ ...sessionConfiguration, followRedirects });
     const setAllowsCellularAccess = (allowsCellularAccess: boolean) =>
-        setSessionOptions({ ...sessionOptions, allowsCellularAccess });
+        setSessionConfiguration({ ...sessionConfiguration, allowsCellularAccess });
     const setWaitsForConnectivity = (waitsForConnectivity: boolean) =>
-        setSessionOptions({ ...sessionOptions, waitsForConnectivity });
-    const setTimeoutIntervalForRequest = (timeoutIntervalForRequest: string) =>
-        setSessionOptions({
-            ...sessionOptions,
-            timeoutIntervalForRequest: parseInt(timeoutIntervalForRequest),
+        setSessionConfiguration({ ...sessionConfiguration, waitsForConnectivity });
+    const setTimeoutIntervalForRequest = (timeoutIntervalForRequest: number) =>
+        setSessionConfiguration({ ...sessionConfiguration, timeoutIntervalForRequest });
+    const setTimeoutIntervalForResource = (timeoutIntervalForResource: number) =>
+        setSessionConfiguration({ ...sessionConfiguration,timeoutIntervalForResource });
+    const setHttpMaximumConnectionsPerHost = (httpMaximumConnectionsPerHost: number) =>
+        setSessionConfiguration({ ...sessionConfiguration, httpMaximumConnectionsPerHost });
+    const setCancelRequestsOnUnauthorized = (cancelRequestsOnUnauthorized: boolean) =>
+        setSessionConfiguration({...sessionConfiguration, cancelRequestsOnUnauthorized});
+    const toggleRetryPolicyType = (on: boolean) =>
+        setRetryPolicyConfiguration({
+            ...retryPolicyConfiguration,
+            type: on ? Constants.EXPONENTIAL_RETRY : undefined,
         });
-    const setTimeoutIntervalForResource = (
-        timeoutIntervalForResource: string
-    ) =>
-        setSessionOptions({
-            ...sessionOptions,
-            timeoutIntervalForResource: parseInt(timeoutIntervalForResource),
-        });
-    const setHttpMaximumConnectionsPerHost = (
-        httpMaximumConnectionsPerHost: string
-    ) =>
-        setSessionOptions({
-            ...sessionOptions,
-            httpMaximumConnectionsPerHost: parseInt(
-                httpMaximumConnectionsPerHost
-            ),
-        });
+    const setRetryLimit = (retryLimit: number) =>
+        setRetryPolicyConfiguration({ ...retryPolicyConfiguration, retryLimit });
+    const setExponentialBackoffBase = (exponentialBackoffBase: number) =>
+        setRetryPolicyConfiguration({ ...retryPolicyConfiguration, exponentialBackoffBase });
+    const setExponentialBackoffScale = (exponentialBackoffScale: number) =>
+        setRetryPolicyConfiguration({ ...retryPolicyConfiguration, exponentialBackoffScale });
 
     // TEST MM default headers
     const addDefaultHeaders = async () => {
@@ -174,26 +182,14 @@ export default function CreateAPIClientScreen({
         return headers;
     };
 
-    const parseSessionOptions = () => ({
-        ...sessionOptions,
-        timeoutIntervalForRequest: Number(
-            sessionOptions.timeoutIntervalForRequest
-        ),
-        timeoutIntervalForResource: Number(
-            sessionOptions.timeoutIntervalForResource
-        ),
-        httpMaximumConnectionsPerHost: Number(
-            sessionOptions.httpMaximumConnectionsPerHost
-        ),
-    });
-
     const createClient = async () => {
         const headers = sanitizeHeaders();
-        const sessionOptions = parseSessionOptions();
-        const options = {
+        const options: APIClientConfiguration = {
             headers,
-            ...sessionOptions,
+            sessionConfiguration,
+            retryPolicyConfiguration,
         };
+
         const { client, created } = await getOrCreateAPIClient(
             baseUrl,
             options
@@ -207,7 +203,7 @@ export default function CreateAPIClientScreen({
             );
             return;
         }
-        const createdClient = {
+        const createdClient: Client = {
             name,
             client,
             type: "network",
@@ -247,6 +243,69 @@ export default function CreateAPIClientScreen({
         </ScrollView>
     );
 
+    const renderRetryPolicyConfiguration = () => {
+        const checked = Boolean(retryPolicyConfiguration.type);
+        const checkbox = (
+            <View style={styles.inputContainer}>
+                <Text style={styles.label}>Retries with exponential backoff?</Text>
+                <CheckBox
+                    value={checked}
+                    onValueChange={toggleRetryPolicyType}
+                />
+            </View>
+        );
+
+        let options;
+        if (checked) {
+            options = (
+                <>
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.label}>Retry Limit</Text>
+                        <View style={styles.numericInputContainer}>
+                            <NumericInput
+                                value={retryPolicyConfiguration.retryLimit}
+                                onChange={setRetryLimit}
+                                totalHeight={35}
+                                minValue={0}
+                            />
+                        </View>
+                    </View>
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.label}>Exponential backoff base</Text>
+                        <View style={styles.numericInputContainer}>
+                            <NumericInput
+                                value={retryPolicyConfiguration.exponentialBackoffBase}
+                                onChange={setExponentialBackoffBase}
+                                totalHeight={35}
+                                minValue={2}
+                            />
+                        </View>
+                    </View>
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.label}>Exponential backoff scale</Text>
+                        <View style={styles.numericInputContainer}>
+                            <NumericInput
+                                value={retryPolicyConfiguration.exponentialBackoffScale}
+                                onChange={setExponentialBackoffScale}
+                                totalHeight={35}
+                                minValue={0}
+                                valueType='real'
+                                step={0.1}
+                            />
+                        </View>
+                    </View>
+                </>
+            );
+        }
+
+        return (
+            <>
+                {checkbox}
+                {options}
+            </>
+        );
+    }
+
     return (
         <SafeAreaView style={styles.container}>
             <ScrollView>
@@ -279,7 +338,7 @@ export default function CreateAPIClientScreen({
                 <View style={styles.inputContainer}>
                     <Text style={styles.label}>Follow Redirects?</Text>
                     <CheckBox
-                        value={sessionOptions.followRedirects as boolean}
+                        value={sessionConfiguration.followRedirects as boolean}
                         onValueChange={setFollowRedirects}
                     />
                 </View>
@@ -287,7 +346,7 @@ export default function CreateAPIClientScreen({
                 <View style={styles.inputContainer}>
                     <Text style={styles.label}>Allow Cellular Access?</Text>
                     <CheckBox
-                        value={sessionOptions.allowsCellularAccess as boolean}
+                        value={sessionConfiguration.allowsCellularAccess as boolean}
                         onValueChange={setAllowsCellularAccess}
                     />
                 </View>
@@ -295,8 +354,16 @@ export default function CreateAPIClientScreen({
                 <View style={styles.inputContainer}>
                     <Text style={styles.label}>Waits For Connectivity?</Text>
                     <CheckBox
-                        value={sessionOptions.waitsForConnectivity as boolean}
+                        value={sessionConfiguration.waitsForConnectivity as boolean}
                         onValueChange={setWaitsForConnectivity}
+                    />
+                </View>
+
+                <View style={styles.inputContainer}>
+                    <Text style={styles.label}>Cancel Requests On Unauthorized?</Text>
+                    <CheckBox
+                        value={sessionConfiguration.cancelRequestsOnUnauthorized}
+                        onValueChange={setCancelRequestsOnUnauthorized}
                     />
                 </View>
 
@@ -305,12 +372,11 @@ export default function CreateAPIClientScreen({
                         Timeout Interval For Request
                     </Text>
                     <View style={styles.numericInputContainer}>
-                        <TextInput
-                            value={`${sessionOptions.timeoutIntervalForRequest}`}
-                            onChangeText={setTimeoutIntervalForRequest}
-                            placeholder="60"
-                            style={styles.input}
-                            keyboardType="numeric"
+                        <NumericInput
+                            value={sessionConfiguration.timeoutIntervalForRequest}
+                            onChange={setTimeoutIntervalForRequest}
+                            totalHeight={35}
+                            minValue={0}
                         />
                     </View>
                 </View>
@@ -320,12 +386,11 @@ export default function CreateAPIClientScreen({
                         Timeout Interval For Resource
                     </Text>
                     <View style={styles.numericInputContainer}>
-                        <TextInput
-                            value={`${sessionOptions.timeoutIntervalForResource}`}
-                            onChangeText={setTimeoutIntervalForResource}
-                            placeholder="60"
-                            style={styles.input}
-                            keyboardType={"numeric"}
+                        <NumericInput
+                            value={sessionConfiguration.timeoutIntervalForResource}
+                            onChange={setTimeoutIntervalForResource}
+                            totalHeight={35}
+                            minValue={0}
                         />
                     </View>
                 </View>
@@ -333,17 +398,16 @@ export default function CreateAPIClientScreen({
                 <View style={styles.inputContainer}>
                     <Text style={styles.label}>Max Connections</Text>
                     <View style={styles.numericInputContainer}>
-                        <TextInput
-                            value={
-                                sessionOptions.httpMaximumConnectionsPerHost as string
-                            }
-                            onChangeText={setHttpMaximumConnectionsPerHost}
-                            placeholder="10"
-                            style={styles.input}
-                            keyboardType="numeric"
+                        <NumericInput
+                            value={sessionConfiguration.httpMaximumConnectionsPerHost}
+                            onChange={setHttpMaximumConnectionsPerHost}
+                            totalHeight={35}
+                            minValue={1}
                         />
                     </View>
                 </View>
+
+                {renderRetryPolicyConfiguration()}
 
                 <View style={styles.headersLabelContainer}>
                     <Text style={styles.label}>Client Headers</Text>

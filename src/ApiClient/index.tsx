@@ -4,17 +4,20 @@
 import { NativeModules } from "react-native";
 import isURL from "validator/es/lib/isURL";
 
-const { APIClient: NativeAPIClient } = NativeModules;
+const { RNNCAPIClient } = NativeModules;
 
 const CLIENTS: { [key: string]: APIClient } = {};
 
 const DEFAULT_API_CLIENT_CONFIG: APIClientConfiguration = {
-    followRedirects: true,
-    allowsCellularAccess: true,
-    waitsForConnectivity: false,
-    timeoutIntervalForRequest: 30,
-    timeoutIntervalForResource: 30,
-    httpMaximumConnectionsPerHost: 10,
+    sessionConfiguration: {
+        followRedirects: true,
+        allowsCellularAccess: true,
+        waitsForConnectivity: false,
+        timeoutIntervalForRequest: 30,
+        timeoutIntervalForResource: 30,
+        httpMaximumConnectionsPerHost: 10,
+        cancelRequestsOnUnauthorized: false,
+    },
 };
 
 /**
@@ -30,46 +33,46 @@ class APIClient implements APIClientInterface {
     }
 
     getHeaders = (): Promise<ClientHeaders> =>
-        NativeAPIClient.getClientHeadersFor(this.baseUrl);
+        RNNCAPIClient.getClientHeadersFor(this.baseUrl);
     addHeaders = (headers: ClientHeaders): Promise<void> => {
         this.config.headers = {
             ...(this.config.headers as Record<string, string>),
             ...headers,
         };
 
-        return NativeAPIClient.addClientHeadersFor(this.baseUrl, headers);
+        return RNNCAPIClient.addClientHeadersFor(this.baseUrl, headers);
     };
     invalidate = (): Promise<void> => {
         delete CLIENTS[this.baseUrl];
 
-        return NativeAPIClient.invalidateClientFor(this.baseUrl);
+        return RNNCAPIClient.invalidateClientFor(this.baseUrl);
     };
 
     get = (
         endpoint: string,
         options?: RequestOptions
     ): Promise<ClientResponse> =>
-        NativeAPIClient.get(this.baseUrl, endpoint, options);
+        RNNCAPIClient.get(this.baseUrl, endpoint, options);
     put = (
         endpoint: string,
         options?: RequestOptions
     ): Promise<ClientResponse> =>
-        NativeAPIClient.put(this.baseUrl, endpoint, options);
+        RNNCAPIClient.put(this.baseUrl, endpoint, options);
     post = (
         endpoint: string,
         options?: RequestOptions
     ): Promise<ClientResponse> =>
-        NativeAPIClient.post(this.baseUrl, endpoint, options);
+        RNNCAPIClient.post(this.baseUrl, endpoint, options);
     patch = (
         endpoint: string,
         options?: RequestOptions
     ): Promise<ClientResponse> =>
-        NativeAPIClient.patch(this.baseUrl, endpoint, options);
+        RNNCAPIClient.patch(this.baseUrl, endpoint, options);
     delete = (
         endpoint: string,
         options?: RequestOptions
     ): Promise<ClientResponse> =>
-        NativeAPIClient.delete(this.baseUrl, endpoint, options);
+        RNNCAPIClient.delete(this.baseUrl, endpoint, options);
 }
 
 async function getOrCreateAPIClient(
@@ -84,7 +87,7 @@ async function getOrCreateAPIClient(
     let client = CLIENTS[baseUrl];
     if (!client) {
         client = new APIClient(baseUrl, config);
-        await NativeAPIClient.createClientFor(client.baseUrl, client.config);
+        await RNNCAPIClient.createClientFor(client.baseUrl, client.config);
         CLIENTS[baseUrl] = client;
         created = true;
     }

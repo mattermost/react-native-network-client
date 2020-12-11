@@ -17,6 +17,9 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
+import CheckBox from "@react-native-community/checkbox";
+import NumericInput from "react-native-numeric-input";
+import { Constants } from "@mattermost/react-native-network-client";
 
 import MethodPicker, { METHOD } from "../components/MethodPicker";
 
@@ -144,12 +147,34 @@ export default function GenericClientScreen({
 
     const [method, setMethod] = useState("GET");
     const [url, setUrl] = useState("http://google.com"); //'https://jsonplaceholder.typicode.com/todos/1');
+    const [timeoutInterval, setTimeoutInterval] = useState(30);
     const [body, setBody] = useState("");
     const [requestHeaders, setRequestHeaders] = useState([
         { key: "", value: "" },
     ]);
     const [response, setResponse] = useState<ClientResponse>();
+    const [retryPolicyConfiguration, setRetryPolicyConfiguration] = useState<
+        RetryPolicyConfiguration
+    >({
+        type: undefined,
+        retryLimit: 2,
+        exponentialBackoffBase: 2,
+        exponentialBackoffScale: 0.5,
+    });
+
     const scrollView = useRef<ScrollView>(null);
+
+    const toggleRetryPolicyType = (on: boolean) =>
+        setRetryPolicyConfiguration({
+            ...retryPolicyConfiguration,
+            type: on ? Constants.EXPONENTIAL_RETRY : undefined,
+        });
+    const setRetryLimit = (retryLimit: number) =>
+        setRetryPolicyConfiguration({ ...retryPolicyConfiguration, retryLimit });
+    const setExponentialBackoffBase = (exponentialBackoffBase: number) =>
+        setRetryPolicyConfiguration({ ...retryPolicyConfiguration, exponentialBackoffBase });
+    const setExponentialBackoffScale = (exponentialBackoffScale: number) =>
+        setRetryPolicyConfiguration({ ...retryPolicyConfiguration, exponentialBackoffScale });
 
     const sanitizeHeaders = (
         headersArray: { key: string; value: string }[]
@@ -163,6 +188,8 @@ export default function GenericClientScreen({
     const makeRequest = async () => {
         const options: RequestOptions = {
             headers: sanitizeHeaders(requestHeaders),
+            timeoutInterval,
+            retryPolicyConfiguration,
         };
 
         if (method !== METHOD.GET && body.length) {
@@ -288,6 +315,69 @@ export default function GenericClientScreen({
         return null;
     };
 
+    const renderRetryPolicyConfiguration = () => {
+        const checked = Boolean(retryPolicyConfiguration.type);
+        const checkbox = (
+            <View style={styles.inputContainer}>
+                <Text style={styles.label}>Retries with exponential backoff?</Text>
+                <CheckBox
+                    value={checked}
+                    onValueChange={toggleRetryPolicyType}
+                />
+            </View>
+        );
+
+        let options;
+        if (checked) {
+            options = (
+                <>
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.label}>Retry Limit</Text>
+                        <View>
+                            <NumericInput
+                                value={retryPolicyConfiguration.retryLimit}
+                                onChange={setRetryLimit}
+                                totalHeight={35}
+                                minValue={0}
+                            />
+                        </View>
+                    </View>
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.label}>Exponential backoff base</Text>
+                        <View>
+                            <NumericInput
+                                value={retryPolicyConfiguration.exponentialBackoffBase}
+                                onChange={setExponentialBackoffBase}
+                                totalHeight={35}
+                                minValue={2}
+                            />
+                        </View>
+                    </View>
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.label}>Exponential backoff scale</Text>
+                        <View>
+                            <NumericInput
+                                value={retryPolicyConfiguration.exponentialBackoffScale}
+                                onChange={setExponentialBackoffScale}
+                                totalHeight={35}
+                                minValue={0}
+                                valueType='real'
+                                step={0.1}
+                            />
+                        </View>
+                    </View>
+                </>
+            );
+        }
+
+        return (
+            <>
+                {checkbox}
+                {options}
+            </>
+        );
+    }
+
     return (
         <SafeAreaView style={styles.container}>
             <View style={[styles.inputContainer, styles.pickerContainer]}>
@@ -307,6 +397,23 @@ export default function GenericClientScreen({
                     style={[styles.input, styles.textInput]}
                 />
             </View>
+
+            <View style={styles.inputContainer}>
+                <Text style={[styles.label, styles.inputLabel]}>
+                    Timeout Interval
+                </Text>
+                <View>
+                    <NumericInput
+                        value={timeoutInterval}
+                        onChange={setTimeoutInterval}
+                        totalHeight={35}
+                        minValue={0}
+                    />
+                </View>
+            </View>
+
+            {renderRetryPolicyConfiguration()}
+
             {method !== METHOD.GET && (
                 <View style={styles.inputContainer}>
                     <Text style={[styles.label, styles.inputLabel]}>Body</Text>
@@ -314,7 +421,7 @@ export default function GenericClientScreen({
                         value={body}
                         onChangeText={setBody}
                         placeholder='{"username": "johndoe"}'
-                        autoCapitalize="none"
+                        autoCapitalize='none'
                         multiline={true}
                         style={[styles.input, styles.textInput]}
                     />

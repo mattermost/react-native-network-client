@@ -7,6 +7,7 @@ type RequestOptions = {
     headers?: ClientHeaders;
     body?: Record<string, unknown> | string;
     timeoutInterval?: number;
+    retryPolicyConfiguration?: RetryPolicyConfiguration;
 };
 
 type ClientResponse = {
@@ -39,14 +40,27 @@ interface APIClientInterface {
     invalidate(): Promise<void>;
 }
 
+type SessionConfiguration = {
+    followRedirects?: boolean;
+    allowsCellularAccess?: boolean;
+    waitsForConnectivity?: boolean;
+    timeoutIntervalForRequest?: number;
+    timeoutIntervalForResource?: number;
+    httpMaximumConnectionsPerHost?: number;
+    cancelRequestsOnUnauthorized?: boolean;
+};
+
+type RetryPolicyConfiguration = {
+    type?: NativeConstants["EXPONENTIAL_RETRY"];
+    retryLimit?: number;
+    exponentialBackoffBase?: number;
+    exponentialBackoffScale?: number;
+};
+
 type iOSAPIClientConfiguration = {
     headers?: ClientHeaders;
-    followRedirects: boolean;
-    allowsCellularAccess: boolean;
-    waitsForConnectivity: boolean;
-    timeoutIntervalForRequest: number;
-    timeoutIntervalForResource: number;
-    httpMaximumConnectionsPerHost: number;
+    sessionConfiguration?: SessionConfiguration;
+    retryPolicyConfiguration?: RetryPolicyConfiguration;
     requestInterceptorConfig?: Record<string, string>;
     serverTrustManagerConfig?: Record<string, string>;
     cachedResponseHandlerConfig?: Record<string, string>;

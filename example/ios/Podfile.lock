@@ -1,5 +1,5 @@
 PODS:
-  - Alamofire (5.3.0)
+  - Alamofire (5.4.0)
   - boost-for-react-native (1.63.0)
   - CocoaAsyncSocket (7.6.4)
   - CocoaLibEvent (1.0.0)
@@ -238,9 +238,9 @@ PODS:
     - React-jsi (= 0.63.3)
   - React-jsinspector (0.63.3)
   - react-native-network-client (0.1.0):
-    - Alamofire (~> 5.2)
+    - Alamofire (~> 5.4)
     - React-Core
-    - SwiftyJSON (~> 4.0)
+    - SwiftyJSON (~> 5.0)
   - react-native-safe-area-context (3.1.8):
     - React-Core
   - React-RCTActionSheet (0.63.3):
@@ -317,7 +317,7 @@ PODS:
     - React-Core
   - RNVectorIcons (7.1.0):
     - React
-  - SwiftyJSON (4.3.0)
+  - SwiftyJSON (5.0.0)
   - Yoga (1.14.0)
   - YogaKit (1.18.1):
     - Yoga (~> 1.14)
@@ -470,7 +470,7 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
-  Alamofire: 2c792affbdc2f18016e08fdbcacd60aebe1ba593
+  Alamofire: 3b6a534a3df22db367e4dedeeca73d1ddfcf0e2f
   boost-for-react-native: 39c7adb57c4e60d6c5479dd8623128eb5b3f0f2c
   CocoaAsyncSocket: 694058e7c0ed05a9e217d1b3c7ded962f4180845
   CocoaLibEvent: 2fab71b8bd46dd33ddb959f7928ec5909f838e3f
@@ -497,7 +497,7 @@ SPEC CHECKSUMS:
   React-jsi: df07aa95b39c5be3e41199921509bfa929ed2b9d
   React-jsiexecutor: b56c03e61c0dd5f5801255f2160a815f4a53d451
   React-jsinspector: 8e68ffbfe23880d3ee9bafa8be2777f60b25cbe2
-  react-native-network-client: f80001bca5bc67e4b9463af99faac26010f3420a
+  react-native-network-client: 58c943194a64ba6ffab95e85880f54cc9ee743eb
   react-native-safe-area-context: 01158a92c300895d79dee447e980672dc3fb85a6
   React-RCTActionSheet: 53ea72699698b0b47a6421cb1c8b4ab215a774aa
   React-RCTAnimation: 1befece0b5183c22ae01b966f5583f42e69a83c2
@@ -509,17 +509,17 @@ SPEC CHECKSUMS:
   React-RCTText: 65a6de06a7389098ce24340d1d3556015c38f746
   React-RCTVibration: 8e9fb25724a0805107fc1acc9075e26f814df454
   ReactCommon: 4167844018c9ed375cc01a843e9ee564399e53c3
-  RNCCheckbox: 5313bf49c2977c1c8f7135434fc01dc80f86bf0b
+  RNCCheckbox: 0d96d7725fecba464d0af856e93ce66dde780d75
   RNCMaskedView: f5c7d14d6847b7b44853f7acb6284c1da30a3459
   RNDeviceInfo: a37a15a98822c31c3982cb28eba6d336ba4d0968
   RNGestureHandler: 7a5833d0f788dbd107fbb913e09aa0c1ff333c39
   RNReanimated: dd8c286ab5dd4ba36d3a7fef8bff7e08711b5476
   RNScreens: 4b488fdf9537bbce829e2910c8cce1d17f6d9be8
   RNVectorIcons: bc69e6a278b14842063605de32bec61f0b251a59
-  SwiftyJSON: 6faa0040f8b59dead0ee07436cbf76b73c08fd08
+  SwiftyJSON: 36413e04c44ee145039d332b4f4e2d3e8d6c4db7
   Yoga: 7d13633d129fd179e01b8953d38d47be90db185a
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
-PODFILE CHECKSUM: 5dcf60c315f7e9e9f7f52282bc352695c6de76a2
+PODFILE CHECKSUM: d1f1ca5175972002e15768cdc4ab22875a840a4f
 
 COCOAPODS: 1.10.0.rc.1
