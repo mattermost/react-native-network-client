@@ -29,12 +29,7 @@ class GenericClientModule(reactContext: ReactApplicationContext) : ReactContextB
     fun get(url: String, options: ReadableMap, promise: Promise){
         val request = Request.Builder().url(url).build();
         client.newCall(request).execute().use{ response ->
-            val res = parseResponse(response);
-            if (response.isSuccessful) {
-                promise.resolve(res)
-            } else {
-                promise.reject(response.code.toString(), res)
-            }
+            response.returnPromise(promise)
         }
     }
 
@@ -43,12 +38,7 @@ class GenericClientModule(reactContext: ReactApplicationContext) : ReactContextB
         val body = options.toString().toRequestBody();
         val request = Request.Builder().url(url).post(body).build();
         client.newCall(request).execute().use{ response ->
-            val res = parseResponse(response);
-            if (response.isSuccessful) {
-                promise.resolve(res)
-            } else {
-                promise.reject(response.code.toString(), res)
-            }
+            response.returnPromise(promise)
         }
     }
 
@@ -57,12 +47,7 @@ class GenericClientModule(reactContext: ReactApplicationContext) : ReactContextB
         val body = options.toString().toRequestBody();
         val request = Request.Builder().url(url).put(body).build();
         client.newCall(request).execute().use{ response ->
-            val res = parseResponse(response);
-            if (response.isSuccessful) {
-                promise.resolve(res)
-            } else {
-                promise.reject(response.code.toString(), res)
-            }
+            response.returnPromise(promise)
         }
     }
 
@@ -71,12 +56,7 @@ class GenericClientModule(reactContext: ReactApplicationContext) : ReactContextB
         val body = options.toString().toRequestBody();
         val request = Request.Builder().url(url).patch(body).build();
         client.newCall(request).execute().use{ response ->
-            val res = parseResponse(response);
-            if (response.isSuccessful) {
-                promise.resolve(res)
-            } else {
-                promise.reject(response.code.toString(), res)
-            }
+            response.returnPromise(promise)
         }
     }
 
@@ -85,12 +65,7 @@ class GenericClientModule(reactContext: ReactApplicationContext) : ReactContextB
         val body = options.toString().toRequestBody();
         val request = Request.Builder().url(url).delete(body).build();
         client.newCall(request).execute().use{ response ->
-            val res = parseResponse(response);
-            if (response.isSuccessful) {
-                promise.resolve(res)
-            } else {
-                promise.reject(response.code.toString(), res)
-            }
+            response.returnPromise(promise)
         }
     }
 }
