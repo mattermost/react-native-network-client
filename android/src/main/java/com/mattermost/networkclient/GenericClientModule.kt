@@ -27,66 +27,71 @@ class GenericClientModule(reactContext: ReactApplicationContext) : ReactContextB
     }
 
     @ReactMethod
-    fun get(baseUrl: String, options: ReadableMap, promise: Promise){
-        val request = Request.Builder().url(baseUrl).build();
+    fun get(url: String, options: ReadableMap, promise: Promise){
+        val request = Request.Builder().url(url).build();
         client.newCall(request).execute().use{ response ->
+            val res = parseResponse(response);
             if (response.isSuccessful) {
-                val res = parseResponse(response);
-                return promise.resolve(res)
+                promise.resolve(res)
+            } else {
+                promise.reject(response.code.toString(), res)
             }
-            promise.reject("Unexpected code $response")
         }
     }
 
     @ReactMethod
-    fun post(baseUrl: String, options: ReadableMap, promise: Promise){
+    fun post(url: String, options: ReadableMap, promise: Promise){
         val body = options.toString().toRequestBody();
-        val request = Request.Builder().url(baseUrl).post(body).build();
+        val request = Request.Builder().url(url).post(body).build();
         client.newCall(request).execute().use{ response ->
+            val res = parseResponse(response);
             if (response.isSuccessful) {
-                val res = parseResponse(response);
-                return promise.resolve(res)
+                promise.resolve(res)
+            } else {
+                promise.reject(response.code.toString(), res)
             }
-            promise.reject("Unexpected code $response")
         }
     }
 
     @ReactMethod
-    fun put(baseUrl: String, options: ReadableMap, promise: Promise){
+    fun put(url: String, options: ReadableMap, promise: Promise){
         val body = options.toString().toRequestBody();
-        val request = Request.Builder().url(baseUrl).put(body).build();
+        val request = Request.Builder().url(url).put(body).build();
         client.newCall(request).execute().use{ response ->
+            val res = parseResponse(response);
             if (response.isSuccessful) {
-                val res = parseResponse(response);
-                return promise.resolve(res)
+                promise.resolve(res)
+            } else {
+                promise.reject(response.code.toString(), res)
             }
-            promise.reject("Unexpected code $response")
         }
     }
 
     @ReactMethod
-    fun patch(baseUrl: String, options: ReadableMap, promise: Promise){
+    fun patch(url: String, options: ReadableMap, promise: Promise){
         val body = options.toString().toRequestBody();
-        val request = Request.Builder().url(baseUrl).patch(body).build();
+        val request = Request.Builder().url(url).patch(body).build();
         client.newCall(request).execute().use{ response ->
+            val res = parseResponse(response);
             if (response.isSuccessful) {
-                val res = parseResponse(response);
-                return promise.resolve(res)
+                promise.resolve(res)
+            } else {
+                promise.reject(response.code.toString(), res)
             }
-            promise.reject("Unexpected code $response")
         }
     }
 
     @ReactMethod
-    fun delete(baseUrl: String, options: ReadableMap, promise: Promise){
+    fun delete(url: String, options: ReadableMap, promise: Promise){
         val body = options.toString().toRequestBody();
-        val request = Request.Builder().url(baseUrl).delete(body).build();
+        val request = Request.Builder().url(url).delete(body).build();
         client.newCall(request).execute().use{ response ->
+            val res = parseResponse(response);
             if (response.isSuccessful) {
-                val res = parseResponse(response);
-                return promise.resolve(res)
+                promise.resolve(res)
+            } else {
+                promise.reject(response.code.toString(), res)
             }
-            promise.reject("Unexpected code $response")
         }
     }
 
