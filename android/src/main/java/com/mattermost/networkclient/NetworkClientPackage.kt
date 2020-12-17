@@ -7,7 +7,7 @@ import com.facebook.react.uimanager.ViewManager
 
 class NetworkClientPackage : ReactPackage {
     override fun createNativeModules(reactContext: ReactApplicationContext): List<NativeModule> {
-        return listOf<NativeModule>(GenericClientModule(reactContext), APIClientModule(reactContext))
+        return listOf<NativeModule>(GenericClientModule(reactContext))
     }
 
     override fun createViewManagers(reactContext: ReactApplicationContext): List<ViewManager<*, *>> {

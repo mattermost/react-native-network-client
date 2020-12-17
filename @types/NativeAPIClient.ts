@@ -33,11 +33,8 @@ interface NativeAPIClient {
     ): Promise<void>;
 
     getClientHeadersFor(baseUrl: string): Promise<ClientHeaders>;
-    addClientHeadersFor(
-        baseUrl: string,
-        headers: ClientHeaders
-    ): Promise<ClientHeaders>;
-    invalidateClientFor(baseUrl: string): Promise<String[]>;
+    addClientHeadersFor(baseUrl: string, headers: ClientHeaders): Promise<void>;
+    invalidateClientFor(baseUrl: string): Promise<void>;
 
     createWebSocketClientFor(
         wsUrl: string,
