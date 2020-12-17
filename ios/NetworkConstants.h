@@ -1,5 +1,5 @@
 //
-//  Constants.h
+//  NetworkConstants.h
 //  NetworkClient
 //
 //  Created by Miguel Alatzar on 11/24/20.

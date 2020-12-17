@@ -148,7 +148,7 @@ export default function CreateAPIClientScreen({
     ] = useState<RequestAdapterConfiguration>({
         bearerAuthTokenResponseHeader: "",
     });
-    const scrollView = useRef<ScrollView>(null);
+    const scrollViewRef = useRef<ScrollView>(null);
 
     const setFollowRedirects = (followRedirects: boolean) =>
         setSessionConfiguration({ ...sessionConfiguration, followRedirects });
@@ -272,7 +272,7 @@ export default function CreateAPIClientScreen({
 
     const addClientHeader = () => {
         setClientHeaders([...clientHeaders, { key: "", value: "" }]);
-        scrollView!.current!.scrollToEnd();
+        scrollViewRef!.current!.scrollToEnd();
     };
 
     const updateClientHeader = (
@@ -286,7 +286,7 @@ export default function CreateAPIClientScreen({
 
     const renderClientHeaders = () => (
         <ScrollView
-            ref={scrollView}
+            ref={scrollViewRef}
             contentContainerStyle={styles.scrollViewContainer}
         >
             {clientHeaders.map((header, index) => (

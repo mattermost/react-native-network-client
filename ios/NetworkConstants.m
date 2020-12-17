@@ -1,5 +1,5 @@
 //
-//  Constants.m
+//  NetworkConstants.m
 //  NetworkClient
 //
 //  Created by Miguel Alatzar on 11/24/20.

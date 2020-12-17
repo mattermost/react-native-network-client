@@ -162,7 +162,7 @@ export default function GenericClientScreen({
         exponentialBackoffScale: 0.5,
     });
 
-    const scrollView = useRef<ScrollView>(null);
+    const scrollViewRef = useRef<ScrollView>(null);
 
     const toggleRetryPolicyType = (on: boolean) =>
         setRetryPolicyConfiguration({
@@ -247,7 +247,7 @@ export default function GenericClientScreen({
 
     const addRequestHeader = (header = { key: "", value: "" }) => {
         setRequestHeaders([...requestHeaders, header]);
-        scrollView!.current!.scrollToEnd();
+        scrollViewRef!.current!.scrollToEnd();
     };
 
     const updateRequestHeader = (
@@ -260,7 +260,7 @@ export default function GenericClientScreen({
     };
 
     const renderRequestHeaders = () => (
-        <ScrollView ref={scrollView}>
+        <ScrollView ref={scrollViewRef}>
             {requestHeaders.map((header, index) => (
                 <View key={`header-${index}`} style={styles.option}>
                     <RequestHeader
