@@ -145,7 +145,7 @@ export default function GenericClientScreen({
 }: GenericClientScreenProps) {
     const { client } = route.params;
 
-    const [method, setMethod] = useState("GET");
+    const [method, setMethod] = useState(METHOD.GET);
     const [url, setUrl] = useState("http://google.com"); //'https://jsonplaceholder.typicode.com/todos/1');
     const [timeoutInterval, setTimeoutInterval] = useState(30);
     const [body, setBody] = useState("");
@@ -162,7 +162,7 @@ export default function GenericClientScreen({
         exponentialBackoffScale: 0.5,
     });
 
-    const scrollView = useRef<ScrollView>(null);
+    const scrollViewRef = useRef<ScrollView>(null);
 
     const toggleRetryPolicyType = (on: boolean) =>
         setRetryPolicyConfiguration({
@@ -170,11 +170,20 @@ export default function GenericClientScreen({
             type: on ? Constants.EXPONENTIAL_RETRY : undefined,
         });
     const setRetryLimit = (retryLimit: number) =>
-        setRetryPolicyConfiguration({ ...retryPolicyConfiguration, retryLimit });
+        setRetryPolicyConfiguration({
+            ...retryPolicyConfiguration,
+            retryLimit,
+        });
     const setExponentialBackoffBase = (exponentialBackoffBase: number) =>
-        setRetryPolicyConfiguration({ ...retryPolicyConfiguration, exponentialBackoffBase });
+        setRetryPolicyConfiguration({
+            ...retryPolicyConfiguration,
+            exponentialBackoffBase,
+        });
     const setExponentialBackoffScale = (exponentialBackoffScale: number) =>
-        setRetryPolicyConfiguration({ ...retryPolicyConfiguration, exponentialBackoffScale });
+        setRetryPolicyConfiguration({
+            ...retryPolicyConfiguration,
+            exponentialBackoffScale,
+        });
 
     const sanitizeHeaders = (
         headersArray: { key: string; value: string }[]
@@ -238,7 +247,7 @@ export default function GenericClientScreen({
 
     const addRequestHeader = (header = { key: "", value: "" }) => {
         setRequestHeaders([...requestHeaders, header]);
-        scrollView!.current!.scrollToEnd();
+        scrollViewRef!.current!.scrollToEnd();
     };
 
     const updateRequestHeader = (
@@ -251,7 +260,7 @@ export default function GenericClientScreen({
     };
 
     const renderRequestHeaders = () => (
-        <ScrollView ref={scrollView}>
+        <ScrollView ref={scrollViewRef}>
             {requestHeaders.map((header, index) => (
                 <View key={`header-${index}`} style={styles.option}>
                     <RequestHeader
@@ -319,7 +328,9 @@ export default function GenericClientScreen({
         const checked = Boolean(retryPolicyConfiguration.type);
         const checkbox = (
             <View style={styles.inputContainer}>
-                <Text style={styles.label}>Retries with exponential backoff?</Text>
+                <Text style={styles.label}>
+                    Retries with exponential backoff?
+                </Text>
                 <CheckBox
                     value={checked}
                     onValueChange={toggleRetryPolicyType}
@@ -343,10 +354,14 @@ export default function GenericClientScreen({
                         </View>
                     </View>
                     <View style={styles.inputContainer}>
-                        <Text style={styles.label}>Exponential backoff base</Text>
+                        <Text style={styles.label}>
+                            Exponential backoff base
+                        </Text>
                         <View>
                             <NumericInput
-                                value={retryPolicyConfiguration.exponentialBackoffBase}
+                                value={
+                                    retryPolicyConfiguration.exponentialBackoffBase
+                                }
                                 onChange={setExponentialBackoffBase}
                                 totalHeight={35}
                                 minValue={2}
@@ -354,14 +369,18 @@ export default function GenericClientScreen({
                         </View>
                     </View>
                     <View style={styles.inputContainer}>
-                        <Text style={styles.label}>Exponential backoff scale</Text>
+                        <Text style={styles.label}>
+                            Exponential backoff scale
+                        </Text>
                         <View>
                             <NumericInput
-                                value={retryPolicyConfiguration.exponentialBackoffScale}
+                                value={
+                                    retryPolicyConfiguration.exponentialBackoffScale
+                                }
                                 onChange={setExponentialBackoffScale}
                                 totalHeight={35}
                                 minValue={0}
-                                valueType='real'
+                                valueType="real"
                                 step={0.1}
                             />
                         </View>
@@ -376,7 +395,7 @@ export default function GenericClientScreen({
                 {options}
             </>
         );
-    }
+    };
 
     return (
         <SafeAreaView style={styles.container}>
@@ -421,7 +440,7 @@ export default function GenericClientScreen({
                         value={body}
                         onChangeText={setBody}
                         placeholder='{"username": "johndoe"}'
-                        autoCapitalize='none'
+                        autoCapitalize="none"
                         multiline={true}
                         style={[styles.input, styles.textInput]}
                     />

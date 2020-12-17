@@ -1,5 +1,5 @@
 //
-//  RNNCConstants.m
+//  NetworkConstants.m
 //  NetworkClient
 //
 //  Created by Miguel Alatzar on 11/24/20.
@@ -7,15 +7,17 @@
 //  See LICENSE.txt for license information.
 //
 
-#import "RNNCConstants.h"
+#import "NetworkConstants.h"
 
-@implementation RNNCConstants
+@implementation NetworkConstants
 
 RCT_EXPORT_MODULE();
 
 - (NSDictionary *)constantsToExport
 {
-  return @{ @"EXPONENTIAL_RETRY": @"exponential" };
+  return @{
+    @"EXPONENTIAL_RETRY": @"exponential"
+  };
 }
 
 @end

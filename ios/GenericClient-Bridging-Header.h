@@ -1,5 +1,5 @@
 //
-//  RNNCGenericClient-Bridging-Header.h
+//  GenericClient-Bridging-Header.h
 //  NetworkClient
 //
 //  Created by Miguel Alatzar on 11/9/20.
