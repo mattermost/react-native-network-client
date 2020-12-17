@@ -124,11 +124,6 @@ class APIClient: NetworkClient {
         }
 
         let url = baseUrl.appendingPathComponent(endpoint)
-        if let storage = session.session.configuration.httpCookieStorage, let cookies = storage.cookies {
-            for cookie in cookies {
-                storage.deleteCookie(cookie)
-            }
-        }
         handleRequest(for: url, withMethod: method, withSession: session, withOptions: options, withResolver: resolve, withRejecter: reject)
     }
 
