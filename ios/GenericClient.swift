@@ -1,5 +1,5 @@
 //
-//  RNNCGenericClient.swift
+//  GenericClient.swift
 //  NetworkClient
 //
 //  Created by Miguel Alatzar on 11/9/20.
@@ -10,8 +10,8 @@
 import Alamofire
 import SwiftyJSON
 
-@objc(RNNCGenericClient)
-class RNNCGenericClient: NetworkClient {
+@objc(GenericClient)
+class GenericClient: NetworkClient {
 
     var session = AF
 

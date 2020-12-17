@@ -10,9 +10,12 @@
 import Alamofire
 import SwiftyJSON
 
-let EXPONENTIAL_RETRY = RNNCConstants().constantsToExport()["EXPONENTIAL_RETRY"] as! String
+protocol ResponseHandler {
+    func handleResponse(for session: Session, withUrl url: URL, withData data: AFDataResponse<Any>)
+}
 
-class NetworkClient: NSObject {
+class NetworkClient: NSObject, ResponseHandler {
+    let CONSTANTS = NetworkConstants().constantsToExport() as! Dictionary<String, String>
 
     func get(url: String, withSession session: Session, withOptions options: JSON, withResolver resolve: @escaping RCTPromiseResolveBlock, withRejecter reject: RCTPromiseRejectBlock) -> Void {
         handleRequest(for: url, withMethod: .get, withSession: session, withOptions: options, withResolver: resolve, withRejecter: reject)
@@ -51,9 +54,7 @@ class NetworkClient: NSObject {
         let interceptor = getInterceptor(from: options)
 
         session.request(url, method: method, parameters: parameters, encoder: encoder, headers: headers, interceptor: interceptor, requestModifier: requestModifer).responseJSON { json in
-            if json.response?.statusCode == 401 && session.cancelRequestsOnUnauthorized {
-                session.cancelAllRequests()
-            }
+            self.handleResponse(for: session, withUrl: url, withData: json)
             
             resolve([
                 "headers": json.response?.allHeaderFields,
@@ -63,6 +64,8 @@ class NetworkClient: NSObject {
             ])
         }
     }
+    
+    func handleResponse(for session: Session, withUrl url: URL, withData data: AFDataResponse<Any>) {}
 
     func getInterceptor(from options: JSON) -> Interceptor? {
         let adapters = getRequestAdapters(from: options)
@@ -82,7 +85,12 @@ class NetworkClient: NSObject {
     }
 
     func getRequestAdapters(from options: JSON) -> [RequestAdapter] {
-        let adapters = [RequestAdapter]()
+        var adapters = [RequestAdapter]()
+
+        let configuration = options["requestAdapterConfiguration"]
+        if let _ = configuration["bearerAuthTokenResponseHeader"].string {
+            adapters.append(BearerAuthenticationAdapter())
+        }
         
         return adapters
     }
@@ -91,7 +99,7 @@ class NetworkClient: NSObject {
         var retriers = [RequestRetrier]()
 
         let configuration = options["retryPolicyConfiguration"]
-        if configuration["type"].string == EXPONENTIAL_RETRY {
+        if configuration["type"].string == CONSTANTS["EXPONENTIAL_RETRY"] {
             let retryLimit = configuration["retryLimit"].uInt ?? RetryPolicy.defaultRetryLimit
             let exponentialBackoffBase = configuration["exponentialBackoffBase"].uInt ?? RetryPolicy.defaultExponentialBackoffBase
             let exponentialBackoffScale = configuration["exponentialBackoffScale"].double ?? RetryPolicy.defaultExponentialBackoffScale

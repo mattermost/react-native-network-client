@@ -57,11 +57,15 @@ type RetryPolicyConfiguration = {
     exponentialBackoffScale?: number;
 };
 
+type RequestAdapterConfiguration = {
+    bearerAuthTokenResponseHeader?: string;
+};
+
 type iOSAPIClientConfiguration = {
     headers?: ClientHeaders;
     sessionConfiguration?: SessionConfiguration;
     retryPolicyConfiguration?: RetryPolicyConfiguration;
-    requestInterceptorConfig?: Record<string, string>;
+    requestAdapterConfiguration?: RequestAdapterConfiguration;
     serverTrustManagerConfig?: Record<string, string>;
     cachedResponseHandlerConfig?: Record<string, string>;
 };

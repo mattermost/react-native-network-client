@@ -148,10 +148,10 @@ const RequestHeader = ({ index, header, updateHeader }: RequestHeaderProps) => {
 export default function APIClientScreen({ route }: APIClientScreenProps) {
     const { client } = route.params;
 
-    const [method, setMethod] = useState("GET");
-    const [endpoint, setEndpoint] = useState("/");
+    const [method, setMethod] = useState(METHOD.POST);
+    const [endpoint, setEndpoint] = useState("/api/v4/users/login");
     const [timeoutInterval, setTimeoutInterval] = useState(30);
-    const [body, setBody] = useState("");
+    const [body, setBody] = useState('{"login_id":"","password":""}');
     const [requestHeaders, setRequestHeaders] = useState([
         { key: "", value: "" },
     ]);
@@ -174,11 +174,20 @@ export default function APIClientScreen({ route }: APIClientScreenProps) {
             type: on ? Constants.EXPONENTIAL_RETRY : undefined,
         });
     const setRetryLimit = (retryLimit: number) =>
-        setRetryPolicyConfiguration({ ...retryPolicyConfiguration, retryLimit });
+        setRetryPolicyConfiguration({
+            ...retryPolicyConfiguration,
+            retryLimit,
+        });
     const setExponentialBackoffBase = (exponentialBackoffBase: number) =>
-        setRetryPolicyConfiguration({ ...retryPolicyConfiguration, exponentialBackoffBase });
+        setRetryPolicyConfiguration({
+            ...retryPolicyConfiguration,
+            exponentialBackoffBase,
+        });
     const setExponentialBackoffScale = (exponentialBackoffScale: number) =>
-        setRetryPolicyConfiguration({ ...retryPolicyConfiguration, exponentialBackoffScale });
+        setRetryPolicyConfiguration({
+            ...retryPolicyConfiguration,
+            exponentialBackoffScale,
+        });
 
     const getClientHeaders = async () => {
         if ("getHeaders" in client) {
@@ -377,66 +386,67 @@ export default function APIClientScreen({ route }: APIClientScreenProps) {
 
     const renderRetryPolicyConfiguration = () => {
         const checked = Boolean(retryPolicyConfiguration.type);
-        const checkbox = (
-            <View style={styles.inputContainer}>
-                <Text style={styles.label}>Retries with exponential backoff?</Text>
-                <CheckBox
-                    value={checked}
-                    onValueChange={toggleRetryPolicyType}
-                />
-            </View>
-        );
-
-        let options;
-        if (checked) {
-            options = (
-                <>
-                    <View style={styles.inputContainer}>
-                        <Text style={styles.label}>Retry Limit</Text>
-                        <View>
-                            <NumericInput
-                                value={retryPolicyConfiguration.retryLimit}
-                                onChange={setRetryLimit}
-                                totalHeight={35}
-                                minValue={0}
-                            />
-                        </View>
-                    </View>
-                    <View style={styles.inputContainer}>
-                        <Text style={styles.label}>Exponential backoff base</Text>
-                        <View>
-                            <NumericInput
-                                value={retryPolicyConfiguration.exponentialBackoffBase}
-                                onChange={setExponentialBackoffBase}
-                                totalHeight={35}
-                                minValue={2}
-                            />
-                        </View>
-                    </View>
-                    <View style={styles.inputContainer}>
-                        <Text style={styles.label}>Exponential backoff scale</Text>
-                        <View>
-                            <NumericInput
-                                value={retryPolicyConfiguration.exponentialBackoffScale}
-                                onChange={setExponentialBackoffScale}
-                                totalHeight={35}
-                                minValue={0}
-                                valueType='real'
-                                step={0.1}
-                            />
-                        </View>
-                    </View>
-                </>
-            );
-        }
-
         return (
             <>
-                {checkbox}
-                {options}
+                <View style={styles.inputContainer}>
+                    <Text style={styles.label}>
+                        Retries with exponential backoff?
+                    </Text>
+                    <CheckBox
+                        value={checked}
+                        onValueChange={toggleRetryPolicyType}
+                    />
+                </View>
+                {checked && (
+                    <>
+                        <View style={styles.inputContainer}>
+                            <Text style={styles.label}>Retry Limit</Text>
+                            <View>
+                                <NumericInput
+                                    value={retryPolicyConfiguration.retryLimit}
+                                    onChange={setRetryLimit}
+                                    totalHeight={35}
+                                    minValue={0}
+                                />
+                            </View>
+                        </View>
+                        <View style={styles.inputContainer}>
+                            <Text style={styles.label}>
+                                Exponential backoff base
+                            </Text>
+                            <View>
+                                <NumericInput
+                                    value={
+                                        retryPolicyConfiguration.exponentialBackoffBase
+                                    }
+                                    onChange={setExponentialBackoffBase}
+                                    totalHeight={35}
+                                    minValue={2}
+                                />
+                            </View>
+                        </View>
+                        <View style={styles.inputContainer}>
+                            <Text style={styles.label}>
+                                Exponential backoff scale
+                            </Text>
+                            <View>
+                                <NumericInput
+                                    value={
+                                        retryPolicyConfiguration.exponentialBackoffScale
+                                    }
+                                    onChange={setExponentialBackoffScale}
+                                    totalHeight={35}
+                                    minValue={0}
+                                    valueType="real"
+                                    step={0.1}
+                                />
+                            </View>
+                        </View>
+                    </>
+                )}
             </>
         );
-    }
+    };
 
     return (
         <SafeAreaView style={styles.container}>
@@ -477,7 +487,7 @@ export default function APIClientScreen({ route }: APIClientScreenProps) {
             </View>
 
             {renderRetryPolicyConfiguration()}
-            
+
             {method !== METHOD.GET && (
                 <View style={styles.inputContainer}>
                     <Text style={[styles.label, styles.inputLabel]}>Body</Text>

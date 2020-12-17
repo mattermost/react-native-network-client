@@ -5,6 +5,6 @@ declare module "react-native" {
     export interface NativeModulesStatic {
         APIClient: NativeAPIClient;
         GenericClient: NativeGenericClient;
-        RNNCConstants: NativeConstants;
+        NetworkConstants: NativeConstants;
     }
 }

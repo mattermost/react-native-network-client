@@ -3,22 +3,22 @@
 
 import { NativeModules } from "react-native";
 
-const { RNNCGenericClient } = NativeModules;
+const { GenericClient: NativeGenericClient } = NativeModules;
 
 /**
  * Generic client for making requests
  */
 class GenericClient implements GenericClientInterface {
     get = (url: string, options?: RequestOptions): Promise<ClientResponse> =>
-        RNNCGenericClient.get(url, options);
+        NativeGenericClient.get(url, options);
     put = (url: string, options?: RequestOptions): Promise<ClientResponse> =>
-        RNNCGenericClient.put(url, options);
+        NativeGenericClient.put(url, options);
     post = (url: string, options?: RequestOptions): Promise<ClientResponse> =>
-        RNNCGenericClient.post(url, options);
+        NativeGenericClient.post(url, options);
     patch = (url: string, options?: RequestOptions): Promise<ClientResponse> =>
-        RNNCGenericClient.patch(url, options);
+        NativeGenericClient.patch(url, options);
     delete = (url: string, options?: RequestOptions): Promise<ClientResponse> =>
-        RNNCGenericClient.delete(url, options);
+        NativeGenericClient.delete(url, options);
 }
 
 export default new GenericClient();
