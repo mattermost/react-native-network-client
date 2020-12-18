@@ -10,10 +10,11 @@
 import Foundation
 import Alamofire
 
-class SessionManager {
+@objc public class SessionManager: NSObject {
 
-    public static let `default` = SessionManager()
-    internal var sessions: [URL: Session] = [:]
+    @objc public static let `default` = SessionManager()
+    private override init() {}
+    internal var sessions: [String: Session] = [:]
     
     func sessionCount() -> Int {
         return sessions.count
@@ -24,13 +25,13 @@ class SessionManager {
     //  * ServerTrustManager
     //  * CachedResponseHandler
     //  * EventMonitor(s)
-    func createSession(for baseUrl:URL,
+    func createSession(for host:String,
                        withConfiguration configuration:URLSessionConfiguration = URLSessionConfiguration.af.default,
                        withInterceptor interceptor:Interceptor? = nil,
                        withRedirectHandler redirectHandler:RedirectHandler? = nil,
                        withCancelRequestsOnUnauthorized cancelRequestsOnUnauthorized:Bool = false,
                        withBearerAuthTokenResponseHeader bearerAuthTokenResponseHeader:String? = nil) -> Void {
-        var session = getSession(for: baseUrl)
+        var session = getSession(for: host)
         if (session != nil) {
             return
         }
@@ -39,30 +40,30 @@ class SessionManager {
         session?.cancelRequestsOnUnauthorized = cancelRequestsOnUnauthorized
         session?.bearerAuthTokenResponseHeader = bearerAuthTokenResponseHeader
 
-        sessions[baseUrl] = session
+        sessions[host] = session
     }
 
-    func getSessionHeaders(for baseUrl:URL) -> [AnyHashable : Any]? {
-        guard let session = getSession(for: baseUrl) else {
+    func getSessionHeaders(for host:String) -> [AnyHashable : Any]? {
+        guard let session = getSession(for: host) else {
             return [:]
         }
 
         return session.sessionConfiguration.httpAdditionalHeaders
     }
 
-    func addSessionHeaders(for baseUrl:URL, additionalHeaders:Dictionary<String, String>) -> Void {
-        guard let previousSession = getSession(for: baseUrl) else {
+    func addSessionHeaders(for host:String, additionalHeaders:Dictionary<String, String>) -> Void {
+        guard let previousSession = getSession(for: host) else {
             return
         }
 
-        invalidateSession(for: baseUrl)
+        invalidateSession(for: host)
 
         let configuration = previousSession.sessionConfiguration
         let previousHeaders = configuration.httpAdditionalHeaders ?? [:]
         let newHeaders = previousHeaders.merging(additionalHeaders) {(_, new) in new}
         configuration.httpAdditionalHeaders = newHeaders
 
-        createSession(for: baseUrl,
+        createSession(for: host,
                       withConfiguration: configuration,
                       withInterceptor: previousSession.interceptor as? Interceptor,
                       withRedirectHandler: previousSession.redirectHandler,
@@ -70,16 +71,24 @@ class SessionManager {
                       withBearerAuthTokenResponseHeader: previousSession.bearerAuthTokenResponseHeader)
     }
     
-    func getSession(for baseUrl:URL) -> Session? {
-        return sessions[baseUrl]
+    func getSession(for host:String) -> Session? {
+        return sessions[host]
     }
     
-    func invalidateSession(for baseUrl:URL) -> Void {
-        guard let session = getSession(for: baseUrl) else {
+    @objc public func getSessionConfiguration(for host:String) -> URLSessionConfiguration? {
+        if let session = getSession(for: host) {
+            return session.session.configuration
+        }
+        
+        return nil
+    }
+    
+    func invalidateSession(for host:String) -> Void {
+        guard let session = getSession(for: host) else {
             return
         }
         
         session.session.invalidateAndCancel()
-        sessions.removeValue(forKey: baseUrl)
+        sessions.removeValue(forKey: host)
     }
 }

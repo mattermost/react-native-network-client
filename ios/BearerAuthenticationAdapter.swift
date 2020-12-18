@@ -11,12 +11,18 @@ import Foundation
 import Alamofire
 import SwiftKeychainWrapper
 
-final class BearerAuthenticationAdapter: RequestAdapter {
-    func adapt(_ urlRequest: URLRequest, for session: Session, completion: @escaping (Result<URLRequest, Error>) -> Void) {
+@objc public class BearerAuthenticationAdapter: NSObject, RequestAdapter {
+    @objc public static func addAuthorizationBearerToken(to urlRequest: URLRequest) -> URLRequest {
         var urlRequest = urlRequest
         if let bearerToken = KeychainWrapper.standard.string(forKey: urlRequest.url!.host!) {
             urlRequest.headers.add(.authorization(bearerToken: bearerToken))
         }
+        
+        return urlRequest
+    }
+
+    public func adapt(_ urlRequest: URLRequest, for session: Session, completion: @escaping (Result<URLRequest, Error>) -> Void) {
+        let urlRequest = BearerAuthenticationAdapter.addAuthorizationBearerToken(to: urlRequest)
 
         completion(.success(urlRequest))
     }
