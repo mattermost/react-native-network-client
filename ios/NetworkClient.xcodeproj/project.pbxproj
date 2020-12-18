@@ -32,18 +32,16 @@
 
 /* Begin PBXFileReference section */
 		134814201AA4EA6300B7C361 /* libNetworkClient.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libNetworkClient.a; sourceTree = BUILT_PRODUCTS_DIR; };
-		4991797C255A0CEC00C32F78 /* GenericClient-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "GenericClient-Bridging-Header.h"; sourceTree = "<group>"; };
 		4991797D255A0D0600C32F78 /* GenericClient.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = GenericClient.m; sourceTree = "<group>"; };
 		49917981255A0D8900C32F78 /* GenericClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenericClient.swift; sourceTree = "<group>"; };
 		49EBD3B62565C19F00C7C102 /* Session+NetworkClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Session+NetworkClient.swift"; sourceTree = "<group>"; };
 		49EBD741256DC90900C7C102 /* NetworkConstants.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = NetworkConstants.m; sourceTree = "<group>"; };
 		49EBD7E1256DCA3B00C7C102 /* NetworkConstants.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NetworkConstants.h; sourceTree = "<group>"; };
 		49EBD8162575CF6500C7C102 /* NetworkClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkClient.swift; sourceTree = "<group>"; };
-		49EBD9BC2575F9D000C7C102 /* NetworkConstants-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "NetworkConstants-Bridging-Header.h"; sourceTree = "<group>"; };
 		49EBDB3525781FA200C7C102 /* BearerAuthenticationAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BearerAuthenticationAdapter.swift; sourceTree = "<group>"; };
+		49EBDC232578903700C7C102 /* NetworkClient-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "NetworkClient-Bridging-Header.h"; sourceTree = "<group>"; };
 		53A730F5250AA8E40058A8B4 /* SessionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionManager.swift; sourceTree = "<group>"; };
 		B3E7B5891CC2AC0600A0062D /* APIClient.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = APIClient.m; sourceTree = "<group>"; };
-		F4FF95D5245B92E700C19C63 /* APIClient-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "APIClient-Bridging-Header.h"; sourceTree = "<group>"; };
 		F4FF95D6245B92E800C19C63 /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -69,15 +67,13 @@
 		58B511D21A9E6C8500147676 = {
 			isa = PBXGroup;
 			children = (
+				49EBDC232578903700C7C102 /* NetworkClient-Bridging-Header.h */,
 				49EBD3B62565C19F00C7C102 /* Session+NetworkClient.swift */,
 				53A730F5250AA8E40058A8B4 /* SessionManager.swift */,
 				F4FF95D6245B92E800C19C63 /* APIClient.swift */,
 				49917981255A0D8900C32F78 /* GenericClient.swift */,
 				B3E7B5891CC2AC0600A0062D /* APIClient.m */,
 				49EBDB3525781FA200C7C102 /* BearerAuthenticationAdapter.swift */,
-				F4FF95D5245B92E700C19C63 /* APIClient-Bridging-Header.h */,
-				49EBD9BC2575F9D000C7C102 /* NetworkConstants-Bridging-Header.h */,
-				4991797C255A0CEC00C32F78 /* GenericClient-Bridging-Header.h */,
 				49EBD741256DC90900C7C102 /* NetworkConstants.m */,
 				49EBD8162575CF6500C7C102 /* NetworkClient.swift */,
 				49EBD7E1256DCA3B00C7C102 /* NetworkConstants.h */,
@@ -184,6 +180,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEFINES_MODULE = YES;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
@@ -204,8 +201,10 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = NetworkClient;
 				SDKROOT = iphoneos;
-				SWIFT_OBJC_BRIDGING_HEADER = "NetworkConstants-Bridging-Header.h";
+				SWIFT_OBJC_BRIDGING_HEADER = "NetworClient-Bridging-Header.h";
+				SWIFT_OBJC_INTERFACE_HEADER_NAME = "$(PRODUCT_MODULE_NAME)-Swift.h";
 			};
 			name = Debug;
 		};
@@ -235,6 +234,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = YES;
+				DEFINES_MODULE = YES;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
@@ -247,8 +247,10 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
+				PRODUCT_NAME = NetworkClient;
 				SDKROOT = iphoneos;
-				SWIFT_OBJC_BRIDGING_HEADER = "NetworkConstants-Bridging-Header.h";
+				SWIFT_OBJC_BRIDGING_HEADER = "NetworkClient-Bridging-Header.h";
+				SWIFT_OBJC_INTERFACE_HEADER_NAME = "$(PRODUCT_MODULE_NAME)-Swift.h";
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
