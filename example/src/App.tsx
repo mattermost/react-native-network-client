@@ -8,8 +8,11 @@ import { createStackNavigator } from "@react-navigation/stack";
 import ClientListScreen from "./screens/ClientListScreen";
 import CreateAPIClientScreen from "./screens/CreateAPIClientScreen";
 import CreateWebSocketClientScreen from "./screens/CreateWebSocketClientScreen";
-import GenericClientScreen from "./screens/GenericClientScreen";
+import GenericClientRequestScreen from "./screens/GenericClientRequestScreen";
 import APIClientScreen from "./screens/APIClientScreen";
+import APIClientRequestScreen from "./screens/APIClientRequestScreen";
+import APIClientUploadScreen from "./screens/APIClientUploadScreen";
+import APIClientFastImageScreen from "./screens/APIClientFastImageScreen";
 
 const Stack = createStackNavigator();
 
@@ -27,10 +30,22 @@ function App() {
                     component={CreateWebSocketClientScreen}
                 />
                 <Stack.Screen
-                    name="GenericClient"
-                    component={GenericClientScreen}
+                    name="GenericClientRequest"
+                    component={GenericClientRequestScreen}
                 />
                 <Stack.Screen name="APIClient" component={APIClientScreen} />
+                <Stack.Screen
+                    name="APIClientRequest"
+                    component={APIClientRequestScreen}
+                />
+                <Stack.Screen
+                    name="APIClientUpload"
+                    component={APIClientUploadScreen}
+                />
+                <Stack.Screen
+                    name="APIClientFastImage"
+                    component={APIClientFastImageScreen}
+                />
             </Stack.Navigator>
         </NavigationContainer>
     );
