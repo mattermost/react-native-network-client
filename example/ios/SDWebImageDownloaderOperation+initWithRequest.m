@@ -31,19 +31,19 @@
 #pragma mark - Method Swizzling
 
 - (nonnull instancetype)swizzle_initWithRequest:(NSURLRequest *)request inSession:(NSURLSession *)session options:(SDWebImageDownloaderOptions)options context:(nullable SDWebImageContext *)context {
-  NSString *host = [[request URL] host];
   SessionManager *nativeClientSessionManager = [SessionManager default];
-  NSURLSessionConfiguration *configuration = [nativeClientSessionManager getSessionConfigurationFor:host];
-  // If we have a session configured for this host then use this configuration
-  // to create a new session that SDWebImageDownloaderOperation will use for
-  // the request. In addition, if we have an authorization header being added
-  // to our session's requests, then we modify the request here as well using
-  // our BearerAuthenticationAdapter.
-  if (configuration != nil) {
+  NSString *sessionBaseUrlString = [nativeClientSessionManager getSessionBaseUrlStringFor:request];
+  if (sessionBaseUrlString != nil) {
+    // If we have a session configured for this request then use its configuration
+    // to create a new session that SDWebImageDownloaderOperation will use for
+    // this request. In addition, if we have an authorization header being added
+    // to our session's requests, then we modify the request here as well using
+    // our BearerAuthenticationAdapter.
+    NSURLSessionConfiguration *configuration = [nativeClientSessionManager getSessionConfigurationFor:sessionBaseUrlString];
     NSURLSession *newSession = [NSURLSession sessionWithConfiguration:configuration
                                                         delegate:session.delegate
                                                         delegateQueue:session.delegateQueue];
-    NSURLRequest *authorizedRequest = [BearerAuthenticationAdapter addAuthorizationBearerTokenTo:request];
+    NSURLRequest *authorizedRequest = [BearerAuthenticationAdapter addAuthorizationBearerTokenTo:request withSessionBaseUrlString:sessionBaseUrlString];
     
     return [self swizzle_initWithRequest:authorizedRequest inSession:newSession options:options context:context];
   }

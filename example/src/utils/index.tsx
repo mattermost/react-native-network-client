@@ -34,7 +34,7 @@ export const createMattermostAPIClient = async (): Promise<APIClientItem | null>
         timeoutIntervalForRequest: 30,
         timeoutIntervalForResource: 30,
         httpMaximumConnectionsPerHost: 10,
-        cancelRequestsOnUnauthorized: false,
+        cancelRequestsOnUnauthorized: true,
     };
     const retryPolicyConfiguration = {
         type: undefined,
@@ -43,7 +43,7 @@ export const createMattermostAPIClient = async (): Promise<APIClientItem | null>
         exponentialBackoffScale: 0.5,
     };
     const requestAdapterConfiguration = {
-        bearerAuthTokenResponseHeader: "",
+        bearerAuthTokenResponseHeader: "token",
     };
 
     const options: APIClientConfiguration = {

@@ -9,7 +9,9 @@ import Icon from "react-native-vector-icons/MaterialIcons";
 
 const APIClientFastImageScreen = ({ route }: APIClientFastImageScreenProps) => {
     const { client } = route.params;
-    const [imageUrl, setImageUrl] = useState(client.baseUrl);
+    const [imageUrl, setImageUrl] = useState(
+        `${client.baseUrl}/api/v4/files/xjiid3qaa38kjxxwr9mxbfxyco`
+    );
     const [loading, setLoading] = useState(false);
     const [errored, setErrored] = useState(false);
 
@@ -22,7 +24,7 @@ const APIClientFastImageScreen = ({ route }: APIClientFastImageScreenProps) => {
         <SafeAreaView style={{ flex: 1 }}>
             <Input
                 label="Image URL"
-                placeholder="/api/v4/system/ping"
+                placeholder={`${client.baseUrl}/image.png`}
                 value={imageUrl}
                 onChangeText={setImageUrl}
                 autoCapitalize="none"
@@ -43,7 +45,7 @@ const APIClientFastImageScreen = ({ route }: APIClientFastImageScreenProps) => {
                     onLoad={onLoad}
                     onError={onError}
                     resizeMode={FastImage.resizeMode.contain}
-                    style={{ height: 500, width: 500 }}
+                    style={{ height: 400, width: 400 }}
                 />
             </View>
         </SafeAreaView>

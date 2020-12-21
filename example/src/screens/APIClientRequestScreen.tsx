@@ -15,9 +15,13 @@ import { parseHeaders, METHODS } from "../utils";
 
 const APIClientRequestScreen = ({ route }: APIClientRequestScreenProps) => {
     const { client, method } = route.params;
-    const [endpoint, setEndpoint] = useState("/api/v4/system/ping");
+    const [endpoint, setEndpoint] = useState(
+        method === METHODS.POST ? "/api/v4/users/login" : "/api/v4/users/me"
+    );
     const [timeoutInterval, setTimeoutInterval] = useState(30);
-    const [body, setBody] = useState('{"login_id":"","password":""}');
+    const [body, setBody] = useState(
+        '{"login_id":"username","password":"password"}'
+    );
     const [requestHeaders, setRequestHeaders] = useState<Header[]>([]);
     const [response, setResponse] = useState<ClientResponse>();
     const [responseVisible, setResponseVisible] = useState(false);
@@ -106,7 +110,7 @@ const APIClientRequestScreen = ({ route }: APIClientRequestScreenProps) => {
         <SafeAreaView>
             <ScrollView>
                 <Input
-                    label={`GET\n\n${client.baseUrl}`}
+                    label={`${method}\n\n${client.baseUrl}`}
                     placeholder="/api/v4/system/ping"
                     value={endpoint}
                     onChangeText={setEndpoint}
