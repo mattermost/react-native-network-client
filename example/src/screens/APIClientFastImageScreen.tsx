@@ -8,7 +8,9 @@ import FastImage from "react-native-fast-image";
 import Icon from "react-native-vector-icons/MaterialIcons";
 
 const APIClientFastImageScreen = ({ route }: APIClientFastImageScreenProps) => {
-    const { client } = route.params;
+    const {
+        item: { client },
+    } = route.params;
     const [imageUrl, setImageUrl] = useState(
         `${client.baseUrl}/api/v4/files/xjiid3qaa38kjxxwr9mxbfxyco`
     );

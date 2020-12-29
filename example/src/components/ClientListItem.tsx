@@ -6,20 +6,19 @@ import { Alert } from "react-native";
 import { ListItem } from "react-native-elements";
 
 type ClientListItemProps = {
-    name: string;
-    client: NetworkClient;
     index: number;
+    item: NetworkClientItem;
     deleteClient: (index: number) => void;
-    navigate: (screen: string, {}: { name: string; client: any }) => void;
+    navigate: (screen: string, {}: { item: NetworkClientItem }) => void;
 };
 
 const ClientListItem = ({
-    name,
-    client,
     index,
+    item,
     deleteClient,
     navigate,
 }: ClientListItemProps) => {
+    const { name, client } = item;
     const [url, setUrl] = useState("");
     const [screen, setScreen] = useState("");
 
@@ -35,7 +34,7 @@ const ClientListItem = ({
         }
     }, []);
 
-    const viewClient = () => navigate(screen, { name, client });
+    const viewClient = () => navigate(screen, { item });
 
     const invalidateClient = () => {
         if ("invalidate" in client) {

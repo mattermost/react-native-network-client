@@ -10,12 +10,27 @@
 import Alamofire
 import SwiftyJSON
 import SwiftKeychainWrapper
+import React
 
 @objc(APIClient)
-class APIClient: NetworkClient {
+class APIClient: RCTEventEmitter, NetworkClient {
+    var emitter: RCTEventEmitter!
+    var hasListeners: Bool!
+
+    open override func supportedEvents() -> [String] {
+        ["NativeClient-UploadProgress"]
+    }
+    
+    override func startObserving() -> Void {
+        hasListeners = true;
+    }
+    
+    override func stopObserving() -> Void {
+        hasListeners = false;
+    }
     
     @objc(createClientFor:withOptions:withResolver:withRejecter:)
-    func createClientFor(baseUrlString: String, options: Dictionary<String, Any>?, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
+    func createClientFor(baseUrlString: String, options: Dictionary<String, Any> = [:], resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
         guard let baseUrl = URL(string: baseUrlString) else {
             rejectMalformed(url: baseUrlString, withRejecter: reject)
             return
@@ -111,6 +126,77 @@ class APIClient: NetworkClient {
     func delete(baseUrl: String, endpoint: String, options: Dictionary<String, Any>, resolve: @escaping RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
         handleRequest(for: baseUrl, withEndpoint: endpoint, withMethod: .delete, withOptions: JSON(options), withResolver: resolve, withRejecter: reject)
     }
+
+    @objc(upload:forEndpoint:withFileUrl:withTaskId:withOptions:withResolver:withRejecter:)
+    func upload(baseUrlString: String, endpoint: String, fileUrlString: String, taskId: String, options: Dictionary<String, Any>, resolve: @escaping RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
+        guard let baseUrl = URL(string: baseUrlString) else {
+            rejectMalformed(url: baseUrlString, withRejecter: reject)
+            return
+        }
+
+        guard let fileUrl = URL(string: fileUrlString) else {
+            rejectMalformed(url: fileUrlString, withRejecter: reject)
+            return
+        }
+
+        guard let session = SessionManager.default.getSession(for: baseUrl) else {
+            rejectInvalidSession(for: baseUrl, withRejecter: reject)
+            return
+        }
+
+        let url = baseUrl.appendingPathComponent(endpoint)
+        upload(fileUrl, to: url, forSession: session, withTaskId: taskId, withOptions: JSON(options), withResolver: resolve, withRejecter: reject)
+    }
+
+    func upload(_ fileUrl: URL, to url: URL, forSession session: Session, withTaskId taskId: String, withOptions options: JSON, withResolver resolve: @escaping RCTPromiseResolveBlock, withRejecter reject: RCTPromiseRejectBlock) -> Void {
+        let headers = getHTTPHeaders(from: options)
+        let interceptor = getInterceptor(from: options)
+        let requestModifer = getRequestModifier(from: options)
+        if let skipBytes = options["skipBytes"].uInt64 {
+            do {
+                let fileHandle = try FileHandle.init(forReadingFrom: fileUrl)
+                if #available(iOS 13.4, *) {
+                    try fileHandle.seek(toOffset: skipBytes)
+
+                    if let data = try? fileHandle.readToEnd() {
+                        session.upload(data, to: url, headers: headers, interceptor: interceptor, requestModifier: requestModifer)
+                            .uploadProgress { progress in
+                                if (self.hasListeners) {
+                                    self.sendEvent(withName: "NativeClient-UploadProgress", body: ["taskId": taskId, "fractionCompleted": progress.fractionCompleted])
+                                }
+                            }
+                            .responseJSON { json in
+                                try? fileHandle.close()
+                                resolve([
+                                    "headers": nil,
+                                    "data": nil,
+                                    "code": nil,
+                                    "lastRequestedUrl": nil
+                                ])
+                            }
+                    }
+                }
+            } catch {
+                reject("\(error.localizedDescription)", "", error)
+                return
+            }
+        } else {
+            session.upload(fileUrl, to: url, headers: headers, interceptor: interceptor, requestModifier: requestModifer)
+                .uploadProgress { progress in
+                    if (self.hasListeners) {
+                        self.sendEvent(withName: "NativeClient-UploadProgress", body: ["taskId": taskId, "fractionCompleted": progress.fractionCompleted])
+                    }
+                }
+                .responseJSON { json in
+                    resolve([
+                        "headers": json.response?.allHeaderFields,
+                        "data": json.value,
+                        "code": json.response?.statusCode,
+                        "lastRequestedUrl": json.response?.url?.absoluteString
+                    ])
+                }
+        }
+    }
     
     func handleRequest(for baseUrlString: String, withEndpoint endpoint: String, withMethod method: HTTPMethod, withOptions options: JSON, withResolver resolve: @escaping RCTPromiseResolveBlock, withRejecter reject: RCTPromiseRejectBlock) -> Void {
         guard let baseUrl = URL(string: baseUrlString) else {
@@ -127,7 +213,7 @@ class APIClient: NetworkClient {
         handleRequest(for: url, withMethod: method, withSession: session, withOptions: options, withResolver: resolve, withRejecter: reject)
     }
 
-    override func handleResponse(for session: Session, withUrl url: URL, withData data: AFDataResponse<Any>) {
+    func handleResponse(for session: Session, withUrl url: URL, withData data: AFDataResponse<Any>) {
         if data.response?.statusCode == 401 && session.cancelRequestsOnUnauthorized {
             session.cancelAllRequests()
         } else if let tokenHeader = session.bearerAuthTokenResponseHeader {
