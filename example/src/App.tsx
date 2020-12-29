@@ -13,6 +13,7 @@ import APIClientScreen from "./screens/APIClientScreen";
 import APIClientRequestScreen from "./screens/APIClientRequestScreen";
 import APIClientUploadScreen from "./screens/APIClientUploadScreen";
 import APIClientFastImageScreen from "./screens/APIClientFastImageScreen";
+import MattermostClientUploadScreen from "./screens/MattermostClientUploadScreen";
 
 const Stack = createStackNavigator();
 
@@ -45,6 +46,10 @@ function App() {
                 <Stack.Screen
                     name="APIClientFastImage"
                     component={APIClientFastImageScreen}
+                />
+                <Stack.Screen
+                    name="MattermostClientUpload"
+                    component={MattermostClientUploadScreen}
                 />
             </Stack.Navigator>
         </NavigationContainer>

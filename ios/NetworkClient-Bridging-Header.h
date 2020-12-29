@@ -10,6 +10,8 @@
 #ifndef NetworkClient_Bridging_Header_h
 #define NetworkClient_Bridging_Header_h
 
+#import <React/RCTBridge.h>
+#import <React/RCTEventDispatcher.h>
 #import <React/RCTBridgeModule.h>
 #import <React/RCTConvert.h>
 

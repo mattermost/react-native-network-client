@@ -44,12 +44,12 @@ import Alamofire
         sessions[baseUrl] = session
     }
 
-    func getSessionHeaders(for baseUrl:URL) -> [AnyHashable : Any]? {
-        guard let session = getSession(for: baseUrl) else {
+    func getSessionHeaders(for baseUrl:URL) -> [AnyHashable : Any] {
+        guard let session = getSession(for: baseUrl), let headers = session.sessionConfiguration.httpAdditionalHeaders else {
             return [:]
         }
 
-        return session.sessionConfiguration.httpAdditionalHeaders
+        return headers
     }
 
     func addSessionHeaders(for baseUrl:URL, additionalHeaders:Dictionary<String, String>) -> Void {

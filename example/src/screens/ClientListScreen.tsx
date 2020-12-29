@@ -46,9 +46,8 @@ export default function ClientListScreen({
         index: number;
     }) => (
         <ClientListItem
-            name={item.name}
             index={index}
-            client={item.client}
+            item={item}
             deleteClient={deleteClient}
             navigate={navigation.navigate}
         />

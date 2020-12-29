@@ -11,8 +11,7 @@ import Alamofire
 import SwiftyJSON
 
 @objc(GenericClient)
-class GenericClient: NetworkClient {
-
+class GenericClient: NSObject, NetworkClient {
     var session = AF
 
     @objc(get:withOptions:withResolver:withRejecter:)
