@@ -6,56 +6,44 @@ import { CheckBox } from "react-native-elements";
 
 import NumericInput from "./NumericInput";
 
-type RetryPolicyConfigurationProps = {
+interface RetryPolicyConfigurationProps extends RetryPolicyConfiguration {
     checked: boolean;
     onCheckBoxPress: () => void;
-    retryLimit?: number;
     setRetryLimit: (value: number) => void;
-    exponentialBackoffBase?: number;
     setExponentialBackoffBase: (value: number) => void;
-    exponentialBackoffScale?: number;
     setExponentialBackoffScale: (value: number) => void;
-};
+}
 
-const RetryPolicyConfiguration = ({
-    checked,
-    onCheckBoxPress,
-    retryLimit,
-    setRetryLimit,
-    exponentialBackoffBase,
-    setExponentialBackoffBase,
-    exponentialBackoffScale,
-    setExponentialBackoffScale,
-}: RetryPolicyConfigurationProps) => (
+const RetryPolicyConfiguration = (props: RetryPolicyConfigurationProps) => (
     <>
         <CheckBox
             title="Retries with exponential backoff?"
-            checked={checked}
-            onPress={onCheckBoxPress}
+            checked={props.checked}
+            onPress={props.onCheckBoxPress}
             iconType="ionicon"
             checkedIcon="ios-checkmark-circle"
             uncheckedIcon="ios-checkmark-circle"
             iconRight
             textStyle={{ flex: 1 }}
         />
-        {checked && (
+        {props.checked && (
             <>
                 <NumericInput
                     title="Retry limit"
-                    value={retryLimit}
-                    onChange={setRetryLimit}
+                    value={props.retryLimit}
+                    onChange={props.setRetryLimit}
                     minValue={0}
                 />
                 <NumericInput
                     title="Exponential backoff base"
-                    value={exponentialBackoffBase}
-                    onChange={setExponentialBackoffBase}
+                    value={props.exponentialBackoffBase}
+                    onChange={props.setExponentialBackoffBase}
                     minValue={2}
                 />
                 <NumericInput
                     title="Exponential backoff scale"
-                    value={exponentialBackoffScale}
-                    onChange={setExponentialBackoffScale}
+                    value={props.exponentialBackoffScale}
+                    onChange={props.setExponentialBackoffScale}
                     minValue={0}
                     valueType="real"
                     step={0.1}
