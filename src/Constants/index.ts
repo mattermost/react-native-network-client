@@ -2,8 +2,8 @@
 // See LICENSE.txt for license information.
 
 import { NativeModules } from "react-native";
-const { NetworkConstants } = NativeModules;
 
-export default {
-    EXPONENTIAL_RETRY: NetworkConstants.EXPONENTIAL_RETRY,
-} as NativeConstants;
+const { NetworkConstants } = NativeModules;
+const Constants = NetworkConstants.getConstants();
+
+export default Constants;

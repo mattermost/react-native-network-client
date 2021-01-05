@@ -25,9 +25,10 @@ export default function CreateAPIClientScreen({
     const [name, setName] = useState("");
     const [baseUrl, setBaseUrl] = useState("");
     const [clientHeaders, setClientHeaders] = useState<Header[]>([]);
-    const [sessionConfiguration, setSessionConfiguration] = useState<
-        SessionConfiguration
-    >({
+    const [
+        sessionConfiguration,
+        setSessionConfiguration,
+    ] = useState<SessionConfiguration>({
         followRedirects: true,
         allowsCellularAccess: true,
         waitsForConnectivity: false,
@@ -36,9 +37,10 @@ export default function CreateAPIClientScreen({
         httpMaximumConnectionsPerHost: 10,
         cancelRequestsOnUnauthorized: false,
     });
-    const [retryPolicyConfiguration, setRetryPolicyConfiguration] = useState<
-        RetryPolicyConfiguration
-    >({
+    const [
+        retryPolicyConfiguration,
+        setRetryPolicyConfiguration,
+    ] = useState<RetryPolicyConfiguration>({
         type: undefined,
         retryLimit: 2,
         exponentialBackoffBase: 2,
