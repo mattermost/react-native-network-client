@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import GenericClient from "./GenericClient";
-import { getOrCreateAPIClient } from "./ApiClient";
+import { getOrCreateAPIClient } from "./APIClient";
 import { getOrCreateWebSocketClient } from "./WebSocketClient";
 import Constants from "./Constants";
 

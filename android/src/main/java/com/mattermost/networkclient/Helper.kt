@@ -13,6 +13,7 @@ fun Response.returnAsWriteableMap (): WritableMap {
     map.putMap("headers", headers)
     map.putString("data", this.body!!.string())
     map.putInt("code", this.code)
+    map.putBoolean("ok", this.isSuccessful)
     return map;
 }
 
