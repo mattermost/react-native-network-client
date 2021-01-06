@@ -1,0 +1,32 @@
+diff --git a/node_modules/react-native-numeric-input/NumericInput/NumericInput.js b/node_modules/react-native-numeric-input/NumericInput/NumericInput.js
+index 851502c..5955963 100644
+--- a/node_modules/react-native-numeric-input/NumericInput/NumericInput.js
++++ b/node_modules/react-native-numeric-input/NumericInput/NumericInput.js
+@@ -18,17 +18,19 @@ export default class NumericInput extends Component {
+         }
+         this.ref = null
+     }
+-    componentWillReceiveProps(props) {
+-        const initSent = !(props.initValue !== 0 && !props.initValue)
+-        if (props.initValue !== this.state.value && initSent) {
+ 
+-            this.setState({
+-                value: props.initValue,
+-                lastValid: props.initValue,
+-                stringValue: props.initValue.toString()
+-            });
++    static getDerivedStateFromProps(nextProps, prevState) {
++        const initSent = !(nextProps.initValue !== 0 && !nextProps.initValue)
++        if (nextProps.initValue !== prevState.value && initSent) {
++            return {
++                value: nextProps.initValue,
++                lastValid: nextProps.initValue,
++                stringValue: nextProps.initValue.toString()
++            };
+         }
++        return null;
+     }
++
+     updateBaseResolution = (width, height) => {
+         calcSize = create({ width, height })
+     }
