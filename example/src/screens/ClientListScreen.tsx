@@ -8,7 +8,7 @@ import { ButtonGroup } from "react-native-elements";
 import GenericClient from "@mattermost/react-native-network-client";
 
 import ClientListItem from "../components/ClientListItem";
-import { createMattermostAPIClient } from "../utils";
+import { createMattermostAPIClient, networkClientKeyExtractor } from "../utils";
 
 export default function ClientListScreen({
     navigation,
@@ -54,16 +54,6 @@ export default function ClientListScreen({
         />
     );
 
-    const keyExtractor = (item: NetworkClientItem) => {
-        if ("baseUrl" in item.client) {
-            return item.client.baseUrl;
-        } else if ("wsUrl" in item.client) {
-            return item.client.wsUrl;
-        }
-
-        return item.name;
-    };
-
     const buttons = [
         {
             title: "Add API Client",
@@ -82,7 +72,7 @@ export default function ClientListScreen({
             <FlatList
                 data={clients}
                 renderItem={renderItem}
-                keyExtractor={keyExtractor}
+                keyExtractor={networkClientKeyExtractor}
             />
             <ButtonGroup
                 buttons={buttons.map((button) => button.title)}
