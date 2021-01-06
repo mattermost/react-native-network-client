@@ -14,7 +14,7 @@ import okhttp3.Response
  *
  * @return WriteableMap for passing back to App
  */
-fun Response.parse(): WritableMap {
+fun Response.returnAsWriteableMap(): WritableMap {
     val headers = Arguments.createMap();
     this.headers.forEach { k -> headers.putString(k.first, k.second) }
 
@@ -33,7 +33,7 @@ fun Response.parse(): WritableMap {
  */
 fun Response.promiseResolution(promise: Promise): Response {
     if (this.isSuccessful) {
-        promise.resolve(this.parse());
+        promise.resolve(this.returnAsWriteableMap());
     } else {
         promise.reject(this.code.toString(), this.returnAsWriteableMap())
     }
@@ -59,7 +59,7 @@ fun OkHttpClient.Builder.parseOptions(options: ReadableMap): OkHttpClient.Builde
     this.followSslRedirects(false);
 
     val followRedirect = options.getBoolean("followRedirects")
-    if (followRedirect != null) {
+    if (followRedirect) {
         this.followRedirects(followRedirect)
         this.followSslRedirects(followRedirect)
     }
