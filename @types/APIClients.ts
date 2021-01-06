@@ -52,7 +52,7 @@ type SessionConfiguration = {
 };
 
 type RetryPolicyConfiguration = {
-    type?: NativeConstants["EXPONENTIAL_RETRY"];
+    type?: keyof Constants;
     retryLimit?: number;
     exponentialBackoffBase?: number;
     exponentialBackoffScale?: number;
