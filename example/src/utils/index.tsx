@@ -72,3 +72,13 @@ export const createMattermostAPIClient = async (): Promise<APIClientItem | null>
         isMattermostClient: true,
     };
 };
+
+export const networkClientKeyExtractor = (item: NetworkClientItem) => {
+    if ("baseUrl" in item.client) {
+        return item.client.baseUrl;
+    } else if ("wsUrl" in item.client) {
+        return item.client.wsUrl;
+    }
+
+    return item.name;
+};

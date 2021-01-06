@@ -26,6 +26,7 @@ type ClientResponse = {
     data?: Record<string, unknown>;
     code: number;
     lastRequestedUrl: string;
+    ok: boolean;
 };
 
 interface GenericClientInterface {
@@ -67,7 +68,7 @@ type SessionConfiguration = {
 };
 
 type RetryPolicyConfiguration = {
-    type?: NativeConstants["EXPONENTIAL_RETRY"];
+    type?: keyof Constants;
     retryLimit?: number;
     exponentialBackoffBase?: number;
     exponentialBackoffScale?: number;

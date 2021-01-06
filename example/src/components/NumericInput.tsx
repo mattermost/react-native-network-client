@@ -14,28 +14,21 @@ type ClientNumericInputProps = {
     step?: number;
 };
 
-const ClientNumericInput = ({
-    title,
-    value,
-    onChange,
-    minValue,
-    valueType,
-    step,
-}: ClientNumericInputProps) => {
+const ClientNumericInput = (props: ClientNumericInputProps) => {
     const rightIcon = (
         <NumericInput
-            value={value}
-            onChange={onChange}
+            value={props.value}
+            onChange={props.onChange}
             totalHeight={35}
-            minValue={minValue}
-            valueType={valueType}
-            step={step}
+            minValue={props.minValue}
+            valueType={props.valueType}
+            step={props.step}
         />
     );
 
     return (
         <Input
-            placeholder={title}
+            placeholder={props.title}
             disabled={true}
             style={{ fontWeight: "bold", fontSize: 17, opacity: 1 }}
             containerStyle={{ height: 50 }}
