@@ -5,14 +5,12 @@ import React, { useState } from "react";
 import { Alert, SafeAreaView, ScrollView, StyleSheet } from "react-native";
 import { Button, CheckBox, Input } from "react-native-elements";
 
-import {
-    getOrCreateAPIClient,
-    Constants,
-} from "@mattermost/react-native-network-client";
+import { getOrCreateAPIClient } from "@mattermost/react-native-network-client";
 
 import AddHeaders from "../components/AddHeaders";
 import NumericInput from "../components/NumericInput";
 import RetryPolicyConfiguration from "../components/RetryPolicyConfiguration";
+import { useRetryPolicyConfiguration, useSessionConfiguration } from "../hooks";
 import { parseHeaders } from "../utils";
 
 const styles = StyleSheet.create({
@@ -25,27 +23,26 @@ export default function CreateAPIClientScreen({
     const [name, setName] = useState("");
     const [baseUrl, setBaseUrl] = useState("");
     const [clientHeaders, setClientHeaders] = useState<Header[]>([]);
+
     const [
         sessionConfiguration,
-        setSessionConfiguration,
-    ] = useState<SessionConfiguration>({
-        followRedirects: true,
-        allowsCellularAccess: true,
-        waitsForConnectivity: false,
-        timeoutIntervalForRequest: 30,
-        timeoutIntervalForResource: 30,
-        httpMaximumConnectionsPerHost: 10,
-        cancelRequestsOnUnauthorized: false,
-    });
+        toggleFollowRedirects,
+        toggleAllowsCellularAccess,
+        toggleWaitsForConnectivity,
+        toggleCancelRequestsOnUnauthorized,
+        setTimeoutIntervalForRequest,
+        setTimeoutIntervalForResource,
+        setHttpMaximumConnectionsPerHost,
+    ] = useSessionConfiguration();
+
     const [
         retryPolicyConfiguration,
-        setRetryPolicyConfiguration,
-    ] = useState<RetryPolicyConfiguration>({
-        type: undefined,
-        retryLimit: 2,
-        exponentialBackoffBase: 2,
-        exponentialBackoffScale: 0.5,
-    });
+        toggleRetryPolicyType,
+        setRetryLimit,
+        setExponentialBackoffBase,
+        setExponentialBackoffScale,
+    ] = useRetryPolicyConfiguration();
+
     const [
         requestAdapterConfiguration,
         setRequestAdapterConfiguration,
@@ -53,67 +50,6 @@ export default function CreateAPIClientScreen({
         bearerAuthTokenResponseHeader: "",
     });
 
-    const toggleFollowRedirects = () =>
-        setSessionConfiguration({
-            ...sessionConfiguration,
-            followRedirects: !sessionConfiguration.followRedirects,
-        });
-    const toggleAllowsCellularAccess = () =>
-        setSessionConfiguration({
-            ...sessionConfiguration,
-            allowsCellularAccess: !sessionConfiguration.allowsCellularAccess,
-        });
-    const toggleWaitsForConnectivity = () =>
-        setSessionConfiguration({
-            ...sessionConfiguration,
-            waitsForConnectivity: !sessionConfiguration.waitsForConnectivity,
-        });
-    const toggleCancelRequestsOnUnauthorized = () =>
-        setSessionConfiguration({
-            ...sessionConfiguration,
-            cancelRequestsOnUnauthorized: !sessionConfiguration.cancelRequestsOnUnauthorized,
-        });
-    const setTimeoutIntervalForRequest = (timeoutIntervalForRequest: number) =>
-        setSessionConfiguration({
-            ...sessionConfiguration,
-            timeoutIntervalForRequest,
-        });
-    const setTimeoutIntervalForResource = (
-        timeoutIntervalForResource: number
-    ) =>
-        setSessionConfiguration({
-            ...sessionConfiguration,
-            timeoutIntervalForResource,
-        });
-    const setHttpMaximumConnectionsPerHost = (
-        httpMaximumConnectionsPerHost: number
-    ) =>
-        setSessionConfiguration({
-            ...sessionConfiguration,
-            httpMaximumConnectionsPerHost,
-        });
-    const toggleRetryPolicyType = () =>
-        setRetryPolicyConfiguration({
-            ...retryPolicyConfiguration,
-            type: retryPolicyConfiguration.type
-                ? undefined
-                : Constants.EXPONENTIAL_RETRY,
-        });
-    const setRetryLimit = (retryLimit: number) =>
-        setRetryPolicyConfiguration({
-            ...retryPolicyConfiguration,
-            retryLimit,
-        });
-    const setExponentialBackoffBase = (exponentialBackoffBase: number) =>
-        setRetryPolicyConfiguration({
-            ...retryPolicyConfiguration,
-            exponentialBackoffBase,
-        });
-    const setExponentialBackoffScale = (exponentialBackoffScale: number) =>
-        setRetryPolicyConfiguration({
-            ...retryPolicyConfiguration,
-            exponentialBackoffScale,
-        });
     const setBearerAuthTokenResponseHeader = (
         bearerAuthTokenResponseHeader: string
     ) =>

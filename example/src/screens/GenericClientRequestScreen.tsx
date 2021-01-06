@@ -2,12 +2,11 @@ import React, { useState } from "react";
 import { Alert, SafeAreaView, ScrollView } from "react-native";
 import { Button, ButtonGroup, Input } from "react-native-elements";
 
-import { Constants } from "@mattermost/react-native-network-client";
-
 import AddHeaders from "../components/AddHeaders";
 import NumericInput from "../components/NumericInput";
 import ResponseOverlay from "../components/ResponseOverlay";
 import RetryPolicyConfiguration from "../components/RetryPolicyConfiguration";
+import { useRetryPolicyConfiguration } from "../hooks";
 import { parseHeaders, METHODS } from "../utils";
 
 const GenericClientRequestScreen = ({
@@ -21,39 +20,15 @@ const GenericClientRequestScreen = ({
     const [requestHeaders, setRequestHeaders] = useState<Header[]>([]);
     const [response, setResponse] = useState<ClientResponse>();
     const [responseVisible, setResponseVisible] = useState(false);
-    const [retryPolicyConfiguration, setRetryPolicyConfiguration] = useState<
-        RetryPolicyConfiguration
-    >({
-        type: undefined,
-        retryLimit: 2,
-        exponentialBackoffBase: 2,
-        exponentialBackoffScale: 0.5,
-    });
+    const [
+        retryPolicyConfiguration,
+        toggleRetryPolicyType,
+        setRetryLimit,
+        setExponentialBackoffBase,
+        setExponentialBackoffScale,
+    ] = useRetryPolicyConfiguration();
 
     const methods = Object.keys(METHODS);
-
-    const toggleRetryPolicyType = () =>
-        setRetryPolicyConfiguration({
-            ...retryPolicyConfiguration,
-            type: retryPolicyConfiguration.type
-                ? undefined
-                : Constants.EXPONENTIAL_RETRY,
-        });
-    const setRetryLimit = (retryLimit: number) =>
-        setRetryPolicyConfiguration({
-            ...retryPolicyConfiguration,
-            retryLimit,
-        });
-    const setExponentialBackoffBase = (exponentialBackoffBase: number) =>
-        setRetryPolicyConfiguration({
-            ...retryPolicyConfiguration,
-            exponentialBackoffBase,
-        });
-    const setExponentialBackoffScale = (exponentialBackoffScale: number) =>
-        setRetryPolicyConfiguration({
-            ...retryPolicyConfiguration,
-            exponentialBackoffScale,
-        });
 
     const makeRequest = async () => {
         const method = methods[selectedMethodIndex];
