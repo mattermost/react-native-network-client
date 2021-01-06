@@ -15,17 +15,6 @@ class GenericClientModule(reactContext: ReactApplicationContext) : ReactContextB
         return "GenericClient"
     }
 
-    private fun parseResponse(response: Response): WritableMap {
-        val headers = Arguments.createMap();
-        response.headers.forEach{ k -> headers.putString(k.first, k.second) }
-
-        val map = Arguments.createMap()
-        map.putMap("headers", headers)
-        map.putString("data", response.body!!.string())
-        map.putInt("code", response.code)
-        return map;
-    }
-
     @ReactMethod
     fun get(url: String, options: ReadableMap, promise: Promise){
         val request = Request.Builder().url(url).build();

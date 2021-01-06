@@ -19,6 +19,7 @@ type ClientResponse = {
     data?: Record<string, unknown>;
     code: number;
     lastRequestedUrl: string;
+    ok: boolean;
 };
 
 interface GenericClientInterface {
