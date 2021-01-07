@@ -55,8 +55,8 @@ fun Request.Builder.parseOptions(options: ReadableMap): Request.Builder {
  * @params options ReadableMap of options from the App
  */
 fun OkHttpClient.Builder.parseOptions(options: ReadableMap): OkHttpClient.Builder {
-    this.followRedirects(false);
-    this.followSslRedirects(false);
+    this.followRedirects(true);
+    this.followSslRedirects(true);
 
     val followRedirects = options.getBoolean("followRedirects")
     if (followRedirects) {
