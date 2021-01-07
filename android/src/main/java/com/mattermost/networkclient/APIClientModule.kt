@@ -64,7 +64,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     @ReactMethod
     fun get(baseUrl: String, endpoint: String, options: ReadableMap, promise: Promise) {
         try {
-            val request = sessions[baseUrl]!!.url("$baseUrl/$endpoint").parseOptions(options).build();
+            val request = sessions[baseUrl]!!.url("$baseUrl/$endpoint").parseOptions(options, sessionsClient[baseUrl]!!).build();
             sessionsClient[baseUrl]!!.build().newCall(request).execute().use { response ->
                 response.promiseResolution(promise)
             }
@@ -77,7 +77,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     fun post(baseUrl: String, endpoint: String, options: ReadableMap, promise: Promise) {
         try {
             val body = options.getMap("body").toString().toRequestBody();
-            val request = sessions[baseUrl]!!.url("$baseUrl/$endpoint").post(body).parseOptions(options).build();
+            val request = sessions[baseUrl]!!.url("$baseUrl/$endpoint").post(body).parseOptions(options, sessionsClient[baseUrl]!!).build();
             sessionsClient[baseUrl]!!.build().newCall(request).execute().use { response ->
                 response.promiseResolution(promise)
             }
@@ -90,7 +90,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     fun put(baseUrl: String, endpoint: String, options: ReadableMap, promise: Promise) {
         try {
             val body = options.getMap("body").toString().toRequestBody();
-            val request = sessions[baseUrl]!!.url("$baseUrl/$endpoint").put(body).parseOptions(options).build();
+            val request = sessions[baseUrl]!!.url("$baseUrl/$endpoint").put(body).parseOptions(options, sessionsClient[baseUrl]!!).build();
             sessionsClient[baseUrl]!!.build().newCall(request).execute().use { response ->
                 response.promiseResolution(promise)
             }
@@ -103,7 +103,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     fun patch(baseUrl: String, endpoint: String, options: ReadableMap, promise: Promise) {
         try {
             val body = options.getMap("body").toString().toRequestBody();
-            val request = sessions[baseUrl]!!.url("$baseUrl/$endpoint").patch(body).parseOptions(options).build();
+            val request = sessions[baseUrl]!!.url("$baseUrl/$endpoint").patch(body).parseOptions(options, sessionsClient[baseUrl]!!).build();
             sessionsClient[baseUrl]!!.build().newCall(request).execute().use { response ->
                 response.promiseResolution(promise)
             }
@@ -116,7 +116,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     fun delete(baseUrl: String, endpoint: String, options: ReadableMap, promise: Promise) {
         try {
             val body = options.getMap("body").toString().toRequestBody();
-            val request = sessions[baseUrl]!!.url("$baseUrl/$endpoint").delete(body).parseOptions(options).build();
+            val request = sessions[baseUrl]!!.url("$baseUrl/$endpoint").delete(body).parseOptions(options, sessionsClient[baseUrl]!!).build();
             sessionsClient[baseUrl]!!.build().newCall(request).execute().use { response ->
                 response.promiseResolution(promise)
             }

@@ -46,7 +46,11 @@ fun Response.promiseResolution(promise: Promise): Response {
  *
  * @param options ReadableMap of options from the App
  */
-fun Request.Builder.parseOptions(options: ReadableMap): Request.Builder {
+fun Request.Builder.parseOptions(options: ReadableMap, session: OkHttpClient.Builder): Request.Builder {
+    val timeoutInterval = options.getInt("timeoutInterval");
+    if(timeoutInterval > 0){
+        session.addNetworkInterceptor(TimeoutInterceptor(timeoutInterval))
+    }
     return this
 }
 
