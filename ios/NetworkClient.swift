@@ -62,7 +62,7 @@ extension NetworkClient {
         let requestModifer = getRequestModifier(from: options)
         let interceptor = getInterceptor(from: options)
 
-        session.request(url, method: method, parameters: parameters!, encoder: encoder, headers: headers, interceptor: interceptor, requestModifier: requestModifer).responseJSON { json in
+        session.request(url, method: method, parameters: parameters, encoder: encoder, headers: headers, interceptor: interceptor, requestModifier: requestModifer).responseJSON { json in
             self.handleResponse(for: session, withUrl: url, withData: json)
             
             resolve([

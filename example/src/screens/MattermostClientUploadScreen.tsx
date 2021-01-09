@@ -1,12 +1,23 @@
 import React, { useState } from "react";
-import { Image, SafeAreaView, ScrollView } from "react-native";
+import { Alert, Image, SafeAreaView, ScrollView, View } from "react-native";
 import DocumentPicker from "react-native-document-picker";
 import { check, request, PERMISSIONS, RESULTS } from "react-native-permissions";
-import { launchImageLibrary } from "react-native-image-picker/src/index";
+import { launchImageLibrary } from "react-native-image-picker/src";
 import { Bar as ProgressBar } from "react-native-progress";
-import { Button, ButtonGroup, Input } from "react-native-elements";
+import { Button, ButtonGroup, Input, Text } from "react-native-elements";
+import Icon from "react-native-vector-icons/Ionicons";
 
-import type { ImagePickerResponse } from "react-native-image-picker/src/index";
+type UploadFailure = {
+    offset?: number;
+    size?: number;
+};
+
+type ParsedPickerResponse = {
+    name?: string;
+    size?: number;
+    type?: string;
+    uri?: string;
+};
 
 const MattermostClientUploadScreen = ({
     route,
@@ -15,17 +26,25 @@ const MattermostClientUploadScreen = ({
         item: { client },
     } = route.params;
 
-    const [channelId, setChannelId] = useState("ygpq783yqig5ic9kimojf3nrro");
+    const [channelId, setChannelId] = useState("pspxu7bu17yttmtnzsjnqu78fe");
     const [sessionId, setSessionId] = useState("");
-    const [file, setFile] = useState<ImagePickerResponse>();
+    const [file, setFile] = useState<ParsedPickerResponse>();
     const [progress, setProgress] = useState(0);
+    const [uploadFailure, setUploadFailure] = useState<UploadFailure>({});
+
+    const reset = () => {
+        setSessionId("");
+        setFile({});
+        setProgress(0);
+        setUploadFailure({});
+    };
 
     const createUploadSession = async () => {
         const options: RequestOptions = {
             body: {
                 channel_id: channelId,
-                filename: file!.fileName,
-                file_size: file!.fileSize,
+                filename: file!.name,
+                file_size: file!.size,
             },
         };
         const response = await client.post("/api/v4/uploads", options);
@@ -36,27 +55,53 @@ const MattermostClientUploadScreen = ({
         }
     };
 
-    const uploadAndPost = async () => {
-        const uploadResponse = await client.upload(
-            `/api/v4/uploads/${sessionId}`,
-            file!.uri!
-        ).progress!((fractionCompleted) => {
-            setProgress(fractionCompleted);
-        });
+    const uploadAndPost = async (skipBytes?: number) => {
+        setUploadFailure({});
+
+        let options: UploadRequestOptions = {};
+        if (skipBytes !== undefined) {
+            options.skipBytes = skipBytes;
+        }
+
+        let uploadResponse;
+        try {
+            uploadResponse = await client.upload(
+                `/api/v4/uploads/${sessionId}`,
+                file!.uri!,
+                options
+            ).progress!((fractionCompleted) => {
+                setProgress(fractionCompleted);
+            });
+        } catch (error) {
+            Alert.alert("Upload error", error.message);
+        }
 
         if (uploadResponse?.code === 200) {
-            const options: RequestOptions = {
-                body: {
-                    channel_id: channelId,
-                    message: "Upload test",
-                    file_ids: [uploadResponse.data!.id],
-                },
-            };
-            await client.post("/api/v4/posts", options);
+            try {
+                const requestOptions: RequestOptions = {
+                    body: {
+                        channel_id: channelId,
+                        message: options.skipBytes
+                            ? "Resume upload test"
+                            : "Upload test",
+                        file_ids: [uploadResponse.data!.id],
+                    },
+                };
+                await client.post("/api/v4/posts", requestOptions);
+                reset();
+            } catch (error) {
+                Alert.alert("Post error", error.message);
+            }
         } else {
-            console.log(uploadResponse);
+            const { data } = await client.get(`/api/v4/uploads/${sessionId}`);
+            setUploadFailure({
+                offset: data!.file_offset as number,
+                size: data!.file_size as number,
+            });
         }
     };
+
+    const resumeUploadAndPost = () => uploadAndPost(uploadFailure.offset);
 
     const hasPhotoLibraryPermissions = async () => {
         let result = await check(PERMISSIONS.IOS.PHOTO_LIBRARY);
@@ -80,7 +125,7 @@ const MattermostClientUploadScreen = ({
                 const result = await DocumentPicker.pick({
                     type: [DocumentPicker.types.allFiles],
                 });
-                console.log(result);
+                setFile(result);
             } catch (err) {
                 if (DocumentPicker.isCancel(err)) {
                     // User cancelled the picker, exit any dialogs or menus and move on
@@ -95,7 +140,12 @@ const MattermostClientUploadScreen = ({
         const hasPermission = await hasPhotoLibraryPermissions();
         if (hasPermission) {
             launchImageLibrary({ quality: 1, mediaType: "photo" }, (result) => {
-                setFile(result);
+                setFile({
+                    name: result.fileName,
+                    type: result.type,
+                    size: result.fileSize,
+                    uri: result.uri,
+                });
             });
         }
     };
@@ -107,10 +157,10 @@ const MattermostClientUploadScreen = ({
 
     const onButtonPress = (index: number) => buttons[index].onPress();
 
-    const ImageToUpload = () => {
+    const FileToUpload = () => {
         if (Boolean(file?.uri)) {
-            return (
-                <>
+            const FileComponent = () =>
+                file?.type && file.type.startsWith("image") ? (
                     <Image
                         source={{ uri: file!.uri }}
                         style={{
@@ -120,6 +170,28 @@ const MattermostClientUploadScreen = ({
                             alignSelf: "center",
                         }}
                     />
+                ) : (
+                    <View
+                        style={{
+                            borderWidth: 1,
+                            width: 200,
+                            height: 200,
+                            alignSelf: "center",
+                            justifyContent: "center",
+                        }}
+                    >
+                        <Icon
+                            name="document-text"
+                            size={64}
+                            style={{ alignSelf: "center" }}
+                        />
+                    </View>
+                );
+
+            return (
+                <>
+                    <FileComponent />
+                    <Text style={{ alignSelf: "center" }}>{file?.name}</Text>
                     <ProgressBar
                         progress={progress}
                         width={200}
@@ -142,8 +214,13 @@ const MattermostClientUploadScreen = ({
         return null;
     };
 
-    const CreateSessionButton = () => {
-        if (Boolean(channelId) && !Boolean(sessionId) && Boolean(file?.uri)) {
+    const UploadButton = () => {
+        const hasChannelId = Boolean(channelId);
+        const hasSessionId = Boolean(sessionId);
+        const hasFileUri = Boolean(file?.uri);
+        const failed = Boolean(uploadFailure.size);
+
+        if (hasChannelId && !hasSessionId && hasFileUri) {
             return (
                 <Button
                     title="Create Upload Session"
@@ -151,19 +228,43 @@ const MattermostClientUploadScreen = ({
                     style={{ paddingHorizontal: 10, paddingVertical: 5 }}
                 />
             );
-        }
-
-        return null;
-    };
-
-    const UploadButton = () => {
-        if (Boolean(channelId) && Boolean(sessionId) && Boolean(file?.uri)) {
+        } else if (hasChannelId && hasSessionId && hasFileUri && !failed) {
             return (
                 <Button
                     title="Upload and Post"
-                    onPress={uploadAndPost}
+                    onPress={() => uploadAndPost()}
                     style={{ paddingHorizontal: 10, paddingVertical: 5 }}
                 />
+            );
+        } else if (failed) {
+            return (
+                <View>
+                    <Text
+                        style={{
+                            color: "red",
+                            alignSelf: "center",
+                            padding: 10,
+                        }}
+                    >
+                        {`Uploading failed at ${uploadFailure.offset} of ${uploadFailure.size}`}
+                    </Text>
+                    <View
+                        style={{
+                            flexDirection: "row",
+                            justifyContent: "space-evenly",
+                        }}
+                    >
+                        <View style={{ flex: 1, paddingHorizontal: 10 }}>
+                            <Button
+                                title="Resume?"
+                                onPress={resumeUploadAndPost}
+                            />
+                        </View>
+                        <View style={{ flex: 1, paddingHorizontal: 10 }}>
+                            <Button title="Cancel" />
+                        </View>
+                    </View>
+                </View>
             );
         }
 
@@ -185,9 +286,8 @@ const MattermostClientUploadScreen = ({
                     buttons={buttons.map((button) => button.title)}
                     onPress={onButtonPress}
                 />
-                <ImageToUpload />
+                <FileToUpload />
             </ScrollView>
-            <CreateSessionButton />
             <UploadButton />
         </SafeAreaView>
     );

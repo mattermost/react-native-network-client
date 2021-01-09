@@ -168,10 +168,10 @@ class APIClient: RCTEventEmitter, NetworkClient {
                             .responseJSON { json in
                                 try? fileHandle.close()
                                 resolve([
-                                    "headers": nil,
-                                    "data": nil,
-                                    "code": nil,
-                                    "lastRequestedUrl": nil
+                                    "headers": json.response?.allHeaderFields,
+                                    "data": json.value,
+                                    "code": json.response?.statusCode,
+                                    "lastRequestedUrl": json.response?.url?.absoluteString
                                 ])
                             }
                     }

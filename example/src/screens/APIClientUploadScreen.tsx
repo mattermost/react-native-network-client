@@ -2,11 +2,11 @@ import React, { useState } from "react";
 import { Image, View } from "react-native";
 import DocumentPicker from "react-native-document-picker";
 import { check, request, PERMISSIONS, RESULTS } from "react-native-permissions";
-import { launchImageLibrary } from "react-native-image-picker/src/index";
+import { launchImageLibrary } from "react-native-image-picker/src";
 import { Bar as ProgressBar } from "react-native-progress";
 import { Button, ButtonGroup } from "react-native-elements";
 
-import type { ImagePickerResponse } from "react-native-image-picker/src/index";
+import type { ImagePickerResponse } from "react-native-image-picker/src";
 
 const APIClientUploadScreen = ({ route }: APIClientUploadScreenProps) => {
     const {
