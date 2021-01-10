@@ -58,8 +58,8 @@ fun OkHttpClient.Builder.parseOptions(options: ReadableMap): OkHttpClient.Builde
     this.followRedirects(true);
     this.followSslRedirects(true);
 
-    val followRedirects = options.getBoolean("followRedirects")
-    if (followRedirects) {
+    if (options.hasKey("followRedirects")) {
+        val followRedirects = options.getBoolean("followRedirects")
         this.followRedirects(followRedirects)
         this.followSslRedirects(followRedirects)
     }
