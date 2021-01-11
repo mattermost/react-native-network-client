@@ -14,7 +14,7 @@ import Alamofire
 
     @objc public static let `default` = SessionManager()
     private override init() {}
-    internal var sessions: [String: Session] = [:]
+    internal var sessions: [URL: Session] = [:]
     
     func sessionCount() -> Int {
         return sessions.count
@@ -25,45 +25,46 @@ import Alamofire
     //  * ServerTrustManager
     //  * CachedResponseHandler
     //  * EventMonitor(s)
-    func createSession(for host:String,
+    func createSession(for baseUrl:URL,
                        withConfiguration configuration:URLSessionConfiguration = URLSessionConfiguration.af.default,
                        withInterceptor interceptor:Interceptor? = nil,
                        withRedirectHandler redirectHandler:RedirectHandler? = nil,
                        withCancelRequestsOnUnauthorized cancelRequestsOnUnauthorized:Bool = false,
                        withBearerAuthTokenResponseHeader bearerAuthTokenResponseHeader:String? = nil) -> Void {
-        var session = getSession(for: host)
+        var session = getSession(for: baseUrl)
         if (session != nil) {
             return
         }
 
         session = Session(configuration: configuration, interceptor: interceptor, redirectHandler: redirectHandler)
+        session?.baseUrl = baseUrl
         session?.cancelRequestsOnUnauthorized = cancelRequestsOnUnauthorized
         session?.bearerAuthTokenResponseHeader = bearerAuthTokenResponseHeader
 
-        sessions[host] = session
+        sessions[baseUrl] = session
     }
 
-    func getSessionHeaders(for host:String) -> [AnyHashable : Any]? {
-        guard let session = getSession(for: host) else {
+    func getSessionHeaders(for baseUrl:URL) -> [AnyHashable : Any]? {
+        guard let session = getSession(for: baseUrl) else {
             return [:]
         }
 
         return session.sessionConfiguration.httpAdditionalHeaders
     }
 
-    func addSessionHeaders(for host:String, additionalHeaders:Dictionary<String, String>) -> Void {
-        guard let previousSession = getSession(for: host) else {
+    func addSessionHeaders(for baseUrl:URL, additionalHeaders:Dictionary<String, String>) -> Void {
+        guard let previousSession = getSession(for: baseUrl) else {
             return
         }
 
-        invalidateSession(for: host)
+        invalidateSession(for: baseUrl)
 
         let configuration = previousSession.sessionConfiguration
         let previousHeaders = configuration.httpAdditionalHeaders ?? [:]
         let newHeaders = previousHeaders.merging(additionalHeaders) {(_, new) in new}
         configuration.httpAdditionalHeaders = newHeaders
 
-        createSession(for: host,
+        createSession(for: baseUrl,
                       withConfiguration: configuration,
                       withInterceptor: previousSession.interceptor as? Interceptor,
                       withRedirectHandler: previousSession.redirectHandler,
@@ -71,24 +72,55 @@ import Alamofire
                       withBearerAuthTokenResponseHeader: previousSession.bearerAuthTokenResponseHeader)
     }
     
-    func getSession(for host:String) -> Session? {
-        return sessions[host]
+    func getSession(for baseUrl:URL) -> Session? {
+        return sessions[baseUrl]
     }
     
-    @objc public func getSessionConfiguration(for host:String) -> URLSessionConfiguration? {
-        if let session = getSession(for: host) {
+    @objc public func getSessionBaseUrlString(for request:URLRequest) -> String? {
+        if let requestUrl = request.url {
+            if let session = getSession(for: requestUrl) {
+                return session.baseUrl.absoluteString
+            }
+            
+            guard let scheme = requestUrl.scheme, let host = requestUrl.host, let hostUrl = URL(string: "\(scheme)://\(host)") else {
+                return nil
+            }
+
+            var pathComponents = requestUrl.pathComponents
+            while (pathComponents.count != 0) {
+                var url = hostUrl
+                for component in pathComponents {
+                    url = url.appendingPathComponent(component)
+                }
+                if let session = getSession(for: url) {
+                    return session.baseUrl.absoluteString
+                }
+                
+                pathComponents.removeLast()
+            }
+            
+            if let session = getSession(for: hostUrl) {
+                return session.baseUrl.absoluteString
+            }
+        }
+        
+        return nil
+    }
+    
+    @objc public func getSessionConfiguration(for baseUrlString:String) -> URLSessionConfiguration? {
+        if let baseUrl = URL(string: baseUrlString), let session = getSession(for: baseUrl) {
             return session.session.configuration
         }
         
         return nil
     }
     
-    func invalidateSession(for host:String) -> Void {
-        guard let session = getSession(for: host) else {
+    func invalidateSession(for baseUrl:URL) -> Void {
+        guard let session = getSession(for: baseUrl) else {
             return
         }
         
         session.session.invalidateAndCancel()
-        sessions.removeValue(forKey: host)
+        sessions.removeValue(forKey: baseUrl)
     }
 }
