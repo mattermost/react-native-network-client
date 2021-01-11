@@ -154,27 +154,37 @@ class APIClient: RCTEventEmitter, NetworkClient {
         let requestModifer = getRequestModifier(from: options)
         if let skipBytes = options["skipBytes"].uInt64 {
             do {
+                let data: Data?
                 let fileHandle = try FileHandle.init(forReadingFrom: fileUrl)
                 if #available(iOS 13.4, *) {
                     try fileHandle.seek(toOffset: skipBytes)
+                    data = try? fileHandle.readToEnd()
+                } else {
+                    fileHandle.seek(toFileOffset: skipBytes)
+                    data = fileHandle.readDataToEndOfFile()
+                }
 
-                    if let data = try? fileHandle.readToEnd() {
-                        session.upload(data, to: url, headers: headers, interceptor: interceptor, requestModifier: requestModifer)
-                            .uploadProgress { progress in
-                                if (self.hasListeners) {
-                                    self.sendEvent(withName: "NativeClient-UploadProgress", body: ["taskId": taskId, "fractionCompleted": progress.fractionCompleted])
-                                }
+                if let data = data {
+                    session.upload(data, to: url, headers: headers, interceptor: interceptor, requestModifier: requestModifer)
+                        .uploadProgress { progress in
+                            if (self.hasListeners) {
+                                self.sendEvent(withName: "NativeClient-UploadProgress", body: ["taskId": taskId, "fractionCompleted": progress.fractionCompleted])
                             }
-                            .responseJSON { json in
+                        }
+                        .responseJSON { json in
+                            if #available(iOS 13.4, *) {
                                 try? fileHandle.close()
-                                resolve([
-                                    "headers": json.response?.allHeaderFields,
-                                    "data": json.value,
-                                    "code": json.response?.statusCode,
-                                    "lastRequestedUrl": json.response?.url?.absoluteString
-                                ])
+                            } else {
+                                fileHandle.closeFile()
                             }
-                    }
+
+                            resolve([
+                                "headers": json.response?.allHeaderFields,
+                                "data": json.value,
+                                "code": json.response?.statusCode,
+                                "lastRequestedUrl": json.response?.url?.absoluteString
+                            ])
+                        }
                 }
             } catch {
                 reject("\(error.localizedDescription)", "", error)
