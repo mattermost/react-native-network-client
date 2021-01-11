@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
         ...Platform.select({
             ios: { borderColor: PlatformColor("link") },
             android: {
-                borderColor: PlatformColor("?attr/colorControlNormal"),
+                // borderColor: PlatformColor("?attr/colorControlNormal"),
             },
         }),
     },
