@@ -16,71 +16,46 @@ class GenericClientModule(reactContext: ReactApplicationContext) : ReactContextB
     }
 
     @ReactMethod
-    fun get(url: String, options: ReadableMap, promise: Promise){
-        val request = Request.Builder().url(url).build();
-        client.newCall(request).execute().use{ response ->
-            val res = parseResponse(response);
-            if (response.isSuccessful) {
-                promise.resolve(res)
-            } else {
-                promise.reject(response.code.toString(), res)
-            }
+    fun get(url: String, options: ReadableMap, promise: Promise) {
+        val request = Request.Builder().url(url).parseOptions(options).build();
+        client.newCall(request).execute().use { response ->
+            response.promiseResolution(promise)
         }
     }
 
     @ReactMethod
-    fun post(url: String, options: ReadableMap, promise: Promise){
-        val body = options.toString().toRequestBody();
-        val request = Request.Builder().url(url).post(body).build();
-        client.newCall(request).execute().use{ response ->
-            val res = parseResponse(response);
-            if (response.isSuccessful) {
-                promise.resolve(res)
-            } else {
-                promise.reject(response.code.toString(), res)
-            }
+    fun post(url: String, options: ReadableMap, promise: Promise) {
+        val body = options.getMap("body").toString().toRequestBody();
+        val request = Request.Builder().url(url).post(body).parseOptions(options).build();
+        client.newCall(request).execute().use { response ->
+            response.promiseResolution(promise)
         }
     }
 
     @ReactMethod
-    fun put(url: String, options: ReadableMap, promise: Promise){
-        val body = options.toString().toRequestBody();
-        val request = Request.Builder().url(url).put(body).build();
-        client.newCall(request).execute().use{ response ->
-            val res = parseResponse(response);
-            if (response.isSuccessful) {
-                promise.resolve(res)
-            } else {
-                promise.reject(response.code.toString(), res)
-            }
+    fun put(url: String, options: ReadableMap, promise: Promise) {
+        val body = options.getMap("body").toString().toRequestBody();
+        val request = Request.Builder().url(url).put(body).parseOptions(options).build();
+        client.newCall(request).execute().use { response ->
+            response.promiseResolution(promise)
         }
     }
 
     @ReactMethod
-    fun patch(url: String, options: ReadableMap, promise: Promise){
-        val body = options.toString().toRequestBody();
-        val request = Request.Builder().url(url).patch(body).build();
-        client.newCall(request).execute().use{ response ->
-            val res = parseResponse(response);
-            if (response.isSuccessful) {
-                promise.resolve(res)
-            } else {
-                promise.reject(response.code.toString(), res)
-            }
+    fun patch(url: String, options: ReadableMap, promise: Promise) {
+        val body = options.getMap("body").toString().toRequestBody();
+        val request = Request.Builder().url(url).patch(body).parseOptions(options).build();
+        client.newCall(request).execute().use { response ->
+            response.promiseResolution(promise)
         }
     }
 
     @ReactMethod
-    fun delete(url: String, options: ReadableMap, promise: Promise){
-        val body = options.toString().toRequestBody();
-        val request = Request.Builder().url(url).delete(body).build();
-        client.newCall(request).execute().use{ response ->
-            val res = parseResponse(response);
-            if (response.isSuccessful) {
-                promise.resolve(res)
-            } else {
-                promise.reject(response.code.toString(), res)
-            }
+    fun delete(url: String, options: ReadableMap, promise: Promise) {
+        val body = options.getMap("body").toString().toRequestBody();
+        val request = Request.Builder().url(url).delete(body).parseOptions(options).build();
+        client.newCall(request).execute().use { response ->
+            response.promiseResolution(promise)
         }
     }
 
