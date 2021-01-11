@@ -8,6 +8,7 @@ import okhttp3.Headers
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
+import java.util.concurrent.TimeUnit
 
 /**
  * Parses the response data into the format expected by the App
@@ -63,6 +64,31 @@ fun OkHttpClient.Builder.parseOptions(options: ReadableMap): OkHttpClient.Builde
         this.followRedirects(followRedirects)
         this.followSslRedirects(followRedirects)
     }
+
+    // Retries
+    val retryPolicyConfiguration = options.getMap("retryPolicyConfiguration");
+    if (retryPolicyConfiguration != null) {
+        val retryType = retryPolicyConfiguration.getString("type")
+        val retryLimit = retryPolicyConfiguration.getDouble("retryLimit")
+        val retryExponentialBackoffBase = retryPolicyConfiguration.getDouble("exponentialBackoffBase")
+        val retryExponentialBackoffScale = retryPolicyConfiguration.getDouble("exponentialBackoffScale")
+        this.addNetworkInterceptor(RetryInterceptor(retryType, retryLimit.toInt(), retryExponentialBackoffBase, retryExponentialBackoffScale))
+    }
+
+    // Connection timeout
+    val timeoutIntervalForRequests = options.getInt("timeoutIntervalForRequest");
+    if (timeoutIntervalForRequests > 0) {
+        val duration = timeoutIntervalForRequests.toLong()
+        this.connectTimeout(duration, TimeUnit.SECONDS)
+    }
+
+    // Connection read timeout
+    val timeoutIntervalForResources = options.getInt("timeoutIntervalForResource");
+    if (timeoutIntervalForResources > 0) {
+        val duration = timeoutIntervalForResources.toLong()
+        this.readTimeout(duration, TimeUnit.SECONDS)
+    }
+
     return this
 }
 
