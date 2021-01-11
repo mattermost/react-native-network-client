@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type { NativeModule } from "react-native"; // eslint-disable-line no-unused-vars
+import type { NativeModule } from "react-native";
 
 declare global {
     interface NativeAPIClient extends NativeModule {

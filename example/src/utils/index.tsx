@@ -21,7 +21,7 @@ export const parseHeaders = (headers: Header[]): ClientHeaders => {
 
 export const createMattermostAPIClient = async (): Promise<APIClientItem | null> => {
     const name = "Mattermost";
-    const baseUrl = "http://community.mattermost.com";
+    const baseUrl = "https://community.mattermost.com";
     const userAgent = await DeviceInfo.getUserAgent();
     const headers = {
         "X-Requested-With": "XMLHttpRequest",
