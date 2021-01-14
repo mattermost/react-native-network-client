@@ -29,4 +29,6 @@ RCT_EXTERN_METHOD(patch:(NSString *)baseUrl forEndpoint:(NSString *)endpoint wit
 
 RCT_EXTERN_METHOD(delete:(NSString *)baseUrl forEndpoint:(NSString *)endpoint withOptions:(NSDictionary *)options withResolver:(RCTPromiseResolveBlock)resolve withRejecter:(RCTPromiseRejectBlock)reject)
 
+RCT_EXTERN_METHOD(upload:(NSString *)baseUrl forEndpoint:(NSString *)endpoint withFileUrl:(NSString *)fileUrlString withOptions:(NSDictionary *)options withResolver:(RCTPromiseResolveBlock)resolve withRejecter:(RCTPromiseRejectBlock)reject)
+
 @end

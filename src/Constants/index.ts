@@ -2,8 +2,8 @@
 // See LICENSE.txt for license information.
 
 import { NativeModules } from "react-native";
-const { NetworkConstants } = NativeModules;
 
+const { NetworkConstants } = NativeModules;
 const Constants = NetworkConstants.getConstants();
 
 export default Constants;

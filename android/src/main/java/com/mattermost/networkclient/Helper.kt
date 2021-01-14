@@ -65,6 +65,13 @@ fun Request.Builder.parseOptions(options: ReadableMap, session: OkHttpClient.Bui
  * @params options ReadableMap of options from the App
  */
 fun OkHttpClient.Builder.parseOptions(options: ReadableMap): OkHttpClient.Builder {
+    // Following Redirects
+    if (options.hasKey("followRedirects")) {
+        val followRedirects = options.getBoolean("followRedirects")
+        this.followRedirects(followRedirects)
+        this.followSslRedirects(followRedirects)
+    }
+
     // Retries
     if (options.hasKey("retryPolicyConfiguration")) {
         val retryPolicyConfiguration = options.getMap("retryPolicyConfiguration")!!
