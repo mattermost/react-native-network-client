@@ -4,11 +4,9 @@ import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableMap
-import okhttp3.Headers
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.Response
+import okhttp3.*
 import java.util.concurrent.TimeUnit
+
 
 /**
  * Parses the response data into the format expected by the App
@@ -47,11 +45,18 @@ fun Response.promiseResolution(promise: Promise): Response {
  * @param options ReadableMap of options from the App
  */
 fun Request.Builder.parseOptions(options: ReadableMap, session: OkHttpClient.Builder): Request.Builder {
-    val timeoutInterval = options.getInt("timeoutInterval");
-    if(timeoutInterval > 0){
-        session.addNetworkInterceptor(TimeoutInterceptor(timeoutInterval))
+
+    // Timeout Interval per request
+    if(options.hasKey("timeoutInterval")){
+        session.addNetworkInterceptor(TimeoutRequestInterceptor(options.getInt("timeoutInterval")))
     }
-    return this
+
+    // Headers
+    if(options.hasKey("headers")){
+        session.addNetworkInterceptor(HeadersInterceptor(options.getMap("headers")!!));
+    }
+
+    return this;
 }
 
 /**
@@ -60,18 +65,9 @@ fun Request.Builder.parseOptions(options: ReadableMap, session: OkHttpClient.Bui
  * @params options ReadableMap of options from the App
  */
 fun OkHttpClient.Builder.parseOptions(options: ReadableMap): OkHttpClient.Builder {
-    this.followRedirects(true);
-    this.followSslRedirects(true);
-
-    val followRedirects = options.getBoolean("followRedirects")
-    if (followRedirects) {
-        this.followRedirects(followRedirects)
-        this.followSslRedirects(followRedirects)
-    }
-
     // Retries
-    val retryPolicyConfiguration = options.getMap("retryPolicyConfiguration");
-    if (retryPolicyConfiguration != null) {
+    if (options.hasKey("retryPolicyConfiguration")) {
+        val retryPolicyConfiguration = options.getMap("retryPolicyConfiguration")!!
         val retryType = retryPolicyConfiguration.getString("type")
         val retryLimit = retryPolicyConfiguration.getDouble("retryLimit")
         val retryExponentialBackoffBase = retryPolicyConfiguration.getDouble("exponentialBackoffBase")
@@ -79,18 +75,38 @@ fun OkHttpClient.Builder.parseOptions(options: ReadableMap): OkHttpClient.Builde
         this.addNetworkInterceptor(RetryInterceptor(retryType, retryLimit.toInt(), retryExponentialBackoffBase, retryExponentialBackoffScale))
     }
 
-    // Connection timeout
-    val timeoutIntervalForRequests = options.getInt("timeoutIntervalForRequest");
-    if (timeoutIntervalForRequests > 0) {
-        val duration = timeoutIntervalForRequests.toLong()
-        this.connectTimeout(duration, TimeUnit.SECONDS)
+    // Headers
+    if(options.hasKey("headers")){
+        this.addNetworkInterceptor(HeadersInterceptor(options.getMap("headers")!!));
     }
 
-    // Connection read timeout
-    val timeoutIntervalForResources = options.getInt("timeoutIntervalForResource");
-    if (timeoutIntervalForResources > 0) {
-        val duration = timeoutIntervalForResources.toLong()
-        this.readTimeout(duration, TimeUnit.SECONDS)
+    // Session Configuration
+    if(options.hasKey("sessionConfiguration")){
+        val sessionConfig = options.getMap("sessionConfiguration")!!;
+
+        if(sessionConfig.hasKey("followRedirects")){
+            val followRedirects = sessionConfig.getBoolean("followRedirects")!!;
+            this.followRedirects(followRedirects);
+            this.followSslRedirects(followRedirects);
+        }
+
+        if(sessionConfig.hasKey("timeoutIntervalForRequest")){
+            this.connectTimeout(sessionConfig.getInt("timeoutIntervalForRequest").toLong(), TimeUnit.SECONDS)
+            this.readTimeout(sessionConfig.getInt("timeoutIntervalForRequest").toLong(), TimeUnit.SECONDS)
+        }
+
+        if(sessionConfig.hasKey("timeoutIntervalForResource")){
+            this.callTimeout(sessionConfig.getInt("timeoutIntervalForResource").toLong(), TimeUnit.SECONDS)
+        }
+
+        if(sessionConfig.hasKey("httpMaximumConnectionsPerHost")){
+            val maxConnections = sessionConfig.getInt("httpMaximumConnectionsPerHost");
+            val dispatcher = Dispatcher()
+            dispatcher.maxRequests = maxConnections
+            dispatcher.maxRequestsPerHost = maxConnections
+            this.dispatcher(dispatcher);
+        }
+
     }
 
     return this
@@ -114,6 +130,7 @@ fun Headers.readableMap(): ReadableMap {
  */
 fun Request.Builder.addReadableMap(headers: ReadableMap): Request.Builder {
     for ((k, v) in headers.toHashMap()) {
+        this.removeHeader(k);
         this.addHeader(k, v as String);
     }
     return this

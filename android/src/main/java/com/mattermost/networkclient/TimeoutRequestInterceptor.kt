@@ -5,13 +5,9 @@ import okhttp3.Response
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 
-class TimeoutInterceptor(requestTimeout: Int?) : Interceptor {
+class TimeoutRequestInterceptor(requestTimeout: Int) : Interceptor {
 
-    private var requestTimeout: Int = 10;
-
-    init {
-        if (requestTimeout != null) this.requestTimeout = requestTimeout
-    }
+    private var requestTimeout: Int = requestTimeout;
 
     @Throws(IOException::class)
     override fun intercept(chain: Interceptor.Chain): Response {
