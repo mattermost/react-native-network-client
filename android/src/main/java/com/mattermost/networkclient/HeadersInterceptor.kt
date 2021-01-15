@@ -14,7 +14,6 @@ class HeadersInterceptor(headers: ReadableMap) : Interceptor {
         val request = chain.request();
         val newRequest = request.newBuilder();
 
-        // Make a new chain; time out should be per-request
         val previousHeaders = request.headers.readableMap()
 
         // Add the previous and new headers, and proceed
