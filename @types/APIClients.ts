@@ -71,7 +71,7 @@ type RequestAdapterConfiguration = {
     bearerAuthTokenResponseHeader?: string;
 };
 
-type iOSAPIClientConfiguration = {
+type APIClientConfiguration = {
     headers?: ClientHeaders;
     sessionConfiguration?: SessionConfiguration;
     retryPolicyConfiguration?: RetryPolicyConfiguration;
@@ -79,15 +79,3 @@ type iOSAPIClientConfiguration = {
     serverTrustManagerConfig?: Record<string, string>;
     cachedResponseHandlerConfig?: Record<string, string>;
 };
-
-type AndroidAPIClientConfiguration = {
-    headers?: ClientHeaders;
-    followRedirects?: boolean;
-    timeoutIntervalForRequest?: number;
-    timeoutIntervalForResource?: number;
-    [key: string]: unknown;
-};
-
-type APIClientConfiguration =
-    | iOSAPIClientConfiguration
-    | AndroidAPIClientConfiguration;
