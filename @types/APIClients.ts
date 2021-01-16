@@ -6,6 +6,7 @@ interface ProgressPromise<T> extends Promise<T> {
         callback: (fractionCompleted: number) => void
     ) => ProgressPromise<T>;
     onProgress?: (fractionCompleted: number) => void;
+    cancel?: () => void;
 }
 
 type ClientHeaders = Record<string, string>;

@@ -34,4 +34,6 @@ RCT_EXTERN_METHOD(delete:(NSString *)baseUrl forEndpoint:(NSString *)endpoint wi
 
 RCT_EXTERN_METHOD(upload:(NSString *)baseUrl forEndpoint:(NSString *)endpoint withFileUrl:(NSString *)fileUrlString withTaskId:(NSString *)taskId withOptions:(NSDictionary *)options withResolver:(RCTPromiseResolveBlock)resolve withRejecter:(RCTPromiseRejectBlock)reject)
 
+RCT_EXTERN_METHOD(cancelRequest:(NSString *)taskId withResolver:(RCTPromiseResolveBlock)resolve withRejecter:(RCTPromiseRejectBlock)reject)
+
 @end

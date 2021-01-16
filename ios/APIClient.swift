@@ -16,6 +16,7 @@ import React
 class APIClient: RCTEventEmitter, NetworkClient {
     var emitter: RCTEventEmitter!
     var hasListeners: Bool!
+    let requestsTable = NSMapTable<NSString, UploadRequest>.strongToWeakObjects()
 
     open override func supportedEvents() -> [String] {
         ["NativeClient-UploadProgress"]
@@ -128,7 +129,7 @@ class APIClient: RCTEventEmitter, NetworkClient {
     }
 
     @objc(upload:forEndpoint:withFileUrl:withTaskId:withOptions:withResolver:withRejecter:)
-    func upload(baseUrlString: String, endpoint: String, fileUrlString: String, taskId: String, options: Dictionary<String, Any>, resolve: @escaping RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
+    func upload(baseUrlString: String, endpoint: String, fileUrlString: String, taskId: String, options: Dictionary<String, Any>, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
         guard let baseUrl = URL(string: baseUrlString) else {
             rejectMalformed(url: baseUrlString, withRejecter: reject)
             return
@@ -147,64 +148,66 @@ class APIClient: RCTEventEmitter, NetworkClient {
         let url = baseUrl.appendingPathComponent(endpoint)
         upload(fileUrl, to: url, forSession: session, withTaskId: taskId, withOptions: JSON(options), withResolver: resolve, withRejecter: reject)
     }
+    
+    func upload(_ fileUrl: URL, to url: URL, forSession session: Session, withTaskId taskId: String, withOptions options: JSON, withResolver resolve: @escaping RCTPromiseResolveBlock, withRejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+        guard let fileSize = try? Double(fileUrl.fileSize()) else {
+            rejectFileSize(for: fileUrl, withRejecter: reject)
+            return
+        }
 
-    func upload(_ fileUrl: URL, to url: URL, forSession session: Session, withTaskId taskId: String, withOptions options: JSON, withResolver resolve: @escaping RCTPromiseResolveBlock, withRejecter reject: RCTPromiseRejectBlock) -> Void {
         let headers = getHTTPHeaders(from: options)
         let interceptor = getInterceptor(from: options)
         let requestModifer = getRequestModifier(from: options)
+        
+        var initialFractionCompleted: Double = 0;
+        let stream = InputStream(url: fileUrl)!
         if let skipBytes = options["skipBytes"].uInt64 {
-            do {
-                let data: Data?
-                let fileHandle = try FileHandle.init(forReadingFrom: fileUrl)
-                if #available(iOS 13.4, *) {
-                    try fileHandle.seek(toOffset: skipBytes)
-                    data = try? fileHandle.readToEnd()
-                } else {
-                    fileHandle.seek(toFileOffset: skipBytes)
-                    data = fileHandle.readDataToEndOfFile()
-                }
+            stream.setProperty(skipBytes, forKey: .fileCurrentOffsetKey)
+            initialFractionCompleted = Double(skipBytes) / fileSize
+        }
 
-                if let data = data {
-                    session.upload(data, to: url, headers: headers, interceptor: interceptor, requestModifier: requestModifer)
-                        .uploadProgress { progress in
-                            if (self.hasListeners) {
-                                self.sendEvent(withName: "NativeClient-UploadProgress", body: ["taskId": taskId, "fractionCompleted": progress.fractionCompleted])
-                            }
-                        }
-                        .responseJSON { json in
-                            if #available(iOS 13.4, *) {
-                                try? fileHandle.close()
-                            } else {
-                                fileHandle.closeFile()
-                            }
-
-                            resolve([
-                                "headers": json.response?.allHeaderFields,
-                                "data": json.value,
-                                "code": json.response?.statusCode,
-                                "lastRequestedUrl": json.response?.url?.absoluteString
-                            ])
-                        }
+        let request = session.upload(stream, to: url, headers: headers, interceptor: interceptor, requestModifier: requestModifer)
+            .uploadProgress { progress in
+                if (self.hasListeners) {
+                    let fractionCompleted = initialFractionCompleted + (Double(progress.completedUnitCount) / fileSize)
+                    self.sendEvent(withName: "NativeClient-UploadProgress", body: ["taskId": taskId, "fractionCompleted": fractionCompleted])
                 }
-            } catch {
-                reject("\(error.localizedDescription)", "", error)
-                return
             }
-        } else {
-            session.upload(fileUrl, to: url, headers: headers, interceptor: interceptor, requestModifier: requestModifer)
-                .uploadProgress { progress in
-                    if (self.hasListeners) {
-                        self.sendEvent(withName: "NativeClient-UploadProgress", body: ["taskId": taskId, "fractionCompleted": progress.fractionCompleted])
-                    }
-                }
-                .responseJSON { json in
+            .responseJSON { json in
+                switch (json.result) {
+                case .success:
                     resolve([
+                        "ok": true,
                         "headers": json.response?.allHeaderFields,
                         "data": json.value,
                         "code": json.response?.statusCode,
                         "lastRequestedUrl": json.response?.url?.absoluteString
                     ])
+                case .failure(let error):
+                    print("ERROR: \(error)")
+                    if (error.responseCode != nil) {
+                        resolve([
+                            "ok": false,
+                            "headers": nil,
+                            "data": nil,
+                            "code": error.responseCode,
+                            "lastRequestedUrl": nil
+                        ])
+
+                        return
+                    }
+
+                    reject("\(error.responseCode)", error.errorDescription, error)
                 }
+            }
+
+        self.requestsTable.setObject(request, forKey: taskId as NSString)
+    }
+    
+    @objc(cancelRequest:withResolver:withRejecter:)
+    func cancelRequest(_ taskId: String, withResolver resolve: RCTPromiseResolveBlock, withRejecter reject: RCTPromiseRejectBlock) -> Void {
+        if let request = self.requestsTable.object(forKey: taskId as NSString) {
+            request.cancel()
         }
     }
     
@@ -266,17 +269,23 @@ class APIClient: RCTEventEmitter, NetworkClient {
         return config
     }
 
-    func rejectInvalidSession(for baseUrl: URL, withRejecter reject: RCTPromiseRejectBlock) -> Void {
-        let message = "Session for \(baseUrl.absoluteString) has been invalidated"
-        let error = NSError(domain: "com.mattermost.react-native-network-client", code: NSCoderValueNotFoundError, userInfo: [NSLocalizedDescriptionKey: message])
-        reject("\(error.code)", message, error)
-    }
-
     func getRedirectHandler(from options: JSON) -> RedirectHandler? {
         if options["followRedirects"].exists() {
             return Redirector(behavior: options["followRedirects"].boolValue ? .follow : .doNotFollow)
         }
 
         return nil
+    }
+    
+    func rejectInvalidSession(for baseUrl: URL, withRejecter reject: RCTPromiseRejectBlock) -> Void {
+        let message = "Session for \(baseUrl.absoluteString) has been invalidated"
+        let error = NSError(domain: "com.mattermost.react-native-network-client", code: NSCoderValueNotFoundError, userInfo: [NSLocalizedDescriptionKey: message])
+        reject("\(error.code)", message, error)
+    }
+    
+    func rejectFileSize(for fileUrl: URL, withRejecter reject: RCTPromiseRejectBlock) -> Void {
+        let message = "Unable to read file size for \(fileUrl.absoluteString)"
+        let error = NSError(domain: "com.mattermost.react-native-network-client", code: NSCoderValueNotFoundError, userInfo: [NSLocalizedDescriptionKey: message])
+        reject("\(error.code)", message, error)
     }
 }

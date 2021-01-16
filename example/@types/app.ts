@@ -5,3 +5,10 @@ type Header = {
     key: string;
     value: string;
 };
+
+type File = {
+    name?: string;
+    size?: number;
+    type?: string;
+    uri?: string;
+};

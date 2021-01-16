@@ -1,22 +1,108 @@
 import React, { useState } from "react";
-import { Alert, Image, SafeAreaView, ScrollView, View } from "react-native";
-import DocumentPicker from "react-native-document-picker";
-import { check, request, PERMISSIONS, RESULTS } from "react-native-permissions";
-import { launchImageLibrary } from "react-native-image-picker/src";
-import { Bar as ProgressBar } from "react-native-progress";
-import { Button, ButtonGroup, Input, Text } from "react-native-elements";
-import Icon from "react-native-vector-icons/Ionicons";
+import { Alert, SafeAreaView, ScrollView, View } from "react-native";
+import { Button, Input, Text } from "react-native-elements";
 
-type UploadFailure = {
-    offset?: number;
-    size?: number;
+import FilePickerButtonGroup from "../components/FilePickerButtonGroup";
+import ProgressiveFileUpload from "../components/ProgressiveFileUpload";
+
+const DEFAULT_CHANNEL_ID = "4dtzmswn93f68fkd97eeafm6xc";
+
+enum Status {
+    UPLOADING = "UPLOADING",
+    FAILED = "FAILED",
+    COMPLETED = "COMPLETED",
+    POST_FAILED = "POST_FAILED",
+}
+
+type UploadState = {
+    request?: ProgressPromise<ClientResponse>;
+    channelId?: string;
+    sessionId?: string;
+    file?: File;
+    progress: number;
+    status?: Status;
+    uploadedFileId?: number;
 };
 
-type ParsedPickerResponse = {
-    name?: string;
-    size?: number;
-    type?: string;
-    uri?: string;
+type UploadButtonProps = {
+    channelId?: string;
+    sessionId?: string;
+    fileUri?: string;
+    status?: Status;
+    createUploadSession: () => void;
+    upload: () => void;
+    cancelUpload: () => void;
+    resumeUpload: () => void;
+    resetState: () => void;
+    post: () => void;
+};
+
+const UploadButton = (props: UploadButtonProps) => {
+    const hasChannelId = Boolean(props.channelId);
+    const hasSessionId = Boolean(props.sessionId);
+    const hasFileUri = Boolean(props.fileUri);
+
+    if (!hasChannelId || !hasFileUri) {
+        return null;
+    }
+
+    let title;
+    let onPress;
+    let error;
+    let reset;
+    if (!hasSessionId) {
+        title = "Create Upload Session";
+        onPress = () => props.createUploadSession();
+    } else if (props.status === undefined) {
+        title = "Upload File";
+        onPress = () => props.upload();
+    } else if (props.status === Status.UPLOADING) {
+        title = "Cancel Upload";
+        onPress = () => props.cancelUpload();
+    } else if (props.status === Status.FAILED) {
+        title = "Resume";
+        onPress = () => props.resumeUpload();
+        error = "Upload error";
+        reset = true;
+    } else if (props.status === Status.COMPLETED) {
+        title = "Post";
+        onPress = () => props.post();
+    } else if (props.status === Status.POST_FAILED) {
+        title = "Retry post";
+        onPress = () => props.post();
+    }
+
+    return (
+        <View style={{ flex: 1 }}>
+            {error && (
+                <Text
+                    style={{
+                        color: "red",
+                        alignSelf: "center",
+                        padding: 10,
+                    }}
+                >
+                    {error}
+                </Text>
+            )}
+            <View
+                style={{
+                    flex: 1,
+                    flexDirection: "row",
+                    justifyContent: "space-evenly",
+                }}
+            >
+                <View style={{ flex: 1, paddingHorizontal: 10 }}>
+                    <Button title={title} onPress={onPress} />
+                </View>
+                {reset && (
+                    <View style={{ flex: 1, paddingHorizontal: 10 }}>
+                        <Button title="Reset" onPress={props.resetState} />
+                    </View>
+                )}
+            </View>
+        </View>
+    );
 };
 
 const MattermostClientUploadScreen = ({
@@ -26,245 +112,131 @@ const MattermostClientUploadScreen = ({
         item: { client },
     } = route.params;
 
-    const [channelId, setChannelId] = useState("pspxu7bu17yttmtnzsjnqu78fe");
-    const [sessionId, setSessionId] = useState("");
-    const [file, setFile] = useState<ParsedPickerResponse>();
-    const [progress, setProgress] = useState(0);
-    const [uploadFailure, setUploadFailure] = useState<UploadFailure>({});
+    const [state, setState] = useState<UploadState>({
+        channelId: DEFAULT_CHANNEL_ID,
+        progress: 0,
+    });
 
-    const reset = () => {
-        setSessionId("");
-        setFile({});
-        setProgress(0);
-        setUploadFailure({});
+    const setRequest = (request?: ProgressPromise<ClientResponse>) =>
+        setState((state) => ({ ...state, request }));
+    const setChannelId = (channelId: string) =>
+        setState((state) => ({ ...state, channelId }));
+    const setSessionId = (sessionId: string) =>
+        setState((state) => ({ ...state, sessionId }));
+    const setFile = (file: File) => setState((state) => ({ ...state, file }));
+    const setProgress = (progress: number) =>
+        setState((state) => ({ ...state, progress }));
+    const setStatus = (status?: Status) => {
+        setState((state) => ({ ...state, status }));
     };
+    const setStatedFileId = (uploadedFileId: number) =>
+        setState((state) => ({ ...state, uploadedFileId }));
+
+    const resetState = () =>
+        setState({
+            request: undefined,
+            channelId: DEFAULT_CHANNEL_ID,
+            sessionId: "",
+            file: undefined,
+            progress: 0,
+            status: undefined,
+        });
 
     const createUploadSession = async () => {
         const options: RequestOptions = {
             body: {
-                channel_id: channelId,
-                filename: file!.name,
-                file_size: file!.size,
+                channel_id: state.channelId,
+                filename: state.file!.name,
+                file_size: state.file!.size,
             },
         };
-        const response = await client.post("/api/v4/uploads", options);
-        if (response?.code === 201) {
+
+        try {
+            const response = await client.post("/api/v4/uploads", options);
             setSessionId(response.data!.id as string);
-        } else {
-            console.log(response);
+        } catch (error) {
+            Alert.alert("Session creation error", error.message);
         }
     };
 
-    const uploadAndPost = async (skipBytes?: number) => {
-        setUploadFailure({});
+    const upload = async (resume?: boolean) => {
+        setStatus(Status.UPLOADING);
+        setRequest(undefined);
 
         let options: UploadRequestOptions = {};
-        if (skipBytes !== undefined) {
-            options.skipBytes = skipBytes;
-        }
-
-        let uploadResponse;
-        try {
-            uploadResponse = await client.upload(
-                `/api/v4/uploads/${sessionId}`,
-                file!.uri!,
-                options
-            ).progress!((fractionCompleted) => {
-                setProgress(fractionCompleted);
-            });
-        } catch (error) {
-            Alert.alert("Upload error", error.message);
-        }
-
-        if (uploadResponse?.code === 200) {
+        if (resume) {
             try {
-                const requestOptions: RequestOptions = {
-                    body: {
-                        channel_id: channelId,
-                        message: options.skipBytes
-                            ? "Resume upload test"
-                            : "Upload test",
-                        file_ids: [uploadResponse.data!.id],
-                    },
-                };
-                await client.post("/api/v4/posts", requestOptions);
-                reset();
-            } catch (error) {
-                Alert.alert("Post error", error.message);
-            }
-        } else {
-            const { data } = await client.get(`/api/v4/uploads/${sessionId}`);
-            setUploadFailure({
-                offset: data!.file_offset as number,
-                size: data!.file_size as number,
-            });
-        }
-    };
-
-    const resumeUploadAndPost = () => uploadAndPost(uploadFailure.offset);
-
-    const hasPhotoLibraryPermissions = async () => {
-        let result = await check(PERMISSIONS.IOS.PHOTO_LIBRARY);
-        if (result === RESULTS.GRANTED || result === RESULTS.LIMITED) {
-            return true;
-        } else if (
-            result !== RESULTS.BLOCKED &&
-            result !== RESULTS.UNAVAILABLE
-        ) {
-            await request(PERMISSIONS.IOS.PHOTO_LIBRARY);
-            hasPhotoLibraryPermissions();
-        }
-
-        return false;
-    };
-
-    const pickFile = async () => {
-        const hasPermission = await hasPhotoLibraryPermissions();
-        if (hasPermission) {
-            try {
-                const result = await DocumentPicker.pick({
-                    type: [DocumentPicker.types.allFiles],
-                });
-                setFile(result);
-            } catch (err) {
-                if (DocumentPicker.isCancel(err)) {
-                    // User cancelled the picker, exit any dialogs or menus and move on
-                } else {
-                    throw err;
-                }
-            }
-        }
-    };
-
-    const pickImage = async () => {
-        const hasPermission = await hasPhotoLibraryPermissions();
-        if (hasPermission) {
-            launchImageLibrary({ quality: 1, mediaType: "photo" }, (result) => {
-                setFile({
-                    name: result.fileName,
-                    type: result.type,
-                    size: result.fileSize,
-                    uri: result.uri,
-                });
-            });
-        }
-    };
-
-    const buttons = [
-        { title: "Select Image", onPress: pickImage },
-        { title: "Select File", onPress: pickFile },
-    ];
-
-    const onButtonPress = (index: number) => buttons[index].onPress();
-
-    const FileToUpload = () => {
-        if (Boolean(file?.uri)) {
-            const FileComponent = () =>
-                file?.type && file.type.startsWith("image") ? (
-                    <Image
-                        source={{ uri: file!.uri }}
-                        style={{
-                            marginTop: 20,
-                            width: 200,
-                            height: 200,
-                            alignSelf: "center",
-                        }}
-                    />
-                ) : (
-                    <View
-                        style={{
-                            borderWidth: 1,
-                            width: 200,
-                            height: 200,
-                            alignSelf: "center",
-                            justifyContent: "center",
-                        }}
-                    >
-                        <Icon
-                            name="document-text"
-                            size={64}
-                            style={{ alignSelf: "center" }}
-                        />
-                    </View>
+                const { data } = await client.get(
+                    `/api/v4/uploads/${state.sessionId}`
                 );
-
-            return (
-                <>
-                    <FileComponent />
-                    <Text style={{ alignSelf: "center" }}>{file?.name}</Text>
-                    <ProgressBar
-                        progress={progress}
-                        width={200}
-                        style={{ alignSelf: "center" }}
-                    />
-                </>
-            );
+                options.skipBytes = data!.file_offset as number;
+            } catch (error) {
+                Alert.alert("Resume error", error.message);
+            }
         }
 
-        return null;
+        let request = client.upload(
+            `/api/v4/uploads/${state.sessionId}`,
+            state.file!.uri!,
+            options
+        );
+        setRequest(request);
+
+        request.progress!((fractionCompleted) => {
+            setProgress(fractionCompleted);
+        })
+            .then((response) => {
+                if (response.code === 200) {
+                    setStatedFileId(response.data!.id as number);
+                    setStatus(Status.COMPLETED);
+                } else {
+                    setStatus(Status.FAILED);
+                }
+            })
+            .catch((error) => {
+                Alert.alert("Upload error", error.message);
+                setStatus(Status.FAILED);
+            });
+    };
+
+    const resumeUpload = () => upload(true);
+
+    const post = async () => {
+        try {
+            const requestOptions: RequestOptions = {
+                body: {
+                    channel_id: state.channelId,
+                    message: "Upload test",
+                    file_ids: [state.uploadedFileId],
+                },
+            };
+            const response = await client.post("/api/v4/posts", requestOptions);
+            if (response.code === 201) {
+                resetState();
+            } else {
+                setStatus(Status.POST_FAILED);
+                Alert.alert("Post error", `Status Code: ${response.code}`);
+            }
+        } catch (error) {
+            setStatus(Status.POST_FAILED);
+            Alert.alert("Post error", error.message);
+        }
+    };
+
+    const cancelUpload = () => {
+        if (state.request) {
+            state.request.cancel!();
+        }
     };
 
     const SessionId = () => {
-        if (Boolean(sessionId)) {
+        if (Boolean(state.sessionId)) {
             return (
-                <Input label="Session ID" value={sessionId} disabled={true} />
-            );
-        }
-
-        return null;
-    };
-
-    const UploadButton = () => {
-        const hasChannelId = Boolean(channelId);
-        const hasSessionId = Boolean(sessionId);
-        const hasFileUri = Boolean(file?.uri);
-        const failed = Boolean(uploadFailure.size);
-
-        if (hasChannelId && !hasSessionId && hasFileUri) {
-            return (
-                <Button
-                    title="Create Upload Session"
-                    onPress={createUploadSession}
-                    style={{ paddingHorizontal: 10, paddingVertical: 5 }}
+                <Input
+                    label="Session ID"
+                    value={state.sessionId}
+                    disabled={true}
                 />
-            );
-        } else if (hasChannelId && hasSessionId && hasFileUri && !failed) {
-            return (
-                <Button
-                    title="Upload and Post"
-                    onPress={() => uploadAndPost()}
-                    style={{ paddingHorizontal: 10, paddingVertical: 5 }}
-                />
-            );
-        } else if (failed) {
-            return (
-                <View>
-                    <Text
-                        style={{
-                            color: "red",
-                            alignSelf: "center",
-                            padding: 10,
-                        }}
-                    >
-                        {`Uploading failed at ${uploadFailure.offset} of ${uploadFailure.size}`}
-                    </Text>
-                    <View
-                        style={{
-                            flexDirection: "row",
-                            justifyContent: "space-evenly",
-                        }}
-                    >
-                        <View style={{ flex: 1, paddingHorizontal: 10 }}>
-                            <Button
-                                title="Resume?"
-                                onPress={resumeUploadAndPost}
-                            />
-                        </View>
-                        <View style={{ flex: 1, paddingHorizontal: 10 }}>
-                            <Button title="Cancel" />
-                        </View>
-                    </View>
-                </View>
             );
         }
 
@@ -277,18 +249,32 @@ const MattermostClientUploadScreen = ({
                 <Input
                     label="Channel ID"
                     placeholder="pspxu7bu17yttmtnzsjnqu78fe"
-                    value={channelId}
+                    value={state.channelId}
                     onChangeText={setChannelId}
                     autoCapitalize="none"
                 />
                 <SessionId />
-                <ButtonGroup
-                    buttons={buttons.map((button) => button.title)}
-                    onPress={onButtonPress}
+                <FilePickerButtonGroup
+                    onFilePicked={setFile}
+                    disabled={Boolean(state.status)}
                 />
-                <FileToUpload />
+                <ProgressiveFileUpload
+                    file={state.file}
+                    progress={state.progress}
+                />
             </ScrollView>
-            <UploadButton />
+            <UploadButton
+                channelId={state.channelId}
+                sessionId={state.sessionId}
+                fileUri={state.file?.uri}
+                status={state.status}
+                createUploadSession={createUploadSession}
+                upload={upload}
+                cancelUpload={cancelUpload}
+                resumeUpload={resumeUpload}
+                resetState={resetState}
+                post={post}
+            />
         </SafeAreaView>
     );
 };

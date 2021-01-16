@@ -116,6 +116,8 @@ class APIClient implements APIClientInterface {
             return promise;
         };
 
+        promise.cancel = () => NativeAPIClient.cancelRequest(taskId);
+
         return promise;
     };
 }

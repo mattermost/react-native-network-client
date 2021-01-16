@@ -37,6 +37,7 @@ declare global {
             taskId: string,
             options?: UploadRequestOptions
         ): Promise<ClientResponse>;
+        cancelRequest(taskId: string): void;
 
         createClientFor(
             baseUrl: string,

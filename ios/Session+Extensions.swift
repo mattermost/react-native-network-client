@@ -1,5 +1,5 @@
 //
-//  Session+NetworkClient.swift
+//  Session+Extensions.swift
 //  NetworkClient
 //
 //  Created by Miguel Alatzar on 11/18/20.
