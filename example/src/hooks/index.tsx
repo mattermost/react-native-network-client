@@ -17,9 +17,10 @@ type UseSessionConfigurationResponse = [
 ];
 
 export const useSessionConfiguration = (): UseSessionConfigurationResponse => {
-    const [sessionConfiguration, setSessionConfiguration] = useState<
-        SessionConfiguration
-    >({
+    const [
+        sessionConfiguration,
+        setSessionConfiguration,
+    ] = useState<SessionConfiguration>({
         followRedirects: true,
         allowsCellularAccess: true,
         waitsForConnectivity: false,
@@ -90,9 +91,10 @@ type UseRetryPolicyConfigurationResponse = [
 ];
 
 export const useRetryPolicyConfiguration = (): UseRetryPolicyConfigurationResponse => {
-    const [retryPolicyConfiguration, setRetryPolicyConfiguration] = useState<
-        RetryPolicyConfiguration
-    >({
+    const [
+        retryPolicyConfiguration,
+        setRetryPolicyConfiguration,
+    ] = useState<RetryPolicyConfiguration>({
         type: undefined,
         retryLimit: 2,
         exponentialBackoffBase: 2,

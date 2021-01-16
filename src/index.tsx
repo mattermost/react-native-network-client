@@ -4,7 +4,11 @@
 import GenericClient from "./GenericClient";
 import { getOrCreateAPIClient } from "./APIClient";
 import { getOrCreateWebSocketClient } from "./WebSocketClient";
-import Constants from "./Constants";
+import { NativeModules } from "react-native";
+
+const { APIClient: NativeAPIClient } = NativeModules;
+
+const Constants = NativeAPIClient.getConstants();
 
 export default GenericClient;
 export { getOrCreateAPIClient, getOrCreateWebSocketClient, Constants };
