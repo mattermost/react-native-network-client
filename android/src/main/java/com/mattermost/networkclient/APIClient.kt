@@ -6,7 +6,7 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import okio.IOException
 
-class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
+class APIClient(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
 
     var sessionsClient = mutableMapOf<String, OkHttpClient.Builder>()
     var sessionsRequest = mutableMapOf<String, Request.Builder>()
@@ -26,7 +26,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
             sessionsClient[baseUrl]!!.parseOptions(options);
 
             // Return stringified client for success
-            promise.resolve(Unit)
+            promise.resolve( null)
         } catch (err: Throwable) {
             promise.reject(err)
         }
@@ -45,7 +45,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     fun addClientHeadersFor(baseUrl: String, headers: ReadableMap, promise: Promise) {
         try {
             sessionsRequest[baseUrl]?.addReadableMap(headers)
-            promise.resolve(Unit);
+            promise.resolve(null);
         } catch (error: Error) {
             promise.reject(error)
         }
@@ -123,5 +123,15 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         } catch (e: IOException) {
             promise.reject(e)
         }
+    }
+
+    @ReactMethod
+    fun upload(baseUrl: String, endpoint: String?, fileUrl: String, taskId: String, options: ReadableMap, promise: Promise) {
+
+    }
+
+    @ReactMethod
+    fun cancelRequest(taskId: String) {
+
     }
 }
