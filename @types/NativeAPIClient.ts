@@ -1,6 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+type Constants = {
+    EXPONENTIAL_RETRY: "EXPONENTIAL_RETRY";
+};
+
 interface NativeAPIClient {
     get(
         baseUrl: string,
@@ -50,4 +54,6 @@ interface NativeAPIClient {
     ): Promise<void>;
     disconnectWebSocketFor(wsUrl: string): Promise<void>;
     invalidateWebSocketClientFor(baseUrl: string): Promise<void>;
+
+    getConstants(): Constants;
 }
