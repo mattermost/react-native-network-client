@@ -12,6 +12,8 @@ To get started with the project, run `npm run bootstrap` in the root directory t
 npm run bootstrap
 ```
 
+Note: We're using Node LTS v14, if you have issue's you might need to upgrade / downgrade your node version.
+
 While developing, you can run the [example app](/example/) to test your changes.
 
 To start the packager:
