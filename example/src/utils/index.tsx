@@ -53,23 +53,30 @@ export const createMattermostAPIClient = async (): Promise<APIClientItem | null>
         requestAdapterConfiguration,
     };
 
-    const { client, created } = await getOrCreateAPIClient(baseUrl, options);
-
-    if (!created) {
-        Alert.alert(
-            "Error",
-            `A client for ${baseUrl} already exists`,
-            [{ text: "OK" }],
-            { cancelable: false }
+    try {
+        const { client, created } = await getOrCreateAPIClient(
+            baseUrl,
+            options
         );
+        if (!created) {
+            Alert.alert(
+                "Error",
+                `A client for ${baseUrl} already exists`,
+                [{ text: "OK" }],
+                { cancelable: false }
+            );
 
+            return null;
+        }
+
+        return {
+            name,
+            client,
+        };
+    } catch (e) {
+        console.log(JSON.stringify(e));
         return null;
     }
-
-    return {
-        name,
-        client,
-    };
 };
 
 export const networkClientKeyExtractor = (item: NetworkClientItem) => {

@@ -75,7 +75,7 @@ const APIClientRequestScreen = ({ route }: APIClientRequestScreenProps) => {
             setResponse(response);
             setResponseVisible(true);
         } catch (e) {
-            Alert.alert("Error", e.message, [{ text: "OK" }], {
+            Alert.alert("Error", JSON.stringify(e), [{ text: "OK" }], {
                 cancelable: false,
             });
         }
