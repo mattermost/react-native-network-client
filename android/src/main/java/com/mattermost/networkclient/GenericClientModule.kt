@@ -6,7 +6,7 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 
 
-class GenericClient(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
+class GenericClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
 
     var client = OkHttpClient().newBuilder();
 
