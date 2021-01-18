@@ -6,7 +6,7 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import okio.IOException
 
-class APIClient(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
+class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
 
     var sessionsClient = mutableMapOf<String, OkHttpClient.Builder>()
     var sessionsRequest = mutableMapOf<String, Request.Builder>()
