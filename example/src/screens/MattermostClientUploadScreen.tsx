@@ -1,18 +1,12 @@
 import React, { useState } from "react";
-import { Alert, SafeAreaView, ScrollView, View } from "react-native";
-import { Button, Input, Text } from "react-native-elements";
+import { Alert, SafeAreaView, ScrollView, Text, View } from "react-native";
+import { Button, Input } from "react-native-elements";
 
 import FilePickerButtonGroup from "../components/FilePickerButtonGroup";
 import ProgressiveFileUpload from "../components/ProgressiveFileUpload";
+import { UploadStatus } from "../utils";
 
 const DEFAULT_CHANNEL_ID = "4dtzmswn93f68fkd97eeafm6xc";
-
-enum Status {
-    UPLOADING = "UPLOADING",
-    FAILED = "FAILED",
-    COMPLETED = "COMPLETED",
-    POST_FAILED = "POST_FAILED",
-}
 
 type UploadState = {
     request?: ProgressPromise<ClientResponse>;
@@ -20,7 +14,7 @@ type UploadState = {
     sessionId?: string;
     file?: File;
     progress: number;
-    status?: Status;
+    status?: UploadStatus;
     uploadedFileId?: number;
 };
 
@@ -28,7 +22,7 @@ type UploadButtonProps = {
     channelId?: string;
     sessionId?: string;
     fileUri?: string;
-    status?: Status;
+    status?: UploadStatus;
     createUploadSession: () => void;
     upload: () => void;
     cancelUpload: () => void;
@@ -56,18 +50,18 @@ const UploadButton = (props: UploadButtonProps) => {
     } else if (props.status === undefined) {
         title = "Upload File";
         onPress = () => props.upload();
-    } else if (props.status === Status.UPLOADING) {
+    } else if (props.status === UploadStatus.UPLOADING) {
         title = "Cancel Upload";
         onPress = () => props.cancelUpload();
-    } else if (props.status === Status.FAILED) {
+    } else if (props.status === UploadStatus.FAILED) {
         title = "Resume";
         onPress = () => props.resumeUpload();
         error = "Upload error";
         reset = true;
-    } else if (props.status === Status.COMPLETED) {
+    } else if (props.status === UploadStatus.COMPLETED) {
         title = "Post";
         onPress = () => props.post();
-    } else if (props.status === Status.POST_FAILED) {
+    } else if (props.status === UploadStatus.POST_FAILED) {
         title = "Retry post";
         onPress = () => props.post();
     }
@@ -126,7 +120,7 @@ const MattermostClientUploadScreen = ({
     const setFile = (file: File) => setState((state) => ({ ...state, file }));
     const setProgress = (progress: number) =>
         setState((state) => ({ ...state, progress }));
-    const setStatus = (status?: Status) => {
+    const setStatus = (status?: UploadStatus) => {
         setState((state) => ({ ...state, status }));
     };
     const setStatedFileId = (uploadedFileId: number) =>
@@ -160,7 +154,7 @@ const MattermostClientUploadScreen = ({
     };
 
     const upload = async (resume?: boolean) => {
-        setStatus(Status.UPLOADING);
+        setStatus(UploadStatus.UPLOADING);
         setRequest(undefined);
 
         let options: UploadRequestOptions = {};
@@ -175,7 +169,7 @@ const MattermostClientUploadScreen = ({
             }
         }
 
-        let request = client.upload(
+        const request = client.upload(
             `/api/v4/uploads/${state.sessionId}`,
             state.file!.uri!,
             options
@@ -186,16 +180,16 @@ const MattermostClientUploadScreen = ({
             setProgress(fractionCompleted);
         })
             .then((response) => {
-                if (response.code === 200) {
+                if (response.ok) {
                     setStatedFileId(response.data!.id as number);
-                    setStatus(Status.COMPLETED);
+                    setStatus(UploadStatus.COMPLETED);
                 } else {
-                    setStatus(Status.FAILED);
+                    setStatus(UploadStatus.FAILED);
                 }
             })
             .catch((error) => {
                 Alert.alert("Upload error", error.message);
-                setStatus(Status.FAILED);
+                setStatus(UploadStatus.FAILED);
             });
     };
 
@@ -214,11 +208,11 @@ const MattermostClientUploadScreen = ({
             if (response.code === 201) {
                 resetState();
             } else {
-                setStatus(Status.POST_FAILED);
+                setStatus(UploadStatus.POST_FAILED);
                 Alert.alert("Post error", `Status Code: ${response.code}`);
             }
         } catch (error) {
-            setStatus(Status.POST_FAILED);
+            setStatus(UploadStatus.POST_FAILED);
             Alert.alert("Post error", error.message);
         }
     };

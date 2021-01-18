@@ -49,20 +49,36 @@ export default function APIClientScreen({
     const fastImageRequest = () =>
         navigation.navigate("APIClientFastImage", { item });
 
-    const buttons = [
-        { title: METHODS.GET, onPress: getRequest },
-        { title: METHODS.PUT, onPress: putRequest },
-        { title: METHODS.POST, onPress: postRequest },
-        { title: METHODS.PATCH, onPress: patchRequest },
-        { title: METHODS.DELETE, onPress: deleteRequest },
-        { title: "UPLOAD", onPress: uploadRequest },
-        {
-            title: "MATTERMOST UPLOAD",
-            onPress: mattermostUploadRequest,
-            hide: !item.isMattermostClient,
-        },
-        { title: "FAST IMAGE", onPress: fastImageRequest },
-    ];
+    const Buttons = () => {
+        const buttons = [
+            { title: METHODS.GET, onPress: getRequest },
+            { title: METHODS.PUT, onPress: putRequest },
+            { title: METHODS.POST, onPress: postRequest },
+            { title: METHODS.PATCH, onPress: patchRequest },
+            { title: METHODS.DELETE, onPress: deleteRequest },
+            { title: "UPLOAD", onPress: uploadRequest },
+            { title: "FAST IMAGE", onPress: fastImageRequest },
+        ];
+        if (item.isMattermostClient) {
+            buttons.push({
+                title: "MATTERMOST UPLOAD",
+                onPress: mattermostUploadRequest,
+            });
+        }
+
+        return (
+            <>
+                {buttons.map(({ title, onPress }) => (
+                    <Button
+                        key={`button-${title}`}
+                        title={title}
+                        onPress={onPress}
+                        style={{ paddingHorizontal: 10, paddingVertical: 5 }}
+                    />
+                ))}
+            </>
+        );
+    };
 
     useEffect(() => {
         client.getHeaders().then((clientHeaders) => {
@@ -83,14 +99,7 @@ export default function APIClientScreen({
                     disabled={true}
                 />
                 <ListHeaders headers={headers} />
-                {buttons.map(({ title, onPress }) => (
-                    <Button
-                        key={`button-${title}`}
-                        title={title}
-                        onPress={onPress}
-                        style={{ paddingHorizontal: 10, paddingVertical: 5 }}
-                    />
-                ))}
+                <Buttons />
             </ScrollView>
         </SafeAreaView>
     );

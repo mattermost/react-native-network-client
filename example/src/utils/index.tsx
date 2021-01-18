@@ -13,13 +13,30 @@ export enum METHODS {
     DELETE = "DELETE",
 }
 
+export enum UploadStatus {
+    UPLOADING = "UPLOADING",
+    FAILED = "FAILED",
+    COMPLETED = "COMPLETED",
+    POST_FAILED = "POST_FAILED",
+}
+
 export const parseHeaders = (headers: Header[]): ClientHeaders => {
     return headers
         .filter(({ key, value }) => key && value)
         .reduce((prev, cur) => ({ ...prev, [cur.key]: cur.value }), {} as any);
 };
 
-export const createMattermostAPIClient = async (): Promise<APIClientItem | null> => {
+export const networkClientKeyExtractor = (item: NetworkClientItem) => {
+    if ("baseUrl" in item.client) {
+        return item.client.baseUrl;
+    } else if ("wsUrl" in item.client) {
+        return item.client.wsUrl;
+    }
+
+    return item.name;
+};
+
+const createMattermostAPIClient = async (): Promise<APIClientItem | null> => {
     const name = "Mattermost";
     const baseUrl = "https://community.mattermost.com";
     const userAgent = await DeviceInfo.getUserAgent();
@@ -73,12 +90,43 @@ export const createMattermostAPIClient = async (): Promise<APIClientItem | null>
     };
 };
 
-export const networkClientKeyExtractor = (item: NetworkClientItem) => {
-    if ("baseUrl" in item.client) {
-        return item.client.baseUrl;
-    } else if ("wsUrl" in item.client) {
-        return item.client.wsUrl;
+const createJSONPlaceholderAPIClient = async (): Promise<APIClientItem | null> => {
+    const name = "JSON Placeholder";
+    const baseUrl = "https://jsonplaceholder.typicode.com";
+    const options = {
+        headers: {
+            "Content-Type": "application/json",
+        },
+    };
+
+    const { client, created } = await getOrCreateAPIClient(baseUrl, options);
+
+    if (!created) {
+        Alert.alert(
+            "Error",
+            `A client for ${baseUrl} already exists`,
+            [{ text: "OK" }],
+            { cancelable: false }
+        );
+
+        return null;
     }
 
-    return item.name;
+    return {
+        name,
+        client,
+    };
+};
+
+export const createTestClients = async (): Promise<NetworkClientItem[]> => {
+    return [
+        await createMattermostAPIClient(),
+        await createJSONPlaceholderAPIClient(),
+    ].reduce((clients: NetworkClientItem[], client) => {
+        if (client) {
+            return [...clients, client];
+        }
+
+        return clients;
+    }, []);
 };

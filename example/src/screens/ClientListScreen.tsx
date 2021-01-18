@@ -8,7 +8,7 @@ import { ButtonGroup } from "react-native-elements";
 import GenericClient from "@mattermost/react-native-network-client";
 
 import ClientListItem from "../components/ClientListItem";
-import { createMattermostAPIClient, networkClientKeyExtractor } from "../utils";
+import { createTestClients, networkClientKeyExtractor } from "../utils";
 
 export default function ClientListScreen({
     navigation,
@@ -20,11 +20,9 @@ export default function ClientListScreen({
 
     useEffect(() => {
         if (clients.length === 1) {
-            createMattermostAPIClient().then((client) => {
-                if (client) {
-                    setClients([...clients, client]);
-                }
-            });
+            createTestClients().then((testClients) =>
+                setClients([...clients, ...testClients])
+            );
         }
     }, []);
 
