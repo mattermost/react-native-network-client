@@ -118,7 +118,16 @@ fun OkHttpClient.Builder.parseOptions(options: ReadableMap): OkHttpClient.Builde
             dispatcher.maxRequestsPerHost = maxConnections
             this.dispatcher(dispatcher);
         }
+    }
 
+    if(options.hasKey("requestAdapterConfiguration")){
+        val requestAdapterConfiguration = options.getMap("requestAdapterConfiguration")!!;
+        if(requestAdapterConfiguration.hasKey("bearerAuthTokenResponseHeader")){
+            val bearerTokenHeader = requestAdapterConfiguration.getString("bearerAuthTokenResponseHeader");
+            val authorizationHeader = Arguments.createMap();
+            authorizationHeader.putString("Authorization", bearerTokenHeader)
+            this.addNetworkInterceptor(HeadersInterceptor(authorizationHeader))
+        }
     }
 
     return this
