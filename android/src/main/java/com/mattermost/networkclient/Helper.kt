@@ -120,13 +120,10 @@ fun OkHttpClient.Builder.parseOptions(options: ReadableMap): OkHttpClient.Builde
         }
     }
 
-    if(options.hasKey("requestAdapterConfiguration")){
+    if (options.hasKey("requestAdapterConfiguration")) {
         val requestAdapterConfiguration = options.getMap("requestAdapterConfiguration")!!;
-        if(requestAdapterConfiguration.hasKey("bearerAuthTokenResponseHeader")){
-            val bearerTokenHeader = requestAdapterConfiguration.getString("bearerAuthTokenResponseHeader");
-            val authorizationHeader = Arguments.createMap();
-            authorizationHeader.putString("Authorization", bearerTokenHeader)
-            this.addNetworkInterceptor(HeadersInterceptor(authorizationHeader))
+        if (requestAdapterConfiguration.hasKey("bearerAuthTokenResponseHeader")) {
+            this.addNetworkInterceptor(ResponseAuthHeaderInterceptor(requestAdapterConfiguration.getString("bearerAuthTokenResponseHeader")!!, this))
         }
     }
 
