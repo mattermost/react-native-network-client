@@ -15,6 +15,7 @@ declare global {
     type APIClientItem = {
         name: string;
         client: APIClientInterface;
+        isMattermostClient?: boolean;
     };
 
     type WebSocketClientItem = {
@@ -28,10 +29,11 @@ declare global {
         | WebSocketClientItem;
 
     type RootStackParamList = {
-        APIClient: APIClientItem;
-        APIClientRequest: { client: APIClientInterface; method: string };
-        APIClientUpload: { client: APIClientInterface };
-        APIClientFastImage: { client: APIClientInterface };
+        APIClient: { item: APIClientItem };
+        APIClientRequest: { item: APIClientItem; method: string };
+        APIClientUpload: { item: APIClientItem };
+        APIClientFastImage: { item: APIClientItem };
+        MattermostClientUpload: { item: APIClientItem };
         ClientList: { createdClient: APIClientItem };
         CreateAPIClient: undefined;
         CreateWebSocketClient: undefined;

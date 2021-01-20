@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import { NativeModules } from "react-native";
+import { NativeEventEmitter, NativeModules } from "react-native";
 import isURL from "validator/es/lib/isURL";
 
 const { APIClient: NativeAPIClient } = NativeModules;
+const Emitter = new NativeEventEmitter(NativeAPIClient);
 
 const CLIENTS: { [key: string]: APIClient } = {};
 
@@ -19,6 +20,10 @@ const DEFAULT_API_CLIENT_CONFIG: APIClientConfiguration = {
         cancelRequestsOnUnauthorized: false,
     },
 };
+
+const generateUploadTaskId = () =>
+    Math.random().toString(36).slice(-10) +
+    Math.random().toString(36).slice(-10);
 
 /**
  * Configurable client for consuming a REST API
@@ -77,8 +82,44 @@ class APIClient implements APIClientInterface {
         endpoint: string,
         fileUrl: string,
         options?: UploadRequestOptions
-    ): Promise<ClientResponse> =>
-        NativeAPIClient.upload(this.baseUrl, endpoint, fileUrl, options);
+    ): ProgressPromise<ClientResponse> => {
+        const taskId = generateUploadTaskId();
+        const promise: ProgressPromise<ClientResponse> = new Promise(
+            (resolve, reject) => {
+                const uploadSubscription = Emitter.addListener(
+                    "NativeClient-UploadProgress",
+                    (e: UploadProgressEvent) => {
+                        if (e.taskId === taskId && promise.onProgress) {
+                            promise.onProgress(e.fractionCompleted);
+                        }
+                    }
+                );
+
+                NativeAPIClient.upload(
+                    this.baseUrl,
+                    endpoint,
+                    fileUrl,
+                    taskId,
+                    options
+                )
+                    .then((response) => resolve(response))
+                    .catch((error) => reject(error))
+                    .finally(() => {
+                        uploadSubscription.remove();
+                        delete promise.progress;
+                    });
+            }
+        );
+
+        promise.progress = (fn) => {
+            promise.onProgress = fn;
+            return promise;
+        };
+
+        promise.cancel = () => NativeAPIClient.cancelRequest(taskId);
+
+        return promise;
+    };
 }
 
 async function getOrCreateAPIClient(
