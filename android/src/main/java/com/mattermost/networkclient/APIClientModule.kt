@@ -144,7 +144,7 @@ class APIClientModule(private val reactContext: ReactApplicationContext) : React
     @ReactMethod
     fun upload(baseUrl: String, endpoint: String?, fileUrl: String, taskId: String, options: ReadableMap, promise: Promise) {
 
-        // Set SkipBytes if it's passed in
+        // Set skipBytes if it's passed in
         val skipBytes = if (options.hasKey("skipBytes")) options.getInt("skipBytes").toLong() else null;
 
         try {
