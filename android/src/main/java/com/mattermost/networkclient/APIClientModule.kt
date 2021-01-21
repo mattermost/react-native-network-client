@@ -27,7 +27,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
             sessionsClient[baseUrl]!!.parseOptions(options);
 
             // Return stringified client for success
-            promise.resolve(Unit)
+            promise.resolve( null)
         } catch (err: Throwable) {
             promise.reject(err)
         }
@@ -46,7 +46,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     fun addClientHeadersFor(baseUrl: String, headers: ReadableMap, promise: Promise) {
         try {
             sessionsRequest[baseUrl]?.addReadableMap(headers)
-            promise.resolve(Unit);
+            promise.resolve(null);
         } catch (error: Error) {
             promise.reject(error)
         }

@@ -1,4 +1,4 @@
-package com.mattermost.networkclient
+package com.mattermost.networkclient.interceptors
 
 import okhttp3.Interceptor
 import okhttp3.Response

@@ -37,7 +37,7 @@ declare global {
         ClientList: { createdClient: APIClientItem };
         CreateAPIClient: undefined;
         CreateWebSocketClient: undefined;
-        GenericClientRequest: { client: GenericClientInterface };
+        GenericClientRequest: { item: GenericClientItem };
     };
 
     /* Client List Screen */
