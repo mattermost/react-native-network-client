@@ -15,7 +15,10 @@ protocol ResponseHandler {
 }
 
 class NetworkClient: NSObject, ResponseHandler {
-    let CONSTANTS = NetworkConstants().constantsToExport() as! Dictionary<String, String>
+    let CONSTANTS = ["EXPONENTIAL_RETRY": "exponential"]
+    
+
+
 
     func get(url: String, withSession session: Session, withOptions options: JSON, withResolver resolve: @escaping RCTPromiseResolveBlock, withRejecter reject: RCTPromiseRejectBlock) -> Void {
         handleRequest(for: url, withMethod: .get, withSession: session, withOptions: options, withResolver: resolve, withRejecter: reject)
