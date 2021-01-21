@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, { useState, useEffect } from "react";
-import { SafeAreaView } from "react-native";
+import { SafeAreaView, ScrollView } from "react-native";
 import { Input, Button } from "react-native-elements";
 
 import ListHeaders from "../components/ListHeaders";
@@ -12,48 +12,73 @@ export default function APIClientScreen({
     navigation,
     route,
 }: APIClientScreenProps) {
-    const { name, client } = route.params;
+    const { item } = route.params;
+    const { client, name } = item;
+
     const [headers, setHeaders] = useState<Header[]>([]);
 
     const getRequest = () =>
         navigation.navigate("APIClientRequest", {
-            client,
+            item,
             method: METHODS.GET,
         });
     const putRequest = () =>
         navigation.navigate("APIClientRequest", {
-            client,
+            item,
             method: METHODS.PUT,
         });
     const postRequest = () =>
         navigation.navigate("APIClientRequest", {
-            client,
+            item,
             method: METHODS.POST,
         });
     const patchRequest = () =>
         navigation.navigate("APIClientRequest", {
-            client,
+            item,
             method: METHODS.PATCH,
         });
     const deleteRequest = () =>
         navigation.navigate("APIClientRequest", {
-            client,
+            item,
             method: METHODS.DELETE,
         });
     const uploadRequest = () =>
-        navigation.navigate("APIClientUpload", { client });
+        navigation.navigate("APIClientUpload", { item });
+    const mattermostUploadRequest = () =>
+        navigation.navigate("MattermostClientUpload", { item });
     const fastImageRequest = () =>
-        navigation.navigate("APIClientFastImage", { client });
+        navigation.navigate("APIClientFastImage", { item });
 
-    const buttons = [
-        { title: METHODS.GET, onPress: getRequest },
-        { title: METHODS.PUT, onPress: putRequest },
-        { title: METHODS.POST, onPress: postRequest },
-        { title: METHODS.PATCH, onPress: patchRequest },
-        { title: METHODS.DELETE, onPress: deleteRequest },
-        { title: "UPLOAD", onPress: uploadRequest },
-        { title: "FAST IMAGE", onPress: fastImageRequest },
-    ];
+    const Buttons = () => {
+        const buttons = [
+            { title: METHODS.GET, onPress: getRequest },
+            { title: METHODS.PUT, onPress: putRequest },
+            { title: METHODS.POST, onPress: postRequest },
+            { title: METHODS.PATCH, onPress: patchRequest },
+            { title: METHODS.DELETE, onPress: deleteRequest },
+            { title: "UPLOAD", onPress: uploadRequest },
+            { title: "FAST IMAGE", onPress: fastImageRequest },
+        ];
+        if (item.isMattermostClient) {
+            buttons.push({
+                title: "MATTERMOST UPLOAD",
+                onPress: mattermostUploadRequest,
+            });
+        }
+
+        return (
+            <>
+                {buttons.map(({ title, onPress }) => (
+                    <Button
+                        key={`button-${title}`}
+                        title={title}
+                        onPress={onPress}
+                        style={{ paddingHorizontal: 10, paddingVertical: 5 }}
+                    />
+                ))}
+            </>
+        );
+    };
 
     useEffect(() => {
         client.getHeaders().then((clientHeaders) => {
@@ -65,18 +90,17 @@ export default function APIClientScreen({
     }, []);
 
     return (
-        <SafeAreaView style={{ flex: 1 }}>
-            <Input label="Name" value={name} disabled={true} />
-            <Input label="Base URL" value={client.baseUrl} disabled={true} />
-            <ListHeaders headers={headers} />
-            {buttons.map(({ title, onPress }) => (
-                <Button
-                    key={`button-${title}`}
-                    title={title}
-                    onPress={onPress}
-                    style={{ paddingHorizontal: 10, paddingVertical: 5 }}
+        <SafeAreaView>
+            <ScrollView>
+                <Input label="Name" value={name} disabled={true} />
+                <Input
+                    label="Base URL"
+                    value={client.baseUrl}
+                    disabled={true}
                 />
-            ))}
+                <ListHeaders headers={headers} />
+                <Buttons />
+            </ScrollView>
         </SafeAreaView>
     );
 }

@@ -7,9 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		4914851325B20EB200DBD8FF /* Session+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4914851225B20EB200DBD8FF /* Session+Extensions.swift */; };
+		4914851625B20EEF00DBD8FF /* URL+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4914851525B20EEF00DBD8FF /* URL+Extensions.swift */; };
 		4991797E255A0D0600C32F78 /* GenericClient.m in Sources */ = {isa = PBXBuildFile; fileRef = 4991797D255A0D0600C32F78 /* GenericClient.m */; };
 		49917982255A0D8900C32F78 /* GenericClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49917981255A0D8900C32F78 /* GenericClient.swift */; };
-		49EBD3B72565C19F00C7C102 /* Session+NetworkClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49EBD3B62565C19F00C7C102 /* Session+NetworkClient.swift */; };
 		49EBD8172575CF6500C7C102 /* NetworkClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49EBD8162575CF6500C7C102 /* NetworkClient.swift */; };
 		49EBDB3625781FA200C7C102 /* BearerAuthenticationAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49EBDB3525781FA200C7C102 /* BearerAuthenticationAdapter.swift */; };
 		49FE4ECC252E839900EC2942 /* APIClient.m in Sources */ = {isa = PBXBuildFile; fileRef = B3E7B5891CC2AC0600A0062D /* APIClient.m */; };
@@ -31,9 +32,10 @@
 
 /* Begin PBXFileReference section */
 		134814201AA4EA6300B7C361 /* libNetworkClient.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libNetworkClient.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		4914851225B20EB200DBD8FF /* Session+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Session+Extensions.swift"; sourceTree = "<group>"; };
+		4914851525B20EEF00DBD8FF /* URL+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "URL+Extensions.swift"; sourceTree = "<group>"; };
 		4991797D255A0D0600C32F78 /* GenericClient.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = GenericClient.m; sourceTree = "<group>"; };
 		49917981255A0D8900C32F78 /* GenericClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenericClient.swift; sourceTree = "<group>"; };
-		49EBD3B62565C19F00C7C102 /* Session+NetworkClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Session+NetworkClient.swift"; sourceTree = "<group>"; };
 		49EBD8162575CF6500C7C102 /* NetworkClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkClient.swift; sourceTree = "<group>"; };
 		49EBDB3525781FA200C7C102 /* BearerAuthenticationAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BearerAuthenticationAdapter.swift; sourceTree = "<group>"; };
 		49EBDC232578903700C7C102 /* NetworkClient-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "NetworkClient-Bridging-Header.h"; sourceTree = "<group>"; };
@@ -64,8 +66,9 @@
 		58B511D21A9E6C8500147676 = {
 			isa = PBXGroup;
 			children = (
+				4914851525B20EEF00DBD8FF /* URL+Extensions.swift */,
 				49EBDC232578903700C7C102 /* NetworkClient-Bridging-Header.h */,
-				49EBD3B62565C19F00C7C102 /* Session+NetworkClient.swift */,
+				4914851225B20EB200DBD8FF /* Session+Extensions.swift */,
 				53A730F5250AA8E40058A8B4 /* SessionManager.swift */,
 				F4FF95D6245B92E800C19C63 /* APIClient.swift */,
 				49917981255A0D8900C32F78 /* GenericClient.swift */,
@@ -134,13 +137,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4914851625B20EEF00DBD8FF /* URL+Extensions.swift in Sources */,
 				49917982255A0D8900C32F78 /* GenericClient.swift in Sources */,
 				49EBD8172575CF6500C7C102 /* NetworkClient.swift in Sources */,
 				49EBDB3625781FA200C7C102 /* BearerAuthenticationAdapter.swift in Sources */,
 				4991797E255A0D0600C32F78 /* GenericClient.m in Sources */,
 				53A730F6250AA8E40058A8B4 /* SessionManager.swift in Sources */,
+				4914851325B20EB200DBD8FF /* Session+Extensions.swift in Sources */,
 				F4FF95D7245B92E800C19C63 /* APIClient.swift in Sources */,
-				49EBD3B72565C19F00C7C102 /* Session+NetworkClient.swift in Sources */,
 				49FE4ECC252E839900EC2942 /* APIClient.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

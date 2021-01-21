@@ -13,7 +13,10 @@ import { useRetryPolicyConfiguration } from "../hooks";
 import { parseHeaders, METHODS } from "../utils";
 
 const APIClientRequestScreen = ({ route }: APIClientRequestScreenProps) => {
-    const { client, method } = route.params;
+    const {
+        item: { client },
+        method,
+    } = route.params;
     const [endpoint, setEndpoint] = useState(
         method === METHODS.POST ? "/api/v4/users/login" : "/api/v4/users/me"
     );

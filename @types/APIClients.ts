@@ -1,6 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+interface ProgressPromise<T> extends Promise<T> {
+    progress?: (
+        callback: (fractionCompleted: number) => void
+    ) => ProgressPromise<T>;
+    onProgress?: (fractionCompleted: number) => void;
+    cancel?: () => void;
+}
+
 type ClientHeaders = Record<string, string>;
 
 type RequestOptions = {
@@ -43,7 +51,7 @@ interface APIClientInterface {
         endpoint: string,
         fileUrl: string,
         options?: UploadRequestOptions
-    ): Promise<ClientResponse>;
+    ): ProgressPromise<ClientResponse>;
 
     getHeaders(): Promise<ClientHeaders>;
     addHeaders(headers: ClientHeaders): Promise<void>;
@@ -78,4 +86,9 @@ type APIClientConfiguration = {
     requestAdapterConfiguration?: RequestAdapterConfiguration;
     serverTrustManagerConfig?: Record<string, string>;
     cachedResponseHandlerConfig?: Record<string, string>;
+};
+
+type UploadProgressEvent = {
+    taskId: string;
+    fractionCompleted: number;
 };
