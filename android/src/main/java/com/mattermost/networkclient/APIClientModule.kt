@@ -1,16 +1,24 @@
 package com.mattermost.networkclient
 
 import com.facebook.react.bridge.*
+import com.mattermost.networkclient.uploads.ProgressListener
+import com.mattermost.networkclient.uploads.UploadFileRequestBody
+import okhttp3.Call
+import okhttp3.MultipartBody
+
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import okio.IOException
 import java.util.*
+import java.io.File
 
-class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
+
+class APIClientModule(private val reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
 
     var sessionsClient = mutableMapOf<String, OkHttpClient.Builder>()
     var sessionsRequest = mutableMapOf<String, Request.Builder>()
+    var calls = mutableMapOf<String, Call>()
 
     override fun getName(): String {
         return "APIClient"
@@ -27,7 +35,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
             sessionsClient[baseUrl]!!.parseOptions(options);
 
             // Return stringified client for success
-            promise.resolve( null)
+            promise.resolve(null)
         } catch (err: Throwable) {
             promise.reject(err)
         }
@@ -131,5 +139,48 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         val constants: MutableMap<String, Any> = HashMap<String, Any>()
         constants["EXPONENTIAL_RETRY"] = "EXPONENTIAL_RETRY"
         return constants
+    }
+
+    @ReactMethod
+    fun upload(baseUrl: String, endpoint: String?, fileUrl: String, taskId: String, options: ReadableMap, promise: Promise) {
+
+        // Set SkipBytes if it's passed in
+        val skipBytes = if (options.hasKey("skipBytes")) options.getInt("skipBytes").toLong() else null;
+
+        try {
+            // Create the file from URL
+            val file = File(fileUrl);
+
+            // Create a Multi-part form for uploading the file
+            val body = MultipartBody.Builder()
+                    .setType(MultipartBody.FORM)
+                    // Pass in the Custom File Body, with the Progress Listener Event
+                    .addPart(UploadFileRequestBody(file, ProgressListener(reactContext, taskId), skipBytes))
+                    .build()
+
+            // Parse any other request options
+            val request = sessionsRequest[baseUrl]!!.url("$baseUrl/$endpoint").post(body).parseOptions(options, sessionsClient[baseUrl]!!).build();
+
+            // Cancellable, so create the call first
+            calls[taskId] = sessionsClient[baseUrl]!!.build().newCall(request)
+
+            // Run the call
+            calls[taskId]!!.execute().use { response ->
+                response.promiseResolution(promise)
+            }
+
+        } catch (e: IOException) {
+            promise.reject(e)
+        }
+    }
+
+    @ReactMethod
+    fun cancelRequest(taskId: String, promise: Promise) {
+        try {
+            calls[taskId]!!.cancel()
+            promise.resolve(null)
+        } catch (e: IOException) {
+            promise.reject(e)
+        }
     }
 }
