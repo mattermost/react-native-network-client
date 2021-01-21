@@ -15,7 +15,7 @@ class ProgressListener(private val reactContext: ReactContext, private val taskI
     }
 
     override fun update(bytesRead: Long, contentLength: Long) {
-        val progress = ((100 * bytesRead) / contentLength).toInt()
+        val progress = bytesRead / contentLength
         emitProgressEvent(progress)
     }
 }
