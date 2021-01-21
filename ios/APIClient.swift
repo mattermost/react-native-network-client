@@ -18,6 +18,14 @@ class APIClient: RCTEventEmitter, NetworkClient {
     var hasListeners: Bool!
     let requestsTable = NSMapTable<NSString, UploadRequest>.strongToWeakObjects()
 
+    func requiresMainQueueSetup() -> Bool {
+        return false
+    }
+    
+    override func constantsToExport() -> [AnyHashable : Any]! {
+        return CONSTANTS
+    }
+
     open override func supportedEvents() -> [String] {
         ["NativeClient-UploadProgress"]
     }
@@ -28,11 +36,6 @@ class APIClient: RCTEventEmitter, NetworkClient {
     
     override func stopObserving() -> Void {
         hasListeners = false;
-    }
-    
-    @objc
-    func constantsToExport() -> [String: Any]! {
-        return CONSTANTS
     }
     
     @objc(createClientFor:withOptions:withResolver:withRejecter:)
