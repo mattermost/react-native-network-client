@@ -4,8 +4,11 @@ import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableMap
+
 import okhttp3.*
 import java.util.concurrent.TimeUnit
+
+import com.mattermost.networkclient.interceptors.*
 
 
 /**
@@ -47,12 +50,12 @@ fun Response.promiseResolution(promise: Promise): Response {
 fun Request.Builder.parseOptions(options: ReadableMap, session: OkHttpClient.Builder): Request.Builder {
 
     // Timeout Interval per request
-    if(options.hasKey("timeoutInterval")){
-        session.addNetworkInterceptor(TimeoutRequestInterceptor(options.getInt("timeoutInterval")))
+    if (options.hasKey("timeoutInterval")) {
+        session.addInterceptor(TimeoutRequestInterceptor(options.getInt("timeoutInterval")))
     }
 
     // Headers
-    if(options.hasKey("headers")){
+    if (options.hasKey("headers")) {
         session.addNetworkInterceptor(HeadersInterceptor(options.getMap("headers")!!));
     }
 
@@ -73,40 +76,42 @@ fun OkHttpClient.Builder.parseOptions(options: ReadableMap): OkHttpClient.Builde
     }
 
     // Retries
+    this.retryOnConnectionFailure(false);
     if (options.hasKey("retryPolicyConfiguration")) {
-        val retryPolicyConfiguration = options.getMap("retryPolicyConfiguration")!!
-        val retryType = retryPolicyConfiguration.getString("type")
-        val retryLimit = retryPolicyConfiguration.getDouble("retryLimit")
-        val retryExponentialBackoffBase = retryPolicyConfiguration.getDouble("exponentialBackoffBase")
-        val retryExponentialBackoffScale = retryPolicyConfiguration.getDouble("exponentialBackoffScale")
-        this.addNetworkInterceptor(RetryInterceptor(retryType, retryLimit.toInt(), retryExponentialBackoffBase, retryExponentialBackoffScale))
+        val retryPolicyConfiguration = options.getMap("retryPolicyConfiguration")!!.toHashMap();
+
+        val retryType = retryPolicyConfiguration["type"] as String?
+        val retryLimit = retryPolicyConfiguration["retryLimit"] as Double?
+        val retryExponentialBackoffBase = retryPolicyConfiguration["exponentialBackoffBase"] as Double?
+        val retryExponentialBackoffScale = retryPolicyConfiguration["exponentialBackoffScale"] as Double?
+        this.addInterceptor(RetryInterceptor(retryType, retryLimit?.toInt(), retryExponentialBackoffBase, retryExponentialBackoffScale))
     }
 
     // Headers
-    if(options.hasKey("headers")){
+    if (options.hasKey("headers")) {
         this.addNetworkInterceptor(HeadersInterceptor(options.getMap("headers")!!));
     }
 
     // Session Configuration
-    if(options.hasKey("sessionConfiguration")){
+    if (options.hasKey("sessionConfiguration")) {
         val sessionConfig = options.getMap("sessionConfiguration")!!;
 
-        if(sessionConfig.hasKey("followRedirects")){
+        if (sessionConfig.hasKey("followRedirects")) {
             val followRedirects = sessionConfig.getBoolean("followRedirects")!!;
             this.followRedirects(followRedirects);
             this.followSslRedirects(followRedirects);
         }
 
-        if(sessionConfig.hasKey("timeoutIntervalForRequest")){
+        if (sessionConfig.hasKey("timeoutIntervalForRequest")) {
             this.connectTimeout(sessionConfig.getInt("timeoutIntervalForRequest").toLong(), TimeUnit.SECONDS)
             this.readTimeout(sessionConfig.getInt("timeoutIntervalForRequest").toLong(), TimeUnit.SECONDS)
         }
 
-        if(sessionConfig.hasKey("timeoutIntervalForResource")){
+        if (sessionConfig.hasKey("timeoutIntervalForResource")) {
             this.callTimeout(sessionConfig.getInt("timeoutIntervalForResource").toLong(), TimeUnit.SECONDS)
         }
 
-        if(sessionConfig.hasKey("httpMaximumConnectionsPerHost")){
+        if (sessionConfig.hasKey("httpMaximumConnectionsPerHost")) {
             val maxConnections = sessionConfig.getInt("httpMaximumConnectionsPerHost");
             val dispatcher = Dispatcher()
             dispatcher.maxRequests = maxConnections

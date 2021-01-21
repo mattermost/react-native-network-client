@@ -1,9 +1,12 @@
-package com.mattermost.networkclient
+package com.mattermost.networkclient.interceptors
 
-import com.facebook.react.bridge.ReadableMap
+
 import okhttp3.Interceptor
 import okhttp3.Response
 import java.io.IOException
+import com.facebook.react.bridge.ReadableMap
+import com.mattermost.networkclient.addReadableMap
+import com.mattermost.networkclient.readableMap
 
 class HeadersInterceptor(headers: ReadableMap) : Interceptor {
 
