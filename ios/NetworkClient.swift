@@ -52,7 +52,7 @@ extension NetworkClient {
             return
         }
 
-        handleRequest(for: url, withMethod: .delete, withSession: session, withOptions: options, withResolver: resolve, withRejecter: reject)
+        handleRequest(for: url, withMethod: method, withSession: session, withOptions: options, withResolver: resolve, withRejecter: reject)
     }
     
     func handleRequest(for url: URL, withMethod method: HTTPMethod, withSession session: Session, withOptions options: JSON, withResolver resolve: @escaping RCTPromiseResolveBlock, withRejecter reject: RCTPromiseRejectBlock) -> Void {

@@ -12,7 +12,10 @@ import { parseHeaders, METHODS } from "../utils";
 const GenericClientRequestScreen = ({
     route,
 }: GenericClientRequestScreenProps) => {
-    const { client } = route.params;
+    const {
+        item: { client },
+    } = route.params;
+
     const [url, setUrl] = useState("");
     const [selectedMethodIndex, setSelectedMethodIndex] = useState(0);
     const [timeoutInterval, setTimeoutInterval] = useState(30);
