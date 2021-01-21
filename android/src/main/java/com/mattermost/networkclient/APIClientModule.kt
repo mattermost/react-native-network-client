@@ -124,14 +124,4 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
             promise.reject(e)
         }
     }
-
-    @ReactMethod
-    fun upload(baseUrl: String, endpoint: String?, fileUrl: String, taskId: String, options: ReadableMap, promise: Promise) {
-
-    }
-
-    @ReactMethod
-    fun cancelRequest(taskId: String) {
-
-    }
 }
