@@ -1,9 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-
 import type { NativeModule } from "react-native";
 
 declare global {
+    type Constants = {
+        EXPONENTIAL_RETRY: "EXPONENTIAL_RETRY";
+    };
+
     interface NativeAPIClient extends NativeModule {
         get(
             baseUrl: string,
@@ -58,5 +61,7 @@ declare global {
         ): Promise<void>;
         disconnectWebSocketFor(wsUrl: string): Promise<void>;
         invalidateWebSocketClientFor(baseUrl: string): Promise<void>;
+
+        getConstants(): Constants;
     }
 }
