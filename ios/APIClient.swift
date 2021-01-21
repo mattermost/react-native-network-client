@@ -30,6 +30,11 @@ class APIClient: RCTEventEmitter, NetworkClient {
         hasListeners = false;
     }
     
+    @objc
+    func constantsToExport() -> [String: Any]! {
+        return CONSTANTS
+    }
+    
     @objc(createClientFor:withOptions:withResolver:withRejecter:)
     func createClientFor(baseUrlString: String, options: Dictionary<String, Any> = [:], resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
         guard let baseUrl = URL(string: baseUrlString) else {

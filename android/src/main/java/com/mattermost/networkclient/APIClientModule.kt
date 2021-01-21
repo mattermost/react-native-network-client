@@ -5,6 +5,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import okio.IOException
+import java.util.*
 
 class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
 
@@ -123,5 +124,12 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         } catch (e: IOException) {
             promise.reject(e)
         }
+    }
+
+    @Override
+    override fun getConstants(): Map<String, Any> {
+        val constants: MutableMap<String, Any> = HashMap<String, Any>()
+        constants["EXPONENTIAL_RETRY"] = "EXPONENTIAL_RETRY"
+        return constants
     }
 }
