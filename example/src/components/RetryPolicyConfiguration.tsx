@@ -33,12 +33,14 @@ const RetryPolicyConfiguration = (props: RetryPolicyConfigurationProps) => (
                     value={props.retryLimit}
                     onChange={props.setRetryLimit}
                     minValue={0}
+                    testID='retry_policy_configuration.retry_limit.input'
                 />
                 <NumericInput
                     title="Exponential backoff base"
                     value={props.exponentialBackoffBase}
                     onChange={props.setExponentialBackoffBase}
                     minValue={2}
+                    testID='retry_policy_configuration.exponential_backoff_base.input'
                 />
                 <NumericInput
                     title="Exponential backoff scale"
@@ -47,6 +49,7 @@ const RetryPolicyConfiguration = (props: RetryPolicyConfigurationProps) => (
                     minValue={0}
                     valueType="real"
                     step={0.1}
+                    testID='retry_policy_configuration.exponential_backoff_scale.input'
                 />
             </>
         )}

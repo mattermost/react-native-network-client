@@ -98,6 +98,7 @@ const GenericClientRequestScreen = ({
                     value={url}
                     onChangeText={setUrl}
                     autoCapitalize="none"
+                    testID='generic_client_request.url.input'
                 />
                 <AddHeaders onHeadersChanged={setRequestHeaders} />
                 {methods[selectedMethodIndex] !== METHODS.GET && (
@@ -107,6 +108,7 @@ const GenericClientRequestScreen = ({
                         value={body}
                         onChangeText={setBody}
                         autoCapitalize="none"
+                        testID='generic_client_request.body.input'
                     />
                 )}
                 <NumericInput
@@ -114,6 +116,7 @@ const GenericClientRequestScreen = ({
                     value={timeoutInterval}
                     onChange={setTimeoutInterval}
                     minValue={0}
+                    testID='generic_client_request.timeout_interval.input'
                 />
                 <RetryPolicyConfiguration
                     checked={Boolean(retryPolicyConfiguration.type)}

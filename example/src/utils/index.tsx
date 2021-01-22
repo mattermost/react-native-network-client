@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import { Alert } from "react-native";
+import { Alert, Platform } from "react-native";
 import DeviceInfo from "react-native-device-info";
 import { getOrCreateAPIClient } from "@mattermost/react-native-network-client";
 
@@ -36,14 +36,7 @@ export const networkClientKeyExtractor = (item: NetworkClientItem) => {
     return item.name;
 };
 
-const createMattermostAPIClient = async (): Promise<APIClientItem | null> => {
-    const name = "Mattermost";
-    const baseUrl = "https://community.mattermost.com";
-    const userAgent = await DeviceInfo.getUserAgent();
-    const headers = {
-        "X-Requested-With": "XMLHttpRequest",
-        "User-Agent": userAgent,
-    };
+const buildDefaultOptions = (headers: Record<string, string>): APIClientConfiguration => {
     const sessionConfiguration = {
         followRedirects: true,
         allowsCellularAccess: true,
@@ -70,10 +63,20 @@ const createMattermostAPIClient = async (): Promise<APIClientItem | null> => {
         requestAdapterConfiguration,
     };
 
+    return options;
+};
+
+const createAPIClient = async (
+    name: string,
+    baseUrl: string,
+    options: APIClientConfiguration,
+    {validateUrl = true, isMattermostClient = true} = {},
+): Promise<APIClientItem | null> => {
     try {
         const { client, created } = await getOrCreateAPIClient(
             baseUrl,
-            options
+            options,
+            validateUrl
         );
         if (!created) {
             Alert.alert(
@@ -89,12 +92,25 @@ const createMattermostAPIClient = async (): Promise<APIClientItem | null> => {
         return {
             name,
             client,
-            isMattermostClient: true,
+            isMattermostClient,
         };
     } catch (e) {
         console.log(JSON.stringify(e));
         return null;
     }
+};
+
+const createMattermostAPIClient = async (): Promise<APIClientItem | null> => {
+    const name = "Mattermost";
+    const baseUrl = "https://community.mattermost.com";
+    const userAgent = await DeviceInfo.getUserAgent();
+    const headers = {
+        "X-Requested-With": "XMLHttpRequest",
+        "User-Agent": userAgent,
+    };
+    const options = buildDefaultOptions(headers);
+
+    return createAPIClient(name, baseUrl, options);
 };
 
 const createJSONPlaceholderAPIClient = async (): Promise<APIClientItem | null> => {
@@ -106,29 +122,26 @@ const createJSONPlaceholderAPIClient = async (): Promise<APIClientItem | null> =
         },
     };
 
-    const { client, created } = await getOrCreateAPIClient(baseUrl, options);
+    return createAPIClient(name, baseUrl, options, {isMattermostClient: false});
+};
 
-    if (!created) {
-        Alert.alert(
-            "Error",
-            `A client for ${baseUrl} already exists`,
-            [{ text: "OK" }],
-            { cancelable: false }
-        );
-
-        return null;
-    }
-
-    return {
-        name,
-        client,
+const createMockserverAPIClient = async (): Promise<APIClientItem | null> => {
+    const name = "Mockserver";
+    const baseUrl = Platform.OS === 'ios' ? "http://localhost:8080" : "http://10.0.2.2:8080";
+    const headers = {
+        "custom-header-1-key": "custom-header-1-value",
+        "custom-header-2-key": "custom-header-2-value",
     };
+    const options = buildDefaultOptions(headers);
+
+    return createAPIClient(name, baseUrl, options, {validateUrl: false, isMattermostClient: false});
 };
 
 export const createTestClients = async (): Promise<NetworkClientItem[]> => {
     return [
         await createMattermostAPIClient(),
         await createJSONPlaceholderAPIClient(),
+        await createMockserverAPIClient(),
     ].reduce((clients: NetworkClientItem[], client) => {
         if (client) {
             return [...clients, client];

@@ -91,11 +91,16 @@ export default function CreateAPIClientScreen({
     return (
         <SafeAreaView>
             <ScrollView>
-                <Input label="Name" onChangeText={setName} />
+                <Input
+                    label="Name"
+                    onChangeText={setName}
+                    testID='create_api_client.name.input'
+                />
                 <Input
                     label="Base URL"
                     onChangeText={setBaseUrl}
                     autoCapitalize="none"
+                    testID='create_api_client.base_url.input'
                 />
 
                 <AddHeaders onHeadersChanged={setClientHeaders} />
@@ -105,6 +110,7 @@ export default function CreateAPIClientScreen({
                     onChangeText={setBearerAuthTokenResponseHeader}
                     placeholder="token"
                     autoCapitalize="none"
+                    testID='create_api_client.bearer_auth_token.input'
                 />
 
                 <NumericInput
@@ -112,6 +118,7 @@ export default function CreateAPIClientScreen({
                     value={sessionConfiguration.timeoutIntervalForRequest}
                     onChange={setTimeoutIntervalForRequest}
                     minValue={0}
+                    testID='create_api_client.request_timeout_interval.input'
                 />
 
                 <NumericInput
@@ -119,6 +126,7 @@ export default function CreateAPIClientScreen({
                     value={sessionConfiguration.timeoutIntervalForResource}
                     onChange={setTimeoutIntervalForResource}
                     minValue={0}
+                    testID='create_api_client.resource_timeout_interval.input'
                 />
 
                 <NumericInput
@@ -126,6 +134,7 @@ export default function CreateAPIClientScreen({
                     value={sessionConfiguration.httpMaximumConnectionsPerHost}
                     onChange={setHttpMaximumConnectionsPerHost}
                     minValue={1}
+                    testID='create_api_client.max_connects.input'
                 />
 
                 <RetryPolicyConfiguration

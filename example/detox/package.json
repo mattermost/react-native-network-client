@@ -1,0 +1,37 @@
+{
+  "name": "react-native-network-client-example-e2e",
+  "description": "End-to-end testing for React Native Network Client Example",
+  "repository": "git@github.com:mattermost/react-native-network-client.git",
+  "author": "Mattermost, Inc.",
+  "devDependencies": {
+    "@babel/plugin-proposal-class-properties": "7.12.1",
+    "@babel/plugin-transform-modules-commonjs": "7.12.1",
+    "@babel/plugin-transform-runtime": "7.12.10",
+    "@babel/preset-env": "7.12.11",
+    "axios": "0.21.1",
+    "babel-jest": "26.6.3",
+    "babel-plugin-module-resolver": "4.1.0",
+    "deepmerge": "4.2.2",
+    "detox": "18.2.2",
+    "form-data": "3.0.0",
+    "http-status-codes": "2.1.4",
+    "jest": "26.6.3",
+    "jest-circus": "26.6.3",
+    "jest-cli": "26.6.3",
+    "jest-html-reporters": "2.1.2",
+    "jest-junit": "12.0.0",
+    "sanitize-filename": "1.6.3",
+    "uuid": "8.3.2"
+  },
+  "scripts": {
+    "e2e:android-create-emulator": "avdmanager create avd -n detox_emu_api_30 -k 'system-images;android-30;google_apis;x86' -g google_apis -d 'pixel'",
+    "e2e:android-build": "detox build -c android.emu.debug",
+    "e2e:android-test": "detox test -c android.emu.debug",
+    "e2e:ios-test": "IOS=true detox test -c ios.sim.debug"
+  },
+  "jest": {
+    "transform": {
+      "^.+\\.js?$": "babel-jest"
+    }
+  }
+}

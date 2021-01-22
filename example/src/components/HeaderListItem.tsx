@@ -30,6 +30,7 @@ const HeaderListItem = ({
                 placeholder="key"
                 value={header.key}
                 disabled={disabled}
+                testID={`header_list_item.${index}.key.input`}
             />
             <Input
                 containerStyle={{ flex: 1 }}
@@ -37,6 +38,7 @@ const HeaderListItem = ({
                 placeholder="value"
                 value={header.value}
                 disabled={disabled}
+                testID={`header_list_item.${index}.value.input`}
             />
         </ListItem>
     );
