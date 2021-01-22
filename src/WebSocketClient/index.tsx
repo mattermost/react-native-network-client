@@ -8,7 +8,14 @@ const {
     WebSocketClient: NativeWebSocketClient,
 }: { WebSocketClient: NativeWebSocketClient } = NativeModules;
 const Emitter = new NativeEventEmitter(NativeWebSocketClient);
-const { EVENTS, READY_STATE } = NativeWebSocketClient.getConstants();
+const EVENTS = NativeWebSocketClient.getConstants();
+
+enum ReadyState {
+    CONNECTING,
+    OPEN,
+    CLOSING,
+    CLOSED,
+}
 
 const SOCKETS: { [key: string]: WebSocketClient } = {};
 
@@ -17,20 +24,31 @@ const SOCKETS: { [key: string]: WebSocketClient } = {};
  */
 class WebSocketClient implements WebSocketClientInterface {
     url: string;
-    readyState: WebSocketReadyState;
+    readyState: ReadyState;
+    onOpenCallback?: WebSocketCallback;
+    onCloseCallback?: WebSocketCallback;
 
     constructor(url: string) {
         this.url = url;
-        this.readyState = READY_STATE.CLOSED;
+        this.readyState = ReadyState.CLOSED;
 
-        Emitter.addListener(
-            EVENTS.READY_STATE_EVENT,
-            (event: WebSocketEvent) => {
-                if (event.url === this.url) {
-                    this.readyState = event.message as WebSocketReadyState;
+        Emitter.addListener(EVENTS.OPEN_EVENT, (event: WebSocketEvent) => {
+            if (event.url === this.url) {
+                this.readyState = ReadyState.OPEN;
+                if (this.onOpenCallback) {
+                    this.onOpenCallback(event);
                 }
             }
-        );
+        });
+
+        Emitter.addListener(EVENTS.CLOSE_EVENT, (event: WebSocketEvent) => {
+            if (event.url === this.url) {
+                this.readyState = ReadyState.CLOSED;
+                if (this.onCloseCallback) {
+                    this.onCloseCallback(event);
+                }
+            }
+        });
     }
 
     connect = () => NativeWebSocketClient.connectFor(this.url);
@@ -38,24 +56,16 @@ class WebSocketClient implements WebSocketClientInterface {
     send = (data: string) => NativeWebSocketClient.sendDataFor(this.url, data);
 
     onOpen = (callback: WebSocketCallback) => {
-        Emitter.addListener(EVENTS.OPEN_EVENT, (event: WebSocketEvent) => {
-            if (event.url === this.url && callback) {
-                callback(event);
-            }
-        });
+        this.onOpenCallback = callback;
     };
 
     onClose = (callback: WebSocketCallback) => {
-        Emitter.addListener(EVENTS.CLOSE_EVENT, (event: WebSocketEvent) => {
-            if (event.url === this.url && callback) {
-                callback(event);
-            }
-        });
+        this.onCloseCallback = callback;
     };
 
     onError = (callback: WebSocketCallback) => {
         Emitter.addListener(EVENTS.ERROR_EVENT, (event: WebSocketEvent) => {
-            if (event.url === this.url && callback) {
+            if (event.url === this.url) {
                 callback(event);
             }
         });
@@ -63,7 +73,7 @@ class WebSocketClient implements WebSocketClientInterface {
 
     onMessage = (callback: WebSocketCallback) => {
         Emitter.addListener(EVENTS.MESSAGE_EVENT, (event: WebSocketEvent) => {
-            if (event.url === this.url && callback) {
+            if (event.url === this.url) {
                 callback(event);
             }
         });

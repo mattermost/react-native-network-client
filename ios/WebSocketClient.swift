@@ -19,13 +19,6 @@ let EVENTS = [
     "READY_STATE_EVENT": "NetworkClient-WebSocket-ReadyState",
 ]
 
-let READY_STATE = [
-    "CONNECTING": 0,
-    "OPEN": 1,
-    "CLOSING": 2,
-    "CLOSED": 3,
-]
-
 @objc(WebSocketClient)
 class WebSocketClient: RCTEventEmitter, WebSocketDelegate {
     var emitter: RCTEventEmitter!
@@ -36,7 +29,7 @@ class WebSocketClient: RCTEventEmitter, WebSocketDelegate {
     }
     
     override func constantsToExport() -> [AnyHashable : Any]! {
-        return ["EVENTS": EVENTS, "READY_STATE": READY_STATE]
+        return EVENTS
     }
     
     open override func supportedEvents() -> [String] {
@@ -124,7 +117,6 @@ class WebSocketClient: RCTEventEmitter, WebSocketDelegate {
         switch event {
         case .connected(let headers):
             self.sendEvent(withName: EVENTS["OPEN_EVENT"], body: ["url": url, "message": ["headers": headers]])
-            self.sendEvent(withName: EVENTS["READY_STATE_EVENT"], body: ["url": url, "message": READY_STATE["OPEN"]!])
         case .disconnected(let reason, let code):
             self.sendEvent(withName: EVENTS["CLOSE_EVENT"], body: ["url": url, "message": ["reason": reason, "code": code]])
         case .text(let text):
@@ -135,10 +127,8 @@ class WebSocketClient: RCTEventEmitter, WebSocketDelegate {
             }
         case .cancelled:
             self.sendEvent(withName: EVENTS["CLOSE_EVENT"], body: ["url": url])
-            self.sendEvent(withName: EVENTS["READY_STATE_EVENT"], body: ["url": url, "message": READY_STATE["CLOSED"]!])
         case .error(let error):
             self.sendEvent(withName: EVENTS["ERROR_EVENT"], body: ["url": url, "message": ["error": error]])
-            self.sendEvent(withName: EVENTS["READY_STATE_EVENT"], body: ["url": url, "message": READY_STATE["CLOSED"]!])
         default:
             break
         }

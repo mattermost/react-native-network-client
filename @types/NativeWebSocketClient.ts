@@ -11,20 +11,8 @@ declare global {
         READY_STATE_EVENT = "NetworkClient-WebSocket-ReadyState",
     }
 
-    enum WebSocketReadyState {
-        CONNECTING,
-        OPEN,
-        CLOSING,
-        CLOSED,
-    }
-
-    type WebSocketConstants = {
-        EVENTS: typeof WebSocketEvents;
-        READY_STATE: typeof WebSocketReadyState;
-    };
-
     interface NativeWebSocketClient extends NativeModule {
-        getConstants(): WebSocketConstants;
+        getConstants(): typeof WebSocketEvents;
         createClientFor(
             url: string,
             config?: WebSocketClientConfiguration

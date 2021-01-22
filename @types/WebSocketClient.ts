@@ -13,10 +13,7 @@ type WebSocketClientConfiguration = {
     sslPinningConfiguration?: SSLPinningConfiguration;
 };
 
-type WebSocketMessage =
-    | string
-    | WebSocketReadyState
-    | Record<string, string | number>;
+type WebSocketMessage = string | Record<string, string | number>;
 type WebSocketEvent = {
     url: string;
     message: WebSocketMessage;
@@ -26,7 +23,7 @@ type WebSocketCallback = (event: WebSocketEvent) => void;
 
 interface WebSocketClientInterface {
     url: string;
-    readyState: WebSocketReadyState;
+    readyState: number;
     send(data: string): void;
     connect(): void;
     close(): void;
@@ -34,4 +31,6 @@ interface WebSocketClientInterface {
     onClose(callback: WebSocketCallback): void;
     onError(callback: WebSocketCallback): void;
     onMessage(callback: WebSocketCallback): void;
+    onOpenCallback?: WebSocketCallback;
+    onCloseCallback?: WebSocketCallback;
 }
