@@ -1,32 +1,39 @@
 import type { StackNavigationProp } from "@react-navigation/stack";
 import type { RouteProp } from "@react-navigation/native";
 
+enum ClientType {
+    GENERIC,
+    API,
+    WEBSOCKET,
+}
+
 declare global {
     type NetworkClient =
         | GenericClientInterface
         | APIClientInterface
         | WebSocketClientInterface;
 
-    type GenericClientItem = {
+    type NetworkClientItem = {
         name: string;
-        client: GenericClientInterface;
-    };
-
-    type APIClientItem = {
-        name: string;
-        client: APIClientInterface;
+        client: NetworkClient;
+        type: ClientType;
         isMattermostClient?: boolean;
     };
 
-    type WebSocketClientItem = {
-        name: string;
-        client: WebSocketClientInterface;
+    type GenericClientItem = NetworkClientItem & {
+        client: GenericClientInterface;
+        type: ClientType.GENERIC;
     };
 
-    type NetworkClientItem =
-        | GenericClientItem
-        | APIClientItem
-        | WebSocketClientItem;
+    type APIClientItem = NetworkClientItem & {
+        client: APIClientInterface;
+        type: ClientType.API;
+    };
+
+    type WebSocketClientItem = NetworkClientItem & {
+        client: WebSocketClientInterface;
+        type: ClientType.WEBSOCKET;
+    };
 
     type RootStackParamList = {
         APIClient: { item: APIClientItem };
@@ -34,10 +41,11 @@ declare global {
         APIClientUpload: { item: APIClientItem };
         APIClientFastImage: { item: APIClientItem };
         MattermostClientUpload: { item: APIClientItem };
-        ClientList: { createdClient: APIClientItem };
+        ClientList: { createdClient: NetworkClientItem };
         CreateAPIClient: undefined;
         CreateWebSocketClient: undefined;
         GenericClientRequest: { item: GenericClientItem };
+        WebSocketClient: { item: WebSocketClientItem };
     };
 
     /* Client List Screen */
@@ -155,5 +163,20 @@ declare global {
     type CreateWebSocketClientScreenProps = {
         navigation: CreateWebSocketClientScreenNavigationProp;
         route: CreateWebSocketClientScreenRouteProp;
+    };
+
+    /* WebSocket Client Screen */
+    type WebSocketClientScreenNavigationProp = StackNavigationProp<
+        RootStackParamList,
+        "WebSocketClient"
+    >;
+    type WebSocketClientScreenRouteProp = RouteProp<
+        RootStackParamList,
+        "WebSocketClient"
+    >;
+
+    type WebSocketClientScreenProps = {
+        navigation: WebSocketClientScreenNavigationProp;
+        route: WebSocketClientScreenRouteProp;
     };
 }

@@ -1,9 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Alert } from "react-native";
 import { ListItem } from "react-native-elements";
+
+import { ClientType } from "../utils";
 
 type ClientListItemProps = {
     index: number;
@@ -12,29 +14,23 @@ type ClientListItemProps = {
     navigate: (screen: string, {}: { item: NetworkClientItem }) => void;
 };
 
-const ClientListItem = ({
-    index,
-    item,
-    deleteClient,
-    navigate,
-}: ClientListItemProps) => {
-    const { name, client } = item;
-    const [url, setUrl] = useState("");
-    const [screen, setScreen] = useState("");
+const ClientListItem = (props: ClientListItemProps) => {
+    const {
+        index,
+        deleteClient,
+        item: { name, client, type },
+    } = props;
 
-    useEffect(() => {
-        if ("baseUrl" in client) {
-            setUrl(client.baseUrl);
-            setScreen("APIClient");
-        } else if ("wsUrl" in client) {
-            setUrl(client.wsUrl);
-            setScreen("WebSocketClient");
-        } else {
-            setScreen("GenericClientRequest");
+    const viewClient = () => {
+        let screen = "GenericClientRequest";
+        if (type === ClientType.API) {
+            screen = "APIClient";
+        } else if (type === ClientType.WEBSOCKET) {
+            screen = "WebSocketClient";
         }
-    }, []);
 
-    const viewClient = () => navigate(screen, { item });
+        props.navigate(screen, { item: props.item });
+    };
 
     const invalidateClient = () => {
         if ("invalidate" in client) {
@@ -53,11 +49,21 @@ const ClientListItem = ({
             );
     };
 
+    const Subtitle = () => {
+        if ("baseUrl" in client) {
+            return <ListItem.Subtitle>{client.baseUrl}</ListItem.Subtitle>;
+        } else if ("url" in client) {
+            return <ListItem.Subtitle>{client.url}</ListItem.Subtitle>;
+        }
+
+        return null;
+    };
+
     return (
         <ListItem onPress={viewClient} onLongPress={removeClient} bottomDivider>
             <ListItem.Content>
                 <ListItem.Title>{name}</ListItem.Title>
-                {Boolean(url) && <ListItem.Subtitle>{url}</ListItem.Subtitle>}
+                <Subtitle />
             </ListItem.Content>
             <ListItem.Chevron />
         </ListItem>

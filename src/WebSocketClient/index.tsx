@@ -1,54 +1,113 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import { NativeModules } from "react-native";
+import { NativeEventEmitter, NativeModules } from "react-native";
 import isURL from "validator/es/lib/isURL";
 
-// @to-do: export a native WebSocket client
-const { NetworkClient } = NativeModules;
+const { WebSocketClient: NativeWebSocketClient } = NativeModules;
+const CONSTANTS = NativeWebSocketClient.getConstants();
+const Emitter = new NativeEventEmitter(NativeWebSocketClient);
 
 const SOCKETS: { [key: string]: WebSocketClient } = {};
 
 /**
- * Configurable Websocket client
+ * Configurable WebSocket client
  */
 class WebSocketClient implements WebSocketClientInterface {
-    wsUrl: string;
+    url: string;
+    sequence: number;
+    connected: boolean;
+    // readyState: number;
 
-    constructor(wsUrl: string) {
-        this.wsUrl = wsUrl;
+    constructor(url: string) {
+        this.url = url;
+        this.sequence = 1;
+        this.connected = false;
+
+        // Emitter.addListener(
+        //     CONSTANTS.READY_STATE_CHANGE,
+        //     (event: WebSocketEvent) => {
+        //         if (event.url === this.url) {
+        //             this.readyState = event.message;
+        //         }
+        //     }
+        // );
     }
 
-    disconnect = () => NetworkClient.disconnectWebSocketFor(this.wsUrl);
-    invalidate = (): Promise<void> => {
-        delete SOCKETS[this.wsUrl];
-        return NetworkClient.invalidateWebSocketClientFor(this.wsUrl);
+    connect = () => {
+        console.log("CONNECT");
+        NativeWebSocketClient.connectFor(this.url);
+    };
+    send = (data: WebSocketMessage) => {
+        console.log("JS SEND", data);
+        NativeWebSocketClient.sendDataFor(this.url, data);
+    };
+    close = () => {
+        NativeWebSocketClient.disconnectFor(this.url);
+    };
+
+    onOpen = (callback: WebSocketCallback) => {
+        Emitter.addListener(CONSTANTS.OPEN_EVENT, (event: WebSocketEvent) => {
+            if (event.url === this.url && callback) {
+                callback(event);
+            }
+        });
+    };
+
+    onClose = (callback: WebSocketCallback) => {
+        Emitter.addListener(CONSTANTS.CLOSE_EVENT, (event: WebSocketEvent) => {
+            if (event.url === this.url && callback) {
+                callback(event);
+            }
+        });
+    };
+
+    onError = (callback: WebSocketCallback) => {
+        Emitter.addListener(CONSTANTS.ERROR_EVENT, (event: WebSocketEvent) => {
+            if (event.url === this.url && callback) {
+                callback(event);
+            }
+        });
+    };
+
+    onMessage = (callback: WebSocketCallback) => {
+        Emitter.addListener(
+            CONSTANTS.MESSAGE_EVENT,
+            (event: WebSocketEvent) => {
+                if (event.url === this.url && callback) {
+                    callback(event);
+                }
+            }
+        );
     };
 }
 
 async function getOrCreateWebSocketClient(
-    wsUrl: string,
-    callbacks: WebSocketCallbacks,
+    url: string,
     config: WebSocketClientConfiguration = {}
 ): Promise<{ client: WebSocketClient; created: boolean }> {
-    if (!isValidWebSocketURL(wsUrl)) {
+    if (!isValidWebSocketURL(url)) {
         throw new Error("baseUrl must be a valid WebSocket URL");
     }
 
     let created = false;
-    let websocket = SOCKETS[wsUrl];
+    let websocket = SOCKETS[url];
     if (!websocket) {
         created = true;
-        await NetworkClient.createWebSocketClientFor(wsUrl, callbacks, config);
-        websocket = new WebSocketClient(wsUrl);
-        SOCKETS[wsUrl] = websocket;
+        websocket = new WebSocketClient(url);
+        try {
+            await NativeWebSocketClient.createClientFor(url, config);
+            SOCKETS[url] = websocket;
+        } catch (error) {
+            console.log("NATIVE WS CREATION FAILED", error);
+        }
     }
 
     return { client: websocket, created };
 }
 
-const isValidWebSocketURL = (wsUrl: string) => {
-    return isURL(wsUrl, {
+const isValidWebSocketURL = (url: string) => {
+    return isURL(url, {
         protocols: ["ws", "wss"],
         require_protocol: true,
         require_valid_protocol: true,
