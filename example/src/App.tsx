@@ -16,61 +16,48 @@ import APIClientFastImageScreen from "./screens/APIClientFastImageScreen";
 import MattermostClientUploadScreen from "./screens/MattermostClientUploadScreen";
 import WebSocketClientScreen from "./screens/WebSocketClientScreen";
 
-import { ClientContext } from "./utils";
-
 const Stack = createStackNavigator();
 
 function App() {
-    const [clients, setClients] = React.useState<NetworkClientItem[]>([]);
-    const value = { clients, setClients };
-
     return (
-        <ClientContext.Provider value={value}>
-            <NavigationContainer>
-                <Stack.Navigator initialRouteName="ClientListScreen">
-                    <Stack.Screen
-                        name="ClientList"
-                        component={ClientListScreen}
-                    />
-                    <Stack.Screen
-                        name="CreateAPIClient"
-                        component={CreateAPIClientScreen}
-                    />
-                    <Stack.Screen
-                        name="CreateWebSocketClient"
-                        component={CreateWebSocketClientScreen}
-                    />
-                    <Stack.Screen
-                        name="GenericClientRequest"
-                        component={GenericClientRequestScreen}
-                    />
-                    <Stack.Screen
-                        name="APIClient"
-                        component={APIClientScreen}
-                    />
-                    <Stack.Screen
-                        name="APIClientRequest"
-                        component={APIClientRequestScreen}
-                    />
-                    <Stack.Screen
-                        name="APIClientUpload"
-                        component={APIClientUploadScreen}
-                    />
-                    <Stack.Screen
-                        name="APIClientFastImage"
-                        component={APIClientFastImageScreen}
-                    />
-                    <Stack.Screen
-                        name="MattermostClientUpload"
-                        component={MattermostClientUploadScreen}
-                    />
-                    <Stack.Screen
-                        name="WebSocketClient"
-                        component={WebSocketClientScreen}
-                    />
-                </Stack.Navigator>
-            </NavigationContainer>
-        </ClientContext.Provider>
+        <NavigationContainer>
+            <Stack.Navigator initialRouteName="ClientListScreen">
+                <Stack.Screen name="ClientList" component={ClientListScreen} />
+                <Stack.Screen
+                    name="CreateAPIClient"
+                    component={CreateAPIClientScreen}
+                />
+                <Stack.Screen
+                    name="CreateWebSocketClient"
+                    component={CreateWebSocketClientScreen}
+                />
+                <Stack.Screen
+                    name="GenericClientRequest"
+                    component={GenericClientRequestScreen}
+                />
+                <Stack.Screen name="APIClient" component={APIClientScreen} />
+                <Stack.Screen
+                    name="APIClientRequest"
+                    component={APIClientRequestScreen}
+                />
+                <Stack.Screen
+                    name="APIClientUpload"
+                    component={APIClientUploadScreen}
+                />
+                <Stack.Screen
+                    name="APIClientFastImage"
+                    component={APIClientFastImageScreen}
+                />
+                <Stack.Screen
+                    name="MattermostClientUpload"
+                    component={MattermostClientUploadScreen}
+                />
+                <Stack.Screen
+                    name="WebSocketClient"
+                    component={WebSocketClientScreen}
+                />
+            </Stack.Navigator>
+        </NavigationContainer>
     );
 }
 

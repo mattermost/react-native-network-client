@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from "react";
 import { Alert } from "react-native";
 import DeviceInfo from "react-native-device-info";
 
@@ -186,10 +185,3 @@ export const createTestClients = async (): Promise<NetworkClientItem[]> => {
         return clients;
     }, []);
 };
-
-export const ClientContext = React.createContext({
-    clients: [] as NetworkClientItem[],
-    setClients: (() => {}) as React.Dispatch<
-        React.SetStateAction<NetworkClientItem[]>
-    >,
-});

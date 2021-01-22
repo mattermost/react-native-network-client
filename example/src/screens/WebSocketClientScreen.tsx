@@ -3,7 +3,7 @@
 
 import React, { useState } from "react";
 import { useEffect } from "react";
-import { SafeAreaView, Text, View } from "react-native";
+import { SafeAreaView } from "react-native";
 import { Button, Input } from "react-native-elements";
 import Markdown from "react-native-markdown-renderer";
 
@@ -14,14 +14,7 @@ export default function WebSocketClientScreen({
         item: { client },
     } = route.params;
 
-    const [connected, setConnected] = useState(true);
-    // const [message, setMessage] = useState(
-    //     JSON.stringify({
-    //         seq: 1,
-    //         action: "authentication_challenge",
-    //         data: { token: "th4yekcb8pgo7x5crgrqzcsmwy" },
-    //     })
-    // );
+    const [connected, setConnected] = useState(false);
     const [message, setMessage] = useState(
         JSON.stringify({
             seq: 1,
@@ -29,11 +22,9 @@ export default function WebSocketClientScreen({
             data: { channel_id: "4dtzmswn93f68fkd97eeafm6xc" },
         })
     );
-    const [event, setEvent] = useState<string>();
+    const [event, setEvent] = useState<string>("");
 
     useEffect(() => {
-        client.connect();
-
         client.onOpen((event) => {
             setConnected(true);
             parseAndSetEvent(event);
@@ -58,34 +49,8 @@ export default function WebSocketClientScreen({
         client.send(message);
     };
 
-    const ActionButton = () => (
-        <>
-            <Button
-                title="Send"
-                onPress={send}
-                style={{ padding: 10 }}
-                disabled={!Boolean(message) || !connected}
-            />
-            <Button
-                title="Connect"
-                onPress={client.connect}
-                style={{ padding: 10 }}
-                disabled={connected}
-            />
-            <Button
-                title="Disconnect"
-                onPress={client.close}
-                style={{ padding: 10 }}
-                disabled={!connected}
-            />
-        </>
-    );
-
     return (
         <SafeAreaView style={{ flex: 1 }}>
-            <View>
-                <Text>{connected ? "Connected" : "Disconnected"}</Text>
-            </View>
             <Input
                 label="Message"
                 multiline={true}
@@ -98,8 +63,26 @@ export default function WebSocketClientScreen({
                 onChangeText={setMessage}
                 value={message}
             />
-            <ActionButton />
-            <Text>Received:</Text>
+            <Button
+                title="Send"
+                onPress={send}
+                style={{ padding: 10 }}
+                disabled={!Boolean(message) || !connected}
+            />
+            <Button
+                title={connected ? "Disconnect" : "Connect"}
+                onPress={connected ? client.close : client.connect}
+                style={{ padding: 10 }}
+            />
+            <Input
+                placeholder="Received"
+                disabled={true}
+                style={{ fontWeight: "bold", fontSize: 17, opacity: 1 }}
+                containerStyle={{ height: 50 }}
+                inputContainerStyle={{
+                    borderColor: "rgba(255,255,255,0)",
+                }}
+            />
             <Markdown>{event}</Markdown>
         </SafeAreaView>
     );

@@ -1,23 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, { useContext, useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { FlatList, SafeAreaView } from "react-native";
 import { ButtonGroup } from "react-native-elements";
 
 import ClientListItem from "../components/ClientListItem";
-import {
-    ClientContext,
-    createTestClients,
-    networkClientKeyExtractor,
-} from "../utils";
+import { createTestClients, networkClientKeyExtractor } from "../utils";
 
 export default function ClientListScreen({
     navigation,
     route,
 }: ClientListScreenProps) {
-    // const [clients, setClients] = useState<NetworkClientItem[]>([]);
-    const { clients, setClients } = useContext(ClientContext);
+    const [clients, setClients] = useState<NetworkClientItem[]>([]);
 
     useEffect(() => {
         if (!clients.length) {

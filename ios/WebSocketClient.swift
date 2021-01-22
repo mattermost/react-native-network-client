@@ -11,11 +11,19 @@ import Starscream
 import SwiftyJSON
 import React
 
-let WEBSOCKET_CONSTANTS = [
-    "OPEN_EVENT": "NativeClient-WebSocket-Open",
-    "CLOSE_EVENT": "NativeClient-WebSocket-Close",
-    "ERROR_EVENT": "NativeClient-WebSocket-Error",
-    "MESSAGE_EVENT": "NativeClient-WebSocket-Message"
+let EVENTS = [
+    "OPEN_EVENT": "NetworkClient-WebSocket-Open",
+    "CLOSE_EVENT": "NetworkClient-WebSocket-Close",
+    "ERROR_EVENT": "NetworkClient-WebSocket-Error",
+    "MESSAGE_EVENT": "NetworkClient-WebSocket-Message",
+    "READY_STATE_EVENT": "NetworkClient-WebSocket-ReadyState",
+]
+
+let READY_STATE = [
+    "CONNECTING": 0,
+    "OPEN": 1,
+    "CLOSING": 2,
+    "CLOSED": 3,
 ]
 
 @objc(WebSocketClient)
@@ -28,11 +36,11 @@ class WebSocketClient: RCTEventEmitter, WebSocketDelegate {
     }
     
     override func constantsToExport() -> [AnyHashable : Any]! {
-        return WEBSOCKET_CONSTANTS
+        return ["EVENTS": EVENTS, "READY_STATE": READY_STATE]
     }
     
     open override func supportedEvents() -> [String] {
-        return Array(WEBSOCKET_CONSTANTS.values)
+        return Array(EVENTS.values)
     }
 
     override func startObserving() -> Void {
@@ -59,7 +67,7 @@ class WebSocketClient: RCTEventEmitter, WebSocketDelegate {
 
             return
         }
-        
+
         resolve(WebSocketManager.default.createWebSocket(for: url, withDelegate: self))
     }
     
@@ -90,7 +98,6 @@ class WebSocketClient: RCTEventEmitter, WebSocketDelegate {
             return
         }
         
-        print("98dfasdf DISCONNECTING")
         resolve(webSocket.disconnect())
     }
 
@@ -126,24 +133,22 @@ class WebSocketClient: RCTEventEmitter, WebSocketDelegate {
 
         switch event {
         case .connected(let headers):
-            print("WEBSOCKET CONNECTED")
-            self.sendEvent(withName: WEBSOCKET_CONSTANTS["OPEN_EVENT"], body: ["url": url, "message": ["headers": headers]])
-//            self.sendEvent(withName: WEBSOCKET_CONSTANTS["READY_STATE_CHANGE"], body: ["url": url, "message": 1])
+            self.sendEvent(withName: EVENTS["OPEN_EVENT"], body: ["url": url, "message": ["headers": headers]])
+            self.sendEvent(withName: EVENTS["READY_STATE_EVENT"], body: ["url": url, "message": READY_STATE["OPEN"]!])
         case .disconnected(let reason, let code):
-            print("WEBSOCKET DISCONNECTED")
-            self.sendEvent(withName: WEBSOCKET_CONSTANTS["CLOSE_EVENT"], body: ["url": url, "message": ["reason": reason, "code": code]])
+            self.sendEvent(withName: EVENTS["CLOSE_EVENT"], body: ["url": url, "message": ["reason": reason, "code": code]])
         case .text(let text):
-            guard let data = text.data(using: .utf16), let json = JSON(data).dictionaryObject else {
-                self.sendEvent(withName: WEBSOCKET_CONSTANTS["MESSAGE_EVENT"], body: ["url": url, "message": text])
-                break
+            if let data = text.data(using: .utf16), let json = JSON(data).dictionaryObject {
+                self.sendEvent(withName: EVENTS["MESSAGE_EVENT"], body: ["url": url, "message": json])
+            } else {
+                self.sendEvent(withName: EVENTS["MESSAGE_EVENT"], body: ["url": url, "message": text])
             }
-            self.sendEvent(withName: WEBSOCKET_CONSTANTS["MESSAGE_EVENT"], body: ["url": url, "message": json])
         case .cancelled:
-            print("WEBSOCKET CANCELLED")
-            self.sendEvent(withName: WEBSOCKET_CONSTANTS["CLOSE_EVENT"], body: ["url": url])
+            self.sendEvent(withName: EVENTS["CLOSE_EVENT"], body: ["url": url])
+            self.sendEvent(withName: EVENTS["READY_STATE_EVENT"], body: ["url": url, "message": READY_STATE["CLOSED"]!])
         case .error(let error):
-            print("WEBSOCKET ERROR")
-            self.sendEvent(withName: WEBSOCKET_CONSTANTS["ERROR_EVENT"], body: ["url": url, "message": ["error": error]])
+            self.sendEvent(withName: EVENTS["ERROR_EVENT"], body: ["url": url, "message": ["error": error]])
+            self.sendEvent(withName: EVENTS["READY_STATE_EVENT"], body: ["url": url, "message": READY_STATE["CLOSED"]!])
         default:
             break
         }
