@@ -8,7 +8,6 @@ type SSLPinningConfiguration = {
 
 type WebSocketClientConfiguration = {
     headers?: ClientHeaders;
-    token?: string;
     timeoutInterval?: number;
     enableCompression?: boolean;
     sslPinningConfiguration?: SSLPinningConfiguration;

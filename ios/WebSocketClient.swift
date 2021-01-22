@@ -52,23 +52,13 @@ class WebSocketClient: RCTEventEmitter, WebSocketDelegate {
     }
 
     @objc(createClientFor:withOptions:withResolver:withRejecter:)
-    func createClientFor(urlString: String, options: Dictionary<String, Any>?, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
+    func createClientFor(urlString: String, options: Dictionary<String, Any> = [:], resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
         guard let url = URL(string: urlString) else {
             rejectMalformed(url: urlString, withRejecter: reject)
             return
         }
 
-        let options = JSON(options)
-        if options != JSON.null {
-            // TODO: handle options
-            resolve(
-                WebSocketManager.default.createWebSocket(for: url, withDelegate: self)
-            )
-
-            return
-        }
-
-        resolve(WebSocketManager.default.createWebSocket(for: url, withDelegate: self))
+        resolve(WebSocketManager.default.createWebSocket(for: url, withOptions: options, withDelegate: self))
     }
     
     @objc(connectFor:withResolver:withRejecter:)

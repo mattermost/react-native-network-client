@@ -75,7 +75,7 @@ async function getOrCreateWebSocketClient(
     config: WebSocketClientConfiguration = {}
 ): Promise<{ client: WebSocketClient; created: boolean }> {
     if (!isValidWebSocketURL(url)) {
-        throw new Error("baseUrl must be a valid WebSocket URL");
+        throw new Error("url must be a valid WebSocket URL");
     }
 
     let created = false;
