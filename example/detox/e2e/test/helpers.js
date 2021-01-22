@@ -102,7 +102,7 @@ export const performGenericClientRequest = async ({
  * @param {Object} testHeaders - requeset headers
  * @param {Object} testBody - request body
  */
-export const verifyApiResponse = async (apiResponse, testUrl, testStatus, testHost, testMethod, testHeaders, testBody = null) => {
+export const verifyApiResponse = (apiResponse, testUrl, testStatus, testHost, testMethod, testHeaders, testBody = null) => {
     const apiResponseDataRequest = apiResponse.data.request;
 
     // * Verify request url and response status
