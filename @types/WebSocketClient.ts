@@ -28,7 +28,7 @@ interface WebSocketClientInterface {
     url: string;
     readyState: WebSocketReadyState;
     send(data: string): void;
-    connect(): void;
+    open(): void;
     close(): void;
     onOpen(callback: WebSocketCallback): void;
     onClose(callback: WebSocketCallback): void;

@@ -71,7 +71,7 @@ export default function WebSocketClientScreen({
             />
             <Button
                 title={connected ? "Disconnect" : "Connect"}
-                onPress={connected ? client.close : client.connect}
+                onPress={connected ? client.close : client.open}
                 style={{ padding: 10 }}
             />
             <Input
