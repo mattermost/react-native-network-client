@@ -7,7 +7,7 @@ import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEm
 
 class ProgressListener(private val reactContext: ReactContext, private val taskId: String) : ProgressListenerInterface {
 
-    override fun emitProgressEvent(progress: Int) {
+    override fun emitProgressEvent(progress: Long) {
         val params = Arguments.createMap()
         params.putString("fractionCompleted", "$progress")
         params.putString("taskId", "$taskId")
