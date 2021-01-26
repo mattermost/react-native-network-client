@@ -3,6 +3,7 @@ import DocumentPicker from "react-native-document-picker";
 import { check, request, PERMISSIONS, RESULTS } from "react-native-permissions";
 import { launchImageLibrary } from "react-native-image-picker/src";
 import { ButtonGroup } from "react-native-elements";
+import { Platform } from "react-native";
 
 type FilePickerButtonGroupProps = {
     disabled: boolean;
@@ -11,6 +12,8 @@ type FilePickerButtonGroupProps = {
 
 const FilePickerButtonGroup = (props: FilePickerButtonGroupProps) => {
     const hasPhotoLibraryPermissions = async () => {
+        if (Platform.OS === "android") return true;
+
         let result = await check(PERMISSIONS.IOS.PHOTO_LIBRARY);
         if (result === RESULTS.GRANTED || result === RESULTS.LIMITED) {
             return true;
