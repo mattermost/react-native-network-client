@@ -7,6 +7,8 @@ rm -rf node_modules
 npm install
 ```
 2. Install the example application to simulator/emulator device.
+**Important:** Make sure in your *Xcode > Preferences > Locations > Advanced*, select *Custom > Relative to Workspace > Products > `Build/Products`*
+
 iOS,
 ```
 npm run ios
