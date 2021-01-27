@@ -11,6 +11,9 @@ npm install
 
 iOS,
 ```
+cd ios
+pod install
+cd ..
 npm run ios
 ```
 Android,
@@ -40,6 +43,7 @@ npm run e2e:ios-test
 Android,
 ```
 cd detox
+npm run e2e:android-build
 npm run e2e:android-test
 ```
 5. To run a specific test file, append the path to the test file like in the example below,
