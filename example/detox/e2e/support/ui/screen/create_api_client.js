@@ -58,11 +58,13 @@ class CreateApiClientScreen {
     setBaseUrl = async (url) => {
         await this.baseUrlInput.clearText();
         await this.baseUrlInput.replaceText(url);
+        await this.baseUrlInput.tapReturnKey();
     }
 
     setBearerAuthToken = async (bearerAuthToken) => {
         await this.bearerAuthTokenInput.clearText();
         await this.bearerAuthTokenInput.replaceText(bearerAuthToken);
+        await this.bearerAuthTokenInput.tapReturnKey();
     }
 
     setHeaders = async (headers) => {
@@ -72,21 +74,25 @@ class CreateApiClientScreen {
     setMaxConnections = async (maxConnections) => {
         await this.maxConnectionsInput.clearText();
         await this.maxConnectionsInput.replaceText(maxConnections);
+        await this.maxConnectionsInput.tapReturnKey();
     }
 
     setName = async (name) => {
         await this.nameInput.clearText();
         await this.nameInput.replaceText(name);
+        await this.nameInput.tapReturnKey();
     }
 
     setRequestTimeoutInterval = async (requestTimeoutInterval) => {
         await this.requestTimeoutIntervalInput.clearText();
         await this.requestTimeoutIntervalInput.replaceText(requestTimeoutInterval);
+        await this.requestTimeoutIntervalInput.tapReturnKey();
     }
 
     setResourceTimeoutInterval = async (resourceTimeoutInterval) => {
         await this.resourceTimeoutIntervalInput.clearText();
         await this.resourceTimeoutIntervalInput.replaceText(resourceTimeoutInterval);
+        await this.resourceTimeoutIntervalInput.tapReturnKey();
     }
 }
 

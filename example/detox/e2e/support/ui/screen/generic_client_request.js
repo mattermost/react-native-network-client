@@ -57,12 +57,13 @@ class GenericClientRequestScreen {
     }
 
     makeRequest = async () => {
-        await this.requestButton.multiTap(2);
+        await this.requestButton.tap();
     }
 
     setBody = async (body) => {
         await this.bodyInput.clearText();
         await this.bodyInput.replaceText(body);
+        await this.bodyInput.tapReturnKey();
     }
 
     setHeaders = async (headers) => {
@@ -76,11 +77,13 @@ class GenericClientRequestScreen {
     setTimeoutInterval = async (timeoutInterval) => {
         await this.timeoutIntervalInput.clearText();
         await this.timeoutIntervalInput.replaceText(timeoutInterval);
+        await this.timeoutIntervalInput.tapReturnKey();
     }
 
     setUrl = async (url) => {
         await this.urlInput.clearText();
         await this.urlInput.replaceText(url);
+        await this.urlInput.tapReturnKey();
     }
 }
 

@@ -20,11 +20,13 @@ class AddHeaders {
         // # Set header key
         await keyInput.clearText();
         await keyInput.replaceText(key);
+        await keyInput.tapReturnKey();
         await expect(keyInput).toHaveValue(key);
 
         // # Set header value
         await valueInput.clearText();
         await valueInput.replaceText(value);
+        await valueInput.tapReturnKey();
         await expect(valueInput).toHaveValue(value);
     }
 
@@ -33,7 +35,7 @@ class AddHeaders {
         for (const [index, [key, value]] of Object.entries(entries)) {
             await this.setHeader(index, key, value);
             if (index < entries.length - 1) {
-                await this.addEmptyHeaderButton.multiTap(2);
+                await this.addEmptyHeaderButton.tap();
             }
         }
     }

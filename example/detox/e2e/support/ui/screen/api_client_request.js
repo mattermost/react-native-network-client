@@ -37,12 +37,13 @@ class ApiClientRequestScreen {
     }
 
     makeRequest = async () => {
-        await this.requestButton.multiTap(2);
+        await this.requestButton.tap();
     }
 
     setBody = async (body) => {
         await this.bodyInput.clearText();
         await this.bodyInput.replaceText(body);
+        await this.bodyInput.tapReturnKey();
     }
 
     setHeaders = async (headers) => {
@@ -52,6 +53,7 @@ class ApiClientRequestScreen {
     setPath = async (url) => {
         await this.pathInput.clearText();
         await this.pathInput.replaceText(url);
+        await this.pathInput.tapReturnKey();
     }
 
     setRetry = async (options = {retryLimit: '2', exponentialBackoffBase: '2', exponentialBackoffScale: '0.5'}) => {
@@ -61,6 +63,7 @@ class ApiClientRequestScreen {
     setTimeoutInterval = async (timeoutInterval) => {
         await this.timeoutIntervalInput.clearText();
         await this.timeoutIntervalInput.replaceText(timeoutInterval);
+        await this.timeoutIntervalInput.tapReturnKey();
     }
 }
 

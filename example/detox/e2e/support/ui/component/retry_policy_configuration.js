@@ -14,21 +14,24 @@ class RetryPolicyConfiguration {
     exponentialBackoffScaleInput = element(by.id(this.testID.exponentialBackoffScaleInput));
 
     setRetry = async ({retryLimit = '2', exponentialBackoffBase = '2', exponentialBackoffScale = '0.5'}) => {
-        await this.retryCheckbox.multiTap(2);
+        await this.retryCheckbox.tap();
 
         // # Set retry limit
         await this.retryLimitInput.clearText();
         await this.retryLimitInput.replaceText(retryLimit);
+        await this.retryLimitInput.tapReturnKey();
         await expect(this.retryLimitInput).toHaveValue(retryLimit);
 
         // # Set exponential backoff base
         await this.exponentialBackoffBaseInput.clearText();
         await this.exponentialBackoffBaseInput.replaceText(exponentialBackoffBase);
+        await this.exponentialBackoffBaseInput.tapReturnKey();
         await expect(this.exponentialBackoffBaseInput).toHaveValue(exponentialBackoffBase);
 
         // # Set exponential backoff scale
         await this.exponentialBackoffScaleInput.clearText();
         await this.exponentialBackoffScaleInput.replaceText(exponentialBackoffScale);
+        await this.exponentialBackoffScaleInput.tapReturnKey();
         await expect(this.exponentialBackoffScaleInput).toHaveValue(exponentialBackoffScale);
     }
 }
