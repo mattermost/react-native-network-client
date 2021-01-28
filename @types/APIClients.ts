@@ -58,6 +58,13 @@ interface APIClientInterface {
     invalidate(): Promise<void>;
 }
 
+type CertificateConfiguration = {
+    rootCertificate?: string;
+    pinnedCertificate?: string;
+    pinnedHost?: string;
+    clientCertificate?: string;
+};
+
 type SessionConfiguration = {
     followRedirects?: boolean;
     allowsCellularAccess?: boolean;
@@ -86,6 +93,7 @@ type APIClientConfiguration = {
     requestAdapterConfiguration?: RequestAdapterConfiguration;
     serverTrustManagerConfig?: Record<string, string>;
     cachedResponseHandlerConfig?: Record<string, string>;
+    certificateConfig?: CertificateConfiguration;
 };
 
 type UploadProgressEvent = {

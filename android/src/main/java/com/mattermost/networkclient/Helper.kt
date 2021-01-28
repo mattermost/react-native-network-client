@@ -6,9 +6,14 @@ import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableMap
 
 import okhttp3.*
+import okhttp3.tls.Certificates;
+import okhttp3.tls.HandshakeCertificates;
 import java.util.concurrent.TimeUnit
 
 import com.mattermost.networkclient.interceptors.*
+import okhttp3.tls.HeldCertificate
+import okhttp3.tls.decodeCertificatePem
+import java.security.cert.X509Certificate
 
 
 /**
@@ -117,6 +122,40 @@ fun OkHttpClient.Builder.parseOptions(options: ReadableMap): OkHttpClient.Builde
             dispatcher.maxRequests = maxConnections
             dispatcher.maxRequestsPerHost = maxConnections
             this.dispatcher(dispatcher);
+        }
+    }
+
+    // TLS Certificates
+    if (options.hasKey("certificatesConfiguration")) {
+        val certsConfig = options.getMap("certificatesConfiguration")!!
+
+        // If a root certificate PEM is sent, add it to our "trusted" ssl list
+        if(certsConfig.hasKey("rootCertPem")){
+            val rootCertificate =  options.getString("rootCertificatePem")!!.decodeCertificatePem();
+            var certificates: HandshakeCertificates;
+            var certificatesBuilder = HandshakeCertificates
+                    .Builder()
+                    .addTrustedCertificate(rootCertificate)
+                    .addPlatformTrustedCertificates()
+
+
+            // Add the client certificate if provided
+            if(certsConfig.hasKey("clientCertificatePem")) {
+                val clientCertificate = HeldCertificate.decode(certsConfig.getString("clientPublicCertificate")!!)
+                certificatesBuilder = certificatesBuilder.heldCertificate(clientCertificate)
+            }
+
+            // Build and add to the client
+            certificates = certificatesBuilder.build()
+            this.sslSocketFactory(certificates.sslSocketFactory(), certificates.trustManager)
+        }
+
+        // If a "pinned" certificate and host are given, pin them!
+        if(certsConfig.hasKey("pinnedHost") && certsConfig.hasKey("pinnedCertificate") ){
+            val certificatePinner = CertificatePinner.Builder()
+                    .add(certsConfig.getString("pinnedHost")!!, certsConfig.getString("pinnedCertificate")!!)
+                    .build()
+            this.certificatePinner(certificatePinner)
         }
 
     }
