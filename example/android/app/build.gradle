@@ -204,6 +204,7 @@ dependencies {
     }
 
     implementation project(':mattermost.networkclient')
+    implementation 'com.quinn.hunter:hunter-okhttp-library:0.8.5'
 }
 
 // Run this once to be able to run the application with BUCK
@@ -214,3 +215,4 @@ task copyDownloadableDepsToLibs(type: Copy) {
 }
 
 apply from: file("../../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesAppBuildGradle(project)
+apply plugin: 'hunter-okhttp'

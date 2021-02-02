@@ -16,7 +16,6 @@ class PinnedCertificateInterceptor(private val pinnedCert: String, private val p
         val call = chain.call();
         val connection = chain.connection()
 
-
         return chain.proceed(request)
     }
 

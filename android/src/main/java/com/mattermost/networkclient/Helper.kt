@@ -6,7 +6,7 @@ import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableMap
 
 import okhttp3.*
-import okhttp3.tls.Certificates;
+//import okhttp3.tls.Certificates;
 import okhttp3.tls.HandshakeCertificates;
 import java.util.concurrent.TimeUnit
 
@@ -140,9 +140,11 @@ fun OkHttpClient.Builder.parseOptions(options: ReadableMap): OkHttpClient.Builde
 
 
             // Add the client certificate if provided
-            if(certsConfig.hasKey("clientCertificatePem")) {
+            if(certsConfig.hasKey("clientCertificate")) {
                 val clientCertificate = HeldCertificate.decode(certsConfig.getString("clientPublicCertificate")!!)
                 certificatesBuilder = certificatesBuilder.heldCertificate(clientCertificate)
+            } else {
+
             }
 
             // Build and add to the client

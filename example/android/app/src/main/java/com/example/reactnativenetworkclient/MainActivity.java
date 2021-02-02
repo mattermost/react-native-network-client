@@ -1,6 +1,10 @@
 package com.example.reactnativenetworkclient;
 
+import android.os.Bundle;
+
 import com.facebook.react.ReactActivity;
+import com.hunter.library.okhttp.OkHttpHooker;
+import com.mattermost.networkclient.interceptors.GlobalInterceptor;
 
 public class MainActivity extends ReactActivity {
 
@@ -12,4 +16,11 @@ public class MainActivity extends ReactActivity {
   protected String getMainComponentName() {
     return "NetworkClientExample";
   }
+
+  @Override
+  protected void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    OkHttpHooker.installInterceptor(new GlobalInterceptor());
+  }
+
 }

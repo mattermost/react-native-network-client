@@ -9,8 +9,8 @@ import java.util.*
 
 class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
 
-    var sessionsClient = mutableMapOf<String, OkHttpClient.Builder>()
-    var sessionsRequest = mutableMapOf<String, Request.Builder>()
+    private val sessionsClient = SessionsObject.client
+    private val sessionsRequest = SessionsObject.request
 
     override fun getName(): String {
         return "APIClient"
