@@ -23,7 +23,7 @@ export const customBody = {
 };
 
 /**
- * Perform api client request.
+ * Perform API client request.
  * @param {string} options.testPath - relative or absolute path
  * @param {Object} options.testHeaders - requeset headers
  * @param {Object} options.testBody - request body
@@ -59,7 +59,7 @@ export const performApiClientRequest = async ({
 
 /**
  * Perform generic client request.
- * @param {string} options.testUrl - url of requested server
+ * @param {string} options.testUrl - URL of requested server
  * @param {Object} options.testHeaders - requeset headers
  * @param {Object} options.testBody - request body
  * @param {Object} options.testTimeoutInterval - client timeout interval
@@ -95,7 +95,7 @@ export const performGenericClientRequest = async ({
 /**
  * Verify API response.
  * @param {Object} apiResponse - response object
- * @param {string} testUrl - url of requested server
+ * @param {string} testUrl - URL of requested server
  * @param {number} testStatus - expected response status code
  * @param {string} testHost - host header value of requested server
  * @param {string} testMethod - request method
@@ -105,7 +105,7 @@ export const performGenericClientRequest = async ({
 export const verifyApiResponse = (apiResponse, testUrl, testStatus, testHost, testMethod, testHeaders, testBody = null) => {
     const apiResponseDataRequest = apiResponse.data.request;
 
-    // * Verify request url and response status
+    // * Verify request URL and response status
     jestExpect(testUrl).toContain(apiResponseDataRequest.url);
     jestExpect(apiResponse.status).toEqual(testStatus);
 
@@ -132,7 +132,7 @@ export const verifyApiResponse = (apiResponse, testUrl, testStatus, testHost, te
 
 /**
  * Verify response overlay.
- * @param {string} testUrl - url of requested server
+ * @param {string} testUrl - URL of requested server
  * @param {number} testStatus - expected response status code
  * @param {string} testHost - host header value of requested server
  * @param {string} testMethod - request method
@@ -147,7 +147,7 @@ export const verifyResponseOverlay = async (testUrl, testStatus, testHost, testM
         responseLastRequestedUrlText,
     } = GenericClientRequestScreen;
     
-    // * Verify request url and response status
+    // * Verify request URL and response status
     await expect(responseLastRequestedUrlText).toHaveText(testUrl);
     await expect(responseCodeText).toHaveText(testStatus.toString());
 

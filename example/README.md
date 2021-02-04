@@ -1,5 +1,25 @@
 # Example Application
 
+### iOS local setup
+1. Install [applesimutils](https://github.com/wix/AppleSimulatorUtils):
+```
+brew tap wix/brew
+brew install applesimutils
+```
+2. Set XCode’s build location so that the built app, especially debug, is expected at the project’s location instead of the Library’s folder which is unique/hashed.
+3. Open XCode, then go to **XCode > Preferences > Locations**.
+4. Under **Derived Data**, click **Advanced…**.
+5. Select **Custom > Relative to Workspace**, then set **Products** as **Build/Products**.
+6. Click **Done** to save the changes.
+
+### Android local setup
+1. Install the latest Android SDK.
+```
+sdkmanager "system-images;android-30;google_apis;x86"
+sdkmanager --licenses
+```
+2. Create the emulator using `npm run e2e:android-create-emulator` from the `/detox` folder. Android testing requires an emulator named `detox_emu_api_30` and the script helps to create it automatically.
+
 ### How to install the example application
 1. Clean install node modules for the example application.
 ```
@@ -7,8 +27,6 @@ rm -rf node_modules
 npm install
 ```
 2. Install the example application to simulator/emulator device.
-**Important:** Make sure in your *Xcode > Preferences > Locations > Advanced*, select *Custom > Relative to Workspace > Products > `Build/Products`*
-
 iOS,
 ```
 cd ios

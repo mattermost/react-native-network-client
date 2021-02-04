@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import HeaderListItem from './header_list_item';
+import {isAndroid} from '@support/utils';
 
 class AddHeaders {
     testID = {
@@ -21,13 +22,20 @@ class AddHeaders {
         await keyInput.clearText();
         await keyInput.replaceText(key);
         await keyInput.tapReturnKey();
-        await expect(keyInput).toHaveValue(key);
 
         // # Set header value
         await valueInput.clearText();
         await valueInput.replaceText(value);
         await valueInput.tapReturnKey();
-        await expect(valueInput).toHaveValue(value);
+
+        // * Verify input values
+        if (isAndroid()) {
+            await expect(keyInput).toHaveText(key);
+            await expect(valueInput).toHaveText(value);
+        } else {
+            await expect(keyInput).toHaveValue(key);
+            await expect(valueInput).toHaveValue(value);
+        }
     }
 
     setHeaders = async (headers) => {

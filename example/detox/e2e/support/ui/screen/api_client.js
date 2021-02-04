@@ -37,7 +37,7 @@ class ApiClientScreen {
     }
 
     open = async (name) => {
-        // # Open api client screen
+        // # Open API client screen
         await element(by.text(name)).tap();
 
         return this.toBeVisible();

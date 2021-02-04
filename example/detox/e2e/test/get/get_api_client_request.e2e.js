@@ -21,7 +21,8 @@ import {
 describe('Get - API Client Request', () => {
     const testMethod = 'GET';
     const testPath = `/${testMethod.toLowerCase()}`;
-    const testUrl = `${testConfig.siteUrl}${testPath}`;
+    const testServerUrl = `${testConfig.serverUrl}${testPath}`;
+    const testSiteUrl = `${testConfig.siteUrl}${testPath}`;
     const testHost = testConfig.host;
     const testStatus = 200;
     const testHeaders = {...newHeaders};
@@ -32,7 +33,7 @@ describe('Get - API Client Request', () => {
 
     beforeAll(async () => {
         const apiResponse = await Request.apiGet({headers: testHeaders});
-        await verifyApiResponse(apiResponse, testUrl, testStatus, testHost, testMethod, testHeaders);
+        await verifyApiResponse(apiResponse, testSiteUrl, testStatus, testHost, testMethod, testHeaders);
 
         await ApiClientScreen.open('Mockserver');
         await ApiClientScreen.getButton.tap();
@@ -43,6 +44,6 @@ describe('Get - API Client Request', () => {
         await performApiClientRequest({testPath, testHeaders});
 
         // * Verify response overlay
-        await verifyResponseOverlay(testUrl, testStatus, testHost, testMethod, combinedHeaders);
+        await verifyResponseOverlay(testServerUrl, testStatus, testHost, testMethod, combinedHeaders);
     });
 });

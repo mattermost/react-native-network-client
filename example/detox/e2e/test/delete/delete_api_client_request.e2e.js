@@ -22,7 +22,8 @@ import {
 describe('Delete - API Client Request', () => {
     const testMethod = 'DELETE';
     const testPath = `/${testMethod.toLowerCase()}`;
-    const testUrl = `${testConfig.siteUrl}${testPath}`;
+    const testServerUrl = `${testConfig.serverUrl}${testPath}`;
+    const testSiteUrl = `${testConfig.siteUrl}${testPath}`;
     const testHost = testConfig.host;
     const testStatus = 200;
     const testHeaders = {...newHeaders};
@@ -34,7 +35,7 @@ describe('Delete - API Client Request', () => {
 
     beforeAll(async () => {
         const apiResponse = await Request.apiDelete({headers: testHeaders, body: testBody});
-        await verifyApiResponse(apiResponse, testUrl, testStatus, testHost, testMethod, testHeaders, testBody);
+        await verifyApiResponse(apiResponse, testSiteUrl, testStatus, testHost, testMethod, testHeaders, testBody);
 
         await ApiClientScreen.open('Mockserver');
         await ApiClientScreen.deleteButton.tap();
@@ -45,6 +46,6 @@ describe('Delete - API Client Request', () => {
         await performApiClientRequest({testPath, testHeaders, testBody});
 
         // * Verify response overlay
-        await verifyResponseOverlay(testUrl, testStatus, testHost, testMethod, combinedHeaders, testBody);
+        await verifyResponseOverlay(testServerUrl, testStatus, testHost, testMethod, combinedHeaders, testBody);
     });
 });

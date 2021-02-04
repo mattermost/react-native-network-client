@@ -44,7 +44,7 @@ class CreateApiClientScreen {
     }
 
     open = async () => {
-        // # Open create api client screen
+        // # Open create API client screen
         await ClientListScreen.addApiClientButton.tap();
 
         return this.toBeVisible();
