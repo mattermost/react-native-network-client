@@ -18,7 +18,6 @@ const ResponseOverlay = ({
 }: ResponseOverlayProps) => {
     const hide = () => setVisible(false);
 
-    console.log(response?.headers);
     return (
         <Overlay
             isVisible={visible}
