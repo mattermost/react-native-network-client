@@ -1,54 +1,97 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import { NativeModules } from "react-native";
+import { NativeEventEmitter, NativeModules } from "react-native";
 import isURL from "validator/es/lib/isURL";
 
-// @to-do: export a native WebSocket client
-const { NetworkClient } = NativeModules;
+const {
+    WebSocketClient: NativeWebSocketClient,
+}: { WebSocketClient: NativeWebSocketClient } = NativeModules;
+const Emitter = new NativeEventEmitter(NativeWebSocketClient);
+const { EVENTS, READY_STATE } = NativeWebSocketClient.getConstants();
 
 const SOCKETS: { [key: string]: WebSocketClient } = {};
 
 /**
- * Configurable Websocket client
+ * Configurable WebSocket client
  */
 class WebSocketClient implements WebSocketClientInterface {
-    wsUrl: string;
+    url: string;
+    readyState: WebSocketReadyState;
 
-    constructor(wsUrl: string) {
-        this.wsUrl = wsUrl;
+    constructor(url: string) {
+        this.url = url;
+        this.readyState = READY_STATE.CLOSED;
+
+        Emitter.addListener(
+            EVENTS.READY_STATE_EVENT,
+            (event: WebSocketEvent) => {
+                if (event.url === this.url) {
+                    this.readyState = event.message as WebSocketReadyState;
+                }
+            }
+        );
     }
 
-    disconnect = () => NetworkClient.disconnectWebSocketFor(this.wsUrl);
-    invalidate = (): Promise<void> => {
-        delete SOCKETS[this.wsUrl];
-        return NetworkClient.invalidateWebSocketClientFor(this.wsUrl);
+    open = () => NativeWebSocketClient.connectFor(this.url);
+    close = () => NativeWebSocketClient.disconnectFor(this.url);
+    send = (data: string) => NativeWebSocketClient.sendDataFor(this.url, data);
+
+    onOpen = (callback: WebSocketCallback) => {
+        Emitter.addListener(EVENTS.OPEN_EVENT, (event: WebSocketEvent) => {
+            if (event.url === this.url && callback) {
+                callback(event);
+            }
+        });
+    };
+
+    onClose = (callback: WebSocketCallback) => {
+        Emitter.addListener(EVENTS.CLOSE_EVENT, (event: WebSocketEvent) => {
+            if (event.url === this.url && callback) {
+                callback(event);
+            }
+        });
+    };
+
+    onError = (callback: WebSocketCallback) => {
+        Emitter.addListener(EVENTS.ERROR_EVENT, (event: WebSocketEvent) => {
+            if (event.url === this.url && callback) {
+                callback(event);
+            }
+        });
+    };
+
+    onMessage = (callback: WebSocketCallback) => {
+        Emitter.addListener(EVENTS.MESSAGE_EVENT, (event: WebSocketEvent) => {
+            if (event.url === this.url && callback) {
+                callback(event);
+            }
+        });
     };
 }
 
 async function getOrCreateWebSocketClient(
-    wsUrl: string,
-    callbacks: WebSocketCallbacks,
+    url: string,
     config: WebSocketClientConfiguration = {}
 ): Promise<{ client: WebSocketClient; created: boolean }> {
-    if (!isValidWebSocketURL(wsUrl)) {
-        throw new Error("baseUrl must be a valid WebSocket URL");
+    if (!isValidWebSocketURL(url)) {
+        throw new Error("url must be a valid WebSocket URL");
     }
 
     let created = false;
-    let websocket = SOCKETS[wsUrl];
+    let websocket = SOCKETS[url];
     if (!websocket) {
         created = true;
-        await NetworkClient.createWebSocketClientFor(wsUrl, callbacks, config);
-        websocket = new WebSocketClient(wsUrl);
-        SOCKETS[wsUrl] = websocket;
+        websocket = new WebSocketClient(url);
+        await NativeWebSocketClient.createClientFor(url, config);
+        SOCKETS[url] = websocket;
     }
 
     return { client: websocket, created };
 }
 
-const isValidWebSocketURL = (wsUrl: string) => {
-    return isURL(wsUrl, {
+const isValidWebSocketURL = (url: string) => {
+    return isURL(url, {
         protocols: ["ws", "wss"],
         require_protocol: true,
         require_valid_protocol: true,

@@ -14,6 +14,7 @@ import APIClientRequestScreen from "./screens/APIClientRequestScreen";
 import APIClientUploadScreen from "./screens/APIClientUploadScreen";
 import APIClientFastImageScreen from "./screens/APIClientFastImageScreen";
 import MattermostClientUploadScreen from "./screens/MattermostClientUploadScreen";
+import WebSocketClientScreen from "./screens/WebSocketClientScreen";
 
 const Stack = createStackNavigator();
 
@@ -50,6 +51,10 @@ function App() {
                 <Stack.Screen
                     name="MattermostClientUpload"
                     component={MattermostClientUploadScreen}
+                />
+                <Stack.Screen
+                    name="WebSocketClient"
+                    component={WebSocketClientScreen}
                 />
             </Stack.Navigator>
         </NavigationContainer>

@@ -6,5 +6,6 @@ declare module "react-native" {
     export interface NativeModulesStatic {
         APIClient: NativeAPIClient;
         GenericClient: NativeGenericClient;
+        WebSocketClient: NativeWebSocketClient;
     }
 }
