@@ -152,9 +152,9 @@ const apiRequest = async (method = 'get', {
         }
         return await client.request(
             {
-                method: method,
+                method,
                 url: `${url}${subpath}`,
-                params: params,
+                params,
                 headers: requestHeaders,
                 data: body,
             },
