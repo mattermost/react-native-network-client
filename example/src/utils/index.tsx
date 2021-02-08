@@ -89,6 +89,7 @@ const createAPIClient = async (
             configuration,
             validateUrl
         );
+
         if (!created) {
             Alert.alert(
                 "Error",
@@ -153,11 +154,13 @@ const createWebSocketClient = async (
     name: string,
     url: string,
     configuration: WebSocketClientConfiguration,
+    {validateUrl = true, isMattermostClient = true} = {},
 ): Promise<WebSocketClientItem | null> => {
     try {
         const { client, created } = await getOrCreateWebSocketClient(
             url,
-            configuration
+            configuration,
+            validateUrl
         );
     
         if (!created) {
@@ -175,7 +178,7 @@ const createWebSocketClient = async (
             name,
             client,
             type: ClientType.WEBSOCKET,
-            isMattermostClient: true,
+            isMattermostClient,
         };
     } catch (e) {
         console.log(JSON.stringify(e));
