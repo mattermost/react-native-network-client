@@ -37,7 +37,7 @@ describe('Put - API Client Request', () => {
         const apiResponse = await Request.apiPut({headers: testHeaders, body: testBody});
         await verifyApiResponse(apiResponse, testSiteUrl, testStatus, testHost, testMethod, testHeaders, testBody);
 
-        await ApiClientScreen.open('Mockserver');
+        await ApiClientScreen.open('Mockserver API');
         await ApiClientScreen.putButton.tap();
     });
 

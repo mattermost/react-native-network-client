@@ -35,7 +35,7 @@ describe('Get - API Client Request', () => {
         const apiResponse = await Request.apiGet({headers: testHeaders});
         await verifyApiResponse(apiResponse, testSiteUrl, testStatus, testHost, testMethod, testHeaders);
 
-        await ApiClientScreen.open('Mockserver');
+        await ApiClientScreen.open('Mockserver API');
         await ApiClientScreen.getButton.tap();
     });
 
