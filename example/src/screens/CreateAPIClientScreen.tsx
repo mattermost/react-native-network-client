@@ -11,7 +11,7 @@ import AddHeaders from "../components/AddHeaders";
 import NumericInput from "../components/NumericInput";
 import RetryPolicyConfiguration from "../components/RetryPolicyConfiguration";
 import { useRetryPolicyConfiguration, useSessionConfiguration } from "../hooks";
-import { parseHeaders } from "../utils";
+import { ClientType, parseHeaders } from "../utils";
 
 const styles = StyleSheet.create({
     checkboxText: { flex: 1 },
@@ -83,6 +83,7 @@ export default function CreateAPIClientScreen({
         const createdClient: APIClientItem = {
             name,
             client,
+            type: ClientType.API,
         };
 
         navigation.navigate("ClientList", { createdClient });

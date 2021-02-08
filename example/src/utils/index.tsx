@@ -1,9 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import React from "react";
 import { Alert, Platform } from "react-native";
 import DeviceInfo from "react-native-device-info";
-import { getOrCreateAPIClient } from "@mattermost/react-native-network-client";
+
+import GenericClient, {
+    getOrCreateAPIClient,
+    getOrCreateWebSocketClient,
+} from "@mattermost/react-native-network-client";
 
 export enum METHODS {
     GET = "GET",
@@ -20,6 +25,12 @@ export enum UploadStatus {
     POST_FAILED = "POST_FAILED",
 }
 
+export enum ClientType {
+    GENERIC,
+    API,
+    WEBSOCKET,
+}
+
 export const parseHeaders = (headers: Header[]): ClientHeaders => {
     return headers
         .filter(({ key, value }) => key && value)
@@ -29,14 +40,14 @@ export const parseHeaders = (headers: Header[]): ClientHeaders => {
 export const networkClientKeyExtractor = (item: NetworkClientItem) => {
     if ("baseUrl" in item.client) {
         return item.client.baseUrl;
-    } else if ("wsUrl" in item.client) {
-        return item.client.wsUrl;
+    } else if ("url" in item.client) {
+        return item.client.url;
     }
 
     return item.name;
 };
 
-const buildDefaultOptions = (headers: Record<string, string>): APIClientConfiguration => {
+const buildDefaultApiClientConfiguration = (headers: Record<string, string>): APIClientConfiguration => {
     const sessionConfiguration = {
         followRedirects: true,
         allowsCellularAccess: true,
@@ -56,26 +67,26 @@ const buildDefaultOptions = (headers: Record<string, string>): APIClientConfigur
         bearerAuthTokenResponseHeader: "token",
     };
 
-    const options: APIClientConfiguration = {
+    const configuration: APIClientConfiguration = {
         headers,
         sessionConfiguration,
         retryPolicyConfiguration,
         requestAdapterConfiguration,
     };
 
-    return options;
+    return configuration;
 };
 
 const createAPIClient = async (
     name: string,
     baseUrl: string,
-    options: APIClientConfiguration,
+    configuration: APIClientConfiguration,
     {validateUrl = true, isMattermostClient = true} = {},
 ): Promise<APIClientItem | null> => {
     try {
         const { client, created } = await getOrCreateAPIClient(
             baseUrl,
-            options,
+            configuration,
             validateUrl
         );
         if (!created) {
@@ -92,6 +103,7 @@ const createAPIClient = async (
         return {
             name,
             client,
+            type: ClientType.API,
             isMattermostClient,
         };
     } catch (e) {
@@ -102,27 +114,27 @@ const createAPIClient = async (
 
 const createMattermostAPIClient = async (): Promise<APIClientItem | null> => {
     const name = "Mattermost";
-    const baseUrl = "https://community.mattermost.com";
+    const baseUrl = "http://192.168.0.14:8065";
     const userAgent = await DeviceInfo.getUserAgent();
     const headers = {
         "X-Requested-With": "XMLHttpRequest",
         "User-Agent": userAgent,
     };
-    const options = buildDefaultOptions(headers);
+    const configuration = buildDefaultApiClientConfiguration(headers);
 
-    return createAPIClient(name, baseUrl, options);
+    return createAPIClient(name, baseUrl, configuration);
 };
 
 const createJSONPlaceholderAPIClient = async (): Promise<APIClientItem | null> => {
     const name = "JSON Placeholder";
     const baseUrl = "https://jsonplaceholder.typicode.com";
-    const options = {
+    const configuration = {
         headers: {
             "Content-Type": "application/json",
         },
     };
 
-    return createAPIClient(name, baseUrl, options, {isMattermostClient: false});
+    return createAPIClient(name, baseUrl, configuration, {isMattermostClient: false});
 };
 
 const createMockserverAPIClient = async (): Promise<APIClientItem | null> => {
@@ -132,16 +144,65 @@ const createMockserverAPIClient = async (): Promise<APIClientItem | null> => {
         "custom-header-1-key": "custom-header-1-value",
         "custom-header-2-key": "custom-header-2-value",
     };
-    const options = buildDefaultOptions(headers);
+    const configuration = buildDefaultApiClientConfiguration(headers);
 
-    return createAPIClient(name, baseUrl, options, {validateUrl: false, isMattermostClient: false});
+    return createAPIClient(name, baseUrl, configuration, {validateUrl: false, isMattermostClient: false});
+};
+
+const createWebSocketClient = async (
+    name: string,
+    url: string,
+    configuration: WebSocketClientConfiguration,
+): Promise<WebSocketClientItem | null> => {
+    try {
+        const { client, created } = await getOrCreateWebSocketClient(
+            url,
+            configuration
+        );
+    
+        if (!created) {
+            Alert.alert(
+                "Error",
+                `A client for ${url} already exists`,
+                [{ text: "OK" }],
+                { cancelable: false }
+            );
+    
+            return null;
+        }
+    
+        return {
+            name,
+            client,
+            type: ClientType.WEBSOCKET,
+            isMattermostClient: true,
+        };
+    } catch (e) {
+        console.log(JSON.stringify(e));
+        return null;
+    }
+};
+
+const createMattermostWebSocketClient = async (): Promise<WebSocketClientItem | null> => {
+    const name = "Mattermost";
+    const host = "ws://192.168.0.14:8065";
+    const url = `${host}/api/v4/websocket`;
+    const configuration: WebSocketClientConfiguration = {
+        headers: {
+            origin: host,
+        },
+    };
+
+    return createWebSocketClient(name, url, configuration);
 };
 
 export const createTestClients = async (): Promise<NetworkClientItem[]> => {
     return [
+        { name: "Generic", client: GenericClient, type: ClientType.GENERIC },
         await createMattermostAPIClient(),
         await createJSONPlaceholderAPIClient(),
         await createMockserverAPIClient(),
+        await createMattermostWebSocketClient(),
     ].reduce((clients: NetworkClientItem[], client) => {
         if (client) {
             return [...clients, client];
@@ -150,3 +211,10 @@ export const createTestClients = async (): Promise<NetworkClientItem[]> => {
         return clients;
     }, []);
 };
+
+export const ClientContext = React.createContext({
+    clients: [] as NetworkClientItem[],
+    setClients: (() => {}) as React.Dispatch<
+        React.SetStateAction<NetworkClientItem[]>
+    >,
+});
