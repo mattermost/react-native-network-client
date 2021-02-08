@@ -114,7 +114,7 @@ const createAPIClient = async (
 };
 
 const createMattermostAPIClient = async (): Promise<APIClientItem | null> => {
-    const name = "Mattermost";
+    const name = "Mattermost API";
     const baseUrl = "http://192.168.0.14:8065";
     const userAgent = await DeviceInfo.getUserAgent();
     const headers = {
@@ -127,7 +127,7 @@ const createMattermostAPIClient = async (): Promise<APIClientItem | null> => {
 };
 
 const createJSONPlaceholderAPIClient = async (): Promise<APIClientItem | null> => {
-    const name = "JSON Placeholder";
+    const name = "JSON Placeholder API";
     const baseUrl = "https://jsonplaceholder.typicode.com";
     const configuration = {
         headers: {
@@ -139,7 +139,7 @@ const createJSONPlaceholderAPIClient = async (): Promise<APIClientItem | null> =
 };
 
 const createMockserverAPIClient = async (): Promise<APIClientItem | null> => {
-    const name = "Mockserver";
+    const name = "Mockserver API";
     const baseUrl = Platform.OS === 'ios' ? "http://localhost:8080" : "http://10.0.2.2:8080";
     const headers = {
         "custom-header-1-key": "custom-header-1-value",
@@ -187,7 +187,7 @@ const createWebSocketClient = async (
 };
 
 const createMattermostWebSocketClient = async (): Promise<WebSocketClientItem | null> => {
-    const name = "Mattermost";
+    const name = "Mattermost Web Socket";
     const host = "ws://192.168.0.14:8065";
     const url = `${host}/api/v4/websocket`;
     const configuration: WebSocketClientConfiguration = {
