@@ -5,7 +5,7 @@ import {Alert} from '@support/ui/component';
 
 class ClientListScreen {
     clientListScreen = element(by.text('ClientList'));
-    genericClientAction = element(by.text('Generic Client'));
+    genericClientAction = element(by.text('Generic'));
     addApiClientButton = element(by.text('Add API Client'));
     addWebSocketClientButton = element(by.text('Add WebSocket Client'));
     
