@@ -81,7 +81,7 @@ const createAPIClient = async (
     name: string,
     baseUrl: string,
     configuration: APIClientConfiguration,
-    {validateUrl = true, isMattermostClient = true} = {},
+    {validateUrl = true, isMattermostClient = false} = {},
 ): Promise<APIClientItem | null> => {
     try {
         const { client, created } = await getOrCreateAPIClient(
@@ -123,7 +123,7 @@ const createMattermostAPIClient = async (): Promise<APIClientItem | null> => {
     };
     const configuration = buildDefaultApiClientConfiguration(headers);
 
-    return createAPIClient(name, baseUrl, configuration);
+    return createAPIClient(name, baseUrl, configuration, {isMattermostClient: true});
 };
 
 const createJSONPlaceholderAPIClient = async (): Promise<APIClientItem | null> => {
@@ -135,7 +135,7 @@ const createJSONPlaceholderAPIClient = async (): Promise<APIClientItem | null> =
         },
     };
 
-    return createAPIClient(name, baseUrl, configuration, {isMattermostClient: false});
+    return createAPIClient(name, baseUrl, configuration);
 };
 
 const createMockserverAPIClient = async (): Promise<APIClientItem | null> => {
@@ -147,14 +147,14 @@ const createMockserverAPIClient = async (): Promise<APIClientItem | null> => {
     };
     const configuration = buildDefaultApiClientConfiguration(headers);
 
-    return createAPIClient(name, baseUrl, configuration, {validateUrl: false, isMattermostClient: false});
+    return createAPIClient(name, baseUrl, configuration, {validateUrl: false});
 };
 
 const createWebSocketClient = async (
     name: string,
     url: string,
     configuration: WebSocketClientConfiguration,
-    {validateUrl = true, isMattermostClient = true} = {},
+    {validateUrl = true, isMattermostClient = false} = {},
 ): Promise<WebSocketClientItem | null> => {
     try {
         const { client, created } = await getOrCreateWebSocketClient(
@@ -196,7 +196,7 @@ const createMattermostWebSocketClient = async (): Promise<WebSocketClientItem | 
         },
     };
 
-    return createWebSocketClient(name, url, configuration);
+    return createWebSocketClient(name, url, configuration, {isMattermostClient: true});
 };
 
 export const createTestClients = async (): Promise<NetworkClientItem[]> => {
