@@ -26,14 +26,6 @@ class APIClient: RCTEventEmitter, NetworkClient {
         return CONSTANTS
     }
 
-    func requiresMainQueueSetup() -> Bool {
-        return false
-    }
-    
-    override func constantsToExport() -> [AnyHashable : Any]! {
-        return CONSTANTS
-    }
-
     open override func supportedEvents() -> [String] {
         ["NativeClient-UploadProgress"]
     }
