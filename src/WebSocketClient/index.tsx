@@ -72,9 +72,10 @@ class WebSocketClient implements WebSocketClientInterface {
 
 async function getOrCreateWebSocketClient(
     url: string,
-    config: WebSocketClientConfiguration = {}
+    config: WebSocketClientConfiguration = {},
+    validateUrl: boolean = true
 ): Promise<{ client: WebSocketClient; created: boolean }> {
-    if (!isValidWebSocketURL(url)) {
+    if (validateUrl && !isValidWebSocketURL(url)) {
         throw new Error("url must be a valid WebSocket URL");
     }
 
