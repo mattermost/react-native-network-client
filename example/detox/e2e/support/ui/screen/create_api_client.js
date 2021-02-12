@@ -9,6 +9,7 @@ import {ClientListScreen} from '@support/ui/screen';
 
 class CreateApiClientScreen {
     testID = {
+        createApiClientScrollView: 'create_api_client.scroll_view',
         baseUrlInput: 'create_api_client.base_url.input',
         bearerAuthTokenInput: 'create_api_client.bearer_auth_token.input',
         nameInput: 'create_api_client.name.input',
@@ -18,21 +19,27 @@ class CreateApiClientScreen {
     }
 
     createApiClientScreen = element(by.text('CreateAPIClient'));
+    createApiClientScrollView = element(by.id(this.testID.createApiClientScrollView));
     baseUrlInput = element(by.id(this.testID.baseUrlInput));
     bearerAuthTokenInput = element(by.id(this.testID.bearerAuthTokenInput));
     maxConnectionsInput = element(by.id(this.testID.maxConnectionsInput));
     nameInput = element(by.id(this.testID.nameInput));
     requestTimeoutIntervalInput = element(by.id(this.testID.requestTimeoutIntervalInput));
     resourceTimeoutIntervalInput = element(by.id(this.testID.resourceTimeoutIntervalInput));
-    allowCellularAccessCheckbox = element(by.text('Allow Cellular Access?'));
-    cancelRequestsOn401Checkbox = element(by.text('Cancel Requests On 401?'));
-    followRedirectsCheckbox = element(by.text('Follow Redirects?'));
-    waitsForConnectivityCheckbox = element(by.text('Waits For Connectivity?'));
+    allowCellularAccessCheckboxFalse = element(by.text('Allow Cellular Access? false'));
+    allowCellularAccessCheckboxTrue = element(by.text('Allow Cellular Access? true'));
+    cancelRequestsOn401CheckboxFalse = element(by.text('Cancel Requests On 401? false'));
+    cancelRequestsOn401CheckboxTrue = element(by.text('Cancel Requests On 401? true'));
+    followRedirectsCheckboxFalse = element(by.text('Follow Redirects? false'));
+    followRedirectsCheckboxTrue = element(by.text('Follow Redirects? true'));
+    waitsForConnectivityCheckboxFalse = element(by.text('Waits For Connectivity? false'));
+    waitsForConnectivityCheckboxTrue = element(by.text('Waits For Connectivity? true'));
     clientListButton = element(by.text('ClientList')).atIndex(0);
     createButton = element(by.text('Create'));
 
     // convenience props
-    retryCheckbox = RetryPolicyConfiguration.retryCheckbox;
+    toggleOffRetryCheckbox = RetryPolicyConfiguration.toggleOffRetryCheckbox;
+    toggleOnRetryCheckbox = RetryPolicyConfiguration.toggleOnRetryCheckbox;
     retryLimitInput = RetryPolicyConfiguration.retryLimitInput;
     exponentialBackoffBaseInput = RetryPolicyConfiguration.exponentialBackoffBaseInput;
     exponentialBackoffScaleInput = RetryPolicyConfiguration.exponentialBackoffScaleInput;
@@ -53,6 +60,10 @@ class CreateApiClientScreen {
     back = async () => {
         await this.clientListButton.tap();
         await expect(this.createApiClientScreen).not.toBeVisible();
+    }
+
+    createClient = async () => {
+        await this.createButton.tap();
     }
 
     setBaseUrl = async (url) => {
@@ -93,6 +104,50 @@ class CreateApiClientScreen {
         await this.resourceTimeoutIntervalInput.clearText();
         await this.resourceTimeoutIntervalInput.replaceText(resourceTimeoutInterval);
         await this.resourceTimeoutIntervalInput.tapReturnKey();
+    }
+
+    setRetry = async (options = {retryLimit: '2', exponentialBackoffBase: '2', exponentialBackoffScale: '0.5'}) => {
+        await RetryPolicyConfiguration.setRetry(options);
+    }
+
+    toggleOffAllowCellularAccessCheckbox = async () => {
+        await this.allowCellularAccessCheckboxTrue.tap();
+        await expect(this.allowCellularAccessCheckboxFalse).toBeVisible();
+    }
+
+    toggleOnAllowCellularAccessCheckbox = async () => {
+        await this.allowCellularAccessCheckboxFalse.tap();
+        await expect(this.allowCellularAccessCheckboxTrue).toBeVisible();
+    }
+
+    toggleOffCancelRequestsOn401Checkbox = async () => {
+        await this.cancelRequestsOn401CheckboxTrue.tap();
+        await expect(this.cancelRequestsOn401CheckboxFalse).toBeVisible();
+    }
+
+    toggleOnCancelRequestsOn401Checkbox = async () => {
+        await this.cancelRequestsOn401CheckboxFalse.tap();
+        await expect(this.cancelRequestsOn401CheckboxTrue).toBeVisible();
+    }
+
+    toggleOffFollowRedirectsCheckbox = async () => {
+        await this.followRedirectsCheckboxTrue.tap();
+        await expect(this.followRedirectsCheckboxFalse).toBeVisible();
+    }
+
+    toggleOnFollowRedirectsCheckbox = async () => {
+        await this.followRedirectsCheckboxFalse.tap();
+        await expect(this.followRedirectsCheckboxTrue).toBeVisible();
+    }
+
+    toggleOffWaitsForConnectivityCheckbox = async () => {
+        await this.waitsForConnectivityCheckboxTrue.tap();
+        await expect(this.waitsForConnectivityCheckboxFalse).toBeVisible();
+    }
+
+    toggleOnWaitsForConnectivityCheckbox = async () => {
+        await this.waitsForConnectivityCheckboxFalse.tap();
+        await expect(this.waitsForConnectivityCheckboxTrue).toBeVisible();
     }
 }
 

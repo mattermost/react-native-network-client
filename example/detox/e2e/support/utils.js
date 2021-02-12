@@ -40,6 +40,15 @@ export const getRandomId = (length = 6) => {
 };
 
 /**
+ * Get random integer.
+ * @param {number} max - max number exclusive, e.g. 10 (default), expected 0 - 9
+ * @return {number} random integer
+ */
+export const getRandomInt = (max = 10) => {
+    return Math.floor(Math.random() * Math.floor(max));
+}
+
+/**
  * Capitalize first character of text.
  * @param {string} text
  * @return {string} capitalized text

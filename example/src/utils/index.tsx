@@ -142,8 +142,8 @@ const createMockserverAPIClient = async (): Promise<APIClientItem | null> => {
     const name = "Mockserver API";
     const baseUrl = Platform.OS === 'ios' ? "http://localhost:8080" : "http://10.0.2.2:8080";
     const headers = {
-        "custom-header-1-key": "custom-header-1-value",
-        "custom-header-2-key": "custom-header-2-value",
+        "header-1-key": "header-1-value",
+        "header-2-key": "header-2-value",
     };
     const configuration = buildDefaultApiClientConfiguration(headers);
 

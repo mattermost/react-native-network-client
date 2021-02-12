@@ -5,6 +5,7 @@ import {isAndroid} from '@support/utils';
 
 class Alert {
     // alert titles
+    errorTitle = isAndroid() ? element(by.text('Error')) : element(by.label('Error')).atIndex(0);
     removeClientTitle = isAndroid() ? element(by.text('Remove Client')) : element(by.label('Remove Client')).atIndex(0);
 
     // alert buttons
