@@ -18,21 +18,21 @@ protocol NetworkClient {
                        withSession session: Session,
                        withOptions options: JSON,
                        withResolver resolve: @escaping RCTPromiseResolveBlock,
-                       withRejecter reject: RCTPromiseRejectBlock) -> Void
+                       withRejecter reject: @escaping RCTPromiseRejectBlock) -> Void
     
     func handleRequest(for url: URL,
                        withMethod method: HTTPMethod,
                        withSession session: Session,
                        withOptions options: JSON,
                        withResolver resolve: @escaping RCTPromiseResolveBlock,
-                       withRejecter reject: RCTPromiseRejectBlock) -> Void
+                       withRejecter reject: @escaping RCTPromiseRejectBlock) -> Void
     
     func handleResponse(for session: Session,
                         withUrl url: URL,
                         withData data: AFDataResponse<Any>) -> Void
     
     func rejectMalformed(url: String,
-                         withRejecter reject: RCTPromiseRejectBlock) -> Void
+                         withRejecter reject: @escaping RCTPromiseRejectBlock) -> Void
     
     func getInterceptor(from options: JSON) -> Interceptor?
 
@@ -46,7 +46,7 @@ protocol NetworkClient {
 }
 
 extension NetworkClient {
-    func handleRequest(for urlString: String, withMethod method: HTTPMethod, withSession session: Session, withOptions options: JSON, withResolver resolve: @escaping RCTPromiseResolveBlock, withRejecter reject: RCTPromiseRejectBlock) -> Void {
+    func handleRequest(for urlString: String, withMethod method: HTTPMethod, withSession session: Session, withOptions options: JSON, withResolver resolve: @escaping RCTPromiseResolveBlock, withRejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
         guard let url = URL(string: urlString) else {
             rejectMalformed(url: urlString, withRejecter: reject)
             return
@@ -55,7 +55,7 @@ extension NetworkClient {
         handleRequest(for: url, withMethod: method, withSession: session, withOptions: options, withResolver: resolve, withRejecter: reject)
     }
     
-    func handleRequest(for url: URL, withMethod method: HTTPMethod, withSession session: Session, withOptions options: JSON, withResolver resolve: @escaping RCTPromiseResolveBlock, withRejecter reject: RCTPromiseRejectBlock) -> Void {
+    func handleRequest(for url: URL, withMethod method: HTTPMethod, withSession session: Session, withOptions options: JSON, withResolver resolve: @escaping RCTPromiseResolveBlock, withRejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
         let parameters = options["body"] == JSON.null ? nil : options["body"]
         let encoder: ParameterEncoder = parameters != nil ? JSONParameterEncoder.default : URLEncodedFormParameterEncoder.default
         let headers = getHTTPHeaders(from: options)
@@ -76,7 +76,7 @@ extension NetworkClient {
     
     func handleResponse(for session: Session, withUrl url: URL, withData data: AFDataResponse<Any>) -> Void {}
     
-    func rejectMalformed(url: String, withRejecter reject: RCTPromiseRejectBlock) -> Void {
+    func rejectMalformed(url: String, withRejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
         let message = "Malformed URL: \(url)"
         let error = NSError(domain: "com.mattermost.react-native-network-client", code: NSURLErrorBadURL, userInfo: [NSLocalizedDescriptionKey: message])
         reject("\(error.code)", message, error)

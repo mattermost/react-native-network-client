@@ -9,7 +9,6 @@
 
 import Alamofire
 import SwiftyJSON
-import SwiftKeychainWrapper
 import React
 
 @objc(APIClient)
@@ -39,7 +38,7 @@ class APIClient: RCTEventEmitter, NetworkClient {
     }
     
     @objc(createClientFor:withOptions:withResolver:withRejecter:)
-    func createClientFor(baseUrlString: String, options: Dictionary<String, Any> = [:], resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
+    func createClientFor(baseUrlString: String, options: Dictionary<String, Any> = [:], resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
         guard let baseUrl = URL(string: baseUrlString) else {
             rejectMalformed(url: baseUrlString, withRejecter: reject)
             return
@@ -69,19 +68,17 @@ class APIClient: RCTEventEmitter, NetworkClient {
     }
 
     @objc(invalidateClientFor:withResolver:withRejecter:)
-    func invalidateClientFor(baseUrlString: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {        
+    func invalidateClientFor(baseUrlString: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
         guard let baseUrl = URL(string: baseUrlString) else {
             rejectMalformed(url: baseUrlString, withRejecter: reject)
             return
         }
 
-        KeychainWrapper.standard.removeObject(forKey: baseUrl.absoluteString)
-
         resolve(SessionManager.default.invalidateSession(for: baseUrl))
     }
 
     @objc(addClientHeadersFor:withHeaders:withResolver:withRejecter:)
-    func addClientHeadersFor(baseUrlString: String, headers: Dictionary<String, String>, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
+    func addClientHeadersFor(baseUrlString: String, headers: Dictionary<String, String>, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
         guard let baseUrl = URL(string: baseUrlString) else {
             rejectMalformed(url: baseUrlString, withRejecter: reject)
             return
@@ -96,7 +93,7 @@ class APIClient: RCTEventEmitter, NetworkClient {
     }
 
     @objc(getClientHeadersFor:withResolver:withRejecter:)
-    func getClientHeadersFor(baseUrlString: String, resolve: @escaping RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
+    func getClientHeadersFor(baseUrlString: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
         guard let baseUrl = URL(string: baseUrlString) else {
             rejectMalformed(url: baseUrlString, withRejecter: reject)
             return
@@ -112,27 +109,27 @@ class APIClient: RCTEventEmitter, NetworkClient {
     }
     
     @objc(get:forEndpoint:withOptions:withResolver:withRejecter:)
-    func get(baseUrl: String, endpoint: String, options: Dictionary<String, Any>, resolve: @escaping RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
+    func get(baseUrl: String, endpoint: String, options: Dictionary<String, Any>, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
         handleRequest(for: baseUrl, withEndpoint: endpoint, withMethod: .get, withOptions: JSON(options), withResolver: resolve, withRejecter: reject)
     }
 
     @objc(put:forEndpoint:withOptions:withResolver:withRejecter:)
-    func put(baseUrl: String, endpoint: String, options: Dictionary<String, Any>, resolve: @escaping RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
+    func put(baseUrl: String, endpoint: String, options: Dictionary<String, Any>, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
         handleRequest(for: baseUrl, withEndpoint: endpoint, withMethod: .put, withOptions: JSON(options), withResolver: resolve, withRejecter: reject)
     }
     
     @objc(post:forEndpoint:withOptions:withResolver:withRejecter:)
-    func post(baseUrl: String, endpoint: String, options: Dictionary<String, Any>, resolve: @escaping RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
+    func post(baseUrl: String, endpoint: String, options: Dictionary<String, Any>, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
         handleRequest(for: baseUrl, withEndpoint: endpoint, withMethod: .post, withOptions: JSON(options), withResolver: resolve, withRejecter: reject)
     }
 
     @objc(patch:forEndpoint:withOptions:withResolver:withRejecter:)
-    func patch(baseUrl: String, endpoint: String, options: Dictionary<String, Any>, resolve: @escaping RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
+    func patch(baseUrl: String, endpoint: String, options: Dictionary<String, Any>, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
         handleRequest(for: baseUrl, withEndpoint: endpoint, withMethod: .patch, withOptions: JSON(options), withResolver: resolve, withRejecter: reject)
     }
 
     @objc(delete:forEndpoint:withOptions:withResolver:withRejecter:)
-    func delete(baseUrl: String, endpoint: String, options: Dictionary<String, Any>, resolve: @escaping RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
+    func delete(baseUrl: String, endpoint: String, options: Dictionary<String, Any>, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
         handleRequest(for: baseUrl, withEndpoint: endpoint, withMethod: .delete, withOptions: JSON(options), withResolver: resolve, withRejecter: reject)
     }
 
@@ -213,13 +210,13 @@ class APIClient: RCTEventEmitter, NetworkClient {
     }
     
     @objc(cancelRequest:withResolver:withRejecter:)
-    func cancelRequest(_ taskId: String, withResolver resolve: RCTPromiseResolveBlock, withRejecter reject: RCTPromiseRejectBlock) -> Void {
+    func cancelRequest(_ taskId: String, withResolver resolve: @escaping RCTPromiseResolveBlock, withRejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
         if let request = self.requestsTable.object(forKey: taskId as NSString) {
             request.cancel()
         }
     }
     
-    func handleRequest(for baseUrlString: String, withEndpoint endpoint: String, withMethod method: HTTPMethod, withOptions options: JSON, withResolver resolve: @escaping RCTPromiseResolveBlock, withRejecter reject: RCTPromiseRejectBlock) -> Void {
+    func handleRequest(for baseUrlString: String, withEndpoint endpoint: String, withMethod method: HTTPMethod, withOptions options: JSON, withResolver resolve: @escaping RCTPromiseResolveBlock, withRejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
         guard let baseUrl = URL(string: baseUrlString) else {
             rejectMalformed(url: baseUrlString, withRejecter: reject)
             return
@@ -234,12 +231,12 @@ class APIClient: RCTEventEmitter, NetworkClient {
         handleRequest(for: url, withMethod: method, withSession: session, withOptions: options, withResolver: resolve, withRejecter: reject)
     }
 
-    func handleResponse(for session: Session, withUrl url: URL, withData data: AFDataResponse<Any>) {
+    func handleResponse(for session: Session, withUrl url: URL, withData data: AFDataResponse<Any>) -> Void {
         if data.response?.statusCode == 401 && session.cancelRequestsOnUnauthorized {
             session.cancelAllRequests()
         } else if let tokenHeader = session.bearerAuthTokenResponseHeader {
             if let token = data.response?.allHeaderFields[tokenHeader] as? String {
-                KeychainWrapper.standard.set(token, forKey: session.baseUrl.absoluteString)
+                Keychain.setToken(token, forServerUrl: session.baseUrl.absoluteString)
             }
         }
     }
@@ -285,13 +282,13 @@ class APIClient: RCTEventEmitter, NetworkClient {
         return nil
     }
     
-    func rejectInvalidSession(for baseUrl: URL, withRejecter reject: RCTPromiseRejectBlock) -> Void {
+    func rejectInvalidSession(for baseUrl: URL, withRejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
         let message = "Session for \(baseUrl.absoluteString) has been invalidated"
         let error = NSError(domain: "com.mattermost.react-native-network-client", code: NSCoderValueNotFoundError, userInfo: [NSLocalizedDescriptionKey: message])
         reject("\(error.code)", message, error)
     }
     
-    func rejectFileSize(for fileUrl: URL, withRejecter reject: RCTPromiseRejectBlock) -> Void {
+    func rejectFileSize(for fileUrl: URL, withRejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
         let message = "Unable to read file size for \(fileUrl.absoluteString)"
         let error = NSError(domain: "com.mattermost.react-native-network-client", code: NSCoderValueNotFoundError, userInfo: [NSLocalizedDescriptionKey: message])
         reject("\(error.code)", message, error)

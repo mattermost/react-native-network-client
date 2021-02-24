@@ -9,12 +9,11 @@
 
 import Foundation
 import Alamofire
-import SwiftKeychainWrapper
 
 @objc public class BearerAuthenticationAdapter: NSObject, RequestAdapter {
     @objc public static func addAuthorizationBearerToken(to urlRequest: URLRequest, withSessionBaseUrlString sessionBaseUrlString: String) -> URLRequest {
         var urlRequest = urlRequest
-        if let bearerToken = KeychainWrapper.standard.string(forKey: sessionBaseUrlString) {
+        if let bearerToken = Keychain.getToken(for: sessionBaseUrlString) {
             urlRequest.headers.add(.authorization(bearerToken: bearerToken))
         }
         

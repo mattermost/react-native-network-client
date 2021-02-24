@@ -256,7 +256,6 @@ PODS:
     - Alamofire (~> 5.4)
     - React-Core
     - Starscream (~> 4.0.4)
-    - SwiftKeychainWrapper (~> 4.0.1)
     - SwiftyJSON (~> 5.0)
   - react-native-safe-area-context (3.1.8):
     - React-Core
@@ -347,7 +346,6 @@ PODS:
     - libwebp (~> 1.0)
     - SDWebImage/Core (~> 5.7)
   - Starscream (4.0.4)
-  - SwiftKeychainWrapper (4.0.1)
   - SwiftyJSON (5.0.0)
   - Yoga (1.14.0)
   - YogaKit (1.18.1):
@@ -434,7 +432,6 @@ SPEC REPOS:
     - SDWebImage
     - SDWebImageWebPCoder
     - Starscream
-    - SwiftKeychainWrapper
     - SwiftyJSON
     - YogaKit
 
@@ -552,7 +549,7 @@ SPEC CHECKSUMS:
   React-jsinspector: 8e68ffbfe23880d3ee9bafa8be2777f60b25cbe2
   react-native-document-picker: d2cbac448c1c91ec6af702630e4945e7e3c35d90
   react-native-image-picker: 8b4ccafb47395aabe98d3af89f089e020cacd6d1
-  react-native-network-client: 2912b29ee70fbae3bcf9a261a73908669c5c8622
+  react-native-network-client: 30ab97e7e6c8d6f2d2b10cc1ebad0cbf9c894c6e
   react-native-safe-area-context: 01158a92c300895d79dee447e980672dc3fb85a6
   React-RCTActionSheet: 53ea72699698b0b47a6421cb1c8b4ab215a774aa
   React-RCTAnimation: 1befece0b5183c22ae01b966f5583f42e69a83c2
@@ -576,7 +573,6 @@ SPEC CHECKSUMS:
   SDWebImage: f66a16b95183b92ed6b965ad21d33167bc07612d
   SDWebImageWebPCoder: d0dac55073088d24b2ac1b191a71a8f8d0adac21
   Starscream: 5178aed56b316f13fa3bc55694e583d35dd414d9
-  SwiftKeychainWrapper: 807ba1d63c33a7d0613288512399cd1eda1e470c
   SwiftyJSON: 36413e04c44ee145039d332b4f4e2d3e8d6c4db7
   Yoga: 7d13633d129fd179e01b8953d38d47be90db185a
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a

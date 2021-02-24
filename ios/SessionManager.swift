@@ -120,7 +120,10 @@ import Alamofire
             return
         }
         
-        session.session.invalidateAndCancel()
-        sessions.removeValue(forKey: baseUrl)
+        session.session.reset {
+            Keychain.deleteAll(for: baseUrl.absoluteString)
+            session.session.invalidateAndCancel()
+            self.sessions.removeValue(forKey: baseUrl)
+        }
     }
 }
