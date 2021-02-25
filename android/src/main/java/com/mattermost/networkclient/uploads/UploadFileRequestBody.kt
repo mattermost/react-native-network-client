@@ -29,7 +29,10 @@ class UploadFileRequestBody(private val resolver: ContentResolver, private val u
         var totalRead: Long = 0
         var read: Long
 
-        if (skipBytes != null) sink.buffer.skip(skipBytes)
+        if (skipBytes != null) {
+            sink.buffer.skip(skipBytes)
+            totalRead = skipBytes;
+        }
 
         try {
             while (source.read(sink.buffer, 2048.toLong()).also { read = it } != -1L) {
