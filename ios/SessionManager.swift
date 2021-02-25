@@ -9,6 +9,7 @@
 
 import Foundation
 import Alamofire
+import SwiftyJSON
 
 @objc public class SessionManager: NSObject {
 
@@ -30,7 +31,8 @@ import Alamofire
                        withInterceptor interceptor:Interceptor? = nil,
                        withRedirectHandler redirectHandler:RedirectHandler? = nil,
                        withCancelRequestsOnUnauthorized cancelRequestsOnUnauthorized:Bool = false,
-                       withBearerAuthTokenResponseHeader bearerAuthTokenResponseHeader:String? = nil) -> Void {
+                       withBearerAuthTokenResponseHeader bearerAuthTokenResponseHeader:String? = nil,
+                       withCertificateConfiguration certificateConfiguration:[String:JSON] = [:]) -> Void {
         var session = getSession(for: baseUrl)
         if (session != nil) {
             return
@@ -40,6 +42,7 @@ import Alamofire
         session?.baseUrl = baseUrl
         session?.cancelRequestsOnUnauthorized = cancelRequestsOnUnauthorized
         session?.bearerAuthTokenResponseHeader = bearerAuthTokenResponseHeader
+        handleCertificates(for: session, withConfiguration: certificateConfiguration)
 
         sessions[baseUrl] = session
     }
@@ -115,15 +118,55 @@ import Alamofire
         return nil
     }
     
-    func invalidateSession(for baseUrl:URL) -> Void {
+    func invalidateSession(for baseUrl:URL, withReset reset:Bool = false) -> Void {
         guard let session = getSession(for: baseUrl) else {
             return
         }
         
-        session.session.reset {
-            Keychain.deleteAll(for: baseUrl.absoluteString)
+        if reset {
+            session.session.reset {
+                Keychain.deleteAll(for: baseUrl.absoluteString)
+                session.session.invalidateAndCancel()
+                self.sessions.removeValue(forKey: baseUrl)
+            }
+        } else {
             session.session.invalidateAndCancel()
             self.sessions.removeValue(forKey: baseUrl)
+        }
+    }
+    
+    private func handleCertificates(for session: Session?, withConfiguration configuration: [String:JSON]) {
+        if session == nil {
+            return
+        }
+        
+        if let path = configuration["clientCertificatePath"]?.string {
+            if let file = FileHandle(forReadingAtPath: path) {
+                let data = file.readDataToEndOfFile()
+                file.closeFile()
+                if let certificate = SecCertificateCreateWithData(nil, data as CFData) {
+                    Keychain.setClientCertificate(certificate, forServerUrl: session!.baseUrl.absoluteString)
+                }
+            } else {
+                // TODO certificate error
+            }
+            
+        }
+
+        if let path = configuration["serverCertificatePath"]?.string {
+            if let file = FileHandle(forReadingAtPath: path) {
+                let data = file.readDataToEndOfFile()
+                file.closeFile()
+                if let certificate = SecCertificateCreateWithData(nil, data as CFData) {
+                    Keychain.setServerCertificate(certificate, forServerUrl: session!.baseUrl.absoluteString)
+                    
+                    if let pinServerCertificate = configuration["pinServerCertificate"]?.bool {
+                        
+                    }
+                }
+            } else {
+                // TODO certificate error
+            }
         }
     }
 }

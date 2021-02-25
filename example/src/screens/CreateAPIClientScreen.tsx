@@ -10,7 +10,12 @@ import { getOrCreateAPIClient } from "@mattermost/react-native-network-client";
 import AddHeaders from "../components/AddHeaders";
 import NumericInput from "../components/NumericInput";
 import RetryPolicyConfiguration from "../components/RetryPolicyConfiguration";
-import { useRetryPolicyConfiguration, useSessionConfiguration } from "../hooks";
+import CertificateConfiguration from "../components/CertificateConfiguration";
+import {
+    useRetryPolicyConfiguration,
+    useSessionConfiguration,
+    useCertificateConfiguration,
+} from "../hooks";
 import { ClientType, parseHeaders } from "../utils";
 
 const styles = StyleSheet.create({
@@ -44,6 +49,13 @@ export default function CreateAPIClientScreen({
     ] = useRetryPolicyConfiguration();
 
     const [
+        certificateConfiguration,
+        setClientCertificatePath,
+        setServerCertificatePath,
+        togglePinServerCertificate,
+    ] = useCertificateConfiguration();
+
+    const [
         requestAdapterConfiguration,
         setRequestAdapterConfiguration,
     ] = useState<RequestAdapterConfiguration>({
@@ -65,6 +77,7 @@ export default function CreateAPIClientScreen({
             sessionConfiguration,
             retryPolicyConfiguration,
             requestAdapterConfiguration,
+            certificateConfiguration,
         };
 
         const { client, created } = await getOrCreateAPIClient(
@@ -95,13 +108,13 @@ export default function CreateAPIClientScreen({
                 <Input
                     label="Name"
                     onChangeText={setName}
-                    testID='create_api_client.name.input'
+                    testID="create_api_client.name.input"
                 />
                 <Input
                     label="Base URL"
                     onChangeText={setBaseUrl}
                     autoCapitalize="none"
-                    testID='create_api_client.base_url.input'
+                    testID="create_api_client.base_url.input"
                 />
 
                 <AddHeaders onHeadersChanged={setClientHeaders} />
@@ -111,7 +124,22 @@ export default function CreateAPIClientScreen({
                     onChangeText={setBearerAuthTokenResponseHeader}
                     placeholder="token"
                     autoCapitalize="none"
-                    testID='create_api_client.bearer_auth_token.input'
+                    testID="create_api_client.bearer_auth_token.input"
+                />
+
+                <CertificateConfiguration
+                    clientCertificatePath={
+                        certificateConfiguration.clientCertificatePath
+                    }
+                    serverCertificatePath={
+                        certificateConfiguration.serverCertificatePath
+                    }
+                    pinServerCertificate={
+                        certificateConfiguration.pinServerCertificate
+                    }
+                    setClientCertificatePath={setClientCertificatePath}
+                    setServerCertificatePath={setServerCertificatePath}
+                    togglePinServerCertificate={togglePinServerCertificate}
                 />
 
                 <NumericInput
@@ -119,7 +147,7 @@ export default function CreateAPIClientScreen({
                     value={sessionConfiguration.timeoutIntervalForRequest}
                     onChange={setTimeoutIntervalForRequest}
                     minValue={0}
-                    testID='create_api_client.request_timeout_interval.input'
+                    testID="create_api_client.request_timeout_interval.input"
                 />
 
                 <NumericInput
@@ -127,7 +155,7 @@ export default function CreateAPIClientScreen({
                     value={sessionConfiguration.timeoutIntervalForResource}
                     onChange={setTimeoutIntervalForResource}
                     minValue={0}
-                    testID='create_api_client.resource_timeout_interval.input'
+                    testID="create_api_client.resource_timeout_interval.input"
                 />
 
                 <NumericInput
@@ -135,7 +163,7 @@ export default function CreateAPIClientScreen({
                     value={sessionConfiguration.httpMaximumConnectionsPerHost}
                     onChange={setHttpMaximumConnectionsPerHost}
                     minValue={1}
-                    testID='create_api_client.max_connects.input'
+                    testID="create_api_client.max_connects.input"
                 />
 
                 <RetryPolicyConfiguration

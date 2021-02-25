@@ -132,3 +132,48 @@ export const useRetryPolicyConfiguration = (): UseRetryPolicyConfigurationRespon
         setExponentialBackoffScale,
     ];
 };
+
+type UseCertificateConfigurationResponse = [
+    CertificateConfiguration,
+    (clientCertificate?: string) => void,
+    (serverCertificate?: string) => void,
+    () => void
+];
+
+export const useCertificateConfiguration = (): UseCertificateConfigurationResponse => {
+    const [
+        certificateConfiguration,
+        setCertificateConfiguration,
+    ] = useState<CertificateConfiguration>({
+        clientCertificatePath: undefined,
+        serverCertificatePath: undefined,
+        pinServerCertificate: false,
+    });
+
+    const setClientCertificatePath = (clientCertificatePath?: string) => {
+        setCertificateConfiguration({
+            ...certificateConfiguration,
+            clientCertificatePath,
+        });
+    };
+
+    const setServerCertificatePath = (serverCertificatePath?: string) => {
+        setCertificateConfiguration({
+            ...certificateConfiguration,
+            serverCertificatePath,
+        });
+    };
+
+    const togglePinServerCertificate = () =>
+        setCertificateConfiguration({
+            ...certificateConfiguration,
+            pinServerCertificate: !certificateConfiguration.pinServerCertificate,
+        });
+
+    return [
+        certificateConfiguration,
+        setClientCertificatePath,
+        setServerCertificatePath,
+        togglePinServerCertificate,
+    ];
+};

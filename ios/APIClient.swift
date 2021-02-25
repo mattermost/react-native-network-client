@@ -51,6 +51,7 @@ class APIClient: RCTEventEmitter, NetworkClient {
             let interceptor = getInterceptor(from: options)
             let cancelRequestsOnUnauthorized = options["sessionConfiguration"]["cancelRequestsOnUnauthorized"].boolValue
             let bearerAuthTokenResponseHeader = options["requestAdapterConfiguration"]["bearerAuthTokenResponseHeader"].string
+            let certificateConfiguration = options["certificateConfiguration"].dictionaryValue
 
             resolve(
                 SessionManager.default.createSession(for: baseUrl,
@@ -58,7 +59,8 @@ class APIClient: RCTEventEmitter, NetworkClient {
                                                      withInterceptor: interceptor,
                                                      withRedirectHandler: redirectHandler,
                                                      withCancelRequestsOnUnauthorized: cancelRequestsOnUnauthorized,
-                                                     withBearerAuthTokenResponseHeader: bearerAuthTokenResponseHeader)
+                                                     withBearerAuthTokenResponseHeader: bearerAuthTokenResponseHeader,
+                                                     withCertificateConfiguration: certificateConfiguration)
             )
 
             return
@@ -74,7 +76,7 @@ class APIClient: RCTEventEmitter, NetworkClient {
             return
         }
 
-        resolve(SessionManager.default.invalidateSession(for: baseUrl))
+        resolve(SessionManager.default.invalidateSession(for: baseUrl, withReset: true))
     }
 
     @objc(addClientHeadersFor:withHeaders:withResolver:withRejecter:)
