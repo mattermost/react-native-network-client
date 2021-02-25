@@ -121,7 +121,7 @@ export default function CreateWebSocketClientScreen({
                 />
 
                 <CheckBox
-                    title="Enable Compression?"
+                    title={`Enable Compression? ${configuration.enableCompression!}`}
                     checked={configuration.enableCompression!}
                     onPress={toggleEnableCompression}
                     iconType="ionicon"
@@ -132,7 +132,7 @@ export default function CreateWebSocketClientScreen({
                 />
 
                 <CheckBox
-                    title="Enable SSL Pinning?"
+                    title={`Enable SSL Pinning? ${configuration.sslPinningConfiguration!.enabled}`}
                     checked={configuration.sslPinningConfiguration!.enabled}
                     onPress={toggleEnableSSLPinning}
                     iconType="ionicon"
@@ -144,7 +144,7 @@ export default function CreateWebSocketClientScreen({
 
                 {configuration.sslPinningConfiguration!.enabled && (
                     <CheckBox
-                        title="Allow Self Signed Certificates?"
+                        title={`Allow Self Signed Certificates? ${configuration.sslPinningConfiguration!.allowSelfSigned!}`}
                         checked={
                             configuration.sslPinningConfiguration!
                                 .allowSelfSigned!

@@ -91,7 +91,7 @@ export default function CreateAPIClientScreen({
 
     return (
         <SafeAreaView>
-            <ScrollView>
+            <ScrollView testID='create_api_client.scroll_view'>
                 <Input
                     label="Name"
                     onChangeText={setName}
@@ -135,7 +135,7 @@ export default function CreateAPIClientScreen({
                     value={sessionConfiguration.httpMaximumConnectionsPerHost}
                     onChange={setHttpMaximumConnectionsPerHost}
                     minValue={1}
-                    testID='create_api_client.max_connects.input'
+                    testID='create_api_client.max_connections.input'
                 />
 
                 <RetryPolicyConfiguration
@@ -154,8 +154,10 @@ export default function CreateAPIClientScreen({
                 />
 
                 <CheckBox
-                    title="Follow Redirects?"
-                    checked={sessionConfiguration.followRedirects as boolean}
+                    title={`Follow Redirects? ${sessionConfiguration.followRedirects}`}
+                    checked={
+                        sessionConfiguration.followRedirects as boolean
+                    }
                     onPress={toggleFollowRedirects}
                     iconType="ionicon"
                     checkedIcon="ios-checkmark-circle"
@@ -165,7 +167,7 @@ export default function CreateAPIClientScreen({
                 />
 
                 <CheckBox
-                    title="Allow Cellular Access?"
+                    title={`Allow Cellular Access? ${sessionConfiguration.allowsCellularAccess}`}
                     checked={
                         sessionConfiguration.allowsCellularAccess as boolean
                     }
@@ -178,7 +180,7 @@ export default function CreateAPIClientScreen({
                 />
 
                 <CheckBox
-                    title="Waits For Connectivity?"
+                    title={`Waits For Connectivity? ${sessionConfiguration.waitsForConnectivity}`}
                     checked={
                         sessionConfiguration.waitsForConnectivity as boolean
                     }
@@ -191,7 +193,7 @@ export default function CreateAPIClientScreen({
                 />
 
                 <CheckBox
-                    title="Cancel Requests On 401?"
+                    title={`Cancel Requests On 401? ${sessionConfiguration.cancelRequestsOnUnauthorized}`}
                     checked={
                         sessionConfiguration.cancelRequestsOnUnauthorized as boolean
                     }

@@ -16,11 +16,14 @@ class ClientListScreen {
     }
 
     removeClientWithName = async (name) => {
+        const {
+            okButton,
+            removeClientTitle,
+        } = Alert;
+
         await element(by.text(name)).longPress();
-        const {okButton, removeClientTitle} = Alert;
-        await removeClientTitle.toBeVisible();
+        await expect(removeClientTitle).toBeVisible();
         await okButton.tap();
-        await element(by.text(name)).not.toBeVisible();
     }
 }
 

@@ -8,7 +8,11 @@
 // *******************************************************************
 
 import {Request} from '@support/server_api';
-import testConfig from '@support/test_config';
+import {
+    host,
+    siteUrl,
+    serverUrl,
+} from '@support/test_config';
 import {GenericClientRequestScreen} from '@support/ui/screen';
 import {
     customBody,
@@ -20,9 +24,9 @@ import {
 
 describe('Put - Generic Client Request', () => {
     const testMethod = 'PUT';
-    const testServerUrl = `${testConfig.serverUrl}/${testMethod.toLowerCase()}`;
-    const testSiteUrl = `${testConfig.siteUrl}/${testMethod.toLowerCase()}`;
-    const testHost = testConfig.host;
+    const testServerUrl = `${serverUrl}/${testMethod.toLowerCase()}`;
+    const testSiteUrl = `${siteUrl}/${testMethod.toLowerCase()}`;
+    const testHost = host;
     const testStatus = 200;
     const testHeaders = {...customHeaders};
     const testBody = {...customBody};

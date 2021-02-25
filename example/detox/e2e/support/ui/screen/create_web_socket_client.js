@@ -5,6 +5,12 @@ import {ClientListScreen} from '@support/ui/screen';
 
 class CreateWebSocketClientScreen {
     createWebSocketClientScreen = element(by.text('CreateWebSocketClient'));
+    allowSelfSignedCertificatesCheckboxFalse = element(by.text('Allow Self Signed Certificates? false'));
+    allowSelfSignedCertificatesCheckboxTrue = element(by.text('Allow Self Signed Certificates? true'));
+    enableCompressionCheckboxFalse = element(by.text('Enable Compression? false'));
+    enableCompressionCheckboxTrue = element(by.text('Enable Compression? true'));
+    enableSslPinningCheckboxFalse = element(by.text('Enable SSL Pinning? false'));
+    enableSslPinningCheckboxTrue = element(by.text('Enable SSL Pinning? true'));
     clientListButton = element(by.text('ClientList')).atIndex(0);
     createButton = element(by.text('Create'));
 
@@ -24,6 +30,36 @@ class CreateWebSocketClientScreen {
     back = async () => {
         await this.clientListButton.tap();
         await expect(this.createWebSocketClientScreen).not.toBeVisible();
+    }
+
+    toggleOffAllowSelfSignedCertificatesCheckbox = async () => {
+        await this.allowSelfSignedCertificatesCheckboxTrue.tap();
+        await expect(this.allowSelfSignedCertificatesCheckboxFalse).toBeVisible();
+    }
+
+    toggleOnAllowSelfSignedCertificatesCheckbox = async () => {
+        await this.allowSelfSignedCertificatesCheckboxFalse.tap();
+        await expect(this.allowSelfSignedCertificatesCheckboxTrue).toBeVisible();
+    }
+
+    toggleOffEnableCompressionCheckbox = async () => {
+        await this.enableCompressionCheckboxTrue.tap();
+        await expect(this.enableCompressionCheckboxFalse).toBeVisible();
+    }
+
+    toggleOnEnableCompressionCheckbox = async () => {
+        await this.enableCompressionCheckboxFalse.tap();
+        await expect(this.enableCompressionCheckboxTrue).toBeVisible();
+    }
+
+    toggleOffEnableSslPinningCheckbox = async () => {
+        await this.enableSslPinningCheckboxTrue.tap();
+        await expect(this.enableSslPinningCheckboxFalse).toBeVisible();
+    }
+
+    toggleOnEnableSslPinningCheckbox = async () => {
+        await this.enableSslPinningCheckboxFalse.tap();
+        await expect(this.enableSslPinningCheckboxTrue).toBeVisible();
     }
 }
 

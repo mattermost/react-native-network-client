@@ -42,6 +42,7 @@ Options:
 | headers | request headers | `curl -i -H "Accept: application/json" -H "Content-Type: application/json" http://host/path` |
 | body | request body | `curl -i -d "key1=value1&key2=value2" http://host/path` |
 | response status | request header for assigning response status | `curl -i -H "response-status: 404 Not Found" http://host/path` |
+
 Example response:
 ```
 HTTP/1.1 200 OK
@@ -64,6 +65,7 @@ server: mock-server
 
 ### Get Request
 Base Path: `/get`
+
 Example:
 ```
 curl -X GET -H "Content-Type: application/json" http://localhost:8080/get
@@ -71,6 +73,7 @@ curl -X GET -H "Content-Type: application/json" http://localhost:8080/get
 
 ### Post Request
 Base Path: `/post`
+
 Example:
 ```
 curl -X POST -d "{\"name\":\"John Doe\",\"phone\":\"333-333-3333\"}" -H "Content-Type: application/json" http://localhost:8080/post
@@ -78,6 +81,7 @@ curl -X POST -d "{\"name\":\"John Doe\",\"phone\":\"333-333-3333\"}" -H "Content
 
 ### Put Request
 Base Path: `/put`
+
 Example:
 ```
 curl -X PUT -d "{\"name\":\"John Doe\",\"phone\":\"444-444-4444\"}" -H "Content-Type: application/json" http://localhost:8080/put
@@ -85,6 +89,7 @@ curl -X PUT -d "{\"name\":\"John Doe\",\"phone\":\"444-444-4444\"}" -H "Content-
 
 ### Patch Request
 Base Path: `/patch`
+
 Example:
 ```
 curl -X PATCH -d "{\"phone\":\"555-555-5555\"}" -H "Content-Type: application/json" http://localhost:8080/patch
@@ -92,6 +97,7 @@ curl -X PATCH -d "{\"phone\":\"555-555-5555\"}" -H "Content-Type: application/js
 
 ### Delete Request
 Base Path: `/delete`
+
 Example:
 ```
 curl -X DELETE -d "{\"permanent\":true}" -H "Content-Type: application/json" http://localhost:8080/delete

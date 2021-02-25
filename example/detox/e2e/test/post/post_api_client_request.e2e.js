@@ -8,13 +8,18 @@
 // *******************************************************************
 
 import {Request} from '@support/server_api';
-import testConfig from '@support/test_config';
+import {
+    host,
+    siteUrl,
+    serverUrl,
+} from '@support/test_config';
 import {ApiClientScreen} from '@support/ui/screen';
 import {
     customBody,
     customHeaders,
     newHeaders,
     performApiClientRequest,
+    verifyApiClient,
     verifyApiResponse,
     verifyResponseOverlay,
 } from '../helpers';
@@ -22,10 +27,12 @@ import {
 describe('Post - API Client Request', () => {
     const testMethod = 'POST';
     const testPath = `/${testMethod.toLowerCase()}`;
-    const testServerUrl = `${testConfig.serverUrl}${testPath}`;
-    const testSiteUrl = `${testConfig.siteUrl}${testPath}`;
-    const testHost = testConfig.host;
+    const testBaseUrl = serverUrl;
+    const testServerUrl = `${testBaseUrl}${testPath}`;
+    const testSiteUrl = `${siteUrl}${testPath}`;
+    const testHost = host;
     const testStatus = 200;
+    const testName = 'Mockserver API';
     const testHeaders = {...newHeaders};
     const testBody = {...customBody};
     const combinedHeaders = {
@@ -37,7 +44,8 @@ describe('Post - API Client Request', () => {
         const apiResponse = await Request.apiPost({headers: testHeaders, body: testBody});
         await verifyApiResponse(apiResponse, testSiteUrl, testStatus, testHost, testMethod, testHeaders, testBody);
 
-        await ApiClientScreen.open('Mockserver API');
+        await ApiClientScreen.open(testName);
+        await verifyApiClient(testName, testBaseUrl, customHeaders);
         await ApiClientScreen.postButton.tap();
     });
 

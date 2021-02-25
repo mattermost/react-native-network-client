@@ -5,21 +5,25 @@ import jestExpect from 'expect';
 
 import {
     ApiClientRequestScreen,
+    ApiClientScreen,
     GenericClientRequestScreen,
 } from '@support/ui/screen';
-import {isIos} from '@support/utils';
+import {
+    isAndroid,
+    isIos,
+} from '@support/utils';
 
 export const customHeaders = {
-    'custom-header-1-key': 'custom-header-1-value',
-    'custom-header-2-key': 'custom-header-2-value',
+    'header-1-key': 'header-1-value',
+    'header-2-key': 'header-2-value',
 };
 export const newHeaders = {
     'new-header-1-key': 'new-header-1-value',
     'new-header-2-key': 'new-header-2-value',
 };
 export const customBody = {
-    'customField1key': 'customField1value',
-    'customField2key': 'customField2value',
+    'field1key': 'field1value',
+    'field2key': 'field2value',
 };
 
 /**
@@ -176,6 +180,39 @@ export const verifyResponseOverlay = async (testUrl, testStatus, testHost, testM
             for (const [k, v] of Object.entries(testBody)) {
                 jestExpect(responseDataRequest.body[k]).toBe(v);
             }
+        }
+    }
+};
+
+export const verifyApiClient = async (testName, testUrl, testHeaders) => {
+    const {
+        baseUrlInput,
+        getHeaderListItemAtIndex,
+        nameInput,
+    } = ApiClientScreen;
+
+    const ordered = Object.keys(testHeaders).sort().reduce((result, key) => {
+        result[key] = testHeaders[key];
+        return result;
+    }, {});
+    const entries = Object.entries(ordered);
+    if (isAndroid()) {
+        await expect(nameInput).toHaveText(testName);
+        await expect(baseUrlInput).toHaveText(testUrl);
+
+        for (const [index, [key, value]] of Object.entries(entries)) {
+            const {keyInput, valueInput} = getHeaderListItemAtIndex(index);
+            await expect(keyInput).toHaveText(key);
+            await expect(valueInput).toHaveText(value);
+        }
+    } else {
+        await expect(nameInput).toHaveValue(testName);
+        await expect(baseUrlInput).toHaveValue(testUrl);
+
+        for (const [index, [key, value]] of Object.entries(entries)) {
+            const {keyInput, valueInput} = getHeaderListItemAtIndex(index);
+            await expect(keyInput).toHaveValue(key);
+            await expect(valueInput).toHaveValue(value);
         }
     }
 };

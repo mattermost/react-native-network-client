@@ -27,6 +27,7 @@ rm -rf node_modules
 npm install
 ```
 2. Install the example application to simulator/emulator device.
+
 iOS,
 ```
 cd ios
@@ -54,6 +55,7 @@ cd ..
 npm run start
 ```
 4. Run detox tests.
+
 iOS,
 ```
 cd detox
