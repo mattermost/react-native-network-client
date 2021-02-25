@@ -9,7 +9,7 @@ class ProgressListener(private val reactContext: ReactContext, private val taskI
 
     override fun emitProgressEvent(progress: Long) {
         val params = Arguments.createMap()
-        params.putString("fractionCompleted", "$progress")
+        params.putInt("fractionCompleted", progress.toInt())
         params.putString("taskId", "$taskId")
         reactContext.getJSModule(RCTDeviceEventEmitter::class.java).emit("NativeClient-UploadProgress", params)
     }

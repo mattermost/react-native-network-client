@@ -47,7 +47,9 @@ fun Response.promiseResolution(promise: Promise): Response {
  *
  * @param options ReadableMap of options from the App
  */
-fun Request.Builder.parseOptions(options: ReadableMap, session: OkHttpClient.Builder): Request.Builder {
+fun Request.Builder.parseOptions(options: ReadableMap?, session: OkHttpClient.Builder): Request.Builder {
+
+    if(options == null) return this;
 
     // Timeout Interval per request
     if (options.hasKey("timeoutInterval")) {

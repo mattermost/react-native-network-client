@@ -1,43 +1,47 @@
 package com.mattermost.networkclient.uploads
 
+import android.content.ContentResolver
+import android.net.Uri
 import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody
-import okhttp3.internal.closeQuietly
 import okio.*
-import java.io.File
 import java.io.IOException
-import java.net.URLConnection
 
 
-class UploadFileRequestBody(private val file: File, private val listener: ProgressListener, private val skipBytes: Long?) : RequestBody() {
+class UploadFileRequestBody(private val resolver: ContentResolver, private val uri: Uri, private val listener: ProgressListener, private val skipBytes: Long?) : RequestBody() {
+
+    private val stream = resolver.openInputStream(uri)!!
+    private val total: Long = stream.available().toLong();
 
     override fun contentLength(): Long {
-        return file.length()
+        return total;
     }
 
     override fun contentType(): MediaType? {
-        return URLConnection.guessContentTypeFromName(file.name).toMediaTypeOrNull();
+        return resolver.getType(uri)!!.toMediaTypeOrNull();
     }
 
     @Throws(IOException::class)
     override fun writeTo(sink: BufferedSink) {
-        var source: Source? = null
-        var total: Long = 0
+
+        var source: Source = stream.source()
+        var totalRead: Long = 0
         var read: Long
 
         if (skipBytes != null) sink.buffer.skip(skipBytes)
 
         try {
-            source = file.source()
             while (source.read(sink.buffer, 2048.toLong()).also { read = it } != -1L) {
-                total += read
+                totalRead += read
                 sink.flush()
-                listener.update(total, file.length())
+                listener.update(totalRead, total)
             }
+        } catch(e: IOException){
+            // Hmmm
         } finally {
-            source!!.closeQuietly()
-            listener.update(total, file.length())
+            source.close()
+            listener.update(totalRead, total)
         }
     }
 }

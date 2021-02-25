@@ -1,5 +1,6 @@
 package com.mattermost.networkclient
 
+import android.net.Uri
 import com.facebook.react.bridge.*
 import com.mattermost.networkclient.uploads.ProgressListener
 import com.mattermost.networkclient.uploads.UploadFileRequestBody
@@ -11,7 +12,6 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import okio.IOException
 import java.util.*
-import java.io.File
 
 
 class APIClientModule(private val reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
@@ -142,20 +142,21 @@ class APIClientModule(private val reactContext: ReactApplicationContext) : React
     }
 
     @ReactMethod
-    fun upload(baseUrl: String, endpoint: String?, fileUrl: String, taskId: String, options: ReadableMap, promise: Promise) {
+    fun upload(baseUrl: String, endpoint: String?, contentUri: String, taskId: String, options: ReadableMap?, promise: Promise) {
 
         // Set skipBytes if it's passed in
-        val skipBytes = if (options.hasKey("skipBytes")) options.getInt("skipBytes").toLong() else null;
+        val skipBytes = if (options != null && options.hasKey("skipBytes")) options.getInt("skipBytes").toLong() else 0;
 
         try {
             // Create the file from URL
-            val file = File(fileUrl);
+            val resolver = reactContext.applicationContext.contentResolver
+            val uri = Uri.parse(contentUri)
 
             // Create a Multi-part form for uploading the file
             val body = MultipartBody.Builder()
                     .setType(MultipartBody.FORM)
                     // Pass in the Custom File Body, with the Progress Listener Event
-                    .addPart(UploadFileRequestBody(file, ProgressListener(reactContext, taskId), skipBytes))
+                    .addPart(UploadFileRequestBody(resolver, uri, ProgressListener(reactContext, taskId), skipBytes))
                     .build()
 
             // Parse any other request options
