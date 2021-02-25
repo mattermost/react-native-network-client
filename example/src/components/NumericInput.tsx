@@ -12,6 +12,7 @@ type ClientNumericInputProps = {
     minValue?: number;
     valueType?: "integer" | "real";
     step?: number;
+    testID?: string;
 };
 
 const ClientNumericInput = (props: ClientNumericInputProps) => {
@@ -23,6 +24,7 @@ const ClientNumericInput = (props: ClientNumericInputProps) => {
             minValue={props.minValue}
             valueType={props.valueType}
             step={props.step}
+            extraTextInputProps={{testID: props.testID}}
         />
     );
 

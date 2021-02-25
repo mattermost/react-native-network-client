@@ -1,0 +1,35 @@
+diff --git a/node_modules/react-native-markdown-renderer/src/index.js b/node_modules/react-native-markdown-renderer/src/index.js
+index 653bba2..8d970eb 100644
+--- a/node_modules/react-native-markdown-renderer/src/index.js
++++ b/node_modules/react-native-markdown-renderer/src/index.js
+@@ -183,7 +183,7 @@ export default class Markdown extends Component {
+   /**
+    *
+    */
+-  componentWillMount() {
++  componentDidMount() {
+     this.updateSettings(this.props);
+   }
+ 
+@@ -191,8 +191,8 @@ export default class Markdown extends Component {
+    *
+    * @param nextProps
+    */
+-  componentWillReceiveProps(nextProps) {
+-    this.updateSettings(nextProps);
++  componentDidUpdate() {
++    this.updateSettings(this.props);
+   }
+ 
+   /**
+@@ -209,6 +209,10 @@ export default class Markdown extends Component {
+    * @return {View}
+    */
+   render() {
++    if (!this.renderer) {
++      return null;
++    }
++
+     const copy = (this.copy = this.getCopyFromChildren());
+     return parser(copy, this.renderer.render, this.markdownParser);
+   }

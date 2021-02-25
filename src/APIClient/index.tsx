@@ -124,9 +124,10 @@ class APIClient implements APIClientInterface {
 
 async function getOrCreateAPIClient(
     baseUrl: string,
-    config: APIClientConfiguration = {}
+    config: APIClientConfiguration = {},
+    validateUrl: boolean = true
 ): Promise<{ client: APIClient; created: boolean }> {
-    if (!isValidBaseURL(baseUrl)) {
+    if (validateUrl && !isValidBaseURL(baseUrl)) {
         throw new Error("baseUrl must be a valid API base URL");
     }
 

@@ -8,6 +8,8 @@ declare global {
     };
 
     interface NativeAPIClient extends NativeModule {
+        getConstants(): Constants;
+
         get(
             baseUrl: string,
             endpoint: string | null,
@@ -53,15 +55,5 @@ declare global {
             headers: ClientHeaders
         ): Promise<void>;
         invalidateClientFor(baseUrl: string): Promise<void>;
-
-        createWebSocketClientFor(
-            wsUrl: string,
-            callbacks: WebSocketCallbacks,
-            config?: WebSocketClientConfiguration
-        ): Promise<void>;
-        disconnectWebSocketFor(wsUrl: string): Promise<void>;
-        invalidateWebSocketClientFor(baseUrl: string): Promise<void>;
-
-        getConstants(): Constants;
     }
 }
