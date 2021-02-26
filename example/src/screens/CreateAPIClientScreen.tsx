@@ -25,8 +25,8 @@ const styles = StyleSheet.create({
 export default function CreateAPIClientScreen({
     navigation,
 }: CreateAPIClientScreenProps) {
-    const [name, setName] = useState("");
-    const [baseUrl, setBaseUrl] = useState("");
+    const [name, setName] = useState("Local mTLS Test");
+    const [baseUrl, setBaseUrl] = useState("https://192.168.0.14:4433");
     const [clientHeaders, setClientHeaders] = useState<Header[]>([]);
 
     const [

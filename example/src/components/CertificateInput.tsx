@@ -16,14 +16,14 @@ type CertificateInputProps = {
 
 const CertificateInput = (props: CertificateInputProps) => {
     const hasPhotoLibraryPermissions = async () => {
-        let result = await check(PERMISSIONS.IOS.MEDIA_LIBRARY);
+        let result = await check(PERMISSIONS.IOS.PHOTO_LIBRARY);
         if (result === RESULTS.GRANTED || result === RESULTS.LIMITED) {
             return true;
         } else if (
             result !== RESULTS.BLOCKED &&
             result !== RESULTS.UNAVAILABLE
         ) {
-            await request(PERMISSIONS.IOS.MEDIA_LIBRARY);
+            await request(PERMISSIONS.IOS.PHOTO_LIBRARY);
             hasPhotoLibraryPermissions();
         }
 
@@ -36,10 +36,10 @@ const CertificateInput = (props: CertificateInputProps) => {
             try {
                 const result = await DocumentPicker.pick({
                     type: [DocumentPicker.types.allFiles],
-                    copyTo: "cachesDirectory",
                 });
 
-                props.onSelect(result.fileCopyUri);
+                const fileUri = result.fileCopyUri.replace("file://", "");
+                props.onSelect(fileUri);
             } catch (err) {
                 if (DocumentPicker.isCancel(err)) {
                     // User cancelled the picker, exit any dialogs or menus and move on
