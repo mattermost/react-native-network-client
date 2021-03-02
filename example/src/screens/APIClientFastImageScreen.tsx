@@ -30,6 +30,7 @@ const APIClientFastImageScreen = ({ route }: APIClientFastImageScreenProps) => {
                 value={imageUrl}
                 onChangeText={setImageUrl}
                 autoCapitalize="none"
+                testID="api_client_fast_image.image_url.input"
             />
             <View
                 style={{
@@ -39,7 +40,7 @@ const APIClientFastImageScreen = ({ route }: APIClientFastImageScreenProps) => {
                 }}
             >
                 {loading && <ActivityIndicator />}
-                {errored && <Icon name="image-not-supported" size={100} />}
+                {errored && <Icon name="image-not-supported" size={100} testID="api_client_fast_image.image_not_supported.icon"/>}
                 <FastImage
                     source={{ uri: imageUrl }}
                     onLoadStart={onLoadStart}
@@ -48,6 +49,7 @@ const APIClientFastImageScreen = ({ route }: APIClientFastImageScreenProps) => {
                     onError={onError}
                     resizeMode={FastImage.resizeMode.contain}
                     style={{ height: 400, width: 400 }}
+                    testID="api_client_fast_image.fast_image"
                 />
             </View>
         </SafeAreaView>

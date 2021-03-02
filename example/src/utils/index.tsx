@@ -3,7 +3,10 @@
 
 import React from "react";
 import { Alert, Platform } from "react-native";
+import RFNS, { StatResult } from "react-native-fs";
 import DeviceInfo from "react-native-device-info";
+import { sampleImageContent } from "./files/SampleImage";
+import { sampleTextContent } from "./files/SampleText";
 
 import GenericClient, {
     getOrCreateAPIClient,
@@ -47,7 +50,7 @@ export const networkClientKeyExtractor = (item: NetworkClientItem) => {
     return item.name;
 };
 
-const buildDefaultApiClientConfiguration = (headers: Record<string, string>): APIClientConfiguration => {
+const buildDefaultApiClientConfiguration = (headers: Record<string, string> = {}): APIClientConfiguration => {
     const sessionConfiguration = {
         followRedirects: true,
         allowsCellularAccess: true,
@@ -138,9 +141,25 @@ const createJSONPlaceholderAPIClient = async (): Promise<APIClientItem | null> =
     return createAPIClient(name, baseUrl, configuration);
 };
 
+const createFastImageServerAPIClient = async (): Promise<APIClientItem | null> => {
+    const name = "Fast Image Server API";
+    const baseUrl = Platform.OS === "ios" ? "http://localhost:8009" : "http://10.0.2.2:8009";
+    const configuration = buildDefaultApiClientConfiguration();
+
+    return createAPIClient(name, baseUrl, configuration, {validateUrl: false});
+};
+
+const createFileUploadServerAPIClient = async (): Promise<APIClientItem | null> => {
+    const name = "File Upload Server API";
+    const baseUrl = Platform.OS === "ios" ? "http://localhost:8008" : "http://10.0.2.2:8008";
+    const configuration = buildDefaultApiClientConfiguration();
+
+    return createAPIClient(name, baseUrl, configuration, {validateUrl: false});
+};
+
 const createMockserverAPIClient = async (): Promise<APIClientItem | null> => {
     const name = "Mockserver API";
-    const baseUrl = Platform.OS === 'ios' ? "http://localhost:8080" : "http://10.0.2.2:8080";
+    const baseUrl = Platform.OS === "ios" ? "http://localhost:8080" : "http://10.0.2.2:8080";
     const headers = {
         "header-1-key": "header-1-value",
         "header-2-key": "header-2-value",
@@ -204,6 +223,8 @@ export const createTestClients = async (): Promise<NetworkClientItem[]> => {
         { name: "Generic", client: GenericClient, type: ClientType.GENERIC },
         await createMattermostAPIClient(),
         await createJSONPlaceholderAPIClient(),
+        await createFastImageServerAPIClient(),
+        await createFileUploadServerAPIClient(),
         await createMockserverAPIClient(),
         await createMattermostWebSocketClient(),
     ].reduce((clients: NetworkClientItem[], client) => {
@@ -214,6 +235,35 @@ export const createTestClients = async (): Promise<NetworkClientItem[]> => {
         return clients;
     }, []);
 };
+
+export const createNativeFile = async (fileContent: FileContent): Promise<File> => {
+    const path = RFNS.DocumentDirectoryPath + `/${fileContent.name}`;
+    await RFNS.writeFile(path, fileContent.content, fileContent.encoding);
+    const statResult: StatResult = await RFNS.stat(path);
+
+    return {
+        name: fileContent.name,
+        size: Number(statResult.size),
+        type: fileContent.type,
+        uri: `file://${statResult.path}`,
+    }
+};
+
+const buildFileContent = (
+    filename: string,
+    content: string,
+    encoding: BufferEncoding,
+    type: string): FileContent => {
+    return {
+        name: filename,
+        content,
+        encoding,
+        type,
+    }
+};
+
+export const sampleImage: FileContent = buildFileContent("sample-image.jpg", sampleImageContent, "base64", "image");
+export const sampleText: FileContent = buildFileContent("sample-text.txt", sampleTextContent, "ascii", "text");
 
 export const ClientContext = React.createContext({
     clients: [] as NetworkClientItem[],

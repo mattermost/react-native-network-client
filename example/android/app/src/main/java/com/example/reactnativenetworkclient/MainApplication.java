@@ -8,6 +8,7 @@ import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;
 import com.facebook.react.ReactInstanceManager;
 import com.facebook.soloader.SoLoader;
+import com.rnfs.RNFSPackage;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
@@ -29,6 +30,7 @@ public class MainApplication extends Application implements ReactApplication {
           // Packages that cannot be autolinked yet can be added manually here, for NetworkClientExample:
           // packages.add(new MyReactNativePackage());
           packages.add(new NetworkClientPackage());
+          packages.add(new RNFSPackage());
 
           return packages;
         }
