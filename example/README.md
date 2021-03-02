@@ -41,7 +41,7 @@ npm run android
 ```
 
 ### How to run Detox E2E tests against the example application
-1. Run the mockserver, fast image server, and file upload server. Follow instructions at [How to run Mockserver](MOCKSERVER.md#how-to-run-mockserver), [How to run Fast Image Server](FILESERVER.md#how-to-run-fast-image-mockserver), and [How to run File Upload Server](FILESERVER.md#how-to-run-file-upload-mockserver).
+1. Run the mockserver, fast image server, and file upload server. Follow instructions at [How to run Mockserver](MOCKSERVER.md#how-to-run-mockserver), [How to run Fast Image Server](FILESERVER.md#how-to-run-fast-image-server), and [How to run File Upload Server](FILESERVER.md#how-to-run-file-upload-server).
 
 **Important:** Detox tests require that the mockserver, fast image server, and file upload server are running. If they're not running, then the test will launch them.
 
