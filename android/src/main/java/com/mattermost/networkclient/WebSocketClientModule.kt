@@ -1,6 +1,8 @@
 package com.mattermost.networkclient
 
 import com.facebook.react.bridge.*
+import com.mattermost.networkclient.enums.WebSocketEvents
+import com.mattermost.networkclient.enums.WebSocketReadyState
 import com.mattermost.networkclient.events.WebSocketEvent
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -14,7 +16,7 @@ class WebSocketClientModule(private val reactContext: ReactApplicationContext) :
     var requests = mutableMapOf<String, Request.Builder>()
 
     override fun getName(): String {
-        return "APIClient"
+        return "WebSocketClient"
     }
 
     @ReactMethod
@@ -46,7 +48,7 @@ class WebSocketClientModule(private val reactContext: ReactApplicationContext) :
     @ReactMethod
     fun disconnectFor(url: String, promise: Promise) {
         try {
-            sockets[url]!!.close(0, null)
+            sockets[url]!!.close(1000, null)
         } catch (err: Throwable) {
             promise.reject(err)
         }
@@ -64,8 +66,17 @@ class WebSocketClientModule(private val reactContext: ReactApplicationContext) :
     @Override
     override fun getConstants(): Map<String, Any> {
         val constants: MutableMap<String, Any> = HashMap<String, Any>()
-        constants["EVENTS"] = HashMap<String, String>()
-        constants["READY_STATE"] = HashMap<String, String>()
+
+        val events = HashMap<String, String>()
+        WebSocketEvents.values().forEach { enum -> events[enum.name] = enum.event }
+
+        val readyState = HashMap<String, Int>()
+        WebSocketReadyState.values().forEach { enum -> readyState[enum.name] = enum.ordinal }
+
+        constants["READY_STATE"] = readyState
+        constants["EVENTS"] = events
+
         return constants
     }
+
 }
