@@ -65,12 +65,32 @@ extension NetworkClient {
         session.request(url, method: method, parameters: parameters, encoder: encoder, headers: headers, interceptor: interceptor, requestModifier: requestModifer).responseJSON { json in
             self.handleResponse(for: session, withUrl: url, withData: json)
             
-            resolve([
-                "headers": json.response?.allHeaderFields,
-                "data": json.value,
-                "code": json.response?.statusCode,
-                "lastRequestedUrl": json.response?.url?.absoluteString
-            ])
+            switch (json.result) {
+            case .success:
+                debugPrint(json)
+                resolve([
+                    "ok": true,
+                    "headers": json.response?.allHeaderFields,
+                    "data": json.value,
+                    "code": json.response?.statusCode,
+                    "lastRequestedUrl": json.response?.url?.absoluteString
+                ])
+            case .failure(let error):
+                print("==================== ERROR: \(error)")
+                if (error.responseCode != nil) {
+                    resolve([
+                        "ok": false,
+                        "headers": nil,
+                        "data": nil,
+                        "code": error.responseCode,
+                        "lastRequestedUrl": nil
+                    ])
+
+                    return
+                }
+
+                reject("\(error.responseCode)", error.errorDescription, error)
+            }
         }
     }
     

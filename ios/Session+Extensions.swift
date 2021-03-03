@@ -16,8 +16,8 @@ extension Session: Equatable {
 }
 
 fileprivate var baseUrl_FILEPRIVATE : [ObjectIdentifier:URL] = [:]
-fileprivate var cancelRequestsOnUnauthorized_FILEPRIVATE : [ObjectIdentifier:Bool] = [:]
 fileprivate var bearerAuthTokenResponseHeader_FILEPRIVATE : [ObjectIdentifier:String] = [:]
+fileprivate var cancelRequestsOnUnauthorized_FILEPRIVATE : [ObjectIdentifier:Bool] = [:]
 
 extension Session {
     var baseUrl: URL {
@@ -25,13 +25,13 @@ extension Session {
         set { baseUrl_FILEPRIVATE[ObjectIdentifier(self)] = newValue}
     }
 
-    var cancelRequestsOnUnauthorized: Bool {
-        get { return cancelRequestsOnUnauthorized_FILEPRIVATE[ObjectIdentifier(self)] ?? false }
-        set { cancelRequestsOnUnauthorized_FILEPRIVATE[ObjectIdentifier(self)] = newValue }
-    }
-
     var bearerAuthTokenResponseHeader: String? {
         get { return bearerAuthTokenResponseHeader_FILEPRIVATE[ObjectIdentifier(self)] }
         set { bearerAuthTokenResponseHeader_FILEPRIVATE[ObjectIdentifier(self)] = newValue }
+    }
+    
+    var cancelRequestsOnUnauthorized: Bool {
+        get { return cancelRequestsOnUnauthorized_FILEPRIVATE[ObjectIdentifier(self)] ?? false }
+        set { cancelRequestsOnUnauthorized_FILEPRIVATE[ObjectIdentifier(self)] = newValue }
     }
 }

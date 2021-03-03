@@ -54,6 +54,11 @@ declare global {
             baseUrl: string,
             headers: ClientHeaders
         ): Promise<void>;
+        importClientP12For(
+            baseUrl: string,
+            path: string,
+            password?: string
+        ): Promise<void>;
         invalidateClientFor(baseUrl: string): Promise<void>;
     }
 }

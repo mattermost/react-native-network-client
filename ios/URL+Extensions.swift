@@ -3,7 +3,8 @@
 //  NetworkClient
 //
 //  Created by Miguel Alatzar on 1/15/21.
-//  Copyright © 2021 Facebook. All rights reserved.
+//  Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+//  See LICENSE.txt for license information.
 //
 
 import Foundation

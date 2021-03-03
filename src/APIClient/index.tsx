@@ -47,6 +47,9 @@ class APIClient implements APIClientInterface {
 
         return NativeAPIClient.addClientHeadersFor(this.baseUrl, headers);
     };
+    importClientP12 = (path: string, password?: string): Promise<void> => {
+        return NativeAPIClient.importClientP12For(this.baseUrl, path, password);
+    };
     invalidate = (): Promise<void> => {
         delete CLIENTS[this.baseUrl];
 

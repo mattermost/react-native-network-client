@@ -8,13 +8,15 @@ import DocumentPicker from "react-native-document-picker";
 import { check, request, PERMISSIONS, RESULTS } from "react-native-permissions";
 import Icon from "react-native-vector-icons/MaterialIcons";
 
-type CertificateInputProps = {
+type P12InputsProps = {
     title: string;
-    certificatePath?: string;
-    onSelect: (certificate?: string) => void;
+    path: string;
+    password?: string;
+    onSelectP12: (path: string) => void;
+    onPasswordChange: (password?: string) => void;
 };
 
-const CertificateInput = (props: CertificateInputProps) => {
+const P12Inputs = (props: P12InputsProps) => {
     const hasPhotoLibraryPermissions = async () => {
         let result = await check(PERMISSIONS.IOS.PHOTO_LIBRARY);
         if (result === RESULTS.GRANTED || result === RESULTS.LIMITED) {
@@ -38,8 +40,7 @@ const CertificateInput = (props: CertificateInputProps) => {
                     type: [DocumentPicker.types.allFiles],
                 });
 
-                const fileUri = result.fileCopyUri.replace("file://", "");
-                props.onSelect(fileUri);
+                props.onSelectP12(result.fileCopyUri);
             } catch (err) {
                 if (DocumentPicker.isCancel(err)) {
                     // User cancelled the picker, exit any dialogs or menus and move on
@@ -50,21 +51,32 @@ const CertificateInput = (props: CertificateInputProps) => {
         }
     };
 
-    const clearCertificatePath = () => {
-        props.onSelect(undefined);
+    const clearP12Configuration = () => {
+        props.onSelectP12("");
+        props.onPasswordChange(undefined);
     };
 
     const rightIcon = (
         <View style={{ width: 142 }}>
-            {props.certificatePath ? (
-                <View style={{ flexDirection: "row" }}>
-                    <View style={{ flex: 1 }}>
-                        <Text>{props.certificatePath}</Text>
+            {props.path ? (
+                <View style={{ flexDirection: "column", height: 50 }}>
+                    <View style={{ flexDirection: "row" }}>
+                        <View style={{ flex: 1 }}>
+                            <Text numberOfLines={2} ellipsizeMode="middle">
+                                {props.path}
+                            </Text>
+                        </View>
+                        <Button
+                            type="clear"
+                            icon={<Icon name="cancel" size={24} />}
+                            onPress={clearP12Configuration}
+                        />
                     </View>
-                    <Button
-                        type="clear"
-                        icon={<Icon name="cancel" size={24} />}
-                        onPress={clearCertificatePath}
+                    <Input
+                        placeholder="password"
+                        value={props.password}
+                        onChangeText={props.onPasswordChange}
+                        autoCapitalize="none"
                     />
                 </View>
             ) : (
@@ -78,7 +90,7 @@ const CertificateInput = (props: CertificateInputProps) => {
             placeholder={props.title}
             disabled={true}
             style={{ fontWeight: "bold", fontSize: 17, opacity: 1 }}
-            containerStyle={{ height: 50 }}
+            containerStyle={{ flex: 1, paddingBottom: props.path ? 15 : 0 }}
             inputContainerStyle={{
                 borderColor: "rgba(255,255,255,0)",
             }}
@@ -88,4 +100,4 @@ const CertificateInput = (props: CertificateInputProps) => {
     );
 };
 
-export default CertificateInput;
+export default P12Inputs;

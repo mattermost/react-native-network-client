@@ -40,6 +40,7 @@ declare global {
         APIClientRequest: { item: APIClientItem; method: string };
         APIClientUpload: { item: APIClientItem };
         APIClientFastImage: { item: APIClientItem };
+        APIClientImportP12: { item: APIClientItem };
         MattermostClientUpload: { item: APIClientItem };
         ClientList: { createdClient: NetworkClientItem };
         CreateAPIClient: undefined;
@@ -118,6 +119,21 @@ declare global {
     type APIClientFastImageScreenProps = {
         navigation: APIClientFastImageScreenNavigationProp;
         route: APIClientFastImageScreenRouteProp;
+    };
+
+    /* API Client Import P12 Screen */
+    type APIClientImportP12ScreenNavigationProp = StackNavigationProp<
+        RootStackParamList,
+        "APIClientImportP12"
+    >;
+    type APIClientImportP12ScreenRouteProp = RouteProp<
+        RootStackParamList,
+        "APIClientImportP12"
+    >;
+
+    type APIClientImportP12ScreenProps = {
+        navigation: APIClientImportP12ScreenNavigationProp;
+        route: APIClientImportP12ScreenRouteProp;
     };
 
     /* Create API Client Screen */

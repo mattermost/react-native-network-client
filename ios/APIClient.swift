@@ -10,13 +10,36 @@
 import Alamofire
 import SwiftyJSON
 import React
+import SwiftyJSON
+
+class ClientSessionDelegate: SessionDelegate {
+    func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
+        var credential: URLCredential? = nil
+        var disposition: URLSession.AuthChallengeDisposition = .performDefaultHandling
+
+        let authMethod = challenge.protectionSpace.authenticationMethod
+        // TODO: Remove this as it's only used for trusting self-signed certificates in development
+        if authMethod == NSURLAuthenticationMethodServerTrust, let serverTrust = challenge.protectionSpace.serverTrust {
+            disposition = .useCredential
+            credential = URLCredential(trust: serverTrust)
+        } else if authMethod == NSURLAuthenticationMethodClientCertificate {
+            if let serverUrl = SessionManager.default.getSessionBaseUrlString(for: session), let (identity, certificate) = Keychain.getClientIdentityAndCertificate(for: serverUrl) {
+                credential = URLCredential(identity: identity, certificates: [certificate], persistence: URLCredential.Persistence.permanent)
+            }
+            disposition = .useCredential
+        }
+
+        completionHandler(disposition, credential)
+    }
+}
 
 @objc(APIClient)
 class APIClient: RCTEventEmitter, NetworkClient {
     var emitter: RCTEventEmitter!
     var hasListeners: Bool!
     let requestsTable = NSMapTable<NSString, UploadRequest>.strongToWeakObjects()
-    
+    let sessionDelegate: SessionDelegate = ClientSessionDelegate()
+
     func requiresMainQueueSetup() -> Bool {
         return false
     }
@@ -51,22 +74,24 @@ class APIClient: RCTEventEmitter, NetworkClient {
             let interceptor = getInterceptor(from: options)
             let cancelRequestsOnUnauthorized = options["sessionConfiguration"]["cancelRequestsOnUnauthorized"].boolValue
             let bearerAuthTokenResponseHeader = options["requestAdapterConfiguration"]["bearerAuthTokenResponseHeader"].string
-            let certificateConfiguration = options["certificateConfiguration"].dictionaryValue
+            let clientP12Configuration = options["clientP12Configuration"].dictionaryObject as? [String:String]
 
             resolve(
                 SessionManager.default.createSession(for: baseUrl,
+                                                     withDelegate: sessionDelegate,
                                                      withConfiguration: configuration,
                                                      withInterceptor: interceptor,
                                                      withRedirectHandler: redirectHandler,
                                                      withCancelRequestsOnUnauthorized: cancelRequestsOnUnauthorized,
                                                      withBearerAuthTokenResponseHeader: bearerAuthTokenResponseHeader,
-                                                     withCertificateConfiguration: certificateConfiguration)
+                                                     withClientP12Configuration: clientP12Configuration)
             )
 
             return
         }
         
-        resolve(SessionManager.default.createSession(for: baseUrl))
+
+        resolve(SessionManager.default.createSession(for: baseUrl, withDelegate: sessionDelegate))
     }
 
     @objc(invalidateClientFor:withResolver:withRejecter:)
@@ -108,6 +133,21 @@ class APIClient: RCTEventEmitter, NetworkClient {
 
         let headers = JSON(SessionManager.default.getSessionHeaders(for: baseUrl)).dictionaryObject
         resolve(headers)
+    }
+    
+    @objc(importClientP12For:withPath:withPassword:withResolver:withRejecter:)
+    func importClientP12For(baseUrlString: String, path: String, password: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
+        guard let baseUrl = URL(string: baseUrlString) else {
+            rejectMalformed(url: baseUrlString, withRejecter: reject)
+            return
+        }
+    
+        guard let session = SessionManager.default.getSession(for: baseUrl) else {
+            rejectInvalidSession(for: baseUrl, withRejecter: reject)
+            return
+        }
+
+        resolve(Keychain.importClientP12(withPath: path, withPassword: password, forServerUrl: session.baseUrl.absoluteString))
     }
     
     @objc(get:forEndpoint:withOptions:withResolver:withRejecter:)

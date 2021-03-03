@@ -48,6 +48,7 @@ export default function APIClientScreen({
         navigation.navigate("MattermostClientUpload", { item });
     const fastImageRequest = () =>
         navigation.navigate("APIClientFastImage", { item });
+    const importP12 = () => navigation.navigate("APIClientImportP12", { item });
 
     const Buttons = () => {
         const buttons = [
@@ -58,6 +59,7 @@ export default function APIClientScreen({
             { title: METHODS.DELETE, onPress: deleteRequest },
             { title: "UPLOAD", onPress: uploadRequest },
             { title: "FAST IMAGE", onPress: fastImageRequest },
+            { title: "IMPORT P12", onPress: importP12 },
         ];
         if (item.isMattermostClient) {
             buttons.push({

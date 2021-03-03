@@ -28,7 +28,6 @@ class WebSocketManager: NSObject {
         }
         
         var request = URLRequest(url: url)
-        var certPinner: CertificatePinning? = nil;
         var compressionHandler: CompressionHandler? = nil;
 
         let options = JSON(options)
@@ -46,14 +45,9 @@ class WebSocketManager: NSObject {
             if options["enableCompression"].boolValue {
                 compressionHandler = WSCompression()
             }
-            
-            let sslPinning = options["sslPinningConfiguration"]
-            if sslPinning["enabled"].boolValue {
-                certPinner = FoundationSecurity(allowSelfSigned: sslPinning["allowSelfSigned"].boolValue)
-            }
         }
 
-        let webSocket = WebSocket(request: request, certPinner: certPinner, compressionHandler: compressionHandler)
+        let webSocket = WebSocket(request: request, compressionHandler: compressionHandler)
         webSocket.delegate = delegate
         
         webSockets[url] = webSocket

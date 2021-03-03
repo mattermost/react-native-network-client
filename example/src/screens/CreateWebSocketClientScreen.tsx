@@ -26,7 +26,6 @@ export default function CreateWebSocketClientScreen({
     ] = useState<WebSocketClientConfiguration>({
         timeoutInterval: 5,
         enableCompression: false,
-        sslPinningConfiguration: { enabled: false, allowSelfSigned: false },
     });
 
     const setHeaders = (headers: Header[]) => {
@@ -47,27 +46,6 @@ export default function CreateWebSocketClientScreen({
         setConfiguration((configuration) => ({
             ...configuration,
             enableCompression: !configuration.enableCompression,
-        }));
-    };
-
-    const toggleEnableSSLPinning = () => {
-        setConfiguration((configuration) => ({
-            ...configuration,
-            sslPinningConfiguration: {
-                ...configuration.sslPinningConfiguration!,
-                enabled: !configuration.sslPinningConfiguration!.enabled,
-            },
-        }));
-    };
-
-    const toggleAllowSelfSigned = () => {
-        setConfiguration((configuration) => ({
-            ...configuration,
-            sslPinningConfiguration: {
-                ...configuration.sslPinningConfiguration!,
-                allowSelfSigned: !configuration.sslPinningConfiguration!
-                    .allowSelfSigned,
-            },
         }));
     };
 
@@ -130,33 +108,6 @@ export default function CreateWebSocketClientScreen({
                     iconRight
                     textStyle={styles.checkboxText}
                 />
-
-                <CheckBox
-                    title="Enable SSL Pinning?"
-                    checked={configuration.sslPinningConfiguration!.enabled}
-                    onPress={toggleEnableSSLPinning}
-                    iconType="ionicon"
-                    checkedIcon="ios-checkmark-circle"
-                    uncheckedIcon="ios-checkmark-circle"
-                    iconRight
-                    textStyle={styles.checkboxText}
-                />
-
-                {configuration.sslPinningConfiguration!.enabled && (
-                    <CheckBox
-                        title="Allow Self Signed Certificates?"
-                        checked={
-                            configuration.sslPinningConfiguration!
-                                .allowSelfSigned!
-                        }
-                        onPress={toggleAllowSelfSigned}
-                        iconType="ionicon"
-                        checkedIcon="ios-checkmark-circle"
-                        uncheckedIcon="ios-checkmark-circle"
-                        iconRight
-                        textStyle={styles.checkboxText}
-                    />
-                )}
 
                 <Button
                     title="Create"

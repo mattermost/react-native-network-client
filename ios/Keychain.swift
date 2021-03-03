@@ -48,59 +48,74 @@ class Keychain {
         return nil
     }
     
-    @discardableResult static func setClientCertificate(_ certificate: SecCertificate, forServerUrl serverUrl: String) -> Bool {
-        guard var attributes = buildCertificateAttributes(for: serverUrl, andSource: .client) else {
+    @discardableResult static func importClientP12(withPath path:String, withPassword password:String? = nil, forServerUrl serverUrl: String) -> Bool {
+        guard let url = URL(string: path) else {
+            // TODO: Alert user of invalid p12 path
             return false
         }
-        attributes[kSecValueRef] = certificate
-        
-        return setCertificate(certificate, withAttributes: attributes as CFDictionary)
-    }
-    
-    static func getServerCertificate(for serverUrl: String) -> SecCertificate? {
-        guard var attributes = buildCertificateAttributes(for: serverUrl, andSource: .server) else {
-            return nil
-        }
-        attributes[kSecMatchLimit] = kSecMatchLimitOne
-        attributes[kSecReturnData] = kCFBooleanTrue
-        
-        var result: AnyObject?
-        let status = SecItemCopyMatching(attributes as CFDictionary, &result)
-        if status == errSecSuccess {
-            return result as! SecCertificate?
-        }
-        
-        return nil
-    }
-    
-    @discardableResult static func setServerCertificate(_ certificate: SecCertificate, forServerUrl serverUrl: String) -> Bool {
-        guard var attributes = buildCertificateAttributes(for: serverUrl, andSource: .server) else {
+        guard let data = try? Data(contentsOf: url) else {
+            // TODO: Alert user of invalid p12 file contents
             return false
         }
-        attributes[kSecValueRef] = certificate
-        
-        return setCertificate(certificate, withAttributes: attributes as CFDictionary)
+        guard let identity = identityFromP12Import(data, password) else {
+            // TODO: Alert user of import error
+            return false
+        }
+        guard var attributes = buildIdentityAttributes(for: serverUrl) else {
+            // TODO: Alert user of invalid server URL
+            return false
+        }
+
+        attributes[kSecValueRef] = identity
+        attributes.removeValue(forKey: kSecClass)
+
+        var persistentRef: AnyObject?
+        let addStatus = SecItemAdd(attributes as CFDictionary, &persistentRef)
+        guard addStatus == errSecSuccess || addStatus == errSecDuplicateItem else {
+            // TODO: Alert user of error adding p12
+            return false
+        }
+
+        return true
     }
     
-    static func getServerCertificate(_ certificate: String, forServerUrl serverUrl: String) -> SecCertificate? {
-        guard var attributes = buildCertificateAttributes(for: serverUrl, andSource: .server) else {
+    static func getClientIdentityAndCertificate(for serverUrl: String) -> (SecIdentity, SecCertificate)? {
+        guard var attributes = buildIdentityAttributes(for: serverUrl) else {
             return nil
         }
-        attributes[kSecMatchLimit] = kSecMatchLimitOne
-        attributes[kSecReturnData] = kCFBooleanTrue
-        
+        attributes[kSecClass] = kSecClassIdentity
+        attributes[kSecReturnRef] = kCFBooleanTrue
+
         var result: AnyObject?
-        let status = SecItemCopyMatching(attributes as CFDictionary, &result)
-        if status == errSecSuccess {
-            return result as! SecCertificate?
+        let identityStatus = SecItemCopyMatching(attributes as CFDictionary, &result)
+        guard identityStatus == errSecSuccess else {
+            if identityStatus == errSecItemNotFound {
+                // TODO: Alert user item not found for server
+            } else {
+                // TODO: Alert user error
+            }
+
+            return nil
         }
         
-        return nil
+        let identity = result as! SecIdentity
+        var certificate: SecCertificate?
+        let certificateStatus = SecIdentityCopyCertificate(identity, &certificate)
+        guard certificateStatus == errSecSuccess else {
+            // TODO: Alert user error copying certificate for identity
+            return nil
+        }
+        guard certificate != nil else {
+            // TODO: Alert user of no certificate associated with identity
+            return nil
+        }
+        
+        return (identity, certificate!)
     }
     
     static func deleteAll(for serverUrl: String) -> Void {
         deleteToken(for: serverUrl)
-        deleteCertificates(for: serverUrl)
+        deleteClientP12(for: serverUrl)
     }
     
     private static func updateToken(_ tokenData: Data, withAttributes attributes: CFDictionary) -> Bool {
@@ -137,50 +152,53 @@ class Keychain {
         return attributes
     }
     
-    private static func setCertificate(_ certificate: SecCertificate, withAttributes attributes: CFDictionary) -> Bool {
-        let status: OSStatus = SecItemAdd(attributes as CFDictionary, nil)
-        if status == errSecSuccess {
-            return true
-        } else if status == errSecDuplicateItem {
-            return updateCertificate(certificate, withAttributes: attributes)
-        }
-        
-        return false
-    }
-    
-    private static func updateCertificate(_ certificate: SecCertificate, withAttributes attributes: CFDictionary) -> Bool {
-        let attributesToUpdate = [kSecValueRef: certificate] as CFDictionary
-        let status: OSStatus = SecItemUpdate(attributes, attributesToUpdate)
-
-        return status == errSecSuccess
-    }
-    
-    private static func deleteCertificates(for serverUrl: String) -> Void {
-        for source in CertificateSource.allCases {
-            guard let attributes = buildCertificateAttributes(for: serverUrl, andSource: source) else {
-                break
-            }
-            
-            SecItemDelete(attributes as CFDictionary)
-        }
-    }
-    
-    
-    private static func buildCertificateAttributes(for serverUrl: String, andSource source: CertificateSource) -> [CFString: Any]? {
-        let label = "\(serverUrl)-\(source.rawValue)"
-        guard let labelData = label.data(using: .utf8) else {
+    private static func buildIdentityAttributes(for serverUrl: String) -> [CFString: Any]? {
+        guard let serverUrlData = serverUrl.data(using: .utf8) else {
             return nil
         }
         
-        var attributes: [CFString: Any] = [
-            kSecClass: kSecClassCertificate,
-            kSecAttrLabel: labelData
+        var attributes: [CFString:Any] = [
+            kSecClass: kSecClassIdentity,
+            kSecAttrLabel: serverUrlData
         ]
-        
+
         if let accessGroup = Bundle.main.object(forInfoDictionaryKey: "AppGroupIdentifier") as! String? {
             attributes[kSecAttrAccessGroup] = accessGroup
         }
-        
+
         return attributes
+    }
+    
+    private static func deleteClientP12(for serverUrl: String) -> Void {
+        guard let attributes = buildIdentityAttributes(for: serverUrl) else {
+            return
+        }
+
+        SecItemDelete(attributes as CFDictionary)
+    }
+    
+    private static func identityFromP12Import(_ data: Data, _ password: String?) -> SecIdentity? {
+        var options: [CFString: String] = [:]
+        if password != nil {
+            options[kSecImportExportPassphrase] = password
+        }
+        
+        var rawItems: CFArray?
+        let importStatus = SecPKCS12Import(data as CFData, options as CFDictionary, &rawItems)
+        guard importStatus == errSecSuccess else {
+            if importStatus == errSecAuthFailed {
+                // TODO: return auth error
+                return nil
+            }
+
+            // TODO: return error
+            return nil
+        }
+        
+        let items = rawItems! as! Array<Dictionary<String, Any>>
+        let firstItem = items[0]
+        let identity = firstItem[kSecImportItemIdentity as String] as! SecIdentity?
+
+        return identity
     }
 }

@@ -27,23 +27,28 @@ import SwiftyJSON
     //  * CachedResponseHandler
     //  * EventMonitor(s)
     func createSession(for baseUrl:URL,
+                       withDelegate delegate: SessionDelegate,
                        withConfiguration configuration:URLSessionConfiguration = URLSessionConfiguration.af.default,
                        withInterceptor interceptor:Interceptor? = nil,
                        withRedirectHandler redirectHandler:RedirectHandler? = nil,
                        withCancelRequestsOnUnauthorized cancelRequestsOnUnauthorized:Bool = false,
                        withBearerAuthTokenResponseHeader bearerAuthTokenResponseHeader:String? = nil,
-                       withCertificateConfiguration certificateConfiguration:[String:JSON] = [:]) -> Void {
+                       withClientP12Configuration clientP12Configuration:[String:String]? = nil) -> Void {
         var session = getSession(for: baseUrl)
         if (session != nil) {
             return
         }
 
-        session = Session(configuration: configuration, interceptor: interceptor, redirectHandler: redirectHandler)
+        session = Session(configuration: configuration, delegate: delegate, interceptor: interceptor, redirectHandler: redirectHandler)
         session?.baseUrl = baseUrl
         session?.cancelRequestsOnUnauthorized = cancelRequestsOnUnauthorized
         session?.bearerAuthTokenResponseHeader = bearerAuthTokenResponseHeader
-        handleCertificates(for: session, withConfiguration: certificateConfiguration)
-
+        if let clientP12Configuration = clientP12Configuration {
+            let path = clientP12Configuration["path"]
+            let password = clientP12Configuration["password"]
+            Keychain.importClientP12(withPath: path!, withPassword: password, forServerUrl: session!.baseUrl.absoluteString)
+        }
+        
         sessions[baseUrl] = session
     }
 
@@ -62,12 +67,14 @@ import SwiftyJSON
 
         invalidateSession(for: baseUrl)
 
+        let delegate = previousSession.delegate
         let configuration = previousSession.sessionConfiguration
         let previousHeaders = configuration.httpAdditionalHeaders ?? [:]
         let newHeaders = previousHeaders.merging(additionalHeaders) {(_, new) in new}
         configuration.httpAdditionalHeaders = newHeaders
 
         createSession(for: baseUrl,
+                      withDelegate: delegate,
                       withConfiguration: configuration,
                       withInterceptor: previousSession.interceptor as? Interceptor,
                       withRedirectHandler: previousSession.redirectHandler,
@@ -75,8 +82,24 @@ import SwiftyJSON
                       withBearerAuthTokenResponseHeader: previousSession.bearerAuthTokenResponseHeader)
     }
     
+    func getSession(for baseUrlString:String) -> Session? {
+        if let baseUrl = URL(string: baseUrlString) {
+            return getSession(for: baseUrl)
+        }
+        
+        return nil
+    }
+    
     func getSession(for baseUrl:URL) -> Session? {
         return sessions[baseUrl]
+    }
+    
+    func getSessionBaseUrlString(for urlSession:URLSession) -> String? {
+        guard let session = Array(sessions.values).first(where: {$0.session == urlSession}) else {
+            return nil
+        }
+        
+        return session.baseUrl.absoluteString
     }
     
     @objc public func getSessionBaseUrlString(for request:URLRequest) -> String? {
@@ -132,41 +155,6 @@ import SwiftyJSON
         } else {
             session.session.invalidateAndCancel()
             self.sessions.removeValue(forKey: baseUrl)
-        }
-    }
-    
-    private func handleCertificates(for session: Session?, withConfiguration configuration: [String:JSON]) {
-        if session == nil {
-            return
-        }
-        
-        if let path = configuration["clientCertificatePath"]?.string {
-            if let file = FileHandle(forReadingAtPath: path) {
-                let data = file.readDataToEndOfFile()
-                file.closeFile()
-                if let certificate = SecCertificateCreateWithData(nil, data as CFData) {
-                    Keychain.setClientCertificate(certificate, forServerUrl: session!.baseUrl.absoluteString)
-                }
-            } else {
-                // TODO certificate error
-            }
-            
-        }
-
-        if let path = configuration["serverCertificatePath"]?.string {
-            if let file = FileHandle(forReadingAtPath: path) {
-                let data = file.readDataToEndOfFile()
-                file.closeFile()
-                if let certificate = SecCertificateCreateWithData(nil, data as CFData) {
-                    Keychain.setServerCertificate(certificate, forServerUrl: session!.baseUrl.absoluteString)
-                    
-                    if let pinServerCertificate = configuration["pinServerCertificate"]?.bool {
-                        
-                    }
-                }
-            } else {
-                // TODO certificate error
-            }
         }
     }
 }

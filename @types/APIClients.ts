@@ -55,6 +55,7 @@ interface APIClientInterface {
 
     getHeaders(): Promise<ClientHeaders>;
     addHeaders(headers: ClientHeaders): Promise<void>;
+    importClientP12(path: string, password?: string): Promise<void>;
     invalidate(): Promise<void>;
 }
 

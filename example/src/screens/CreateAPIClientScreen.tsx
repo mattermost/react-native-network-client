@@ -8,13 +8,13 @@ import { Button, CheckBox, Input } from "react-native-elements";
 import { getOrCreateAPIClient } from "@mattermost/react-native-network-client";
 
 import AddHeaders from "../components/AddHeaders";
+import P12Inputs from "../components/P12Inputs";
 import NumericInput from "../components/NumericInput";
 import RetryPolicyConfiguration from "../components/RetryPolicyConfiguration";
-import CertificateConfiguration from "../components/CertificateConfiguration";
 import {
     useRetryPolicyConfiguration,
     useSessionConfiguration,
-    useCertificateConfiguration,
+    useClientP12Configuration,
 } from "../hooks";
 import { ClientType, parseHeaders } from "../utils";
 
@@ -49,11 +49,10 @@ export default function CreateAPIClientScreen({
     ] = useRetryPolicyConfiguration();
 
     const [
-        certificateConfiguration,
-        setClientCertificatePath,
-        setServerCertificatePath,
-        togglePinServerCertificate,
-    ] = useCertificateConfiguration();
+        clientP12Configuration,
+        setClientP12Path,
+        setClientP12Password,
+    ] = useClientP12Configuration();
 
     const [
         requestAdapterConfiguration,
@@ -77,8 +76,11 @@ export default function CreateAPIClientScreen({
             sessionConfiguration,
             retryPolicyConfiguration,
             requestAdapterConfiguration,
-            certificateConfiguration,
         };
+
+        if (clientP12Configuration.path) {
+            options["clientP12Configuration"] = clientP12Configuration;
+        }
 
         const { client, created } = await getOrCreateAPIClient(
             baseUrl,
@@ -127,19 +129,12 @@ export default function CreateAPIClientScreen({
                     testID="create_api_client.bearer_auth_token.input"
                 />
 
-                <CertificateConfiguration
-                    clientCertificatePath={
-                        certificateConfiguration.clientCertificatePath
-                    }
-                    serverCertificatePath={
-                        certificateConfiguration.serverCertificatePath
-                    }
-                    pinServerCertificate={
-                        certificateConfiguration.pinServerCertificate
-                    }
-                    setClientCertificatePath={setClientCertificatePath}
-                    setServerCertificatePath={setServerCertificatePath}
-                    togglePinServerCertificate={togglePinServerCertificate}
+                <P12Inputs
+                    title="Client PKCS12"
+                    path={clientP12Configuration.path}
+                    password={clientP12Configuration.password}
+                    onSelectP12={setClientP12Path}
+                    onPasswordChange={setClientP12Password}
                 />
 
                 <NumericInput

@@ -133,47 +133,32 @@ export const useRetryPolicyConfiguration = (): UseRetryPolicyConfigurationRespon
     ];
 };
 
-type UseCertificateConfigurationResponse = [
-    CertificateConfiguration,
-    (clientCertificate?: string) => void,
-    (serverCertificate?: string) => void,
-    () => void
+type UseClientP12ConfigurationResponse = [
+    ClientP12Configuration,
+    (path: string) => void,
+    (password?: string) => void
 ];
 
-export const useCertificateConfiguration = (): UseCertificateConfigurationResponse => {
+export const useClientP12Configuration = (): UseClientP12ConfigurationResponse => {
     const [
-        certificateConfiguration,
-        setCertificateConfiguration,
-    ] = useState<CertificateConfiguration>({
-        clientCertificatePath: undefined,
-        serverCertificatePath: undefined,
-        pinServerCertificate: false,
+        clientP12Configuration,
+        setClientP12Configuration,
+    ] = useState<ClientP12Configuration>({
+        path: "",
+        password: "password",
     });
 
-    const setClientCertificatePath = (clientCertificatePath?: string) => {
-        setCertificateConfiguration({
-            ...certificateConfiguration,
-            clientCertificatePath,
-        });
-    };
-
-    const setServerCertificatePath = (serverCertificatePath?: string) => {
-        setCertificateConfiguration({
-            ...certificateConfiguration,
-            serverCertificatePath,
-        });
-    };
-
-    const togglePinServerCertificate = () =>
-        setCertificateConfiguration({
-            ...certificateConfiguration,
-            pinServerCertificate: !certificateConfiguration.pinServerCertificate,
+    const setClientP12Path = (path: string) =>
+        setClientP12Configuration({
+            ...clientP12Configuration,
+            path,
         });
 
-    return [
-        certificateConfiguration,
-        setClientCertificatePath,
-        setServerCertificatePath,
-        togglePinServerCertificate,
-    ];
+    const setClientP12Password = (password?: string) =>
+        setClientP12Configuration({
+            ...clientP12Configuration,
+            password,
+        });
+
+    return [clientP12Configuration, setClientP12Path, setClientP12Password];
 };

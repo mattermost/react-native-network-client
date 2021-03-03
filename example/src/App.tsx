@@ -13,6 +13,7 @@ import APIClientScreen from "./screens/APIClientScreen";
 import APIClientRequestScreen from "./screens/APIClientRequestScreen";
 import APIClientUploadScreen from "./screens/APIClientUploadScreen";
 import APIClientFastImageScreen from "./screens/APIClientFastImageScreen";
+import APIClientImportP12Screen from "./screens/APIClientImportP12Screen";
 import MattermostClientUploadScreen from "./screens/MattermostClientUploadScreen";
 import WebSocketClientScreen from "./screens/WebSocketClientScreen";
 
@@ -47,6 +48,10 @@ function App() {
                 <Stack.Screen
                     name="APIClientFastImage"
                     component={APIClientFastImageScreen}
+                />
+                <Stack.Screen
+                    name="APIClientImportP12"
+                    component={APIClientImportP12Screen}
                 />
                 <Stack.Screen
                     name="MattermostClientUpload"
