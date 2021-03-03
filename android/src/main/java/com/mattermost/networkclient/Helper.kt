@@ -119,6 +119,17 @@ fun OkHttpClient.Builder.parseOptions(options: ReadableMap): OkHttpClient.Builde
             this.dispatcher(dispatcher);
         }
 
+        // WS: Timeout
+        if(sessionConfig.hasKey("timeoutInterval")){
+            this.connectTimeout(sessionConfig.getInt("timeoutInterval").toLong(), TimeUnit.SECONDS)
+            this.readTimeout(sessionConfig.getInt("timeoutInterval").toLong(), TimeUnit.SECONDS)
+            this.callTimeout(sessionConfig.getInt("timeoutInterval").toLong(), TimeUnit.SECONDS)
+        }
+
+        // WS: Compression
+        if(sessionConfig.hasKey("enableCompression")){
+            this.minWebSocketMessageToCompress(0);
+        }
     }
 
     return this

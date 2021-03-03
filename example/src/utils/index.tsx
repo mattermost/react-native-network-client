@@ -47,7 +47,9 @@ export const networkClientKeyExtractor = (item: NetworkClientItem) => {
     return item.name;
 };
 
-const buildDefaultApiClientConfiguration = (headers: Record<string, string>): APIClientConfiguration => {
+const buildDefaultApiClientConfiguration = (
+    headers: Record<string, string>
+): APIClientConfiguration => {
     const sessionConfiguration = {
         followRedirects: true,
         allowsCellularAccess: true,
@@ -81,7 +83,7 @@ const createAPIClient = async (
     name: string,
     baseUrl: string,
     configuration: APIClientConfiguration,
-    {validateUrl = true, isMattermostClient = false} = {},
+    { validateUrl = true, isMattermostClient = false } = {}
 ): Promise<APIClientItem | null> => {
     try {
         const { client, created } = await getOrCreateAPIClient(
@@ -123,7 +125,9 @@ const createMattermostAPIClient = async (): Promise<APIClientItem | null> => {
     };
     const configuration = buildDefaultApiClientConfiguration(headers);
 
-    return createAPIClient(name, baseUrl, configuration, {isMattermostClient: true});
+    return createAPIClient(name, baseUrl, configuration, {
+        isMattermostClient: true,
+    });
 };
 
 const createJSONPlaceholderAPIClient = async (): Promise<APIClientItem | null> => {
@@ -140,21 +144,26 @@ const createJSONPlaceholderAPIClient = async (): Promise<APIClientItem | null> =
 
 const createMockserverAPIClient = async (): Promise<APIClientItem | null> => {
     const name = "Mockserver API";
-    const baseUrl = Platform.OS === 'ios' ? "http://localhost:8080" : "http://10.0.2.2:8080";
+    const baseUrl =
+        Platform.OS === "ios"
+            ? "http://localhost:8080"
+            : "http://10.0.2.2:8080";
     const headers = {
         "header-1-key": "header-1-value",
         "header-2-key": "header-2-value",
     };
     const configuration = buildDefaultApiClientConfiguration(headers);
 
-    return createAPIClient(name, baseUrl, configuration, {validateUrl: false});
+    return createAPIClient(name, baseUrl, configuration, {
+        validateUrl: false,
+    });
 };
 
 const createWebSocketClient = async (
     name: string,
     url: string,
     configuration: WebSocketClientConfiguration,
-    {validateUrl = true, isMattermostClient = false} = {},
+    { validateUrl = true, isMattermostClient = false } = {}
 ): Promise<WebSocketClientItem | null> => {
     try {
         const { client, created } = await getOrCreateWebSocketClient(
@@ -162,7 +171,7 @@ const createWebSocketClient = async (
             configuration,
             validateUrl
         );
-    
+
         if (!created) {
             Alert.alert(
                 "Error",
@@ -170,10 +179,10 @@ const createWebSocketClient = async (
                 [{ text: "OK" }],
                 { cancelable: false }
             );
-    
+
             return null;
         }
-    
+
         return {
             name,
             client,
@@ -188,7 +197,8 @@ const createWebSocketClient = async (
 
 const createMattermostWebSocketClient = async (): Promise<WebSocketClientItem | null> => {
     const name = "Mattermost Web Socket";
-    const host = "ws://192.168.0.14:8065";
+    const host =
+        Platform.OS === "ios" ? "ws://192.168.0.14:8065" : "ws://10.0.2.2:8080";
     const url = `${host}/api/v4/websocket`;
     const configuration: WebSocketClientConfiguration = {
         headers: {
@@ -196,7 +206,9 @@ const createMattermostWebSocketClient = async (): Promise<WebSocketClientItem | 
         },
     };
 
-    return createWebSocketClient(name, url, configuration, {isMattermostClient: true});
+    return createWebSocketClient(name, url, configuration, {
+        isMattermostClient: true,
+    });
 };
 
 export const createTestClients = async (): Promise<NetworkClientItem[]> => {
