@@ -53,6 +53,10 @@ const fileServer = function (directory) {
         algorithms: [AUTH_ALGORITHM],
         credentialsRequired: true,
         getToken: function (req) {
+            console.log(`Request headers: ${JSON.stringify(req.headers)}`);
+            console.log(`Request query: ${JSON.stringify(req.query)}`);
+            console.log(`Request cookies: ${JSON.stringify(req.cookies)}`);
+
             // Ignore token, will return a 401 (unauthorized)
             if (req.query && req.query.ignoreToken === 'true') {
                 console.log(`Ignore token: ${req.query.ignoreToken}`);
@@ -114,6 +118,19 @@ const fileServer = function (directory) {
             .status(200)
             .send({
                 id: req.params.id,
+                token,
+            });
+    });
+
+    // Expire cookie
+    app.get('/cookie/:cookieName/value/:cookieValue/expire', function (req, res, next) {
+        const cookieName = req.params.cookieName;
+        const cookieValue = req.params.cookieValue;
+        console.log(`Expire ${cookieName} cookie: ${cookieValue}`);
+        res.set('Set-Cookie', `${cookieName}=${cookieValue}; Max-Age=0; Path=/`)
+            .status(200)
+            .send({
+                expired: 'true',
                 token,
             });
     });
