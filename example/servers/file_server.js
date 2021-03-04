@@ -68,7 +68,7 @@ const fileServer = function (directory) {
     app.use(cookieParser());
     app.use(cors());
     app.use('/api', router);
-    app.use('/protected', protectedRouter);
+    app.use('/protected/api', protectedRouter);
     app.use('/', function (req, res, next) {
         res.sendStatus(200);
     });
