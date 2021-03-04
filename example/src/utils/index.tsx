@@ -51,7 +51,10 @@ export const networkClientKeyExtractor = (item: NetworkClientItem) => {
 };
 
 const buildDefaultApiClientConfiguration = (
-    headers: Record<string, string> = {}
+    headers: Record<string, string> = {},
+    requestAdapterConfiguration: RequestAdapterConfiguration = {
+        bearerAuthTokenResponseHeader: "token",
+    }
 ): APIClientConfiguration => {
     const sessionConfiguration = {
         followRedirects: true,
@@ -67,9 +70,6 @@ const buildDefaultApiClientConfiguration = (
         retryLimit: 2,
         exponentialBackoffBase: 2,
         exponentialBackoffScale: 0.5,
-    };
-    const requestAdapterConfiguration = {
-        bearerAuthTokenResponseHeader: "token",
     };
 
     const configuration: APIClientConfiguration = {
@@ -151,7 +151,8 @@ const createFastImageServerAPIClient = async (): Promise<APIClientItem | null> =
         Platform.OS === "ios"
             ? "http://localhost:8009"
             : "http://10.0.2.2:8009";
-    const configuration = buildDefaultApiClientConfiguration();
+    const bearerAuthTokenResponseHeader = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEyMyIsImlhdCI6MTYxNDg0MzQ5MX0.sYPtuP8Tyj_BHD23BpiMyse-TSCDLCRmHRG8H6GuilA";
+    const configuration = buildDefaultApiClientConfiguration({}, {bearerAuthTokenResponseHeader});
 
     return createAPIClient(name, baseUrl, configuration, {validateUrl: false});
 };
