@@ -10,13 +10,15 @@ class RetryPolicyConfiguration {
         exponentialBackoffScaleInput: 'retry_policy_configuration.exponential_backoff_scale.input',
     }
 
-    retryCheckbox = element(by.text('Retries with exponential backoff?'));
+    retryCheckboxFalse = element(by.text('Retries with exponential backoff? false'));
+    retryCheckboxTrue = element(by.text('Retries with exponential backoff? true'));
     retryLimitInput = element(by.id(this.testID.retryLimitInput));
     exponentialBackoffBaseInput = element(by.id(this.testID.exponentialBackoffBaseInput));
     exponentialBackoffScaleInput = element(by.id(this.testID.exponentialBackoffScaleInput));
 
     setRetry = async ({retryLimit = '2', exponentialBackoffBase = '2', exponentialBackoffScale = '0.5'}) => {
-        await this.retryCheckbox.tap();
+        // # Toggle on retry checkbox
+        await this.toggleOnRetryCheckbox();
 
         // # Set retry limit
         await this.retryLimitInput.clearText();
@@ -43,6 +45,16 @@ class RetryPolicyConfiguration {
             await expect(this.exponentialBackoffBaseInput).toHaveValue(exponentialBackoffBase);
             await expect(this.exponentialBackoffScaleInput).toHaveValue(exponentialBackoffScale);
         }
+    }
+
+    toggleOffRetryCheckbox = async () => {
+        await this.retryCheckboxTrue.tap();
+        await expect(this.retryCheckboxFalse).toBeVisible();
+    }
+
+    toggleOnRetryCheckbox = async () => {
+        await this.retryCheckboxFalse.tap();
+        await expect(this.retryCheckboxTrue).toBeVisible();
     }
 }
 

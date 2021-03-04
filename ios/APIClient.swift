@@ -54,7 +54,7 @@ class APIClient: RCTEventEmitter, NetworkClient {
     deinit {
         NotificationCenter.default.removeObserver(self, name: MISSING_CLIENT_CERT_NOTIF_NAME, object: nil)
     }
-    
+
     func requiresMainQueueSetup() -> Bool {
         return false
     }

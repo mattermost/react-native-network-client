@@ -84,21 +84,31 @@ export default function APIClientScreen({
 
     useEffect(() => {
         client.getHeaders().then((clientHeaders) => {
-            const headers = Object.entries(
-                clientHeaders
+            const ordered = Object.keys(clientHeaders).sort().reduce((result: Record<string, string>, key) => {
+                result[key] = clientHeaders[key];
+                return result;
+            }, {});
+            const orderedHeaders = Object.entries(
+                ordered
             ).map(([key, value]) => ({ key, value }));
-            setHeaders(headers);
+            setHeaders(orderedHeaders);
         });
     }, []);
 
     return (
         <SafeAreaView>
             <ScrollView>
-                <Input label="Name" value={name} disabled={true} />
+                <Input
+                    label="Name"
+                    value={name}
+                    disabled={true}
+                    testID='api_client.name.input'
+                />
                 <Input
                     label="Base URL"
                     value={client.baseUrl}
                     disabled={true}
+                    testID='api_client.base_url.input'
                 />
                 <ListHeaders headers={headers} />
                 <Buttons />

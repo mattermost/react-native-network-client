@@ -149,8 +149,8 @@ const createMockserverAPIClient = async (): Promise<APIClientItem | null> => {
             ? "http://localhost:8080"
             : "http://10.0.2.2:8080";
     const headers = {
-        "custom-header-1-key": "custom-header-1-value",
-        "custom-header-2-key": "custom-header-2-value",
+        "header-1-key": "header-1-value",
+        "header-2-key": "header-2-value",
     };
     const configuration = buildDefaultApiClientConfiguration(headers);
 
@@ -197,7 +197,8 @@ const createWebSocketClient = async (
 
 const createMattermostWebSocketClient = async (): Promise<WebSocketClientItem | null> => {
     const name = "Mattermost Web Socket";
-    const host = "ws://192.168.0.14:8065";
+    const host =
+        Platform.OS === "ios" ? "ws://192.168.0.14:8065" : "ws://10.0.2.2:8080";
     const url = `${host}/api/v4/websocket`;
     const configuration: WebSocketClientConfiguration = {
         headers: {

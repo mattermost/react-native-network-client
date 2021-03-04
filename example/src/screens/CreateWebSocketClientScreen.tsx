@@ -122,7 +122,7 @@ export default function CreateWebSocketClientScreen({
                 />
 
                 <CheckBox
-                    title="Enable Compression?"
+                    title={`Enable Compression? ${configuration.enableCompression!}`}
                     checked={configuration.enableCompression!}
                     onPress={toggleEnableCompression}
                     iconType="ionicon"

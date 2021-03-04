@@ -17,7 +17,7 @@ interface RetryPolicyConfigurationProps extends RetryPolicyConfiguration {
 const RetryPolicyConfiguration = (props: RetryPolicyConfigurationProps) => (
     <>
         <CheckBox
-            title="Retries with exponential backoff?"
+            title={`Retries with exponential backoff? ${props.checked}`}
             checked={props.checked}
             onPress={props.onCheckBoxPress}
             iconType="ionicon"

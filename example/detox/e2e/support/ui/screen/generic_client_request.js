@@ -29,7 +29,8 @@ class GenericClientRequestScreen {
     patchButton = MethodButtons.patchButton;
     postButton = MethodButtons.postButton;
     putButton = MethodButtons.putButton;
-    retryCheckbox = RetryPolicyConfiguration.retryCheckbox;
+    toggleOffRetryCheckbox = RetryPolicyConfiguration.toggleOffRetryCheckbox;
+    toggleOnRetryCheckbox = RetryPolicyConfiguration.toggleOnRetryCheckbox;
     retryLimitInput = RetryPolicyConfiguration.retryLimitInput;
     exponentialBackoffBaseInput = RetryPolicyConfiguration.exponentialBackoffBaseInput;
     exponentialBackoffScaleInput = RetryPolicyConfiguration.exponentialBackoffScaleInput;

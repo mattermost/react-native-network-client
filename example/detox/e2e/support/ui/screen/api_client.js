@@ -26,7 +26,7 @@ class ApiClientScreen {
     postButton = MethodButtons.postButton;
     putButton = MethodButtons.putButton;
 
-    getHeaderListItemAtIndex = async (index) => {
+    getHeaderListItemAtIndex = (index) => {
         return HeaderListItem.getItemAtIndex(index);
     }
 
