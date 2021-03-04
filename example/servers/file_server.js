@@ -10,7 +10,8 @@ const jwt = require('jsonwebtoken');
 const jwtMiddleware = require('express-jwt');
 const path = require('path');
 
-const SECRET = process.env.FILE_SERVER_SECRET || 'secret';
+const AUTH_SECRET = process.env.FILE_SERVER_AUTH_SECRET || 'secret';
+const AUTH_ALGORITHM = process.env.FILE_SERVER_AUTH_ALGORITHM || 'HS256';
 
 const fileServer = function (directory) {
     // Set upload path
@@ -42,8 +43,8 @@ const fileServer = function (directory) {
         });
     };
     const authHandler = jwtMiddleware({
-        secret: SECRET,
-        algorithms: ['HS256'],
+        secret: AUTH_SECRET,
+        algorithms: [AUTH_ALGORITHM],
         credentialsRequired: true,
         getToken: function (req) {
             // Ignore token, will return a 401 (unauthorized)
@@ -96,12 +97,18 @@ const fileServer = function (directory) {
 
     // Generate token
     app.post('/login/:id', function (req, res, next) {
-        const token = jwt.sign({ 
-            id: req.params.id,
-        }, SECRET, {algorithm: 'HS256'});
+        const token = jwt.sign(
+            { 
+                id: req.params.id,
+            },
+            AUTH_SECRET,
+            {
+                algorithm: AUTH_ALGORITHM,
+            }
+        );
         res.status(200).send({
             id: req.params.id,
-            token
+            token,
         });
     });
     return app;
