@@ -14,10 +14,10 @@ import {
 } from '@support/ui/screen';
 import {verifyApiClient} from '../helpers';
 
-describe('Fast Image - API Client Request', () => {
+describe('Fast Image Cookie Token - API Client Request', () => {
     const testBaseUrl = fastImageServerUrl;
-    const testImageUrl = `${testBaseUrl}/api/files/fast-image.jpg`;
-    const testProtectedImageUrl = `${testBaseUrl}/protected/api/files/fast-image.jpg`;
+    const testLoginUrl = `${testBaseUrl}/login/123`;
+    const testImageUrl = `${testBaseUrl}/protected/api/files/fast-image.jpg`;
     const testName = 'Fast Image Server API';
     const {
         fastImage,
@@ -31,37 +31,25 @@ describe('Fast Image - API Client Request', () => {
         await ApiClientScreen.fastImageButton.tap();
     });
 
-    it('should display fast image - regular request', async () => {
-        // * Verify image not supported is displayed
-        await setImageUrl('');
+    it('should display fast image - with cookie token on protected request', async () => {
+        // # Login to get token
+        await setImageUrl(testLoginUrl);
         await expect(imageNotSupportedIcon).toBeVisible();
 
         // # Set image url
-        await setImageUrl(testImageUrl);
+        await setImageUrl(`${testImageUrl}?ignoreHeaderToken=true`);
 
         // * Verify fast image is displayed
         await expect(fastImage).toBeVisible();
     });
 
-    it('should display fast image - with bearer auth token on protected request', async () => {
+    it('should not display fast image - no cookie token on protected request', async () => {
         // * Verify image not supported is displayed
         await setImageUrl('');
         await expect(imageNotSupportedIcon).toBeVisible();
 
         // # Set image url
-        await setImageUrl(`${testProtectedImageUrl}`);
-
-        // * Verify fast image is displayed
-        await expect(fastImage).toBeVisible();
-    });
-
-    it('should not display fast image - no bearer auth token on protected request', async () => {
-        // * Verify image not supported is displayed
-        await setImageUrl('');
-        await expect(imageNotSupportedIcon).toBeVisible();
-
-        // # Set image url
-        await setImageUrl(`${testProtectedImageUrl}?ignoreToken=true`);
+        await setImageUrl(`${testImageUrl}?ignoreCookieToken=true`);
 
         // * Verify image not supported is displayed
         await expect(imageNotSupportedIcon).toBeVisible();

@@ -23,8 +23,11 @@ Headers:
 Query Params:
 | Key | Description | Example |
 | :--- | :--- | :--- |
-| ignoreToken | Default false. If true, token validation is ignored. (**protected request only**) | `ignoreToken=true` |
 | token | Default null. If specified, query string token is validated only when request header token does not exist. (**protected request only**) | `token=xyz` |
+| ignoreToken | Default false. If true, token validation is ignored. (**protected request only**) | `ignoreToken=true` |
+| ignoreHeaderToken | Default false. If true, header token validation is ignored. (**protected request only**) | `ignoreHeaderToken=true` |
+| ignoreQueryToken | Default false. If true, query token validation is ignored. (**protected request only**) | `ignoreQueryToken=true` |
+| ignoreCookieToken | Default false. If true, cookie token validation is ignored. (**protected request only**) | `ignoreCookieToken=true` |
 
 Cookies:
 | Key | Description | Example |
@@ -68,11 +71,15 @@ Path: `/login/:id`
 
 Example:
 ```
-curl -X POST http://localhost:8080/login/123
+curl -X GET http://localhost:8080/login/123
 ```
 
 Example response:
 ```
+HTTP/1.1 200 OK
+set-cookie: token=xyz
+token: xyz
+
 {
     "id" : "123",
     "token": "xyz"

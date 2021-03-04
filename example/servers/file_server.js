@@ -12,6 +12,7 @@ const path = require('path');
 
 const AUTH_SECRET = process.env.FILE_SERVER_AUTH_SECRET || 'secret';
 const AUTH_ALGORITHM = process.env.FILE_SERVER_AUTH_ALGORITHM || 'HS256';
+const TOKEN_KEY = process.env.FILE_SERVER_TOKEN_KEY || 'token';
 
 const fileServer = function (directory) {
     // Set upload path
@@ -20,6 +21,11 @@ const fileServer = function (directory) {
         fs.mkdirSync(uploadPath);
     }
     console.log(`Upload path set to: ${uploadPath}`);
+
+    // Token generator
+    const generateToken = (id) => {
+        return jwt.sign({id}, AUTH_SECRET, {algorithm: AUTH_ALGORITHM});
+    }
 
     // Create handlers
     const staticHandler = express.static(uploadPath, {index: false});
@@ -55,13 +61,17 @@ const fileServer = function (directory) {
 
             // Get token from headers, query string, or cookies
             let token;
-            if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
+            if (req.headers.authorization
+                && req.headers.authorization.split(' ')[0] === 'Bearer'
+                && !(req.query && req.query.ignoreHeaderToken === 'true')) {
                 token = req.headers.authorization.split(' ')[1];
                 console.log(`Get token from headers: ${token}`);
-            } else if (req.query && req.query.token) {
+            } else if (req.query && req.query.token
+                && !(req.query && req.query.ignoreQueryToken === 'true')) {
                 token = req.query.token;
                 console.log(`Get token from query string: ${token}`);
-            } else if (req.cookies && req.cookies.token) {
+            } else if (req.cookies && req.cookies.token
+                && !(req.query && req.query.ignoreCookieToken === 'true')) {
                 token = req.cookies.token;
                 console.log(`Get token from cookies: ${token}`);
             } else {
@@ -96,20 +106,16 @@ const fileServer = function (directory) {
     });
 
     // Generate token
-    app.post('/login/:id', function (req, res, next) {
-        const token = jwt.sign(
-            { 
+    app.get('/login/:id', function (req, res, next) {
+        const token = generateToken(req.params.id);
+        console.log(`New token: ${token}`);
+        res.cookie(TOKEN_KEY, token)
+            .set(TOKEN_KEY, token)
+            .status(200)
+            .send({
                 id: req.params.id,
-            },
-            AUTH_SECRET,
-            {
-                algorithm: AUTH_ALGORITHM,
-            }
-        );
-        res.status(200).send({
-            id: req.params.id,
-            token,
-        });
+                token,
+            });
     });
     return app;
 };

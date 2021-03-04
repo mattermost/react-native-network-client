@@ -3,8 +3,8 @@
 
 import React from "react";
 import { Alert, Platform } from "react-native";
-import RFNS, { StatResult } from "react-native-fs";
 import DeviceInfo from "react-native-device-info";
+import RFNS, { StatResult } from "react-native-fs";
 import { sampleImageContent } from "./files/SampleImage";
 import { sampleTextContent } from "./files/SampleText";
 
@@ -145,14 +145,28 @@ const createJSONPlaceholderAPIClient = async (): Promise<APIClientItem | null> =
     return createAPIClient(name, baseUrl, configuration);
 };
 
+const getToken = async (): Promise<string> => {
+    return fetch('http://localhost:8009/login/123')
+        .then((response) => response.json())
+        .then((json) => {
+            return json.token;
+        })
+        .catch((error) => {
+            console.error(error);
+        });
+};
+
 const createFastImageServerAPIClient = async (): Promise<APIClientItem | null> => {
     const name = "Fast Image Server API";
     const baseUrl =
         Platform.OS === "ios"
             ? "http://localhost:8009"
             : "http://10.0.2.2:8009";
-    const bearerAuthTokenResponseHeader = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEyMyIsImlhdCI6MTYxNDg0MzQ5MX0.sYPtuP8Tyj_BHD23BpiMyse-TSCDLCRmHRG8H6GuilA";
-    const configuration = buildDefaultApiClientConfiguration({}, {bearerAuthTokenResponseHeader});
+    const token = await getToken();
+    const headers = {
+        "Authorization": `Bearer ${token}`,
+    };
+    const configuration = buildDefaultApiClientConfiguration(headers);
 
     return createAPIClient(name, baseUrl, configuration, {validateUrl: false});
 };
