@@ -10,7 +10,7 @@
 import Alamofire
 import SwiftyJSON
 
-let CONSTANTS = ["EXPONENTIAL_RETRY": "exponential"]
+let RETRY_TYPES = ["EXPONENTIAL_BACKOFF": "exponential"]
 
 protocol NetworkClient {
     func handleRequest(for url: String,
@@ -134,7 +134,7 @@ extension NetworkClient {
         var retriers = [RequestRetrier]()
 
         let configuration = options["retryPolicyConfiguration"]
-        if configuration["type"].string == CONSTANTS["EXPONENTIAL_RETRY"] {
+        if configuration["type"].string == RETRY_TYPES["EXPONENTIAL_BACKOFF"] {
             let retryLimit = configuration["retryLimit"].uInt ?? RetryPolicy.defaultRetryLimit
             let exponentialBackoffBase = configuration["exponentialBackoffBase"].uInt ?? RetryPolicy.defaultExponentialBackoffBase
             let exponentialBackoffScale = configuration["exponentialBackoffScale"].double ?? RetryPolicy.defaultExponentialBackoffScale

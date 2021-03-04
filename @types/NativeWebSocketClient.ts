@@ -2,11 +2,11 @@
 // See LICENSE.txt for license information.
 
 enum WebSocketEvents {
-    OPEN_EVENT = "NetworkClient-WebSocket-Open",
-    CLOSE_EVENT = "NetworkClient-WebSocket-Close",
-    ERROR_EVENT = "NetworkClient-WebSocket-Error",
-    MESSAGE_EVENT = "NetworkClient-WebSocket-Message",
-    READY_STATE_EVENT = "NetworkClient-WebSocket-ReadyState",
+    OPEN_EVENT = "WebSocketClient-Open",
+    CLOSE_EVENT = "WebSocketClient-Close",
+    ERROR_EVENT = "WebSocketClient-Error",
+    MESSAGE_EVENT = "WebSocketClient-Message",
+    READY_STATE_EVENT = "WebSocketClient-ReadyState",
 }
 
 enum WebSocketReadyState {

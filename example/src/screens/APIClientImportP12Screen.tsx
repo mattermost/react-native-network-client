@@ -2,11 +2,15 @@
 // See LICENSE.txt for license information.
 
 import React from "react";
-import { SafeAreaView } from "react-native";
+import { SafeAreaView, StyleSheet } from "react-native";
 import { Button } from "react-native-elements";
 
 import P12Inputs from "../components/P12Inputs";
 import { useClientP12Configuration } from "../hooks";
+
+const styles = StyleSheet.create({
+    importButton: { padding: 10 },
+});
 
 const APIClientImportP12Screen = ({
     route,
@@ -39,8 +43,9 @@ const APIClientImportP12Screen = ({
             />
             <Button
                 title="Import"
-                disabled={!clientP12Configuration.path}
                 onPress={importClientP12}
+                disabled={!clientP12Configuration.path}
+                style={styles.importButton}
             />
         </SafeAreaView>
     );

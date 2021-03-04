@@ -11,6 +11,13 @@ import Alamofire
 import SwiftyJSON
 import React
 
+let API_CLIENT_EVENTS = [
+    "UPLOAD_PROGRESS": "APIClient-UploadProgress",
+    "CLIENT_CERTIFICATE_MISSING": "APIClient-Client-Certificate-Missing",
+]
+
+let MISSING_CLIENT_CERT_NOTIF_NAME = Notification.Name(API_CLIENT_EVENTS["CLIENT_CERTIFICATE_MISSING"]!)
+
 class APIClientSessionDelegate: SessionDelegate {
     func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
         var credential: URLCredential? = nil
@@ -18,8 +25,12 @@ class APIClientSessionDelegate: SessionDelegate {
 
         let authMethod = challenge.protectionSpace.authenticationMethod
         if authMethod == NSURLAuthenticationMethodClientCertificate {
-            if let serverUrl = SessionManager.default.getSessionBaseUrlString(for: session), let (identity, certificate) = Keychain.getClientIdentityAndCertificate(for: serverUrl) {
-                credential = URLCredential(identity: identity, certificates: [certificate], persistence: URLCredential.Persistence.permanent)
+            if let serverUrl = SessionManager.default.getSessionBaseUrlString(for: session) {
+                if let (identity, certificate) = Keychain.getClientIdentityAndCertificate(for: serverUrl) {
+                    credential = URLCredential(identity: identity, certificates: [certificate], persistence: URLCredential.Persistence.permanent)
+                } else {
+                    NotificationCenter.default.post(name: MISSING_CLIENT_CERT_NOTIF_NAME, object: nil, userInfo: ["serverUrl": serverUrl])
+                }
             }
             disposition = .useCredential
         }
@@ -34,17 +45,26 @@ class APIClient: RCTEventEmitter, NetworkClient {
     var hasListeners: Bool!
     let requestsTable = NSMapTable<NSString, UploadRequest>.strongToWeakObjects()
     let sessionDelegate: SessionDelegate = APIClientSessionDelegate()
-
+    
+    override init() {
+        super.init()
+        NotificationCenter.default.addObserver(self, selector: #selector(self.missingCertificateHandler), name: MISSING_CLIENT_CERT_NOTIF_NAME, object: nil)
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self, name: MISSING_CLIENT_CERT_NOTIF_NAME, object: nil)
+    }
+    
     func requiresMainQueueSetup() -> Bool {
         return false
     }
     
     override func constantsToExport() -> [AnyHashable : Any]! {
-        return CONSTANTS
+        return ["EVENTS": API_CLIENT_EVENTS, "RETRY_TYPES": RETRY_TYPES]
     }
 
     open override func supportedEvents() -> [String] {
-        ["NativeClient-UploadProgress"]
+        return Array(API_CLIENT_EVENTS.values)
     }
     
     override func startObserving() -> Void {
@@ -212,7 +232,7 @@ class APIClient: RCTEventEmitter, NetworkClient {
             .uploadProgress { progress in
                 if (self.hasListeners) {
                     let fractionCompleted = initialFractionCompleted + (Double(progress.completedUnitCount) / fileSize)
-                    self.sendEvent(withName: "NativeClient-UploadProgress", body: ["taskId": taskId, "fractionCompleted": fractionCompleted])
+                    self.sendEvent(withName: API_CLIENT_EVENTS["UPLOAD_PROGRESS"], body: ["taskId": taskId, "fractionCompleted": fractionCompleted])
                 }
             }
             .responseJSON { json in
@@ -329,5 +349,10 @@ class APIClient: RCTEventEmitter, NetworkClient {
         let message = "Unable to read file size for \(fileUrl.absoluteString)"
         let error = NSError(domain: "com.mattermost.react-native-network-client", code: NSCoderValueNotFoundError, userInfo: [NSLocalizedDescriptionKey: message])
         reject("\(error.code)", message, error)
+    }
+    
+    @objc(missingCertificateHandler:)
+    func missingCertificateHandler(notification: Notification) {
+        self.sendEvent(withName: API_CLIENT_EVENTS["CLIENT_CERTIFICATE_MISSING"], body: ["serverUrl": notification.userInfo!["serverUrl"]])
     }
 }

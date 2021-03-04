@@ -106,7 +106,7 @@ export const useRetryPolicyConfiguration = (): UseRetryPolicyConfigurationRespon
             ...retryPolicyConfiguration,
             type: retryPolicyConfiguration.type
                 ? undefined
-                : Constants.EXPONENTIAL_RETRY,
+                : Constants.RETRY_TYPES.EXPONENTIAL_BACKOFF,
         });
     const setRetryLimit = (retryLimit: number) =>
         setRetryPolicyConfiguration({

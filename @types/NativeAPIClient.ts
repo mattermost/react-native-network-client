@@ -3,12 +3,22 @@
 import type { NativeModule } from "react-native";
 
 declare global {
-    type Constants = {
-        EXPONENTIAL_RETRY: "EXPONENTIAL_RETRY";
+    enum APIClientEvents {
+        UPLOAD_PROGRESS = "APIClient-UploadProgress",
+        CLIENT_CERTIFICATE_MISSING = "APIClient-Client-Certificate-Missing",
+    }
+
+    enum RetryTypes {
+        EXPONENTIAL_BACKOFF = "exponential",
+    }
+
+    type APIClientConstants = {
+        EVENTS: typeof APIClientEvents;
+        RETRY_TYPES: typeof RetryTypes;
     };
 
     interface NativeAPIClient extends NativeModule {
-        getConstants(): Constants;
+        getConstants(): APIClientConstants;
 
         get(
             baseUrl: string,

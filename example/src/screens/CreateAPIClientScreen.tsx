@@ -20,13 +20,14 @@ import { ClientType, parseHeaders } from "../utils";
 
 const styles = StyleSheet.create({
     checkboxText: { flex: 1 },
+    createButton: { padding: 10 },
 });
 
 export default function CreateAPIClientScreen({
     navigation,
 }: CreateAPIClientScreenProps) {
-    const [name, setName] = useState("Local mTLS Test");
-    const [baseUrl, setBaseUrl] = useState("https://192.168.0.14:4433");
+    const [name, setName] = useState("");
+    const [baseUrl, setBaseUrl] = useState("");
     const [clientHeaders, setClientHeaders] = useState<Header[]>([]);
 
     const [
@@ -226,7 +227,12 @@ export default function CreateAPIClientScreen({
                     textStyle={styles.checkboxText}
                 />
 
-                <Button title="Create" onPress={createClient} />
+                <Button
+                    title="Create"
+                    onPress={createClient}
+                    disabled={!name || !baseUrl}
+                    style={styles.createButton}
+                />
             </ScrollView>
         </SafeAreaView>
     );

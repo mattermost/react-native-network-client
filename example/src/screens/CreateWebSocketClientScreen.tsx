@@ -15,13 +15,14 @@ import { ClientType, parseHeaders } from "../utils";
 
 const styles = StyleSheet.create({
     checkboxText: { flex: 1 },
+    createButton: { padding: 10 },
 });
 
 export default function CreateWebSocketClientScreen({
     navigation,
 }: CreateWebSocketClientScreenProps) {
-    const [name, setName] = useState("mTLS WebSocket");
-    const [url, setUrl] = useState("wss://192.168.0.14:4433");
+    const [name, setName] = useState("");
+    const [url, setUrl] = useState("");
     const [
         configuration,
         setConfiguration,
@@ -135,6 +136,7 @@ export default function CreateWebSocketClientScreen({
                     title="Create"
                     onPress={createClient}
                     disabled={!name || !url}
+                    style={styles.createButton}
                 />
             </ScrollView>
         </SafeAreaView>
