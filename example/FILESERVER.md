@@ -21,7 +21,7 @@ Headers:
 | Authorization | Default null. If specified, cookie token is validated. (**protected request only**) | `Authorization: Bearer xyz` |
 
 Query Params:
-| Param | Description | Example |
+| Key | Description | Example |
 | :--- | :--- | :--- |
 | ignoreToken | Default false. If true, token validation is ignored. (**protected request only**) | `ignoreToken=true` |
 | token | Default null. If specified, query string token is validated only when request header token does not exist. (**protected request only**) | `token=xyz` |
@@ -61,4 +61,20 @@ Path: `/protected/api/files/:filename`
 Example:
 ```
 curl -X POST -H "Authorization: Bearer xyz" http://localhost:8080/api/files/sample-image.jpg
+```
+
+### Generate Token Request
+Path: `/login/:id`
+
+Example:
+```
+curl -X POST http://localhost:8080/login/123
+```
+
+Example response:
+```
+{
+    "id" : "123",
+    "token": "xyz"
+}
 ```
