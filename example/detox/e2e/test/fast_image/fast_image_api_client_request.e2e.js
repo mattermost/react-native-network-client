@@ -16,7 +16,7 @@ import {verifyApiClient} from '../helpers';
 
 describe('Fast Image - API Client Request', () => {
     const testBaseUrl = fastImageServerUrl;
-    const testImageUrl = `${testBaseUrl}/static/fast-image.jpg`;
+    const testImageUrl = `${testBaseUrl}/api/files/fast-image.jpg`;
     const testName = 'Fast Image Server API';
 
     beforeAll(async () => {

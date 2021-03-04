@@ -16,18 +16,18 @@ npm run file-upload-server
 
 # Request Paths
 
-### Static File Request
-Base Path: `/static`
+### Get File Request
+Path: `/api/files/:filename`
 
 Example:
 ```
-curl -X GET http://localhost:8080/static
+curl -X GET http://localhost:8080/api/files/fast-image.jpg
 ```
 
-### File Upload Request
-Base Path: `/api/upload/:filename`
+### Post File Request
+Path: `/api/files/:filename`
 
 Example:
 ```
-curl -X POST http://localhost:8080/api/upload/sample-image.jpg
+curl -X POST http://localhost:8080/api/files/sample-image.jpg
 ```

@@ -17,7 +17,7 @@ import {verifyApiClient} from '../helpers';
 describe('Upload - API Client Request', () => {
     const testBaseUrl = fileUploadServerUrl;
     const testImageFilename = 'sample-image.jpg';
-    const testEndpoint = `/api/upload/${testImageFilename}`;
+    const testEndpoint = `/api/files/${testImageFilename}`;
     const testName = 'File Upload Server API';
 
     beforeAll(async () => {
@@ -51,6 +51,7 @@ describe('Upload - API Client Request', () => {
         await uploadFileButton.tap();
 
         // * Verify uploaded
+        await ApiClientUploadScreen.toBeVisible();
         await expect(uploadFileButton).not.toBeVisible();
         await expect(fileComponent).not.toBeVisible();
         await expect(filename).not.toBeVisible();
