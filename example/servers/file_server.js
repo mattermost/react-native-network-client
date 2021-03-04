@@ -6,8 +6,11 @@ const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const express = require('express');
 const fs = require("fs");
-const jwt = require('express-jwt');
+const jwt = require('jsonwebtoken');
+const jwtMiddleware = require('express-jwt');
 const path = require('path');
+
+const SECRET = process.env.FILE_SERVER_SECRET || 'secret';
 
 const fileServer = function (directory) {
     // Set upload path
@@ -33,9 +36,41 @@ const fileServer = function (directory) {
             }));
         req.on('end', function (end) {
             console.log(`Finished! Uploaded to: ${filePath}`);
-            res.send('{"status": "OK"}');
+            res.status(200).send({
+                status: "OK",
+            });
         });
     };
+    const authHandler = jwtMiddleware({
+        secret: SECRET,
+        algorithms: ['HS256'],
+        credentialsRequired: true,
+        getToken: function (req) {
+            // Ignore token, will return a 401 (unauthorized)
+            if (req.query && req.query.ignoreToken === 'true') {
+                console.log(`Ignore token: ${req.query.ignoreToken}`);
+                return null;
+            }
+
+            // Get token from headers, query string, or cookies
+            let token;
+            if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
+                token = req.headers.authorization.split(' ')[1];
+                console.log(`Get token from headers: ${token}`);
+            } else if (req.query && req.query.token) {
+                token = req.query.token;
+                console.log(`Get token from query string: ${token}`);
+            } else if (req.cookies && req.cookies.token) {
+                token = req.cookies.token;
+                console.log(`Get token from cookies: ${token}`);
+            } else {
+                // Token not found, will return a 401 (unauthorized)
+                token = null;
+                console.log(`Token not found: ${token}`);
+            }
+            return token;
+        }
+    });
 
     // Create regular router
     const router = express.Router();
@@ -44,21 +79,7 @@ const fileServer = function (directory) {
 
     // Create protected router
     const protectedRouter = express.Router();
-    protectedRouter.use(jwt({
-        secret: 'token',
-        algorithms: ['HS256'],
-        credentialsRequired: false,
-        getToken: function (req) {
-            if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
-                return req.headers.authorization.split(' ')[1];
-            } else if (req.query && req.query.token) {
-                return req.query.token;
-            } else if (req.cookies && req.cookies.token) {
-                return req.cookies.token;
-            }
-            return null;
-        }
-    }));
+    protectedRouter.use(authHandler);
     protectedRouter.use('/files', staticHandler);
     protectedRouter.post('/files/:filename', uploadHandler);
 
@@ -69,8 +90,19 @@ const fileServer = function (directory) {
     app.use(cors());
     app.use('/api', router);
     app.use('/protected/api', protectedRouter);
-    app.use('/', function (req, res, next) {
+    app.get('/', function (req, res, next) {
         res.sendStatus(200);
+    });
+
+    // Generate token
+    app.post('/login/:id', function (req, res, next) {
+        const token = jwt.sign({ 
+            id: req.params.id,
+        }, SECRET, {algorithm: 'HS256'});
+        res.status(200).send({
+            id: req.params.id,
+            token
+        });
     });
     return app;
 };
