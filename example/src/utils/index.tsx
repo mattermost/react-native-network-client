@@ -145,8 +145,13 @@ const createJSONPlaceholderAPIClient = async (): Promise<APIClientItem | null> =
     return createAPIClient(name, baseUrl, configuration);
 };
 
-const getToken = async (): Promise<string> => {
-    return fetch('http://localhost:8009/login/123')
+const createFastImageServerAPIClient = async (): Promise<APIClientItem | null> => {
+    const name = "Fast Image Server API";
+    const baseUrl =
+        Platform.OS === "ios"
+            ? "http://localhost:8009"
+            : "http://10.0.2.2:8009";
+    const token = await fetch(`http://localhost:8009/login/123`)
         .then((response) => response.json())
         .then((json) => {
             return json.token;
@@ -154,15 +159,6 @@ const getToken = async (): Promise<string> => {
         .catch((error) => {
             console.error(error);
         });
-};
-
-const createFastImageServerAPIClient = async (): Promise<APIClientItem | null> => {
-    const name = "Fast Image Server API";
-    const baseUrl =
-        Platform.OS === "ios"
-            ? "http://localhost:8009"
-            : "http://10.0.2.2:8009";
-    const token = await getToken();
     const headers = {
         "Authorization": `Bearer ${token}`,
     };
