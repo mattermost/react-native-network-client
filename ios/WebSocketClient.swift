@@ -118,6 +118,8 @@ class WebSocketClient: RCTEventEmitter, WebSocketDelegate {
         reject("\(error.code)", message, error)
     }
     
+    // MARK: WebSocketDelegate methods
+    
     func didReceive(event: WebSocketEvent, client: WebSocket) {
         let url = client.request.url!.absoluteString
 

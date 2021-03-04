@@ -5,6 +5,7 @@ type WebSocketClientConfiguration = {
     headers?: ClientHeaders;
     timeoutInterval?: number;
     enableCompression?: boolean;
+    clientP12Configuration?: ClientP12Configuration;
 };
 
 type WebSocketMessage =

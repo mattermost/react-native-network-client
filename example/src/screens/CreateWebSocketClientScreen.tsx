@@ -8,7 +8,9 @@ import { Button, CheckBox, Input } from "react-native-elements";
 import { getOrCreateWebSocketClient } from "@mattermost/react-native-network-client";
 
 import AddHeaders from "../components/AddHeaders";
+import P12Inputs from "../components/P12Inputs";
 import NumericInput from "../components/NumericInput";
+import { useClientP12Configuration } from "../hooks";
 import { ClientType, parseHeaders } from "../utils";
 
 const styles = StyleSheet.create({
@@ -18,8 +20,8 @@ const styles = StyleSheet.create({
 export default function CreateWebSocketClientScreen({
     navigation,
 }: CreateWebSocketClientScreenProps) {
-    const [name, setName] = useState("");
-    const [url, setUrl] = useState("");
+    const [name, setName] = useState("mTLS WebSocket");
+    const [url, setUrl] = useState("wss://192.168.0.14:4433");
     const [
         configuration,
         setConfiguration,
@@ -27,6 +29,11 @@ export default function CreateWebSocketClientScreen({
         timeoutInterval: 5,
         enableCompression: false,
     });
+    const [
+        clientP12Configuration,
+        setClientP12Path,
+        setClientP12Password,
+    ] = useClientP12Configuration();
 
     const setHeaders = (headers: Header[]) => {
         setConfiguration((configuration) => ({
@@ -50,10 +57,17 @@ export default function CreateWebSocketClientScreen({
     };
 
     const createClient = async () => {
+        const wsConfiguration = {
+            ...configuration,
+        };
+        if (clientP12Configuration.path) {
+            wsConfiguration["clientP12Configuration"] = clientP12Configuration;
+        }
+
         try {
             const { client, created } = await getOrCreateWebSocketClient(
                 url,
-                configuration
+                wsConfiguration
             );
 
             if (!created) {
@@ -90,6 +104,14 @@ export default function CreateWebSocketClientScreen({
                 />
 
                 <AddHeaders onHeadersChanged={setHeaders} />
+
+                <P12Inputs
+                    title="Client PKCS12"
+                    path={clientP12Configuration.path}
+                    password={clientP12Configuration.password}
+                    onSelectP12={setClientP12Path}
+                    onPasswordChange={setClientP12Password}
+                />
 
                 <NumericInput
                     title="Timeout Interval"

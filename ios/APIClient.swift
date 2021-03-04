@@ -10,19 +10,14 @@
 import Alamofire
 import SwiftyJSON
 import React
-import SwiftyJSON
 
-class ClientSessionDelegate: SessionDelegate {
+class APIClientSessionDelegate: SessionDelegate {
     func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
         var credential: URLCredential? = nil
         var disposition: URLSession.AuthChallengeDisposition = .performDefaultHandling
 
         let authMethod = challenge.protectionSpace.authenticationMethod
-        // TODO: Remove this as it's only used for trusting self-signed certificates in development
-        if authMethod == NSURLAuthenticationMethodServerTrust, let serverTrust = challenge.protectionSpace.serverTrust {
-            disposition = .useCredential
-            credential = URLCredential(trust: serverTrust)
-        } else if authMethod == NSURLAuthenticationMethodClientCertificate {
+        if authMethod == NSURLAuthenticationMethodClientCertificate {
             if let serverUrl = SessionManager.default.getSessionBaseUrlString(for: session), let (identity, certificate) = Keychain.getClientIdentityAndCertificate(for: serverUrl) {
                 credential = URLCredential(identity: identity, certificates: [certificate], persistence: URLCredential.Persistence.permanent)
             }
@@ -38,7 +33,7 @@ class APIClient: RCTEventEmitter, NetworkClient {
     var emitter: RCTEventEmitter!
     var hasListeners: Bool!
     let requestsTable = NSMapTable<NSString, UploadRequest>.strongToWeakObjects()
-    let sessionDelegate: SessionDelegate = ClientSessionDelegate()
+    let sessionDelegate: SessionDelegate = APIClientSessionDelegate()
 
     func requiresMainQueueSetup() -> Bool {
         return false
