@@ -17,7 +17,7 @@ class APIClient: RCTEventEmitter, NetworkClient {
     var emitter: RCTEventEmitter!
     var hasListeners: Bool!
     let requestsTable = NSMapTable<NSString, UploadRequest>.strongToWeakObjects()
-    
+
     func requiresMainQueueSetup() -> Bool {
         return false
     }
