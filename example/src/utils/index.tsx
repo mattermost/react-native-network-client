@@ -197,12 +197,13 @@ const createWebSocketClient = async (
 
 const createMattermostWebSocketClient = async (): Promise<WebSocketClientItem | null> => {
     const name = "Mattermost Web Socket";
-    const host =
-        Platform.OS === "ios" ? "ws://192.168.0.14:8065" : "ws://10.0.2.2:8080";
-    const url = `${host}/api/v4/websocket`;
+    const host = Platform.OS === "ios" ? "192.168.0.14:8065" : "10.0.2.2:8080";
+    const url = `ws://${host}/api/v4/websocket`;
+    const origin = `https://${host}`;
     const configuration: WebSocketClientConfiguration = {
         headers: {
-            origin: host,
+            host,
+            origin,
         },
     };
 
