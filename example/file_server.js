@@ -10,21 +10,21 @@ const port       = argv.p || argv.port;
 
 if (!port) {
     console.log([
-        "File Upload Server",
+        "File Server",
         "",
         "Usage:",
-        "  node file_upload_server.js -p PORT -u PATH",
+        "  node file_server.js -p PORT -u PATH",
         "",
         "Options:",
         "  -p, --port=PORT    - Port to listen on",
         "  -u, --upload=PATH  - Path to upload files to",
         "",
         "Example:",
-        "  node file_upload_server.js -p 8082 -u './upload'"
+        "  node file_server.js -p 8082 -u './upload'"
     ].join("\n"));
 } else {
     http.createServer(fileServer(uploadPath)).listen(port);
-    console.log('File Upload Server serving files '
+    console.log('File Server serving files '
         + 'under "' + uploadPath.green  + '" at '
         + 'http://localhost:'.green + port.toString().green);
 }

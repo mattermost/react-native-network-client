@@ -48,7 +48,7 @@ describe('Fast Image Header Token - API Client Request', () => {
         await expect(imageNotSupportedIcon).toBeVisible();
 
         // # Set image url
-        await setImageUrl(`${testImageUrl}?ignoreToken=true`);
+        await setImageUrl(`${testImageUrl}?ignoreHeaderToken=true`);
 
         // * Verify image not supported is displayed
         await expect(imageNotSupportedIcon).toBeVisible();

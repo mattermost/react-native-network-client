@@ -151,16 +151,8 @@ const createFastImageServerAPIClient = async (): Promise<APIClientItem | null> =
         Platform.OS === "ios"
             ? "http://localhost:8009"
             : "http://10.0.2.2:8009";
-    const token = await fetch(`http://localhost:8009/login/123`)
-        .then((response) => response.json())
-        .then((json) => {
-            return json.token;
-        })
-        .catch((error) => {
-            console.error(error);
-        });
     const headers = {
-        "Authorization": `Bearer ${token}`,
+        "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEyMyIsImlhdCI6MTYxNTI0MDUwNn0.-FLR4NUPTuBGLXd082MvNmJemoqfLqQi8-sJhCCaNf0",
     };
     const configuration = buildDefaultApiClientConfiguration(headers);
 
