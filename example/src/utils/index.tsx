@@ -156,7 +156,9 @@ const createFastImageServerAPIClient = async (): Promise<APIClientItem | null> =
     };
     const configuration = buildDefaultApiClientConfiguration(headers);
 
-    return createAPIClient(name, baseUrl, configuration, {validateUrl: false});
+    return createAPIClient(name, baseUrl, configuration, {
+        validateUrl: false,
+    });
 };
 
 const createFileUploadServerAPIClient = async (): Promise<APIClientItem | null> => {
@@ -167,7 +169,9 @@ const createFileUploadServerAPIClient = async (): Promise<APIClientItem | null> 
             : "http://10.0.2.2:8008";
     const configuration = buildDefaultApiClientConfiguration();
 
-    return createAPIClient(name, baseUrl, configuration, {validateUrl: false});
+    return createAPIClient(name, baseUrl, configuration, {
+        validateUrl: false,
+    });
 };
 
 const createMockserverAPIClient = async (): Promise<APIClientItem | null> => {
@@ -226,7 +230,9 @@ const createWebSocketClient = async (
 const createMattermostWebSocketClient = async (): Promise<WebSocketClientItem | null> => {
     const name = "Mattermost Web Socket";
     const host =
-        Platform.OS === "ios" ? "ws://192.168.0.14:8065" : "ws://10.0.2.2:8080";
+        Platform.OS === "ios"
+            ? "ws://192.168.0.14:8065"
+            : "ws://10.0.2.2:8080";
     const url = `${host}/api/v4/websocket`;
     const configuration: WebSocketClientConfiguration = {
         headers: {
