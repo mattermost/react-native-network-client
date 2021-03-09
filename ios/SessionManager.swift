@@ -82,7 +82,8 @@ import Alamofire
                 return session.baseUrl.absoluteString
             }
             
-            guard let scheme = requestUrl.scheme, let host = requestUrl.host, let hostUrl = URL(string: "\(scheme)://\(host)") else {
+            let port = requestUrl.port != nil ? ":\(String(requestUrl.port!))" : ""
+            guard let scheme = requestUrl.scheme, let host = requestUrl.host, let hostUrl = URL(string: "\(scheme)://\(host)\(port)") else {
                 return nil
             }
 
