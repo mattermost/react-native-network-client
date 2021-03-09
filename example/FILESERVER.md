@@ -20,19 +20,17 @@ Headers:
 | :--- | :--- | :--- |
 | Authorization | Default null. If specified, cookie token is validated. (**protected request only**) | `Authorization: Bearer xyz` |
 
-Query Params:
+Query:
 | Key | Description | Example |
 | :--- | :--- | :--- |
-| token | Default null. If specified, query string token is validated only when request header token does not exist. (**protected request only**) | `token=xyz` |
-| ignoreToken | Default false. If true, token validation is ignored. (**protected request only**) | `ignoreToken=true` |
-| ignoreHeaderToken | Default false. If true, header token validation is ignored. (**protected request only**) | `ignoreHeaderToken=true` |
-| ignoreQueryToken | Default false. If true, query token validation is ignored. (**protected request only**) | `ignoreQueryToken=true` |
-| ignoreCookieToken | Default false. If true, cookie token validation is ignored. (**protected request only**) | `ignoreCookieToken=true` |
+| ignoreToken | Default null. If true, token validation is ignored. (**protected request only**) | `ignoreToken=true` |
+| tokenSource | Default null. If `headers` / `query` / `cookies` , token validation is performed. (**protected request only**) | `tokenSource=headers` |
+| token | Default null. If specified and `tokenSource=query` is present, query token validation is performed by token source method. If specified and `tokenSource=query` is not present, query token validation is performed by default method. (**protected request only**) | `token=xyz` |
 
 Cookies:
 | Key | Description | Example |
 | :--- | :--- | :--- |
-| token | Default null. If specified, cookie token is validated only when request header and query param tokens do not exist. (**protected request only**) | `token=xyz` |
+| token | Default null. If specified and `tokenSource=query` is present, cookie token validation is performed by token source method. If specified and `tokenSource=query` is not present, cookie token validation is performed by default method. (**protected request only**) | `token=xyz` |
 
 ### Get File Request
 Path: `/api/files/:filename`

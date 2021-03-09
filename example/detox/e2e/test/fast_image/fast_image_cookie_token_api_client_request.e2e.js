@@ -37,7 +37,7 @@ describe('Fast Image Cookie Token - API Client Request', () => {
         await expect(imageNotSupportedIcon).toBeVisible();
 
         // # Set image url
-        await setImageUrl(`${testImageUrl}?ignoreHeaderToken=true`);
+        await setImageUrl(`${testImageUrl}?tokenSource=cookies`);
 
         // * Verify fast image is displayed
         await expect(fastImage).toBeVisible();
@@ -49,7 +49,7 @@ describe('Fast Image Cookie Token - API Client Request', () => {
         await expect(imageNotSupportedIcon).toBeVisible();
 
         // # Set image url
-        await setImageUrl(`${testImageUrl}?ignoreCookieToken=true`);
+        await setImageUrl(`${testImageUrl}?tokenSource=none`);
 
         // * Verify image not supported is displayed
         await expect(imageNotSupportedIcon).toBeVisible();

@@ -14,6 +14,57 @@ const AUTH_SECRET = process.env.FILE_SERVER_AUTH_SECRET || 'secret';
 const AUTH_ALGORITHM = process.env.FILE_SERVER_AUTH_ALGORITHM || 'HS256';
 const TOKEN_KEY = process.env.FILE_SERVER_TOKEN_KEY || 'token';
 
+const getDefaultToken = (req) => {
+    console.log('Get default token');
+
+    // By default, attempt to get token value in this sequence
+    // 1. headers
+    // 2. query
+    // 3. cookies
+    let token;
+    if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
+        token = req.headers.authorization.split(' ')[1];
+        console.log(`Get token from headers: ${token}`);
+    } else if (req.query && req.query.token) {
+        token = req.query.token;
+        console.log(`Get token from query: ${token}`);
+    } else if (req.cookies && req.cookies.token) {
+        token = req.cookies.token;
+        console.log(`Get token from cookies: ${token}`);
+    } else {
+        // Token not found, will return a 401 (unauthorized)
+        token = null;
+        console.log(`Token not found: ${token}`);
+    }
+    return token;
+}
+
+const getTokenBySource = (req) => {
+    const tokenSource = req.query.tokenSource;
+    console.log(`Get token by source: ${tokenSource}`);
+
+    let token;
+    switch (tokenSource) {
+    case 'headers':
+        token = req.headers.authorization.split(' ')[1];
+        console.log(`Get token from headers: ${token}`);
+        break;
+    case 'query':
+        token = req.query.token;
+        console.log(`Get token from query: ${token}`);
+        break;
+    case 'cookies':
+        token = req.cookies.token;
+        console.log(`Get token from cookies: ${token}`);
+        break;
+    default:
+        // Token not found, will return a 401 (unauthorized)
+        token = null;
+        console.log(`Token not found: ${token}`);
+    }
+    return token;
+}
+
 const fileServer = (directory) => {
     // Set upload path
     let uploadPath = path.resolve(process.cwd(), directory);
@@ -63,27 +114,11 @@ const fileServer = (directory) => {
                 return null;
             }
 
-            // Get token from headers, query string, or cookies
-            let token;
-            if (req.headers.authorization
-                && req.headers.authorization.split(' ')[0] === 'Bearer'
-                && !(req.query && req.query.ignoreHeaderToken === 'true')) {
-                token = req.headers.authorization.split(' ')[1];
-                console.log(`Get token from headers: ${token}`);
-            } else if (req.query && req.query.token
-                && !(req.query && req.query.ignoreQueryToken === 'true')) {
-                token = req.query.token;
-                console.log(`Get token from query string: ${token}`);
-            } else if (req.cookies && req.cookies.token
-                && !(req.query && req.query.ignoreCookieToken === 'true')) {
-                token = req.cookies.token;
-                console.log(`Get token from cookies: ${token}`);
-            } else {
-                // Token not found, will return a 401 (unauthorized)
-                token = null;
-                console.log(`Token not found: ${token}`);
+            // Return token by source, otherwise return default token
+            if (req.query && req.query.tokenSource) {
+                return getTokenBySource(req);
             }
-            return token;
+            return getDefaultToken(req);
         }
     });
 
