@@ -30,18 +30,18 @@ beforeAll(async () => {
 });
 
 function launchFastImageServer() {
-    launchServer('Fast Image Server', fileServer, './e2e/support/fixtures', fastImageSiteUrl);
+    launchServer('Fast Image Server', fileServer, fastImageSiteUrl, './e2e/support/fixtures');
 }
 
 function launchFileUploadServer() {
-    launchServer('File Upload Server', fileServer, '../upload', fileUploadSiteUrl);
+    launchServer('File Upload Server', fileServer, fileUploadSiteUrl, '../upload');
 }
 
 function launchMockserver() {
-    launchServer('Mockserver', mockserver, '../mocks', siteUrl);
+    launchServer('Mockserver', mockserver, siteUrl, '../mocks');
 }
 
-function launchServer(serverName, requestListener, directory, url) {
+function launchServer(serverName, requestListener, url, directory = '') {
     const port = url.split(':')[2];
     const listeningMessage = `${serverName} listening at ${url}`;
     const notListeningMessage = `${serverName} not listening at port ${port}! Launching ${serverName} (directory: ${directory}) ...`;
@@ -53,16 +53,17 @@ function launchServer(serverName, requestListener, directory, url) {
     }).on('error', (e) => {
         // Launch server if not listening
         console.log(notListeningMessage);
-        const server = http.createServer(requestListener(directory)).listen(port);
+        const listener = directory ? requestListener(directory) : requestListener();
+        const server = http.createServer(listener).listen(port);
         checkServerStatus(server, listeningMessage);
     });
 }
 
 function checkServerStatus(server, listeningMessage) {
-    server.on('listening', function () {
+    server.on('listening', () => {
         console.log(listeningMessage);
     });
-    server.on('error', function (err) {
+    server.on('error', (err) => {
         console.log(err);
         process.exit(1);
     });

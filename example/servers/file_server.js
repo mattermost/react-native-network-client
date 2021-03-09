@@ -14,7 +14,7 @@ const AUTH_SECRET = process.env.FILE_SERVER_AUTH_SECRET || 'secret';
 const AUTH_ALGORITHM = process.env.FILE_SERVER_AUTH_ALGORITHM || 'HS256';
 const TOKEN_KEY = process.env.FILE_SERVER_TOKEN_KEY || 'token';
 
-const fileServer = function (directory) {
+const fileServer = (directory) => {
     // Set upload path
     let uploadPath = path.resolve(process.cwd(), directory);
     if (!fs.existsSync(uploadPath)) {
@@ -32,16 +32,16 @@ const fileServer = function (directory) {
     const uploadHandler = (req, res, next) => {
         const filePath = `${uploadPath}/${req.params.filename}`;
         req.pipe(fs.createWriteStream(filePath)
-            .on('pipe', function () {
+            .on('pipe', () => {
                 console.log('Successful pipe stream!');
             })
-            .on('unpipe', function () {
+            .on('unpipe', () => {
                 console.log('Successful unpipe stream!');
             })
-            .on('error', function (error) {
+            .on('error', (error) => {
                 console.log(error);
             }));
-        req.on('end', function (end) {
+        req.on('end', (end) => {
             console.log(`Finished! Uploaded to: ${filePath}`);
             res.status(200).send({
                 status: "OK",
@@ -52,7 +52,7 @@ const fileServer = function (directory) {
         secret: AUTH_SECRET,
         algorithms: [AUTH_ALGORITHM],
         credentialsRequired: true,
-        getToken: function (req) {
+        getToken: (req) => {
             console.log(`Request headers: ${JSON.stringify(req.headers)}`);
             console.log(`Request query: ${JSON.stringify(req.query)}`);
             console.log(`Request cookies: ${JSON.stringify(req.cookies)}`);
@@ -105,12 +105,12 @@ const fileServer = function (directory) {
     app.use(cors());
     app.use('/api', router);
     app.use('/protected/api', protectedRouter);
-    app.get('/', function (req, res, next) {
+    app.get('/', (req, res, next) => {
         res.sendStatus(200);
     });
 
     // Generate token
-    app.get('/login/:id', function (req, res, next) {
+    app.get('/login/:id', (req, res, next) => {
         const token = generateToken(req.params.id);
         console.log(`New token: ${token}`);
         res.cookie(TOKEN_KEY, token)
@@ -123,7 +123,7 @@ const fileServer = function (directory) {
     });
 
     // Expire cookie
-    app.get('/cookie/:cookieName/value/:cookieValue/expire', function (req, res, next) {
+    app.get('/cookie/:cookieName/value/:cookieValue/expire', (req, res, next) => {
         const cookieName = req.params.cookieName;
         const cookieValue = req.params.cookieValue;
         console.log(`Expire ${cookieName} cookie: ${cookieValue}`);
