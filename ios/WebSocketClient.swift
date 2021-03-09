@@ -103,7 +103,18 @@ class WebSocketClient: RCTEventEmitter, WebSocketDelegate {
             return
         }
 
-        resolve(webSocket.write(string: data))        
+        resolve(webSocket.write(string: data))    
+    }
+
+    @objc(invalidateClientFor:withResolver:withRejecter:)
+    func invalidateClientFor(urlString: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
+        guard let url = URL(string: urlString) else {
+            rejectMalformed(url: urlString, withRejecter: reject)
+            return
+        }
+ 
+        // TODO: Delete imported identity from Keychain
+        resolve(WebSocketManager.default.invalidateClient(for: url)) 
     }
     
     func rejectMalformed(url: String, withRejecter reject: RCTPromiseRejectBlock) -> Void {

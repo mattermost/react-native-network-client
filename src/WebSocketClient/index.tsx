@@ -68,6 +68,12 @@ class WebSocketClient implements WebSocketClientInterface {
             }
         });
     };
+
+    invalidate = (): Promise<void> => {
+        delete SOCKETS[this.url];
+
+        return NativeWebSocketClient.invalidateClientFor(this.url);
+    };
 }
 
 async function getOrCreateWebSocketClient(
