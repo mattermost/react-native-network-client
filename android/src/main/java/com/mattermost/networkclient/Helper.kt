@@ -1,10 +1,8 @@
 package com.mattermost.networkclient
 
 import com.facebook.react.bridge.*
-
 import okhttp3.*
 import java.util.concurrent.TimeUnit
-
 import com.mattermost.networkclient.interceptors.*
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
@@ -160,7 +158,9 @@ fun Request.Builder.addReadableMap(headers: ReadableMap): Request.Builder {
 }
 
 /**
+ * Transforms the "body" for a POST/PATCH/PUT/DELETE request to a Request Body
  *
+ * @return RequestBody
  */
 fun ReadableMap.bodyToRequestBody(): RequestBody {
     if (!this.hasKey("body")) return "".toRequestBody()
