@@ -121,6 +121,12 @@ const fileServer = (directory) => {
             return getDefaultToken(req);
         }
     });
+    const authErrorHandler = (err, req, res, next) => {
+        if (err.name === 'UnauthorizedError') {
+            console.log('Invalid token - 401 Unauthorized Error');
+            res.status(401).send('invalid token');
+        }
+    };
 
     // Create regular router
     const router = express.Router();
@@ -140,6 +146,7 @@ const fileServer = (directory) => {
     app.use(cors());
     app.use('/api', router);
     app.use('/protected/api', protectedRouter);
+    app.use(authErrorHandler);
     app.get('/', (req, res, next) => {
         res.sendStatus(200);
     });
