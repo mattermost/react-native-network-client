@@ -37,7 +37,7 @@ Path: `/api/files/:filename`
 
 Example:
 ```
-curl -X GET http://localhost:8080/api/files/fast-image.jpg
+curl -X GET http://localhost:8008/api/files/fast-image.jpg
 ```
 
 ### Protected Get File Request
@@ -45,7 +45,7 @@ Path: `/protected/api/files/:filename`
 
 Example:
 ```
-curl -X GET -H "Authorization: Bearer xyz" http://localhost:8080/protected/api/files/fast-image.jpg
+curl -X GET -H "Authorization: Bearer xyz" http://localhost:8008/protected/api/files/fast-image.jpg
 ```
 
 ### Post File Request
@@ -53,7 +53,7 @@ Path: `/api/files/:filename`
 
 Example:
 ```
-curl -X POST http://localhost:8080/api/files/sample-image.jpg
+curl -X POST http://localhost:8008/api/files/sample-image.jpg
 ```
 
 ### Protected Post File Request
@@ -61,7 +61,7 @@ Path: `/protected/api/files/:filename`
 
 Example:
 ```
-curl -X POST -H "Authorization: Bearer xyz" http://localhost:8080/api/files/sample-image.jpg
+curl -X POST -H "Authorization: Bearer xyz" http://localhost:8008/api/files/sample-image.jpg
 ```
 
 ### Generate Token Request
@@ -69,7 +69,7 @@ Path: `/login/:id`
 
 Example:
 ```
-curl -X GET http://localhost:8080/login/123
+curl -X GET http://localhost:8008/login/123
 ```
 
 Example response:
