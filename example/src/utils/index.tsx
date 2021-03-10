@@ -71,9 +71,6 @@ const buildDefaultApiClientConfiguration = (
         exponentialBackoffBase: 2,
         exponentialBackoffScale: 0.5,
     };
-    const requestAdapterConfiguration = {
-        bearerAuthTokenResponseHeader: "Token",
-    };
 
     const configuration: APIClientConfiguration = {
         headers,
