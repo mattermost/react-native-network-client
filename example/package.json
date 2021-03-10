@@ -6,7 +6,9 @@
   "scripts": {
     "android": "react-native run-android",
     "ios": "react-native run-ios",
-    "mockserver": "mockserver -p 8080 -m mocks",
+    "fast-image-server": "node file_server.js -p 8009 -u './detox/e2e/support/fixtures'",
+    "file-upload-server": "node file_server.js -p 8008 -u './upload'",
+    "mockserver": "mockserver -p 8080 -m './mocks'",
     "postinstall": "patch-package",
     "start": "react-native start"
   },
@@ -15,7 +17,7 @@
     "@react-native-community/masked-view": "0.1.10",
     "@react-navigation/native": "5.8.2",
     "@react-navigation/stack": "5.11.1",
-    "detox": "18.3.1",
+    "detox": "18.6.2",
     "react": "16.13.1",
     "react-native": "0.63.3",
     "react-native-device-info": "7.0.2",
@@ -23,6 +25,7 @@
     "react-native-dropdown-picker": "3.7.1",
     "react-native-elements": "3.0.0-alpha.1",
     "react-native-fast-image": "8.3.4",
+    "react-native-fs": "2.16.6",
     "react-native-gesture-handler": "1.8.0",
     "react-native-image-picker": "3.1.2",
     "react-native-markdown-renderer": "^3.2.8",
@@ -39,6 +42,12 @@
     "@babel/core": "7.12.3",
     "@babel/runtime": "7.12.1",
     "babel-plugin-module-resolver": "4.0.0",
+    "compression": "1.7.4",
+    "cookie-parser": "1.4.5",
+    "cors": "2.8.5",
+    "express": "4.17.1",
+    "express-jwt": "6.0.0",
+    "jsonwebtoken": "8.5.1",
     "metro-react-native-babel-preset": "0.63.0",
     "patch-package": "^6.2.2"
   }

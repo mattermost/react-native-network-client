@@ -132,6 +132,7 @@ const APIClientUploadScreen = ({ route }: APIClientUploadScreenProps) => {
                     value={state.endpoint}
                     onChangeText={setEndpoint}
                     autoCapitalize="none"
+                    testID="api_client_upload.endpoint.input"
                 />
                 <FilePickerButtonGroup
                     onFilePicked={setFile}

@@ -100,13 +100,13 @@ export default function APIClientScreen({
                     label="Name"
                     value={name}
                     disabled={true}
-                    testID='api_client.name.input'
+                    testID="api_client.name.input"
                 />
                 <Input
                     label="Base URL"
                     value={client.baseUrl}
                     disabled={true}
-                    testID='api_client.base_url.input'
+                    testID="api_client.base_url.input"
                 />
                 <ListHeaders headers={headers} />
                 <Buttons />

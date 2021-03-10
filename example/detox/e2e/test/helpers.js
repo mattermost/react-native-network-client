@@ -184,7 +184,7 @@ export const verifyResponseOverlay = async (testUrl, testStatus, testHost, testM
     }
 };
 
-export const verifyApiClient = async (testName, testUrl, testHeaders) => {
+export const verifyApiClient = async (testName, testUrl, testHeaders = {}) => {
     const {
         baseUrlInput,
         getHeaderListItemAtIndex,
