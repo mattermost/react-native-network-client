@@ -4,6 +4,3 @@ include ':app'
 
 include ':mattermost.networkclient'
 project(':mattermost.networkclient').projectDir = new File(rootProject.projectDir, '../../android')
-
-include ':react-native-fs'
-project(':react-native-fs').projectDir = new File(settingsDir, '../node_modules/react-native-fs/android')
