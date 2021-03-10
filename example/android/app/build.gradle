@@ -206,7 +206,6 @@ dependencies {
     }
 
     implementation project(':mattermost.networkclient')
-    implementation project(':react-native-fs')
 
     androidTestImplementation('com.wix:detox:+')
 }
