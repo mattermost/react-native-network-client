@@ -15,6 +15,7 @@
 		49917982255A0D8900C32F78 /* GenericClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49917981255A0D8900C32F78 /* GenericClient.swift */; };
 		49EBD8172575CF6500C7C102 /* NetworkClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49EBD8162575CF6500C7C102 /* NetworkClient.swift */; };
 		49EBDB3625781FA200C7C102 /* BearerAuthenticationAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49EBDB3525781FA200C7C102 /* BearerAuthenticationAdapter.swift */; };
+		49EE973E25F95F6700DDF63F /* LinearRetryPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49EE973D25F95F6700DDF63F /* LinearRetryPolicy.swift */; };
 		49EFF88725B75B510098B42C /* WebSocketManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49EFF88625B75B510098B42C /* WebSocketManager.swift */; };
 		49FE4ECC252E839900EC2942 /* APIClient.m in Sources */ = {isa = PBXBuildFile; fileRef = B3E7B5891CC2AC0600A0062D /* APIClient.m */; };
 		53A730F6250AA8E40058A8B4 /* SessionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53A730F5250AA8E40058A8B4 /* SessionManager.swift */; };
@@ -44,6 +45,7 @@
 		49EBD8162575CF6500C7C102 /* NetworkClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkClient.swift; sourceTree = "<group>"; };
 		49EBDB3525781FA200C7C102 /* BearerAuthenticationAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BearerAuthenticationAdapter.swift; sourceTree = "<group>"; };
 		49EBDC232578903700C7C102 /* NetworkClient-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "NetworkClient-Bridging-Header.h"; sourceTree = "<group>"; };
+		49EE973D25F95F6700DDF63F /* LinearRetryPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinearRetryPolicy.swift; sourceTree = "<group>"; };
 		49EFF88625B75B510098B42C /* WebSocketManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebSocketManager.swift; sourceTree = "<group>"; };
 		53A730F5250AA8E40058A8B4 /* SessionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionManager.swift; sourceTree = "<group>"; };
 		B3E7B5891CC2AC0600A0062D /* APIClient.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = APIClient.m; sourceTree = "<group>"; };
@@ -80,6 +82,7 @@
 				53A730F5250AA8E40058A8B4 /* SessionManager.swift */,
 				49EFF88625B75B510098B42C /* WebSocketManager.swift */,
 				F4FF95D6245B92E800C19C63 /* APIClient.swift */,
+				49EE973D25F95F6700DDF63F /* LinearRetryPolicy.swift */,
 				49917981255A0D8900C32F78 /* GenericClient.swift */,
 				B3E7B5891CC2AC0600A0062D /* APIClient.m */,
 				49EBDB3525781FA200C7C102 /* BearerAuthenticationAdapter.swift */,
@@ -155,6 +158,7 @@
 				4991797E255A0D0600C32F78 /* GenericClient.m in Sources */,
 				53A730F6250AA8E40058A8B4 /* SessionManager.swift in Sources */,
 				4914851325B20EB200DBD8FF /* Session+Extensions.swift in Sources */,
+				49EE973E25F95F6700DDF63F /* LinearRetryPolicy.swift in Sources */,
 				F4FF95D7245B92E800C19C63 /* APIClient.swift in Sources */,
 				49FE4ECC252E839900EC2942 /* APIClient.m in Sources */,
 				49EFF88725B75B510098B42C /* WebSocketManager.swift in Sources */,

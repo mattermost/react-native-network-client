@@ -114,7 +114,13 @@ extension NetworkClient {
         var retriers = [RequestRetrier]()
 
         let configuration = options["retryPolicyConfiguration"]
-        if configuration["type"].string == CONSTANTS["EXPONENTIAL_RETRY"] {
+        if configuration["type"].string == CONSTANTS["LINEAR_RETRY"] {
+            let retryLimit = configuration["retryLimit"].uInt ?? LinearRetryPolicy.defaultRetryLimit
+            let retryInterval = configuration["retryInterval"].uInt ?? LinearRetryPolicy.defaultRetryInterval
+
+            let retryPolicy = LinearRetryPolicy(retryLimit: retryLimit, retryInterval: retryInterval)
+            retriers.append(retryPolicy)
+        } else if configuration["type"].string == CONSTANTS["EXPONENTIAL_RETRY"] {
             let retryLimit = configuration["retryLimit"].uInt ?? RetryPolicy.defaultRetryLimit
             let exponentialBackoffBase = configuration["exponentialBackoffBase"].uInt ?? RetryPolicy.defaultExponentialBackoffBase
             let exponentialBackoffScale = configuration["exponentialBackoffScale"].double ?? RetryPolicy.defaultExponentialBackoffScale
