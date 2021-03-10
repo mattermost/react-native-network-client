@@ -10,7 +10,7 @@
 import Alamofire
 import SwiftyJSON
 
-let CONSTANTS = ["EXPONENTIAL_RETRY": "exponential"]
+let CONSTANTS = ["EXPONENTIAL_RETRY": "exponential", "LINEAR_RETRY": "linear"]
 
 protocol NetworkClient {
     func handleRequest(for url: String,

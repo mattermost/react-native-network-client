@@ -71,6 +71,7 @@ type SessionConfiguration = {
 type RetryPolicyConfiguration = {
     type?: keyof Constants;
     retryLimit?: number;
+    retryInterval?: number;
     exponentialBackoffBase?: number;
     exponentialBackoffScale?: number;
 };

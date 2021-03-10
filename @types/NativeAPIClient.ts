@@ -5,6 +5,7 @@ import type { NativeModule } from "react-native";
 declare global {
     type Constants = {
         EXPONENTIAL_RETRY: "EXPONENTIAL_RETRY";
+        LINEAR_RETRY: "LINEAR_RETRY";
     };
 
     interface NativeAPIClient extends NativeModule {

@@ -29,8 +29,9 @@ const APIClientRequestScreen = ({ route }: APIClientRequestScreenProps) => {
     const [responseVisible, setResponseVisible] = useState(false);
     const [
         retryPolicyConfiguration,
-        toggleRetryPolicyType,
+        setRetryPolicyType,
         setRetryLimit,
+        setRetryInterval,
         setExponentialBackoffBase,
         setExponentialBackoffScale,
     ] = useRetryPolicyConfiguration();
@@ -93,7 +94,7 @@ const APIClientRequestScreen = ({ route }: APIClientRequestScreenProps) => {
                     value={endpoint}
                     onChangeText={setEndpoint}
                     autoCapitalize="none"
-                    testID='api_client_request.path.input'
+                    testID="api_client_request.path.input"
                 />
                 <AddHeaders onHeadersChanged={setRequestHeaders} />
                 {method !== METHODS.GET && (
@@ -103,7 +104,7 @@ const APIClientRequestScreen = ({ route }: APIClientRequestScreenProps) => {
                         value={body}
                         onChangeText={setBody}
                         autoCapitalize="none"
-                        testID='api_client_request.body.input'
+                        testID="api_client_request.body.input"
                     />
                 )}
                 <NumericInput
@@ -111,13 +112,15 @@ const APIClientRequestScreen = ({ route }: APIClientRequestScreenProps) => {
                     value={timeoutInterval}
                     onChange={setTimeoutInterval}
                     minValue={0}
-                    testID='api_client_request.timeout_interval.input'
+                    testID="api_client_request.timeout_interval.input"
                 />
                 <RetryPolicyConfiguration
-                    checked={Boolean(retryPolicyConfiguration.type)}
-                    onCheckBoxPress={toggleRetryPolicyType}
+                    policyType={retryPolicyConfiguration.type}
+                    onTypeSelected={setRetryPolicyType}
                     retryLimit={retryPolicyConfiguration.retryLimit}
                     setRetryLimit={setRetryLimit}
+                    retryInterval={retryPolicyConfiguration.retryInterval}
+                    setRetryInterval={setRetryInterval}
                     exponentialBackoffBase={
                         retryPolicyConfiguration.exponentialBackoffBase
                     }
