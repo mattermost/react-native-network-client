@@ -8,6 +8,7 @@ class ResponseOverlay {
         responseDataText: 'response_overlay.response.data.text',
         responseHeadersText: 'response_overlay.response.headers.text',
     }
+
     responseLastRequestedUrlText = element(by.id(this.testID.responseLastRequestedUrlText));
     responseCodeText = element(by.id(this.testID.responseCodeText));
     responseDataText = element(by.id(this.testID.responseDataText));

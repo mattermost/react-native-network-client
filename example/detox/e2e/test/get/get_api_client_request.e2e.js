@@ -48,7 +48,7 @@ describe('Get - API Client Request', () => {
     });
 
     it('should return a valid response', async () => {
-        // # Perform generic client request
+        // # Perform API client request
         await performApiClientRequest({testPath, testHeaders});
 
         // * Verify response overlay
