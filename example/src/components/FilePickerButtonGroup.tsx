@@ -3,6 +3,7 @@ import DocumentPicker from "react-native-document-picker";
 import { check, request, PERMISSIONS, RESULTS } from "react-native-permissions";
 import { launchImageLibrary } from "react-native-image-picker/src";
 import { ButtonGroup } from "react-native-elements";
+import { createNativeFile, sampleImage, sampleText } from "../utils";
 
 type FilePickerButtonGroupProps = {
     disabled: boolean;
@@ -61,9 +62,22 @@ const FilePickerButtonGroup = (props: FilePickerButtonGroupProps) => {
         }
     };
 
+    const attachFile = async (fileContent: FileContent) => {
+        const file: File = await createNativeFile(fileContent);
+        props.onFilePicked(file);
+    };
+    const attachSampleImage = async () => {
+        await attachFile(sampleImage);
+    };
+    const attachSampleText = async () => {
+        await attachFile(sampleText);
+    };
+
     const buttons = [
         { title: "Select Image", onPress: pickImage },
         { title: "Select File", onPress: pickFile },
+        { title: "Attach Image", onPress: attachSampleImage },
+        { title: "Attach Text", onPress: attachSampleText },
     ];
 
     const onButtonPress = (index: number) => buttons[index].onPress();

@@ -20,6 +20,8 @@ class ApiClientRequestScreen {
     timeoutIntervalInput = element(by.id(this.testID.timeoutIntervalInput));
     apiClientButton = element(by.text('APIClient')).atIndex(0);
     requestButton = element(by.text('Request'));
+
+    // convenience props
     responseCodeText = ResponseOverlay.responseCodeText;
     responseDataText = ResponseOverlay.responseDataText;
     responseHeadersText = ResponseOverlay.responseHeadersText;

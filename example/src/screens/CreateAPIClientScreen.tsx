@@ -107,7 +107,7 @@ export default function CreateAPIClientScreen({
 
     return (
         <SafeAreaView>
-            <ScrollView testID='create_api_client.scroll_view'>
+            <ScrollView testID="create_api_client.scroll_view">
                 <Input
                     label="Name"
                     onChangeText={setName}
@@ -159,7 +159,7 @@ export default function CreateAPIClientScreen({
                     value={sessionConfiguration.httpMaximumConnectionsPerHost}
                     onChange={setHttpMaximumConnectionsPerHost}
                     minValue={1}
-                    testID='create_api_client.max_connections.input'
+                    testID="create_api_client.max_connections.input"
                 />
 
                 <RetryPolicyConfiguration
