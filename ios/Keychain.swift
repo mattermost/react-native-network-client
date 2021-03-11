@@ -81,12 +81,12 @@ class Keychain {
     }
     
     static func getClientIdentityAndCertificate(for serverUrl: String) -> (SecIdentity, SecCertificate)? {
-        guard let attributes = buildIdentityQuery(for: serverUrl) else {
+        guard let query = buildIdentityQuery(for: serverUrl) else {
             return nil
         }
 
         var result: AnyObject?
-        let identityStatus = SecItemCopyMatching(attributes as CFDictionary, &result)
+        let identityStatus = SecItemCopyMatching(query as CFDictionary, &result)
         guard identityStatus == errSecSuccess else {
             if identityStatus == errSecItemNotFound {
                 // TODO: Alert user item not found for server
@@ -157,7 +157,6 @@ class Keychain {
         }
         
         var attributes: [CFString:Any] = [
-            kSecClass: kSecClassIdentity,
             kSecValueRef: identity,
             kSecAttrLabel: serverUrlData,
             kSecAttrAccessible: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
@@ -185,11 +184,11 @@ class Keychain {
     }
     
     private static func deleteClientP12(for serverUrl: String) -> Void {
-        guard let attributes = buildIdentityQuery(for: serverUrl) else {
+        guard let query = buildIdentityQuery(for: serverUrl) else {
             return
         }
 
-        SecItemDelete(attributes as CFDictionary)
+        SecItemDelete(query as CFDictionary)
     }
     
     private static func identityFromP12Import(_ data: Data, _ password: String?) -> SecIdentity? {
