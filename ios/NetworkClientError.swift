@@ -16,7 +16,6 @@ public enum NetworkClientError: Error {
 }
 
 extension Error {
-    /// Returns the instance cast as an `AFError`.
     public var asNetworkClientError: NetworkClientError? {
         self as? NetworkClientError
     }
