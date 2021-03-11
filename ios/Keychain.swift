@@ -159,7 +159,7 @@ class Keychain {
         var attributes: [CFString:Any] = [
             kSecClass: kSecClassIdentity,
             kSecValueRef: identity,
-            kSecAttrLabel: hostData,
+            kSecAttrLabel: serverUrlData,
             kSecAttrAccessible: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
         ]
 
@@ -177,7 +177,7 @@ class Keychain {
         
         let query: [CFString:Any] = [
             kSecClass: kSecClassIdentity,
-            kSecAttrLabel: hostData,
+            kSecAttrLabel: serverUrlData,
             kSecReturnRef: true
         ]
 
