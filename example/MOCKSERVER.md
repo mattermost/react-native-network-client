@@ -1,15 +1,11 @@
 # Mock Server
 
 ### How to run Mockserver
-1. [Install Mockserver](https://github.com/namshi/mockserver#installation).
-```
-npm install -g mockserver
-```
-2. Run Mockserver
+1. Run Mockserver
 ```
 npm run mockserver
 ```
-3. Verify Mockserver is running: `http://localhost:8080`.
+2. Verify Mockserver is running: `http://localhost:8080`.
 
 ### How to create mocks
 [Mock files](https://github.com/namshi/mockserver#mock-files) follow this convention based on the response that they are going to serve:
