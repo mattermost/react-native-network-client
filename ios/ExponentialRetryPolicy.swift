@@ -1,5 +1,5 @@
 //
-//  LinearRetryPolicy.swift
+//  ExponentialRetryPolicy.swift
 //  NetworkClient
 //
 //  Created by Miguel Alatzar on 3/10/21.
