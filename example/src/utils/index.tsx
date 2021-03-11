@@ -191,6 +191,23 @@ const createMockserverAPIClient = async (): Promise<APIClientItem | null> => {
     });
 };
 
+const createRequestBinAPIClient = async (): Promise<APIClientItem | null> => {
+    const name = "RequestBin API";
+    const baseUrl =
+        Platform.OS === "ios"
+            ? "http://localhost:8000/14dkaof1"
+            : "http://10.0.2.2:8000/14dkaof1";
+    const headers = {
+        "header-1-key": "header-1-value",
+        "header-2-key": "header-2-value",
+    };
+    const configuration = buildDefaultApiClientConfiguration(headers);
+
+    return createAPIClient(name, baseUrl, configuration, {
+        validateUrl: false,
+    });
+};
+
 const createWebSocketClient = async (
     name: string,
     url: string,
@@ -232,7 +249,7 @@ const createMattermostWebSocketClient = async (): Promise<WebSocketClientItem | 
     const host =
         Platform.OS === "ios"
             ? "ws://192.168.0.14:8065"
-            : "ws://10.0.2.2:8080";
+            : "ws://10.0.2.2:8065";
     const url = `${host}/api/v4/websocket`;
     const configuration: WebSocketClientConfiguration = {
         headers: {
@@ -254,6 +271,7 @@ export const createTestClients = async (): Promise<NetworkClientItem[]> => {
         await createFileUploadServerAPIClient(),
         await createMockserverAPIClient(),
         await createMattermostWebSocketClient(),
+        await createRequestBinAPIClient(),
     ].reduce((clients: NetworkClientItem[], client) => {
         if (client) {
             return [...clients, client];
