@@ -61,17 +61,18 @@ class Keychain {
             // TODO: Alert user of import error
             return false
         }
-        guard var attributes = buildIdentityAttributes(for: serverUrl) else {
+        guard let attributes = buildIdentityAttributes(identity, for: serverUrl) else {
             // TODO: Alert user of invalid server URL
             return false
         }
-
-        attributes[kSecValueRef] = identity
-        attributes.removeValue(forKey: kSecClass)
+        
+        if let _ = getClientIdentityAndCertificate(for: serverUrl) {
+            deleteClientP12(for: serverUrl)
+        }
 
         var persistentRef: AnyObject?
         let addStatus = SecItemAdd(attributes as CFDictionary, &persistentRef)
-        guard addStatus == errSecSuccess || addStatus == errSecDuplicateItem else {
+        guard addStatus == errSecSuccess else {
             // TODO: Alert user of error adding p12
             return false
         }
@@ -80,11 +81,9 @@ class Keychain {
     }
     
     static func getClientIdentityAndCertificate(for serverUrl: String) -> (SecIdentity, SecCertificate)? {
-        guard var attributes = buildIdentityAttributes(for: serverUrl) else {
+        guard let attributes = buildIdentityQuery(for: serverUrl) else {
             return nil
         }
-        attributes[kSecClass] = kSecClassIdentity
-        attributes[kSecReturnRef] = kCFBooleanTrue
 
         var result: AnyObject?
         let identityStatus = SecItemCopyMatching(attributes as CFDictionary, &result)
@@ -152,14 +151,16 @@ class Keychain {
         return attributes
     }
     
-    private static func buildIdentityAttributes(for serverUrl: String) -> [CFString: Any]? {
+    private static func buildIdentityAttributes(_ identity: SecIdentity, for serverUrl: String) -> [CFString: Any]? {
         guard let serverUrlData = serverUrl.data(using: .utf8) else {
             return nil
         }
         
         var attributes: [CFString:Any] = [
             kSecClass: kSecClassIdentity,
-            kSecAttrLabel: serverUrlData
+            kSecValueRef: identity,
+            kSecAttrLabel: hostData,
+            kSecAttrAccessible: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
         ]
 
         if let accessGroup = Bundle.main.object(forInfoDictionaryKey: "AppGroupIdentifier") as! String? {
@@ -169,8 +170,22 @@ class Keychain {
         return attributes
     }
     
+    private static func buildIdentityQuery(for serverUrl: String) -> [CFString: Any]? {
+        guard let serverUrlData = serverUrl.data(using: .utf8) else {
+            return nil
+        }
+        
+        let query: [CFString:Any] = [
+            kSecClass: kSecClassIdentity,
+            kSecAttrLabel: hostData,
+            kSecReturnRef: true
+        ]
+
+        return query
+    }
+    
     private static func deleteClientP12(for serverUrl: String) -> Void {
-        guard let attributes = buildIdentityAttributes(for: serverUrl) else {
+        guard let attributes = buildIdentityQuery(for: serverUrl) else {
             return
         }
 
