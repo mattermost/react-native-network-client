@@ -28,6 +28,7 @@ type ClientResponse = {
     code: number;
     lastRequestedUrl: string;
     ok: boolean;
+    retriesExhausted?: boolean;
 };
 
 interface GenericClientInterface {

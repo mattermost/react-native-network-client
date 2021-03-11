@@ -18,14 +18,14 @@ protocol NetworkClient {
                        withSession session: Session,
                        withOptions options: JSON,
                        withResolver resolve: @escaping RCTPromiseResolveBlock,
-                       withRejecter reject: RCTPromiseRejectBlock) -> Void
+                       withRejecter reject: @escaping RCTPromiseRejectBlock) -> Void
     
     func handleRequest(for url: URL,
                        withMethod method: HTTPMethod,
                        withSession session: Session,
                        withOptions options: JSON,
                        withResolver resolve: @escaping RCTPromiseResolveBlock,
-                       withRejecter reject: RCTPromiseRejectBlock) -> Void
+                       withRejecter reject: @escaping RCTPromiseRejectBlock) -> Void
     
     func handleResponse(for session: Session,
                         withUrl url: URL,
@@ -46,7 +46,7 @@ protocol NetworkClient {
 }
 
 extension NetworkClient {
-    func handleRequest(for urlString: String, withMethod method: HTTPMethod, withSession session: Session, withOptions options: JSON, withResolver resolve: @escaping RCTPromiseResolveBlock, withRejecter reject: RCTPromiseRejectBlock) -> Void {
+    func handleRequest(for urlString: String, withMethod method: HTTPMethod, withSession session: Session, withOptions options: JSON, withResolver resolve: @escaping RCTPromiseResolveBlock, withRejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
         guard let url = URL(string: urlString) else {
             rejectMalformed(url: urlString, withRejecter: reject)
             return
@@ -55,7 +55,7 @@ extension NetworkClient {
         handleRequest(for: url, withMethod: method, withSession: session, withOptions: options, withResolver: resolve, withRejecter: reject)
     }
     
-    func handleRequest(for url: URL, withMethod method: HTTPMethod, withSession session: Session, withOptions options: JSON, withResolver resolve: @escaping RCTPromiseResolveBlock, withRejecter reject: RCTPromiseRejectBlock) -> Void {
+    func handleRequest(for url: URL, withMethod method: HTTPMethod, withSession session: Session, withOptions options: JSON, withResolver resolve: @escaping RCTPromiseResolveBlock, withRejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
         let parameters = options["body"] == JSON.null ? nil : options["body"]
         let encoder: ParameterEncoder = parameters != nil ? JSONParameterEncoder.default : URLEncodedFormParameterEncoder.default
         let headers = getHTTPHeaders(from: options)
@@ -65,12 +65,42 @@ extension NetworkClient {
         session.request(url, method: method, parameters: parameters, encoder: encoder, headers: headers, interceptor: interceptor, requestModifier: requestModifer).responseJSON { json in
             self.handleResponse(for: session, withUrl: url, withData: json)
             
-            resolve([
-                "headers": json.response?.allHeaderFields,
-                "data": json.value,
-                "code": json.response?.statusCode,
-                "lastRequestedUrl": json.response?.url?.absoluteString
-            ])
+            switch (json.result) {
+            case .success:
+                resolve([
+                    "ok": true,
+                    "headers": json.response?.allHeaderFields,
+                    "data": json.value,
+                    "code": json.response?.statusCode,
+                    "lastRequestedUrl": json.response?.url?.absoluteString
+                ])
+            case .failure(let error):
+                if error.isRequestRetryError, case let .requestRetryFailed(retryError, _) = error {
+                    let retriesExhausted = retryError.asNetworkClientError?.isRetryExhaustedError
+                    resolve([
+                        "ok": false,
+                        "headers": nil,
+                        "data": nil,
+                        "code": nil,
+                        "retriesExhausted": retriesExhausted,
+                        "lastRequestedUrl": nil
+                    ])
+
+                    return
+                } else if (error.responseCode != nil) {
+                    resolve([
+                        "ok": false,
+                        "headers": nil,
+                        "data": nil,
+                        "code": error.responseCode,
+                        "lastRequestedUrl": nil
+                    ])
+
+                    return
+                }
+
+                reject("\(error.responseCode)", error.errorDescription, error)
+            }
         }
     }
     
@@ -121,11 +151,11 @@ extension NetworkClient {
             let retryPolicy = LinearRetryPolicy(retryLimit: retryLimit, retryInterval: retryInterval)
             retriers.append(retryPolicy)
         } else if configuration["type"].string == CONSTANTS["EXPONENTIAL_RETRY"] {
-            let retryLimit = configuration["retryLimit"].uInt ?? RetryPolicy.defaultRetryLimit
-            let exponentialBackoffBase = configuration["exponentialBackoffBase"].uInt ?? RetryPolicy.defaultExponentialBackoffBase
-            let exponentialBackoffScale = configuration["exponentialBackoffScale"].double ?? RetryPolicy.defaultExponentialBackoffScale
+            let retryLimit = configuration["retryLimit"].uInt ?? ExponentialRetryPolicy.defaultRetryLimit
+            let exponentialBackoffBase = configuration["exponentialBackoffBase"].uInt ?? ExponentialRetryPolicy.defaultExponentialBackoffBase
+            let exponentialBackoffScale = configuration["exponentialBackoffScale"].double ?? ExponentialRetryPolicy.defaultExponentialBackoffScale
 
-            let retryPolicy = RetryPolicy(retryLimit: retryLimit, exponentialBackoffBase: exponentialBackoffBase, exponentialBackoffScale: exponentialBackoffScale)
+            let retryPolicy = ExponentialRetryPolicy(retryLimit: retryLimit, exponentialBackoffBase: exponentialBackoffBase, exponentialBackoffScale: exponentialBackoffScale)
             retriers.append(retryPolicy)
         }
 

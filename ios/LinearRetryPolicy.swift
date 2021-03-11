@@ -10,6 +10,8 @@
 import Foundation
 import Alamofire
 
+
+
 open class LinearRetryPolicy: RetryPolicy {
     public static let defaultRetryInterval: UInt = 2000
     public let retryInterval: UInt
@@ -21,15 +23,20 @@ open class LinearRetryPolicy: RetryPolicy {
                 retryableURLErrorCodes: Set<URLError.Code> = RetryPolicy.defaultRetryableURLErrorCodes) {
         precondition(retryInterval > 0, "The `retryInterval` must be greater than 0.")
         self.retryInterval = retryInterval
-        super.init(retryLimit: retryLimit, retryableHTTPMethods: retryableHTTPMethods, retryableHTTPStatusCodes: retryableHTTPStatusCodes, retryableURLErrorCodes: retryableURLErrorCodes)
+        super.init(retryLimit: retryLimit, retryableHTTPMethods: retryableHTTPMethods, retryableHTTPStatusCodes: [401], retryableURLErrorCodes: retryableURLErrorCodes)
     }
     
     override open func retry(_ request: Request,
                         for session: Session,
                         dueTo error: Error,
                         completion: @escaping (RetryResult) -> Void) {
-        if request.retryCount < retryLimit, shouldRetry(request: request, dueTo: error) {
-            completion(.retryWithDelay(Double(retryInterval) / 1000))
+        if shouldRetry(request: request, dueTo: error) {
+            if request.retryCount < retryLimit {
+                completion(.retryWithDelay(Double(retryInterval) / 1000))
+            } else {
+                let retryError = NetworkClientError.retry(type: .retriesExhausted)
+                completion(.doNotRetryWithError(retryError))
+            }
         } else {
             completion(.doNotRetry)
         }
