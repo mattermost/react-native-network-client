@@ -59,6 +59,7 @@ const AddHeaders = ({ onHeadersChanged }: AddHeadersProps) => {
                         header={header}
                         index={index}
                         updateHeader={updateHeader}
+                        testID="add_headers.header_list_item"
                     />
                 ))}
             </View>

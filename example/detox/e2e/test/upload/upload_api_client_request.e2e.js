@@ -23,7 +23,7 @@ describe('Upload - API Client Request', () => {
     beforeAll(async () => {
         await ApiClientScreen.open(testName);
         await verifyApiClient(testName, testBaseUrl);
-        await ApiClientScreen.uploadButton.tap();
+        await ApiClientScreen.selectUpload();
     });
 
     it('should be able to upload selected file', async () => {

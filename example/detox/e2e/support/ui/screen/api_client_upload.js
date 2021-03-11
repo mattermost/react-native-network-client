@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {ProgressiveFileUpload} from '@support/ui/component';
+import {isAndroid} from '@support/utils';
 
 class ApiClientUploadScreen {
     testID = {
@@ -31,7 +32,11 @@ class ApiClientUploadScreen {
     }
 
     back = async () => {
-        await this.apiClientButton.tap();
+        if (isAndroid()) {
+            await device.pressBack();
+        } else {
+            await this.apiClientButton.tap();
+        }
         await expect(this.apiClientUploadScreen).not.toBeVisible();
     }
 

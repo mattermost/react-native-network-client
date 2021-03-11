@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {isAndroid} from '@support/utils';
+
 class ApiClientFastImageScreen {
     testID = {
         imageUrlInput: 'api_client_fast_image.image_url.input',
@@ -20,7 +22,11 @@ class ApiClientFastImageScreen {
     }
 
     back = async () => {
-        await this.apiClientButton.tap();
+        if (isAndroid()) {
+            await device.pressBack();
+        } else {
+            await this.apiClientButton.tap();
+        }
         await expect(this.apiClientFastImageScreen).not.toBeVisible();
     }
 

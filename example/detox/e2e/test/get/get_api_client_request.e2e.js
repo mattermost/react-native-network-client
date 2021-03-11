@@ -44,7 +44,7 @@ describe('Get - API Client Request', () => {
 
         await ApiClientScreen.open(testName);
         await verifyApiClient(testName, testBaseUrl, customHeaders);
-        await ApiClientScreen.getButton.tap();
+        await ApiClientScreen.selectGet();
     });
 
     it('should return a valid response', async () => {

@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {ClientListScreen} from '@support/ui/screen';
+import {isAndroid} from '@support/utils';
 
 class CreateWebSocketClientScreen {
     createWebSocketClientScreen = element(by.text('CreateWebSocketClient'));
@@ -28,7 +29,11 @@ class CreateWebSocketClientScreen {
     }
 
     back = async () => {
-        await this.clientListButton.tap();
+        if (isAndroid()) {
+            await device.pressBack();
+        } else {
+            await this.clientListButton.tap();
+        }
         await expect(this.createWebSocketClientScreen).not.toBeVisible();
     }
 

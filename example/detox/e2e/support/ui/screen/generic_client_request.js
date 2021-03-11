@@ -8,6 +8,7 @@ import {
     RetryPolicyConfiguration,
 } from '@support/ui/component';
 import {ClientListScreen} from '@support/ui/screen';
+import {isAndroid} from '@support/utils';
 
 class GenericClientRequestScreen {
     testID = {
@@ -53,7 +54,11 @@ class GenericClientRequestScreen {
     }
 
     back = async () => {
-        await this.clientListButton.tap();
+        if (isAndroid()) {
+            await device.pressBack();
+        } else {
+            await this.clientListButton.tap();
+        }
         await expect(this.genericClientRequestScreen).not.toBeVisible();
     }
 

@@ -37,6 +37,7 @@ const ListHeaders = ({ headers }: ListHeadersProps) => (
                     header={header}
                     index={index}
                     disabled={true}
+                    testID="list_headers.header_list_item"
                 />
             ))}
         </View>

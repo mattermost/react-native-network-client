@@ -28,7 +28,7 @@ describe('Fast Image Cookie Token - API Client Request', () => {
     beforeAll(async () => {
         await ApiClientScreen.open(testName);
         await verifyApiClient(testName, testBaseUrl);
-        await ApiClientScreen.fastImageButton.tap();
+        await ApiClientScreen.selectFastImage();
     });
 
     it('should display fast image - with cookie token on protected request', async () => {
