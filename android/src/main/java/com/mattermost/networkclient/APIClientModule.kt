@@ -1,6 +1,7 @@
 package com.mattermost.networkclient
 
 import com.facebook.react.bridge.*
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okio.IOException
@@ -64,7 +65,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     @ReactMethod
     fun get(baseUrl: String, endpoint: String, options: ReadableMap, promise: Promise) {
         try {
-            val request = sessionsRequest[baseUrl]!!.url("$baseUrl/$endpoint").parseOptions(options, sessionsClient[baseUrl]!!).build();
+            val request = sessionsRequest[baseUrl]!!.url(formUrlString(baseUrl, endpoint)).parseOptions(options, sessionsClient[baseUrl]!!).build();
             sessionsClient[baseUrl]!!.build().newCall(request).execute().use { response ->
                 response.promiseResolution(promise)
             }
@@ -76,7 +77,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     @ReactMethod
     fun post(baseUrl: String, endpoint: String, options: ReadableMap, promise: Promise) {
         try {
-            val request = sessionsRequest[baseUrl]!!.url("$baseUrl/$endpoint").post(options.bodyToRequestBody()).parseOptions(options, sessionsClient[baseUrl]!!).build();
+            val request = sessionsRequest[baseUrl]!!.url(formUrlString(baseUrl, endpoint)).post(options.bodyToRequestBody()).parseOptions(options, sessionsClient[baseUrl]!!).build();
             sessionsClient[baseUrl]!!.build().newCall(request).execute().use { response ->
                 response.promiseResolution(promise)
             }
@@ -88,7 +89,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     @ReactMethod
     fun put(baseUrl: String, endpoint: String, options: ReadableMap, promise: Promise) {
         try {
-            val request = sessionsRequest[baseUrl]!!.url("$baseUrl/$endpoint").put(options.bodyToRequestBody()).parseOptions(options, sessionsClient[baseUrl]!!).build();
+            val request = sessionsRequest[baseUrl]!!.url(formUrlString(baseUrl, endpoint)).put(options.bodyToRequestBody()).parseOptions(options, sessionsClient[baseUrl]!!).build();
             sessionsClient[baseUrl]!!.build().newCall(request).execute().use { response ->
                 response.promiseResolution(promise)
             }
@@ -100,7 +101,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     @ReactMethod
     fun patch(baseUrl: String, endpoint: String, options: ReadableMap, promise: Promise) {
         try {
-            val request = sessionsRequest[baseUrl]!!.url("$baseUrl/$endpoint").patch(options.bodyToRequestBody()).parseOptions(options, sessionsClient[baseUrl]!!).build();
+            val request = sessionsRequest[baseUrl]!!.url(formUrlString(baseUrl, endpoint)).patch(options.bodyToRequestBody()).parseOptions(options, sessionsClient[baseUrl]!!).build();
             sessionsClient[baseUrl]!!.build().newCall(request).execute().use { response ->
                 response.promiseResolution(promise)
             }
@@ -112,7 +113,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     @ReactMethod
     fun delete(baseUrl: String, endpoint: String, options: ReadableMap, promise: Promise) {
         try {
-            val request = sessionsRequest[baseUrl]!!.url("$baseUrl/$endpoint").delete(options.bodyToRequestBody()).parseOptions(options, sessionsClient[baseUrl]!!).build();
+            val request = sessionsRequest[baseUrl]!!.url(formUrlString(baseUrl, endpoint)).delete(options.bodyToRequestBody()).parseOptions(options, sessionsClient[baseUrl]!!).build();
             sessionsClient[baseUrl]!!.build().newCall(request).execute().use { response ->
                 response.promiseResolution(promise)
             }

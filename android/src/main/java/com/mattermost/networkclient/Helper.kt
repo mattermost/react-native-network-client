@@ -4,6 +4,7 @@ import com.facebook.react.bridge.*
 import okhttp3.*
 import java.util.concurrent.TimeUnit
 import com.mattermost.networkclient.interceptors.*
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 
@@ -54,8 +55,11 @@ fun Request.Builder.parseOptions(options: ReadableMap, session: OkHttpClient.Bui
 
     // Headers
     if (options.hasKey("headers")) {
-        session.addNetworkInterceptor(HeadersInterceptor(options.getMap("headers")!!));
+        this.addReadableMap(options.getMap("headers")!!)
     }
+
+    // Need to always close the connection once finished
+    this.header("Connection", "close")
 
     return this;
 }
@@ -169,4 +173,15 @@ fun ReadableMap.bodyToRequestBody(): RequestBody {
     } else {
         this.getString("body")!!.toRequestBody()
     }
+}
+
+/**
+ * Forms a URL String from the given params
+ *
+ * @param baseUrl
+ * @param endpoint
+ * @return url string
+ */
+fun formUrlString(baseUrl: String, endpoint: String): String{
+    return baseUrl.toHttpUrlOrNull()!!.newBuilder().addPathSegments(endpoint.trim { c -> c == '/' }).build().toString()
 }
