@@ -29,7 +29,7 @@ export const useSessionConfiguration = (): UseSessionConfigurationResponse => {
         timeoutIntervalForResource: 30,
         httpMaximumConnectionsPerHost: 10,
         cancelRequestsOnUnauthorized: false,
-        trustSelfSignedCertificate: false,
+        trustSelfSignedServerCertificate: false,
     });
 
     const toggleFollowRedirects = () =>
@@ -52,10 +52,10 @@ export const useSessionConfiguration = (): UseSessionConfigurationResponse => {
             ...sessionConfiguration,
             cancelRequestsOnUnauthorized: !sessionConfiguration.cancelRequestsOnUnauthorized,
         });
-    const toggleTrustSelfSignedCertificate = () =>
+    const toggleTrustSelfSignedServerCertificate = () =>
         setSessionConfiguration({
             ...sessionConfiguration,
-            trustSelfSignedCertificate: !sessionConfiguration.trustSelfSignedCertificate,
+            trustSelfSignedServerCertificate: !sessionConfiguration.trustSelfSignedServerCertificate,
         });
     const setTimeoutIntervalForRequest = (timeoutIntervalForRequest: number) =>
         setSessionConfiguration({
@@ -83,7 +83,7 @@ export const useSessionConfiguration = (): UseSessionConfigurationResponse => {
         toggleAllowsCellularAccess,
         toggleWaitsForConnectivity,
         toggleCancelRequestsOnUnauthorized,
-        toggleTrustSelfSignedCertificate,
+        toggleTrustSelfSignedServerCertificate,
         setTimeoutIntervalForRequest,
         setTimeoutIntervalForResource,
         setHttpMaximumConnectionsPerHost,

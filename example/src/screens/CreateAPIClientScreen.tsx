@@ -36,7 +36,7 @@ export default function CreateAPIClientScreen({
         toggleAllowsCellularAccess,
         toggleWaitsForConnectivity,
         toggleCancelRequestsOnUnauthorized,
-        toggleTrustSelfSignedCertificate,
+        toggleTrustSelfSignedServerCertificate,
         setTimeoutIntervalForRequest,
         setTimeoutIntervalForResource,
         setHttpMaximumConnectionsPerHost,
@@ -229,11 +229,11 @@ export default function CreateAPIClientScreen({
                 />
 
                 <CheckBox
-                    title={`Trust Self-Signed Server Certificate? ${sessionConfiguration.trustSelfSignedCertificate}`}
+                    title={`Trust Self-Signed Server Certificate? ${sessionConfiguration.trustSelfSignedServerCertificate}`}
                     checked={
-                        sessionConfiguration.trustSelfSignedCertificate as boolean
+                        sessionConfiguration.trustSelfSignedServerCertificate as boolean
                     }
-                    onPress={toggleTrustSelfSignedCertificate}
+                    onPress={toggleTrustSelfSignedServerCertificate}
                     iconType="ionicon"
                     checkedIcon="ios-checkmark-circle"
                     uncheckedIcon="ios-checkmark-circle"
