@@ -91,6 +91,7 @@ declare global {
         timeoutIntervalForResource?: number;
         httpMaximumConnectionsPerHost?: number;
         cancelRequestsOnUnauthorized?: boolean;
+        trustSelfSignedCertificate?: boolean;
     };
 
     type RetryPolicyConfiguration = {

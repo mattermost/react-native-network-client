@@ -36,6 +36,7 @@ export default function CreateAPIClientScreen({
         toggleAllowsCellularAccess,
         toggleWaitsForConnectivity,
         toggleCancelRequestsOnUnauthorized,
+        toggleTrustSelfSignedCertificate,
         setTimeoutIntervalForRequest,
         setTimeoutIntervalForResource,
         setHttpMaximumConnectionsPerHost,
@@ -179,9 +180,7 @@ export default function CreateAPIClientScreen({
 
                 <CheckBox
                     title={`Follow Redirects? ${sessionConfiguration.followRedirects}`}
-                    checked={
-                        sessionConfiguration.followRedirects as boolean
-                    }
+                    checked={sessionConfiguration.followRedirects as boolean}
                     onPress={toggleFollowRedirects}
                     iconType="ionicon"
                     checkedIcon="ios-checkmark-circle"
@@ -222,6 +221,19 @@ export default function CreateAPIClientScreen({
                         sessionConfiguration.cancelRequestsOnUnauthorized as boolean
                     }
                     onPress={toggleCancelRequestsOnUnauthorized}
+                    iconType="ionicon"
+                    checkedIcon="ios-checkmark-circle"
+                    uncheckedIcon="ios-checkmark-circle"
+                    iconRight
+                    textStyle={styles.checkboxText}
+                />
+
+                <CheckBox
+                    title={`Trust Self-Signed Server Certificate? ${sessionConfiguration.trustSelfSignedCertificate}`}
+                    checked={
+                        sessionConfiguration.trustSelfSignedCertificate as boolean
+                    }
+                    onPress={toggleTrustSelfSignedCertificate}
                     iconType="ionicon"
                     checkedIcon="ios-checkmark-circle"
                     uncheckedIcon="ios-checkmark-circle"
