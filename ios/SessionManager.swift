@@ -34,7 +34,8 @@ import SwiftyJSON
                        withRedirectHandler redirectHandler:RedirectHandler? = nil,
                        withCancelRequestsOnUnauthorized cancelRequestsOnUnauthorized:Bool = false,
                        withBearerAuthTokenResponseHeader bearerAuthTokenResponseHeader:String? = nil,
-                       withClientP12Configuration clientP12Configuration:[String:String]? = nil) -> Void {
+                       withClientP12Configuration clientP12Configuration:[String:String]? = nil,
+                       withTrustSelfSignedServerCertificate trustSelfSignedServerCertificate:Bool = false) -> Void {
         var session = getSession(for: baseUrl)
         if (session != nil) {
             return
@@ -44,6 +45,7 @@ import SwiftyJSON
         session?.baseUrl = baseUrl
         session?.cancelRequestsOnUnauthorized = cancelRequestsOnUnauthorized
         session?.bearerAuthTokenResponseHeader = bearerAuthTokenResponseHeader
+        session?.trustSelfSignedServerCertificate = trustSelfSignedServerCertificate
         if let clientP12Configuration = clientP12Configuration {
             let path = clientP12Configuration["path"]
             let password = clientP12Configuration["password"]
@@ -82,27 +84,20 @@ import SwiftyJSON
                       withInterceptor: previousSession.interceptor as? Interceptor,
                       withRedirectHandler: previousSession.redirectHandler,
                       withCancelRequestsOnUnauthorized: previousSession.cancelRequestsOnUnauthorized,
-                      withBearerAuthTokenResponseHeader: previousSession.bearerAuthTokenResponseHeader)
-    }
-    
-    func getSession(for baseUrlString:String) -> Session? {
-        if let baseUrl = URL(string: baseUrlString) {
-            return getSession(for: baseUrl)
-        }
-        
-        return nil
+                      withBearerAuthTokenResponseHeader: previousSession.bearerAuthTokenResponseHeader,
+                      withTrustSelfSignedServerCertificate: previousSession.trustSelfSignedServerCertificate)
     }
     
     func getSession(for baseUrl:URL) -> Session? {
         return sessions[baseUrl]
     }
     
-    func getSessionBaseUrlString(for urlSession:URLSession) -> String? {
+    func getSession(for urlSession:URLSession) -> Session? {
         guard let session = Array(sessions.values).first(where: {$0.session == urlSession}) else {
             return nil
         }
         
-        return session.baseUrl.absoluteString
+        return session
     }
     
     @objc public func getSessionBaseUrlString(for request:URLRequest) -> String? {

@@ -19,7 +19,7 @@ let API_CLIENT_EVENTS = [
 let MISSING_CLIENT_CERT_NOTIF_NAME = Notification.Name(API_CLIENT_EVENTS["CLIENT_CERTIFICATE_MISSING"]!)
 
 class APIClientSessionDelegate: SessionDelegate {
-    override open func urlSession(_ session: URLSession,
+    override open func urlSession(_ urlSession: URLSession,
                                   task: URLSessionTask,
                                   didReceive challenge: URLAuthenticationChallenge,
                                   completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
@@ -27,8 +27,16 @@ class APIClientSessionDelegate: SessionDelegate {
         var disposition: URLSession.AuthChallengeDisposition = .performDefaultHandling
 
         let authMethod = challenge.protectionSpace.authenticationMethod
-        if authMethod == NSURLAuthenticationMethodClientCertificate {
-            if let serverUrl = SessionManager.default.getSessionBaseUrlString(for: session) {
+        if authMethod == NSURLAuthenticationMethodServerTrust {
+            if let session = SessionManager.default.getSession(for: urlSession) {
+                if session.trustSelfSignedServerCertificate {
+                    credential = URLCredential(trust: challenge.protectionSpace.serverTrust!)
+                    disposition = .useCredential
+                }
+            }
+        } else if authMethod == NSURLAuthenticationMethodClientCertificate {
+            if let session = SessionManager.default.getSession(for: urlSession) {
+                let serverUrl = session.baseUrl.absoluteString
                 if let (identity, certificate) = Keychain.getClientIdentityAndCertificate(for: serverUrl) {
                     credential = URLCredential(identity: identity, certificates: [certificate], persistence: URLCredential.Persistence.permanent)
                 } else {
@@ -98,6 +106,7 @@ class APIClient: RCTEventEmitter, NetworkClient {
             let cancelRequestsOnUnauthorized = options["sessionConfiguration"]["cancelRequestsOnUnauthorized"].boolValue
             let bearerAuthTokenResponseHeader = options["requestAdapterConfiguration"]["bearerAuthTokenResponseHeader"].string
             let clientP12Configuration = options["clientP12Configuration"].dictionaryObject as? [String:String]
+            let trustSelfSignedServerCertificate = options["sessionConfiguration"]["trustSelfSignedServerCertificate"].boolValue
 
             resolve(
                 SessionManager.default.createSession(for: baseUrl,
@@ -108,7 +117,8 @@ class APIClient: RCTEventEmitter, NetworkClient {
                                                      withRedirectHandler: redirectHandler,
                                                      withCancelRequestsOnUnauthorized: cancelRequestsOnUnauthorized,
                                                      withBearerAuthTokenResponseHeader: bearerAuthTokenResponseHeader,
-                                                     withClientP12Configuration: clientP12Configuration)
+                                                     withClientP12Configuration: clientP12Configuration,
+                                                     withTrustSelfSignedServerCertificate: trustSelfSignedServerCertificate)
             )
 
             return
