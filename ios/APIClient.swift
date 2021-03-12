@@ -19,7 +19,10 @@ let API_CLIENT_EVENTS = [
 let MISSING_CLIENT_CERT_NOTIF_NAME = Notification.Name(API_CLIENT_EVENTS["CLIENT_CERTIFICATE_MISSING"]!)
 
 class APIClientSessionDelegate: SessionDelegate {
-    func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
+    override open func urlSession(_ session: URLSession,
+                                  task: URLSessionTask,
+                                  didReceive challenge: URLAuthenticationChallenge,
+                                  completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
         var credential: URLCredential? = nil
         var disposition: URLSession.AuthChallengeDisposition = .performDefaultHandling
 
@@ -44,7 +47,6 @@ class APIClient: RCTEventEmitter, NetworkClient {
     var emitter: RCTEventEmitter!
     var hasListeners: Bool!
     let requestsTable = NSMapTable<NSString, UploadRequest>.strongToWeakObjects()
-    let sessionDelegate: SessionDelegate = APIClientSessionDelegate()
     
     override init() {
         super.init()
@@ -82,6 +84,12 @@ class APIClient: RCTEventEmitter, NetworkClient {
             return
         }
 
+        let rootQueue = DispatchQueue(label: "com.mattermost.react-native-network-client.rootQueue")
+        var sessionDelegate: SessionDelegate? = nil
+        rootQueue.sync {
+            sessionDelegate = APIClientSessionDelegate()
+        }
+
         let options = JSON(options)
         if options != JSON.null {
             let configuration = getURLSessionConfiguration(from: options)
@@ -93,7 +101,8 @@ class APIClient: RCTEventEmitter, NetworkClient {
 
             resolve(
                 SessionManager.default.createSession(for: baseUrl,
-                                                     withDelegate: sessionDelegate,
+                                                     withRootQueue: rootQueue,
+                                                     withDelegate: sessionDelegate!,
                                                      withConfiguration: configuration,
                                                      withInterceptor: interceptor,
                                                      withRedirectHandler: redirectHandler,
@@ -106,7 +115,7 @@ class APIClient: RCTEventEmitter, NetworkClient {
         }
         
 
-        resolve(SessionManager.default.createSession(for: baseUrl, withDelegate: sessionDelegate))
+        resolve(SessionManager.default.createSession(for: baseUrl, withRootQueue: rootQueue, withDelegate: sessionDelegate!))
     }
 
     @objc(invalidateClientFor:withResolver:withRejecter:)

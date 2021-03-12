@@ -27,6 +27,7 @@ import SwiftyJSON
     //  * CachedResponseHandler
     //  * EventMonitor(s)
     func createSession(for baseUrl:URL,
+                       withRootQueue rootQueue: DispatchQueue,
                        withDelegate delegate: SessionDelegate,
                        withConfiguration configuration:URLSessionConfiguration = URLSessionConfiguration.af.default,
                        withInterceptor interceptor:Interceptor? = nil,
@@ -39,7 +40,7 @@ import SwiftyJSON
             return
         }
 
-        session = Session(configuration: configuration, delegate: delegate, interceptor: interceptor, redirectHandler: redirectHandler)
+        session = Session(configuration: configuration, delegate: delegate, rootQueue: rootQueue, interceptor: interceptor, redirectHandler: redirectHandler)
         session?.baseUrl = baseUrl
         session?.cancelRequestsOnUnauthorized = cancelRequestsOnUnauthorized
         session?.bearerAuthTokenResponseHeader = bearerAuthTokenResponseHeader
@@ -67,6 +68,7 @@ import SwiftyJSON
 
         invalidateSession(for: baseUrl)
 
+        let rootQueue = previousSession.rootQueue
         let delegate = previousSession.delegate
         let configuration = previousSession.sessionConfiguration
         let previousHeaders = configuration.httpAdditionalHeaders ?? [:]
@@ -74,6 +76,7 @@ import SwiftyJSON
         configuration.httpAdditionalHeaders = newHeaders
 
         createSession(for: baseUrl,
+                      withRootQueue: rootQueue,
                       withDelegate: delegate,
                       withConfiguration: configuration,
                       withInterceptor: previousSession.interceptor as? Interceptor,
