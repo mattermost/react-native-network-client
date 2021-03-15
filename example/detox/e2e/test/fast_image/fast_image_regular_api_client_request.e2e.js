@@ -27,7 +27,7 @@ describe('Fast Image Regular - API Client Request', () => {
     beforeAll(async () => {
         await ApiClientScreen.open(testName);
         await verifyApiClient(testName, testBaseUrl);
-        await ApiClientScreen.fastImageButton.tap();
+        await ApiClientScreen.selectFastImage();
     });
 
     it('should display fast image - regular request', async () => {

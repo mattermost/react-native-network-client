@@ -27,7 +27,7 @@ describe('Fast Image Header Token - API Client Request', () => {
     beforeAll(async () => {
         await ApiClientScreen.open(testName);
         await verifyApiClient(testName, testBaseUrl);
-        await ApiClientScreen.fastImageButton.tap();
+        await ApiClientScreen.selectFastImage();
     });
 
     it('should display fast image - with header token on protected request', async () => {

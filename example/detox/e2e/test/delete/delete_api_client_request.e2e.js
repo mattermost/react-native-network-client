@@ -46,7 +46,7 @@ describe('Delete - API Client Request', () => {
 
         await ApiClientScreen.open(testName);
         await verifyApiClient(testName, testBaseUrl, customHeaders);
-        await ApiClientScreen.deleteButton.tap();
+        await ApiClientScreen.selectDelete();
     });
 
     it('should return a valid response', async () => {

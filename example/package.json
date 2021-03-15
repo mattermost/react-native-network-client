@@ -8,7 +8,7 @@
     "ios": "react-native run-ios",
     "fast-image-server": "node file_server.js -p 8009 -u './detox/e2e/support/fixtures'",
     "file-upload-server": "node file_server.js -p 8008 -u './upload'",
-    "mockserver": "mockserver -p 8080 -m './mocks'",
+    "mockserver": "node mockserver.js -p 8080 -m './mocks'",
     "postinstall": "patch-package",
     "start": "react-native start"
   },
@@ -49,6 +49,7 @@
     "express-jwt": "6.0.0",
     "jsonwebtoken": "8.5.1",
     "metro-react-native-babel-preset": "0.63.0",
+    "mockserver": "3.1.1",
     "patch-package": "^6.2.2"
   }
 }

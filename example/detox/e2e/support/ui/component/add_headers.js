@@ -12,7 +12,7 @@ class AddHeaders {
     addEmptyHeaderButton = element(by.id(this.testID.addEmptyHeaderButton));
 
     getHeaderListItemAtIndex = (index) => {
-        return HeaderListItem.getItemAtIndex(index);
+        return HeaderListItem.getAddHeadersItemAtIndex(index);
     }
 
     setHeader = async (index, key, value) => {

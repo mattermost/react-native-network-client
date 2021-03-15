@@ -46,7 +46,7 @@ describe('Patch - API Client Request', () => {
 
         await ApiClientScreen.open(testName);
         await verifyApiClient(testName, testBaseUrl, customHeaders);
-        await ApiClientScreen.patchButton.tap();
+        await ApiClientScreen.selectPatch();
     });
 
     it('should return a valid response', async () => {

@@ -95,7 +95,7 @@ export default function APIClientScreen({
 
     return (
         <SafeAreaView>
-            <ScrollView>
+            <ScrollView testID="api_client.scroll_view">
                 <Input
                     label="Name"
                     value={name}

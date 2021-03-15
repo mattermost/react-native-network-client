@@ -9,6 +9,7 @@ type HeaderListItemProps = {
     header: Header;
     updateHeader?: (header: Header, index: number) => void;
     disabled?: boolean;
+    testID?: string;
 };
 
 const HeaderListItem = ({
@@ -16,6 +17,7 @@ const HeaderListItem = ({
     header,
     updateHeader,
     disabled,
+    testID,
 }: HeaderListItemProps) => {
     const updateHeaderKey = (key: string) =>
         updateHeader && updateHeader({ ...header, key }, index);
@@ -30,7 +32,7 @@ const HeaderListItem = ({
                 placeholder="key"
                 value={header.key}
                 disabled={disabled}
-                testID={`header_list_item.${index}.key.input`}
+                testID={`${testID}.${index}.key.input`}
             />
             <Input
                 containerStyle={{ flex: 1 }}
@@ -38,7 +40,7 @@ const HeaderListItem = ({
                 placeholder="value"
                 value={header.value}
                 disabled={disabled}
-                testID={`header_list_item.${index}.value.input`}
+                testID={`${testID}.${index}.value.input`}
             />
         </ListItem>
     );

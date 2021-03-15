@@ -37,6 +37,10 @@ describe('Create API Client', () => {
         exponentialBackoffScale: `${getRandomInt(5) + 3}`,
     };
     const {
+        clientListScrollView,
+        removeClientWithName,
+    } = ClientListScreen;
+    const {
         createApiClientScrollView,
         createClient,
         setBaseUrl,
@@ -72,6 +76,7 @@ describe('Create API Client', () => {
         await createClient();
 
         // * Verify created client
+        await clientListScrollView.scrollTo('bottom');
         await ApiClientScreen.open(testName);
         await verifyApiClient(testName, testBaseUrl, testHeaders);
 
@@ -105,7 +110,7 @@ describe('Create API Client', () => {
 
     it('should be able to remove an API client', async () => {
         // # Remove client
-        await ClientListScreen.removeClientWithName(testName);
+        await removeClientWithName(testName);
 
         // * Verify client is removed
         await expect(element(by.text(testName))).not.toBeVisible();

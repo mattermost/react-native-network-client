@@ -4,7 +4,12 @@
 import {Alert} from '@support/ui/component';
 
 class ClientListScreen {
+    testID = {
+        clientListScrollView: 'client_list.scroll_view',
+    }
+
     clientListScreen = element(by.text('ClientList'));
+    clientListScrollView = element(by.id(this.testID.clientListScrollView));
     genericClientAction = element(by.text('Generic'));
     addApiClientButton = element(by.text('Add API Client'));
     addWebSocketClientButton = element(by.text('Add WebSocket Client'));

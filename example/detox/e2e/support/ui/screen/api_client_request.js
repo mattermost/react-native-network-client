@@ -6,6 +6,7 @@ import {
     ResponseOverlay,
     RetryPolicyConfiguration,
 } from '@support/ui/component';
+import {isAndroid} from '@support/utils';
 
 class ApiClientRequestScreen {
     testID = {
@@ -34,7 +35,11 @@ class ApiClientRequestScreen {
     }
 
     back = async () => {
-        await this.apiClientButton.tap();
+        if (isAndroid()) {
+            await device.pressBack();
+        } else {
+            await this.apiClientButton.tap();
+        }
         await expect(this.apiClientRequestScreen).not.toBeVisible();
     }
 
