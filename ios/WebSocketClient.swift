@@ -113,7 +113,6 @@ class WebSocketClient: RCTEventEmitter, WebSocketDelegate {
             return
         }
  
-        // TODO: Delete imported identity from Keychain
         resolve(WebSocketManager.default.invalidateClient(for: url)) 
     }
     

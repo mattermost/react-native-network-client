@@ -71,6 +71,7 @@ class WebSocketManager: NSObject {
             return
         }
         
+        Keychain.deleteClientP12(for: url.absoluteString)
         webSocket.forceDisconnect()
         webSocket.delegate = nil
         webSockets.removeValue(forKey: url)
