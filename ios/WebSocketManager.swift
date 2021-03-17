@@ -28,8 +28,8 @@ class WebSocketManager: NSObject {
         }
         
         var request = URLRequest(url: url)
-        var certPinner: CertificatePinning? = nil;
-        var compressionHandler: CompressionHandler? = nil;
+        var compressionHandler: CompressionHandler? = nil
+        var clientCredential: URLCredential? = nil
 
         let options = JSON(options)
         if options != JSON.null {
@@ -43,17 +43,20 @@ class WebSocketManager: NSObject {
                 request.timeoutInterval = timeoutInterval
             }
             
+            if let clientP12Configuration = options["clientP12Configuration"].dictionaryObject as? [String:String] {
+                let path = clientP12Configuration["path"]
+                let password = clientP12Configuration["password"]
+                Keychain.importClientP12(withPath: path!, withPassword: password, forServerUrl: url.absoluteString)
+                let (identity, certificate) = Keychain.getClientIdentityAndCertificate(for: url.absoluteString)!
+                clientCredential = URLCredential(identity: identity, certificates: [certificate], persistence: URLCredential.Persistence.permanent)
+            }
+            
             if options["enableCompression"].boolValue {
                 compressionHandler = WSCompression()
             }
-            
-            let sslPinning = options["sslPinningConfiguration"]
-            if sslPinning["enabled"].boolValue {
-                certPinner = FoundationSecurity(allowSelfSigned: sslPinning["allowSelfSigned"].boolValue)
-            }
         }
 
-        let webSocket = WebSocket(request: request, certPinner: certPinner, compressionHandler: compressionHandler)
+        let webSocket = WebSocket(request: request, clientCredential: clientCredential, compressionHandler: compressionHandler)
         webSocket.delegate = delegate
         
         webSockets[url] = webSocket

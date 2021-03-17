@@ -28,8 +28,8 @@ const AddHeaders = ({ onHeadersChanged }: AddHeadersProps) => {
             type="clear"
             icon={<Icon name="add-circle" size={24} />}
             onPress={addEmptyHeader}
-            testID='add_empty_header.button'
-        ></Button>
+            testID="add_empty_header.button"
+        />
     );
 
     return (
@@ -59,6 +59,7 @@ const AddHeaders = ({ onHeadersChanged }: AddHeadersProps) => {
                         header={header}
                         index={index}
                         updateHeader={updateHeader}
+                        testID="add_headers.header_list_item"
                     />
                 ))}
             </View>

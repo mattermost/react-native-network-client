@@ -22,7 +22,7 @@ const APIClientRequestScreen = ({ route }: APIClientRequestScreenProps) => {
     );
     const [timeoutInterval, setTimeoutInterval] = useState(30);
     const [body, setBody] = useState(
-        '{"login_id":"username","password":"password"}'
+        '{"login_id":"user-1","password":"password"}'
     );
     const [requestHeaders, setRequestHeaders] = useState<Header[]>([]);
     const [response, setResponse] = useState<ClientResponse>();
@@ -93,7 +93,7 @@ const APIClientRequestScreen = ({ route }: APIClientRequestScreenProps) => {
                     value={endpoint}
                     onChangeText={setEndpoint}
                     autoCapitalize="none"
-                    testID='api_client_request.path.input'
+                    testID="api_client_request.path.input"
                 />
                 <AddHeaders onHeadersChanged={setRequestHeaders} />
                 {method !== METHODS.GET && (
@@ -103,7 +103,7 @@ const APIClientRequestScreen = ({ route }: APIClientRequestScreenProps) => {
                         value={body}
                         onChangeText={setBody}
                         autoCapitalize="none"
-                        testID='api_client_request.body.input'
+                        testID="api_client_request.body.input"
                     />
                 )}
                 <NumericInput
@@ -111,7 +111,7 @@ const APIClientRequestScreen = ({ route }: APIClientRequestScreenProps) => {
                     value={timeoutInterval}
                     onChange={setTimeoutInterval}
                     minValue={0}
-                    testID='api_client_request.timeout_interval.input'
+                    testID="api_client_request.timeout_interval.input"
                 />
                 <RetryPolicyConfiguration
                     checked={Boolean(retryPolicyConfiguration.type)}

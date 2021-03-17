@@ -66,6 +66,7 @@ export default function ClientListScreen({
                 data={clients}
                 renderItem={renderItem}
                 keyExtractor={networkClientKeyExtractor}
+                testID="client_list.scroll_view"
             />
             <ButtonGroup
                 buttons={buttons.map((button) => button.title)}

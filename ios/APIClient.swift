@@ -9,25 +9,72 @@
 
 import Alamofire
 import SwiftyJSON
-import SwiftKeychainWrapper
 import React
+
+let API_CLIENT_EVENTS = [
+    "UPLOAD_PROGRESS": "APIClient-UploadProgress",
+    "CLIENT_CERTIFICATE_MISSING": "APIClient-Client-Certificate-Missing",
+]
+
+let MISSING_CLIENT_CERT_NOTIF_NAME = Notification.Name(API_CLIENT_EVENTS["CLIENT_CERTIFICATE_MISSING"]!)
+
+class APIClientSessionDelegate: SessionDelegate {
+    override open func urlSession(_ urlSession: URLSession,
+                                  task: URLSessionTask,
+                                  didReceive challenge: URLAuthenticationChallenge,
+                                  completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
+        var credential: URLCredential? = nil
+        var disposition: URLSession.AuthChallengeDisposition = .performDefaultHandling
+
+        let authMethod = challenge.protectionSpace.authenticationMethod
+        if authMethod == NSURLAuthenticationMethodServerTrust {
+            if let session = SessionManager.default.getSession(for: urlSession) {
+                if session.trustSelfSignedServerCertificate {
+                    credential = URLCredential(trust: challenge.protectionSpace.serverTrust!)
+                    disposition = .useCredential
+                }
+            }
+        } else if authMethod == NSURLAuthenticationMethodClientCertificate {
+            if let session = SessionManager.default.getSession(for: urlSession) {
+                let serverUrl = session.baseUrl.absoluteString
+                if let (identity, certificate) = Keychain.getClientIdentityAndCertificate(for: serverUrl) {
+                    credential = URLCredential(identity: identity, certificates: [certificate], persistence: URLCredential.Persistence.permanent)
+                } else {
+                    NotificationCenter.default.post(name: MISSING_CLIENT_CERT_NOTIF_NAME, object: nil, userInfo: ["serverUrl": serverUrl])
+                }
+            }
+            disposition = .useCredential
+        }
+
+        completionHandler(disposition, credential)
+    }
+}
 
 @objc(APIClient)
 class APIClient: RCTEventEmitter, NetworkClient {
     var emitter: RCTEventEmitter!
     var hasListeners: Bool!
     let requestsTable = NSMapTable<NSString, UploadRequest>.strongToWeakObjects()
+    
+    override init() {
+        super.init()
+        NotificationCenter.default.addObserver(self, selector: #selector(self.missingCertificateHandler), name: MISSING_CLIENT_CERT_NOTIF_NAME, object: nil)
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self, name: MISSING_CLIENT_CERT_NOTIF_NAME, object: nil)
+    }
 
     func requiresMainQueueSetup() -> Bool {
         return false
     }
     
     override func constantsToExport() -> [AnyHashable : Any]! {
-        return CONSTANTS
+        return ["EVENTS": API_CLIENT_EVENTS, "RETRY_TYPES": RETRY_TYPES]
     }
 
     open override func supportedEvents() -> [String] {
-        ["NativeClient-UploadProgress"]
+        return Array(API_CLIENT_EVENTS.values)
     }
     
     override func startObserving() -> Void {
@@ -39,10 +86,16 @@ class APIClient: RCTEventEmitter, NetworkClient {
     }
     
     @objc(createClientFor:withOptions:withResolver:withRejecter:)
-    func createClientFor(baseUrlString: String, options: Dictionary<String, Any> = [:], resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
+    func createClientFor(baseUrlString: String, options: Dictionary<String, Any> = [:], resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
         guard let baseUrl = URL(string: baseUrlString) else {
             rejectMalformed(url: baseUrlString, withRejecter: reject)
             return
+        }
+
+        let rootQueue = DispatchQueue(label: "com.mattermost.react-native-network-client.rootQueue")
+        var sessionDelegate: SessionDelegate? = nil
+        rootQueue.sync {
+            sessionDelegate = APIClientSessionDelegate()
         }
 
         let options = JSON(options)
@@ -52,36 +105,41 @@ class APIClient: RCTEventEmitter, NetworkClient {
             let interceptor = getInterceptor(from: options)
             let cancelRequestsOnUnauthorized = options["sessionConfiguration"]["cancelRequestsOnUnauthorized"].boolValue
             let bearerAuthTokenResponseHeader = options["requestAdapterConfiguration"]["bearerAuthTokenResponseHeader"].string
+            let clientP12Configuration = options["clientP12Configuration"].dictionaryObject as? [String:String]
+            let trustSelfSignedServerCertificate = options["sessionConfiguration"]["trustSelfSignedServerCertificate"].boolValue
 
             resolve(
                 SessionManager.default.createSession(for: baseUrl,
+                                                     withRootQueue: rootQueue,
+                                                     withDelegate: sessionDelegate!,
                                                      withConfiguration: configuration,
                                                      withInterceptor: interceptor,
                                                      withRedirectHandler: redirectHandler,
                                                      withCancelRequestsOnUnauthorized: cancelRequestsOnUnauthorized,
-                                                     withBearerAuthTokenResponseHeader: bearerAuthTokenResponseHeader)
+                                                     withBearerAuthTokenResponseHeader: bearerAuthTokenResponseHeader,
+                                                     withClientP12Configuration: clientP12Configuration,
+                                                     withTrustSelfSignedServerCertificate: trustSelfSignedServerCertificate)
             )
 
             return
         }
         
-        resolve(SessionManager.default.createSession(for: baseUrl))
+
+        resolve(SessionManager.default.createSession(for: baseUrl, withRootQueue: rootQueue, withDelegate: sessionDelegate!))
     }
 
     @objc(invalidateClientFor:withResolver:withRejecter:)
-    func invalidateClientFor(baseUrlString: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {        
+    func invalidateClientFor(baseUrlString: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
         guard let baseUrl = URL(string: baseUrlString) else {
             rejectMalformed(url: baseUrlString, withRejecter: reject)
             return
         }
 
-        KeychainWrapper.standard.removeObject(forKey: baseUrl.absoluteString)
-
-        resolve(SessionManager.default.invalidateSession(for: baseUrl))
+        resolve(SessionManager.default.invalidateSession(for: baseUrl, withReset: true))
     }
 
     @objc(addClientHeadersFor:withHeaders:withResolver:withRejecter:)
-    func addClientHeadersFor(baseUrlString: String, headers: Dictionary<String, String>, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
+    func addClientHeadersFor(baseUrlString: String, headers: Dictionary<String, String>, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
         guard let baseUrl = URL(string: baseUrlString) else {
             rejectMalformed(url: baseUrlString, withRejecter: reject)
             return
@@ -96,7 +154,7 @@ class APIClient: RCTEventEmitter, NetworkClient {
     }
 
     @objc(getClientHeadersFor:withResolver:withRejecter:)
-    func getClientHeadersFor(baseUrlString: String, resolve: @escaping RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
+    func getClientHeadersFor(baseUrlString: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
         guard let baseUrl = URL(string: baseUrlString) else {
             rejectMalformed(url: baseUrlString, withRejecter: reject)
             return
@@ -111,28 +169,43 @@ class APIClient: RCTEventEmitter, NetworkClient {
         resolve(headers)
     }
     
+    @objc(importClientP12For:withPath:withPassword:withResolver:withRejecter:)
+    func importClientP12For(baseUrlString: String, path: String, password: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
+        guard let baseUrl = URL(string: baseUrlString) else {
+            rejectMalformed(url: baseUrlString, withRejecter: reject)
+            return
+        }
+    
+        guard let session = SessionManager.default.getSession(for: baseUrl) else {
+            rejectInvalidSession(for: baseUrl, withRejecter: reject)
+            return
+        }
+
+        resolve(Keychain.importClientP12(withPath: path, withPassword: password, forServerUrl: session.baseUrl.absoluteString))
+    }
+    
     @objc(get:forEndpoint:withOptions:withResolver:withRejecter:)
-    func get(baseUrl: String, endpoint: String, options: Dictionary<String, Any>, resolve: @escaping RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
+    func get(baseUrl: String, endpoint: String, options: Dictionary<String, Any>, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
         handleRequest(for: baseUrl, withEndpoint: endpoint, withMethod: .get, withOptions: JSON(options), withResolver: resolve, withRejecter: reject)
     }
 
     @objc(put:forEndpoint:withOptions:withResolver:withRejecter:)
-    func put(baseUrl: String, endpoint: String, options: Dictionary<String, Any>, resolve: @escaping RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
+    func put(baseUrl: String, endpoint: String, options: Dictionary<String, Any>, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
         handleRequest(for: baseUrl, withEndpoint: endpoint, withMethod: .put, withOptions: JSON(options), withResolver: resolve, withRejecter: reject)
     }
     
     @objc(post:forEndpoint:withOptions:withResolver:withRejecter:)
-    func post(baseUrl: String, endpoint: String, options: Dictionary<String, Any>, resolve: @escaping RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
+    func post(baseUrl: String, endpoint: String, options: Dictionary<String, Any>, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
         handleRequest(for: baseUrl, withEndpoint: endpoint, withMethod: .post, withOptions: JSON(options), withResolver: resolve, withRejecter: reject)
     }
 
     @objc(patch:forEndpoint:withOptions:withResolver:withRejecter:)
-    func patch(baseUrl: String, endpoint: String, options: Dictionary<String, Any>, resolve: @escaping RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
+    func patch(baseUrl: String, endpoint: String, options: Dictionary<String, Any>, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
         handleRequest(for: baseUrl, withEndpoint: endpoint, withMethod: .patch, withOptions: JSON(options), withResolver: resolve, withRejecter: reject)
     }
 
     @objc(delete:forEndpoint:withOptions:withResolver:withRejecter:)
-    func delete(baseUrl: String, endpoint: String, options: Dictionary<String, Any>, resolve: @escaping RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
+    func delete(baseUrl: String, endpoint: String, options: Dictionary<String, Any>, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
         handleRequest(for: baseUrl, withEndpoint: endpoint, withMethod: .delete, withOptions: JSON(options), withResolver: resolve, withRejecter: reject)
     }
 
@@ -178,7 +251,7 @@ class APIClient: RCTEventEmitter, NetworkClient {
             .uploadProgress { progress in
                 if (self.hasListeners) {
                     let fractionCompleted = initialFractionCompleted + (Double(progress.completedUnitCount) / fileSize)
-                    self.sendEvent(withName: "NativeClient-UploadProgress", body: ["taskId": taskId, "fractionCompleted": fractionCompleted])
+                    self.sendEvent(withName: API_CLIENT_EVENTS["UPLOAD_PROGRESS"], body: ["taskId": taskId, "fractionCompleted": fractionCompleted])
                 }
             }
             .responseJSON { json in
@@ -213,13 +286,13 @@ class APIClient: RCTEventEmitter, NetworkClient {
     }
     
     @objc(cancelRequest:withResolver:withRejecter:)
-    func cancelRequest(_ taskId: String, withResolver resolve: RCTPromiseResolveBlock, withRejecter reject: RCTPromiseRejectBlock) -> Void {
+    func cancelRequest(_ taskId: String, withResolver resolve: @escaping RCTPromiseResolveBlock, withRejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
         if let request = self.requestsTable.object(forKey: taskId as NSString) {
             request.cancel()
         }
     }
     
-    func handleRequest(for baseUrlString: String, withEndpoint endpoint: String, withMethod method: HTTPMethod, withOptions options: JSON, withResolver resolve: @escaping RCTPromiseResolveBlock, withRejecter reject: RCTPromiseRejectBlock) -> Void {
+    func handleRequest(for baseUrlString: String, withEndpoint endpoint: String, withMethod method: HTTPMethod, withOptions options: JSON, withResolver resolve: @escaping RCTPromiseResolveBlock, withRejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
         guard let baseUrl = URL(string: baseUrlString) else {
             rejectMalformed(url: baseUrlString, withRejecter: reject)
             return
@@ -234,12 +307,12 @@ class APIClient: RCTEventEmitter, NetworkClient {
         handleRequest(for: url, withMethod: method, withSession: session, withOptions: options, withResolver: resolve, withRejecter: reject)
     }
 
-    func handleResponse(for session: Session, withUrl url: URL, withData data: AFDataResponse<Any>) {
+    func handleResponse(for session: Session, withUrl url: URL, withData data: AFDataResponse<Any>) -> Void {
         if data.response?.statusCode == 401 && session.cancelRequestsOnUnauthorized {
             session.cancelAllRequests()
         } else if let tokenHeader = session.bearerAuthTokenResponseHeader {
             if let token = data.response?.allHeaderFields[tokenHeader] as? String {
-                KeychainWrapper.standard.set(token, forKey: session.baseUrl.absoluteString)
+                Keychain.setToken(token, forServerUrl: session.baseUrl.absoluteString)
             }
         }
     }
@@ -285,15 +358,20 @@ class APIClient: RCTEventEmitter, NetworkClient {
         return nil
     }
     
-    func rejectInvalidSession(for baseUrl: URL, withRejecter reject: RCTPromiseRejectBlock) -> Void {
+    func rejectInvalidSession(for baseUrl: URL, withRejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
         let message = "Session for \(baseUrl.absoluteString) has been invalidated"
         let error = NSError(domain: "com.mattermost.react-native-network-client", code: NSCoderValueNotFoundError, userInfo: [NSLocalizedDescriptionKey: message])
         reject("\(error.code)", message, error)
     }
     
-    func rejectFileSize(for fileUrl: URL, withRejecter reject: RCTPromiseRejectBlock) -> Void {
+    func rejectFileSize(for fileUrl: URL, withRejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
         let message = "Unable to read file size for \(fileUrl.absoluteString)"
         let error = NSError(domain: "com.mattermost.react-native-network-client", code: NSCoderValueNotFoundError, userInfo: [NSLocalizedDescriptionKey: message])
         reject("\(error.code)", message, error)
+    }
+    
+    @objc(missingCertificateHandler:)
+    func missingCertificateHandler(notification: Notification) {
+        self.sendEvent(withName: API_CLIENT_EVENTS["CLIENT_CERTIFICATE_MISSING"], body: ["serverUrl": notification.userInfo!["serverUrl"]])
     }
 }

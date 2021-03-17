@@ -8,13 +8,19 @@ import { Button, CheckBox, Input } from "react-native-elements";
 import { getOrCreateAPIClient } from "@mattermost/react-native-network-client";
 
 import AddHeaders from "../components/AddHeaders";
+import P12Inputs from "../components/P12Inputs";
 import NumericInput from "../components/NumericInput";
 import RetryPolicyConfiguration from "../components/RetryPolicyConfiguration";
-import { useRetryPolicyConfiguration, useSessionConfiguration } from "../hooks";
+import {
+    useRetryPolicyConfiguration,
+    useSessionConfiguration,
+    useClientP12Configuration,
+} from "../hooks";
 import { ClientType, parseHeaders } from "../utils";
 
 const styles = StyleSheet.create({
     checkboxText: { flex: 1 },
+    createButton: { padding: 10 },
 });
 
 export default function CreateAPIClientScreen({
@@ -30,6 +36,7 @@ export default function CreateAPIClientScreen({
         toggleAllowsCellularAccess,
         toggleWaitsForConnectivity,
         toggleCancelRequestsOnUnauthorized,
+        toggleTrustSelfSignedServerCertificate,
         setTimeoutIntervalForRequest,
         setTimeoutIntervalForResource,
         setHttpMaximumConnectionsPerHost,
@@ -42,6 +49,12 @@ export default function CreateAPIClientScreen({
         setExponentialBackoffBase,
         setExponentialBackoffScale,
     ] = useRetryPolicyConfiguration();
+
+    const [
+        clientP12Configuration,
+        setClientP12Path,
+        setClientP12Password,
+    ] = useClientP12Configuration();
 
     const [
         requestAdapterConfiguration,
@@ -67,6 +80,10 @@ export default function CreateAPIClientScreen({
             requestAdapterConfiguration,
         };
 
+        if (clientP12Configuration.path) {
+            options["clientP12Configuration"] = clientP12Configuration;
+        }
+
         const { client, created } = await getOrCreateAPIClient(
             baseUrl,
             options
@@ -91,17 +108,17 @@ export default function CreateAPIClientScreen({
 
     return (
         <SafeAreaView>
-            <ScrollView testID='create_api_client.scroll_view'>
+            <ScrollView testID="create_api_client.scroll_view">
                 <Input
                     label="Name"
                     onChangeText={setName}
-                    testID='create_api_client.name.input'
+                    testID="create_api_client.name.input"
                 />
                 <Input
                     label="Base URL"
                     onChangeText={setBaseUrl}
                     autoCapitalize="none"
-                    testID='create_api_client.base_url.input'
+                    testID="create_api_client.base_url.input"
                 />
 
                 <AddHeaders onHeadersChanged={setClientHeaders} />
@@ -111,7 +128,15 @@ export default function CreateAPIClientScreen({
                     onChangeText={setBearerAuthTokenResponseHeader}
                     placeholder="token"
                     autoCapitalize="none"
-                    testID='create_api_client.bearer_auth_token.input'
+                    testID="create_api_client.bearer_auth_token.input"
+                />
+
+                <P12Inputs
+                    title="Client PKCS12"
+                    path={clientP12Configuration.path}
+                    password={clientP12Configuration.password}
+                    onSelectP12={setClientP12Path}
+                    onPasswordChange={setClientP12Password}
                 />
 
                 <NumericInput
@@ -119,7 +144,7 @@ export default function CreateAPIClientScreen({
                     value={sessionConfiguration.timeoutIntervalForRequest}
                     onChange={setTimeoutIntervalForRequest}
                     minValue={0}
-                    testID='create_api_client.request_timeout_interval.input'
+                    testID="create_api_client.request_timeout_interval.input"
                 />
 
                 <NumericInput
@@ -127,7 +152,7 @@ export default function CreateAPIClientScreen({
                     value={sessionConfiguration.timeoutIntervalForResource}
                     onChange={setTimeoutIntervalForResource}
                     minValue={0}
-                    testID='create_api_client.resource_timeout_interval.input'
+                    testID="create_api_client.resource_timeout_interval.input"
                 />
 
                 <NumericInput
@@ -135,7 +160,7 @@ export default function CreateAPIClientScreen({
                     value={sessionConfiguration.httpMaximumConnectionsPerHost}
                     onChange={setHttpMaximumConnectionsPerHost}
                     minValue={1}
-                    testID='create_api_client.max_connections.input'
+                    testID="create_api_client.max_connections.input"
                 />
 
                 <RetryPolicyConfiguration
@@ -155,9 +180,7 @@ export default function CreateAPIClientScreen({
 
                 <CheckBox
                     title={`Follow Redirects? ${sessionConfiguration.followRedirects}`}
-                    checked={
-                        sessionConfiguration.followRedirects as boolean
-                    }
+                    checked={sessionConfiguration.followRedirects as boolean}
                     onPress={toggleFollowRedirects}
                     iconType="ionicon"
                     checkedIcon="ios-checkmark-circle"
@@ -205,7 +228,25 @@ export default function CreateAPIClientScreen({
                     textStyle={styles.checkboxText}
                 />
 
-                <Button title="Create" onPress={createClient} />
+                <CheckBox
+                    title={`Trust Self-Signed Server Certificate? ${sessionConfiguration.trustSelfSignedServerCertificate}`}
+                    checked={
+                        sessionConfiguration.trustSelfSignedServerCertificate as boolean
+                    }
+                    onPress={toggleTrustSelfSignedServerCertificate}
+                    iconType="ionicon"
+                    checkedIcon="ios-checkmark-circle"
+                    uncheckedIcon="ios-checkmark-circle"
+                    iconRight
+                    textStyle={styles.checkboxText}
+                />
+
+                <Button
+                    title="Create"
+                    onPress={createClient}
+                    disabled={!name || !baseUrl}
+                    style={styles.createButton}
+                />
             </ScrollView>
         </SafeAreaView>
     );

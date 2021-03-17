@@ -24,8 +24,7 @@ class GenericClientModule(reactContext: ReactApplicationContext) : ReactContextB
 
     @ReactMethod
     fun post(url: String, options: ReadableMap, promise: Promise) {
-        val body = options.getMap("body").toString().toRequestBody();
-        val request = Request.Builder().url(url).post(body).parseOptions(options, client).build();
+        val request = Request.Builder().url(url).post(options.bodyToRequestBody()).parseOptions(options, client).build();
         client.build().newCall(request).execute().use { response ->
             response.promiseResolution(promise)
         }
@@ -33,8 +32,7 @@ class GenericClientModule(reactContext: ReactApplicationContext) : ReactContextB
 
     @ReactMethod
     fun put(url: String, options: ReadableMap, promise: Promise) {
-        val body = options.getMap("body").toString().toRequestBody();
-        val request = Request.Builder().url(url).put(body).parseOptions(options, client).build();
+        val request = Request.Builder().url(url).put(options.bodyToRequestBody()).parseOptions(options, client).build();
         client.build().newCall(request).execute().use { response ->
             response.promiseResolution(promise)
         }
@@ -42,8 +40,7 @@ class GenericClientModule(reactContext: ReactApplicationContext) : ReactContextB
 
     @ReactMethod
     fun patch(url: String, options: ReadableMap, promise: Promise) {
-        val body = options.getMap("body").toString().toRequestBody();
-        val request = Request.Builder().url(url).patch(body).parseOptions(options, client).build();
+        val request = Request.Builder().url(url).patch(options.bodyToRequestBody()).parseOptions(options, client).build();
         client.build().newCall(request).execute().use { response ->
             response.promiseResolution(promise)
         }
@@ -51,8 +48,7 @@ class GenericClientModule(reactContext: ReactApplicationContext) : ReactContextB
 
     @ReactMethod
     fun delete(url: String, options: ReadableMap, promise: Promise) {
-        val body = options.getMap("body").toString().toRequestBody();
-        val request = Request.Builder().url(url).delete(body).parseOptions(options, client).build();
+        val request = Request.Builder().url(url).delete(options.bodyToRequestBody()).parseOptions(options, client).build();
         client.build().newCall(request).execute().use { response ->
             response.promiseResolution(promise)
         }

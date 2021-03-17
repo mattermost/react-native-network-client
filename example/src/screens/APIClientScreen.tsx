@@ -48,6 +48,7 @@ export default function APIClientScreen({
         navigation.navigate("MattermostClientUpload", { item });
     const fastImageRequest = () =>
         navigation.navigate("APIClientFastImage", { item });
+    const importP12 = () => navigation.navigate("APIClientImportP12", { item });
 
     const Buttons = () => {
         const buttons = [
@@ -58,6 +59,7 @@ export default function APIClientScreen({
             { title: METHODS.DELETE, onPress: deleteRequest },
             { title: "UPLOAD", onPress: uploadRequest },
             { title: "FAST IMAGE", onPress: fastImageRequest },
+            { title: "IMPORT P12", onPress: importP12 },
         ];
         if (item.isMattermostClient) {
             buttons.push({
@@ -95,18 +97,18 @@ export default function APIClientScreen({
 
     return (
         <SafeAreaView>
-            <ScrollView>
+            <ScrollView testID="api_client.scroll_view">
                 <Input
                     label="Name"
                     value={name}
                     disabled={true}
-                    testID='api_client.name.input'
+                    testID="api_client.name.input"
                 />
                 <Input
                     label="Base URL"
                     value={client.baseUrl}
                     disabled={true}
-                    testID='api_client.base_url.input'
+                    testID="api_client.base_url.input"
                 />
                 <ListHeaders headers={headers} />
                 <Buttons />

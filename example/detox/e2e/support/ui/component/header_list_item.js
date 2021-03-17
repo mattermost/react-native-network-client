@@ -2,11 +2,24 @@
 // See LICENSE.txt for license information.
 
 class HeaderListItem {
-    getItemAtIndex = (index) => {
+    testID = {
+        addHeadersItemPrefix: 'add_headers.header_list_item.',
+        listHeadersItemPrefix: 'list_headers.header_list_item.',
+    }
+
+    getItemAtIndex = (prefix, index) => {
         return {
-            keyInput: element(by.id(`header_list_item.${index}.key.input`)).atIndex(0),
-            valueInput: element(by.id(`header_list_item.${index}.value.input`)).atIndex(0),
+            keyInput: element(by.id(`${prefix}${index}.key.input`)).atIndex(0),
+            valueInput: element(by.id(`${prefix}${index}.value.input`)).atIndex(0),
         }
+    }
+
+    getAddHeadersItemAtIndex = (index) => {
+        return this.getItemAtIndex(this.testID.addHeadersItemPrefix, index);
+    }
+
+    getListHeadersItemAtIndex = (index) => {
+        return this.getItemAtIndex(this.testID.listHeadersItemPrefix, index);
     }
 }
 

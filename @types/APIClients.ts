@@ -41,6 +41,7 @@ interface GenericClientInterface {
 interface APIClientInterface {
     baseUrl: string;
     config: APIClientConfiguration;
+    clientAuthSubscription: EmitterSubscription;
 
     get(endpoint: string, options?: RequestOptions): Promise<ClientResponse>;
     put(endpoint: string, options?: RequestOptions): Promise<ClientResponse>;
@@ -55,8 +56,14 @@ interface APIClientInterface {
 
     getHeaders(): Promise<ClientHeaders>;
     addHeaders(headers: ClientHeaders): Promise<void>;
+    importClientP12(path: string, password?: string): Promise<void>;
     invalidate(): Promise<void>;
 }
+
+type ClientP12Configuration = {
+    path: string;
+    password?: string;
+};
 
 type SessionConfiguration = {
     followRedirects?: boolean;
@@ -66,10 +73,11 @@ type SessionConfiguration = {
     timeoutIntervalForResource?: number;
     httpMaximumConnectionsPerHost?: number;
     cancelRequestsOnUnauthorized?: boolean;
+    trustSelfSignedServerCertificate?: boolean;
 };
 
 type RetryPolicyConfiguration = {
-    type?: keyof Constants;
+    type?: RetryTypes;
     retryLimit?: number;
     exponentialBackoffBase?: number;
     exponentialBackoffScale?: number;
@@ -86,9 +94,14 @@ type APIClientConfiguration = {
     requestAdapterConfiguration?: RequestAdapterConfiguration;
     serverTrustManagerConfig?: Record<string, string>;
     cachedResponseHandlerConfig?: Record<string, string>;
+    clientP12Configuration?: ClientP12Configuration;
 };
 
 type UploadProgressEvent = {
     taskId: string;
     fractionCompleted: number;
+};
+
+type MissingClientCertificateEvent = {
+    serverUrl: string;
 };

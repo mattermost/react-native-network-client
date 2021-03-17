@@ -23,23 +23,23 @@ const ResponseOverlay = ({
             isVisible={visible}
             onBackdropPress={hide}
             overlayStyle={{ marginHorizontal: 20, marginVertical: 40 }}
-            testID='response_overlay'
+            testID="response_overlay"
         >
             <>
                 <Text h4>URL</Text>
-                <Text testID='response_overlay.response.last_requested_url.text'>{response?.lastRequestedUrl}</Text>
+                <Text testID="response_overlay.response.last_requested_url.text">{response?.lastRequestedUrl}</Text>
                 <Divider />
                 <Text h4>Code</Text>
-                <Text testID='response_overlay.response.code.text'>{response?.code}</Text>
+                <Text testID="response_overlay.response.code.text">{response?.code}</Text>
                 <Divider />
                 <Text h4>Headers</Text>
                 <ScrollView>
-                    <Text testID='response_overlay.response.headers.text'>{JSON.stringify(response?.headers, null, 2)}</Text>
+                    <Text testID="response_overlay.response.headers.text">{JSON.stringify(response?.headers, null, 2)}</Text>
                 </ScrollView>
                 <Divider />
                 <Text h4>Data</Text>
                 <ScrollView>
-                    <Text testID='response_overlay.response.data.text'>{JSON.stringify(response?.data, null, 2)}</Text>
+                    <Text testID="response_overlay.response.data.text">{JSON.stringify(response?.data, null, 2)}</Text>
                 </ScrollView>
             </>
         </Overlay>
