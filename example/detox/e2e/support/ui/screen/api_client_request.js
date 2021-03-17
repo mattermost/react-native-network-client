@@ -63,7 +63,7 @@ class ApiClientRequestScreen {
         await this.pathInput.tapReturnKey();
     }
 
-    setRetry = async (options = {retryLimit: '2', exponentialBackoffBase: '2', exponentialBackoffScale: '0.5'}) => {
+    setRetry = async (options = {retryPolicyType: 'exponential', retryLimit: '2', exponentialBackoffBase: '2', exponentialBackoffScale: '0.5', retryInterval: '2000'}) => {
         await RetryPolicyConfiguration.setRetry(options);
     }
 

@@ -33,14 +33,14 @@ const RetryPolicyConfiguration = (props: RetryPolicyConfigurationProps) => {
             props.onTypeSelected(policyType);
         }
     };
+    const linearRetryChecked = props.policyType === Constants.RETRY_TYPES.LINEAR_RETRY;
+    const exponentialRetryChecked = props.policyType === Constants.RETRY_TYPES.EXPONENTIAL_RETRY;
 
     const rightIcon = (
         <View style={{ flex: 1, flexDirection: "row" }}>
             <CheckBox
-                title="Linear"
-                checked={
-                    props.policyType === Constants.RETRY_TYPES.LINEAR_RETRY
-                }
+                title={`Linear ${linearRetryChecked}`}
+                checked={linearRetryChecked}
                 onPress={onLinearPress}
                 iconType="ionicon"
                 checkedIcon="ios-checkmark-circle"
@@ -53,10 +53,8 @@ const RetryPolicyConfiguration = (props: RetryPolicyConfigurationProps) => {
                 }}
             />
             <CheckBox
-                title="Exponential"
-                checked={
-                    props.policyType === Constants.RETRY_TYPES.EXPONENTIAL_RETRY
-                }
+                title={`Exponential ${exponentialRetryChecked}`}
+                checked={exponentialRetryChecked}
                 onPress={onExponentialPress}
                 iconType="ionicon"
                 checkedIcon="ios-checkmark-circle"

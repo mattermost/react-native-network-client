@@ -9,6 +9,7 @@ import {
     GenericClientRequestScreen,
 } from '@support/ui/screen';
 import {
+    getRandomItem,
     isAndroid,
     isIos,
 } from '@support/utils';
@@ -25,6 +26,10 @@ export const customBody = {
     'field1key': 'field1value',
     'field2key': 'field2value',
 };
+export const retryPolicyTypes = [
+    'exponential',
+    'linear',
+];
 
 /**
  * Perform API client request.
@@ -39,7 +44,7 @@ export const performApiClientRequest = async ({
     testHeaders,
     testBody = null,
     testTimeoutInterval = '60',
-    testRetry = {retryLimit: '3', exponentialBackoffBase: '4', exponentialBackoffScale: '5'}
+    testRetry = {retryPolicyType: getRandomItem(retryPolicyTypes), retryLimit: '3', exponentialBackoffBase: '4', exponentialBackoffScale: '5', retryInterval: '6'}
 }) => {
     const {
         makeRequest,
@@ -74,7 +79,7 @@ export const performGenericClientRequest = async ({
     testHeaders,
     testBody = null,
     testTimeoutInterval = '60',
-    testRetry = {retryLimit: '3', exponentialBackoffBase: '4', exponentialBackoffScale: '5'}
+    testRetry = {retryPolicyType: getRandomItem(retryPolicyTypes), retryLimit: '3', exponentialBackoffBase: '4', exponentialBackoffScale: '5', retryInterval: '6'}
 }) => {
     const {
         makeRequest,

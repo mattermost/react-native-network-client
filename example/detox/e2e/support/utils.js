@@ -46,7 +46,16 @@ export const getRandomId = (length = 6) => {
  */
 export const getRandomInt = (max = 10) => {
     return Math.floor(Math.random() * Math.floor(max));
-}
+};
+
+/**
+ * Get random item.
+ * @param {array} items - array of objects
+ * @returns {Object} random item from array
+ */
+export const getRandomItem = (items) => {
+    return items[Math.floor(Math.random() * items.length)];
+};
 
 /**
  * Capitalize first character of text.
