@@ -154,11 +154,15 @@ export const verifyResponseOverlay = async (testUrl, testStatus, testHost, testM
         responseDataText,
         responseHeadersText,
         responseLastRequestedUrlText,
+        responseOkText,
+        responseRetriesExhaustedText,
     } = GenericClientRequestScreen;
     
     // * Verify request URL and response status
     await expect(responseLastRequestedUrlText).toHaveText(testUrl);
     await expect(responseCodeText).toHaveText(testStatus.toString());
+    await expect(responseOkText).toHaveText(testStatus === 200 ? 'true' : 'false');
+    await expect(responseRetriesExhaustedText).toHaveText('null');
 
     // Currently only for iOS. Android getAttributes support is not yet available.
     // https://github.com/wix/Detox/issues/2083

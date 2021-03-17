@@ -41,6 +41,8 @@ class GenericClientRequestScreen {
     responseDataText = ResponseOverlay.responseDataText;
     responseHeadersText = ResponseOverlay.responseHeadersText;
     responseLastRequestedUrlText = ResponseOverlay.responseLastRequestedUrlText;
+    responseOkText = ResponseOverlay.responseOkText;
+    responseRetriesExhaustedText = ResponseOverlay.responseRetriesExhaustedText;
 
     toBeVisible = async () => {
         await expect(this.genericClientRequestScreen).toBeVisible();
