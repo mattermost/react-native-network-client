@@ -26,6 +26,7 @@ const ProgressiveFileUpload = (props: ProgressiveFileUploadProps) => {
                     height: 200,
                     alignSelf: "center",
                 }}
+                testID="progress_file_upload.file_component"
             />
         );
     } else {
@@ -38,6 +39,7 @@ const ProgressiveFileUpload = (props: ProgressiveFileUploadProps) => {
                     alignSelf: "center",
                     justifyContent: "center",
                 }}
+                testID="progress_file_upload.file_component"
             >
                 <Icon
                     name="document-text"
@@ -51,11 +53,13 @@ const ProgressiveFileUpload = (props: ProgressiveFileUploadProps) => {
     return (
         <>
             <FileComponent />
-            <Text style={{ alignSelf: "center" }}>{file!.name}</Text>
+            <Text style={{ alignSelf: "center" }} testID="progress_file_upload.filename">{file!.name}</Text>
+            <Text style={{ alignSelf: "center" }} testID="progress_file_upload.file_uri">{file!.uri}</Text>
             <ProgressBar
                 progress={props.progress}
                 width={200}
                 style={{ alignSelf: "center" }}
+                testID="progress_file_upload.progress_bar"
             />
         </>
     );

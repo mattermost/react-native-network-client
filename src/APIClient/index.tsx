@@ -1,11 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import { NativeEventEmitter, NativeModules } from "react-native";
+import {
+    Alert,
+    EmitterSubscription,
+    NativeEventEmitter,
+    NativeModules,
+} from "react-native";
 import isURL from "validator/es/lib/isURL";
 
 const { APIClient: NativeAPIClient } = NativeModules;
 const Emitter = new NativeEventEmitter(NativeAPIClient);
+const { EVENTS } = NativeAPIClient.getConstants();
 
 const CLIENTS: { [key: string]: APIClient } = {};
 
@@ -31,10 +37,26 @@ const generateUploadTaskId = () =>
 class APIClient implements APIClientInterface {
     baseUrl: string;
     config: APIClientConfiguration;
+    clientAuthSubscription: EmitterSubscription;
 
     constructor(baseUrl: string, config: APIClientConfiguration = {}) {
         this.baseUrl = baseUrl;
         this.config = Object.assign({}, DEFAULT_API_CLIENT_CONFIG, config);
+        this.clientAuthSubscription = Emitter.addListener(
+            EVENTS.CLIENT_CERTIFICATE_MISSING,
+            (e: MissingClientCertificateEvent) => {
+                if (e.serverUrl === this.baseUrl) {
+                    Alert.alert(
+                        "SSL handshake error",
+                        `Missing client certificate ${this.baseUrl}`,
+                        [{ text: "OK" }],
+                        {
+                            cancelable: false,
+                        }
+                    );
+                }
+            }
+        );
     }
 
     getHeaders = (): Promise<ClientHeaders> =>
@@ -47,7 +69,11 @@ class APIClient implements APIClientInterface {
 
         return NativeAPIClient.addClientHeadersFor(this.baseUrl, headers);
     };
+    importClientP12 = (path: string, password?: string): Promise<void> => {
+        return NativeAPIClient.importClientP12For(this.baseUrl, path, password);
+    };
     invalidate = (): Promise<void> => {
+        this.clientAuthSubscription.remove();
         delete CLIENTS[this.baseUrl];
 
         return NativeAPIClient.invalidateClientFor(this.baseUrl);
@@ -87,7 +113,7 @@ class APIClient implements APIClientInterface {
         const promise: ProgressPromise<ClientResponse> = new Promise(
             (resolve, reject) => {
                 const uploadSubscription = Emitter.addListener(
-                    "NativeClient-UploadProgress",
+                    EVENTS.UPLOAD_PROGRESS,
                     (e: UploadProgressEvent) => {
                         if (e.taskId === taskId && promise.onProgress) {
                             promise.onProgress(e.fractionCompleted);

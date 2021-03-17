@@ -4,17 +4,16 @@
 import React from "react";
 import { View } from "react-native";
 import { CheckBox, Input } from "react-native-elements";
-import { Constants } from "@mattermost/react-native-network-client";
 
 import NumericInput from "./NumericInput";
 
 interface RetryPolicyConfigurationProps extends RetryPolicyConfiguration {
-    policyType?: keyof Constants;
+    policyType?: RetryTypes;
     retryLimit?: number;
     retryInterval?: number;
     exponentialBackoffBase?: number;
     exponentialBackoffScale?: number;
-    onTypeSelected: (value?: keyof Constants) => void;
+    onTypeSelected: (value?: RetryTypes) => void;
     setRetryLimit: (value: number) => void;
     setRetryInterval: (value: number) => void;
     setExponentialBackoffBase: (value: number) => void;
@@ -22,10 +21,10 @@ interface RetryPolicyConfigurationProps extends RetryPolicyConfiguration {
 }
 
 const RetryPolicyConfiguration = (props: RetryPolicyConfigurationProps) => {
-    const onLinearPress = () => onCheckBoxPress(Constants.LINEAR_RETRY);
+    const onLinearPress = () => onCheckBoxPress(RetryTypes.LINEAR_RETRY);
     const onExponentialPress = () =>
-        onCheckBoxPress(Constants.EXPONENTIAL_RETRY);
-    const onCheckBoxPress = (policyType: keyof Constants) => {
+        onCheckBoxPress(RetryTypes.EXPONENTIAL_RETRY);
+    const onCheckBoxPress = (policyType: RetryTypes) => {
         if (policyType === props.policyType) {
             props.onTypeSelected(undefined);
         } else {
@@ -37,7 +36,7 @@ const RetryPolicyConfiguration = (props: RetryPolicyConfigurationProps) => {
         <View style={{ flex: 1, flexDirection: "row" }}>
             <CheckBox
                 title="Linear"
-                checked={props.policyType === Constants.LINEAR_RETRY}
+                checked={props.policyType === RetryTypes.LINEAR_RETRY}
                 onPress={onLinearPress}
                 iconType="ionicon"
                 checkedIcon="ios-checkmark-circle"
@@ -51,7 +50,7 @@ const RetryPolicyConfiguration = (props: RetryPolicyConfigurationProps) => {
             />
             <CheckBox
                 title="Exponential"
-                checked={props.policyType === Constants.EXPONENTIAL_RETRY}
+                checked={props.policyType === RetryTypes.EXPONENTIAL_RETRY}
                 onPress={onExponentialPress}
                 iconType="ionicon"
                 checkedIcon="ios-checkmark-circle"
@@ -88,7 +87,7 @@ const RetryPolicyConfiguration = (props: RetryPolicyConfigurationProps) => {
                     testID="retry_policy_configuration.retry_limit.input"
                 />
             )}
-            {props.policyType === Constants.LINEAR_RETRY && (
+            {props.policyType === RetryTypes.LINEAR_RETRY && (
                 <NumericInput
                     title="Retry interval"
                     value={props.retryInterval}
@@ -97,7 +96,7 @@ const RetryPolicyConfiguration = (props: RetryPolicyConfigurationProps) => {
                     testID="retry_policy_configuration.retry_interval.input"
                 />
             )}
-            {props.policyType === Constants.EXPONENTIAL_RETRY && (
+            {props.policyType === RetryTypes.EXPONENTIAL_RETRY && (
                 <>
                     <NumericInput
                         title="Exponential backoff base"

@@ -1,14 +1,12 @@
 package com.mattermost.networkclient
 
-import com.facebook.react.bridge.Arguments
-import com.facebook.react.bridge.Promise
-import com.facebook.react.bridge.ReadableMap
-import com.facebook.react.bridge.WritableMap
-
+import com.facebook.react.bridge.*
 import okhttp3.*
 import java.util.concurrent.TimeUnit
-
 import com.mattermost.networkclient.interceptors.*
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
+import okhttp3.RequestBody.Companion.toRequestBody
+import org.json.JSONObject
 
 
 /**
@@ -25,6 +23,7 @@ fun Response.returnAsWriteableMap(): WritableMap {
     map.putString("data", this.body!!.string())
     map.putInt("code", this.code)
     map.putBoolean("ok", this.isSuccessful)
+    map.putString("lastRequestedUrl", this.request.url.toString())
     return map;
 }
 
@@ -56,8 +55,11 @@ fun Request.Builder.parseOptions(options: ReadableMap, session: OkHttpClient.Bui
 
     // Headers
     if (options.hasKey("headers")) {
-        session.addNetworkInterceptor(HeadersInterceptor(options.getMap("headers")!!));
+        this.addReadableMap(options.getMap("headers")!!)
     }
+
+    // Need to always close the connection once finished
+    this.header("Connection", "close")
 
     return this;
 }
@@ -67,7 +69,7 @@ fun Request.Builder.parseOptions(options: ReadableMap, session: OkHttpClient.Bui
  *
  * @params options ReadableMap of options from the App
  */
-fun OkHttpClient.Builder.parseOptions(options: ReadableMap): OkHttpClient.Builder {
+fun OkHttpClient.Builder.parseOptions(options: ReadableMap, request: Request.Builder?): OkHttpClient.Builder {
     // Following Redirects
     if (options.hasKey("followRedirects")) {
         val followRedirects = options.getBoolean("followRedirects")
@@ -89,7 +91,7 @@ fun OkHttpClient.Builder.parseOptions(options: ReadableMap): OkHttpClient.Builde
 
     // Headers
     if (options.hasKey("headers")) {
-        this.addNetworkInterceptor(HeadersInterceptor(options.getMap("headers")!!));
+        request?.addReadableMap(options.getMap("headers")!!)
     }
 
     // Session Configuration
@@ -97,7 +99,7 @@ fun OkHttpClient.Builder.parseOptions(options: ReadableMap): OkHttpClient.Builde
         val sessionConfig = options.getMap("sessionConfiguration")!!;
 
         if (sessionConfig.hasKey("followRedirects")) {
-            val followRedirects = sessionConfig.getBoolean("followRedirects")!!;
+            val followRedirects = sessionConfig.getBoolean("followRedirects")
             this.followRedirects(followRedirects);
             this.followSslRedirects(followRedirects);
         }
@@ -120,14 +122,14 @@ fun OkHttpClient.Builder.parseOptions(options: ReadableMap): OkHttpClient.Builde
         }
 
         // WS: Timeout
-        if(sessionConfig.hasKey("timeoutInterval")){
+        if (sessionConfig.hasKey("timeoutInterval")) {
             this.connectTimeout(sessionConfig.getInt("timeoutInterval").toLong(), TimeUnit.SECONDS)
             this.readTimeout(sessionConfig.getInt("timeoutInterval").toLong(), TimeUnit.SECONDS)
             this.callTimeout(sessionConfig.getInt("timeoutInterval").toLong(), TimeUnit.SECONDS)
         }
 
         // WS: Compression
-        if(sessionConfig.hasKey("enableCompression")){
+        if (sessionConfig.hasKey("enableCompression")) {
             this.minWebSocketMessageToCompress(0);
         }
     }
@@ -157,4 +159,29 @@ fun Request.Builder.addReadableMap(headers: ReadableMap): Request.Builder {
         this.addHeader(k, v as String);
     }
     return this
+}
+
+/**
+ * Transforms the "body" for a POST/PATCH/PUT/DELETE request to a Request Body
+ *
+ * @return RequestBody
+ */
+fun ReadableMap.bodyToRequestBody(): RequestBody {
+    if (!this.hasKey("body")) return "".toRequestBody()
+    return if (this.getType("body") === ReadableType.Map) {
+        JSONObject(this.getMap("body")!!.toHashMap()).toString().toRequestBody()
+    } else {
+        this.getString("body")!!.toRequestBody()
+    }
+}
+
+/**
+ * Forms a URL String from the given params
+ *
+ * @param baseUrl
+ * @param endpoint
+ * @return url string
+ */
+fun formUrlString(baseUrl: String, endpoint: String): String{
+    return baseUrl.toHttpUrlOrNull()!!.newBuilder().addPathSegments(endpoint.trim { c -> c == '/' }).build().toString()
 }

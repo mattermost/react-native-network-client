@@ -9,6 +9,7 @@ type UseSessionConfigurationResponse = [
     () => void,
     () => void,
     () => void,
+    () => void,
     (timeoutIntervalForRequest: number) => void,
     (timeoutIntervalForResource: number) => void,
     (httpMaximumConnectionsPerHost: number) => void
@@ -26,6 +27,7 @@ export const useSessionConfiguration = (): UseSessionConfigurationResponse => {
         timeoutIntervalForResource: 30,
         httpMaximumConnectionsPerHost: 10,
         cancelRequestsOnUnauthorized: false,
+        trustSelfSignedServerCertificate: false,
     });
 
     const toggleFollowRedirects = () =>
@@ -47,6 +49,11 @@ export const useSessionConfiguration = (): UseSessionConfigurationResponse => {
         setSessionConfiguration({
             ...sessionConfiguration,
             cancelRequestsOnUnauthorized: !sessionConfiguration.cancelRequestsOnUnauthorized,
+        });
+    const toggleTrustSelfSignedServerCertificate = () =>
+        setSessionConfiguration({
+            ...sessionConfiguration,
+            trustSelfSignedServerCertificate: !sessionConfiguration.trustSelfSignedServerCertificate,
         });
     const setTimeoutIntervalForRequest = (timeoutIntervalForRequest: number) =>
         setSessionConfiguration({
@@ -74,6 +81,7 @@ export const useSessionConfiguration = (): UseSessionConfigurationResponse => {
         toggleAllowsCellularAccess,
         toggleWaitsForConnectivity,
         toggleCancelRequestsOnUnauthorized,
+        toggleTrustSelfSignedServerCertificate,
         setTimeoutIntervalForRequest,
         setTimeoutIntervalForResource,
         setHttpMaximumConnectionsPerHost,
@@ -82,7 +90,7 @@ export const useSessionConfiguration = (): UseSessionConfigurationResponse => {
 
 type UseRetryPolicyConfigurationResponse = [
     RetryPolicyConfiguration,
-    (type?: keyof Constants) => void,
+    (type?: RetryTypes) => void,
     (retryLimit: number) => void,
     (retryInterval: number) => void,
     (exponentialBackoffBase: number) => void,
@@ -101,7 +109,7 @@ export const useRetryPolicyConfiguration = (): UseRetryPolicyConfigurationRespon
         exponentialBackoffScale: 0.5,
     });
 
-    const setRetryPolicyType = (type?: keyof Constants) =>
+    const setRetryPolicyType = (type?: RetryTypes) =>
         setRetryPolicyConfiguration({
             ...retryPolicyConfiguration,
             type: type || undefined,
@@ -135,4 +143,34 @@ export const useRetryPolicyConfiguration = (): UseRetryPolicyConfigurationRespon
         setExponentialBackoffBase,
         setExponentialBackoffScale,
     ];
+};
+
+type UseClientP12ConfigurationResponse = [
+    ClientP12Configuration,
+    (path: string) => void,
+    (password?: string) => void
+];
+
+export const useClientP12Configuration = (): UseClientP12ConfigurationResponse => {
+    const [
+        clientP12Configuration,
+        setClientP12Configuration,
+    ] = useState<ClientP12Configuration>({
+        path: "",
+        password: "password",
+    });
+
+    const setClientP12Path = (path: string) =>
+        setClientP12Configuration({
+            ...clientP12Configuration,
+            path,
+        });
+
+    const setClientP12Password = (password?: string) =>
+        setClientP12Configuration({
+            ...clientP12Configuration,
+            password,
+        });
+
+    return [clientP12Configuration, setClientP12Path, setClientP12Password];
 };

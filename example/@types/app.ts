@@ -12,3 +12,10 @@ type File = {
     type?: string;
     uri?: string;
 };
+
+type FileContent = {
+    name: string;
+    type: string;
+    content: string;
+    encoding: BufferEncoding;
+};

@@ -4,9 +4,11 @@
 import React from "react";
 import { Alert, Platform } from "react-native";
 import DeviceInfo from "react-native-device-info";
+import RFNS, { StatResult } from "react-native-fs";
+import { sampleImageContent } from "./files/SampleImage";
+import { sampleTextContent } from "./files/SampleText";
 
 import GenericClient, {
-    Constants,
     getOrCreateAPIClient,
     getOrCreateWebSocketClient,
 } from "@mattermost/react-native-network-client";
@@ -49,7 +51,10 @@ export const networkClientKeyExtractor = (item: NetworkClientItem) => {
 };
 
 const buildDefaultApiClientConfiguration = (
-    headers: Record<string, string>
+    headers: Record<string, string> = {},
+    requestAdapterConfiguration: RequestAdapterConfiguration = {
+        bearerAuthTokenResponseHeader: "Token",
+    }
 ): APIClientConfiguration => {
     const sessionConfiguration = {
         followRedirects: true,
@@ -61,14 +66,11 @@ const buildDefaultApiClientConfiguration = (
         cancelRequestsOnUnauthorized: true,
     };
     const retryPolicyConfiguration = {
-        type: Constants.EXPONENTIAL_RETRY,
+        type: RetryTypes.EXPONENTIAL_RETRY,
         retryLimit: 2,
         retryInterval: 2000,
         exponentialBackoffBase: 2,
         exponentialBackoffScale: 0.5,
-    };
-    const requestAdapterConfiguration = {
-        bearerAuthTokenResponseHeader: "Token",
     };
 
     const configuration: APIClientConfiguration = {
@@ -144,12 +146,59 @@ const createJSONPlaceholderAPIClient = async (): Promise<APIClientItem | null> =
     return createAPIClient(name, baseUrl, configuration);
 };
 
+const createFastImageServerAPIClient = async (): Promise<APIClientItem | null> => {
+    const name = "Fast Image Server API";
+    const baseUrl =
+        Platform.OS === "ios"
+            ? "http://localhost:8009"
+            : "http://10.0.2.2:8009";
+    const headers = {
+        Authorization:
+            "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEyMyIsImlhdCI6MTYxNTI0MDUwNn0.-FLR4NUPTuBGLXd082MvNmJemoqfLqQi8-sJhCCaNf0",
+    };
+    const configuration = buildDefaultApiClientConfiguration(headers);
+
+    return createAPIClient(name, baseUrl, configuration, {
+        validateUrl: false,
+    });
+};
+
+const createFileUploadServerAPIClient = async (): Promise<APIClientItem | null> => {
+    const name = "File Upload Server API";
+    const baseUrl =
+        Platform.OS === "ios"
+            ? "http://localhost:8008"
+            : "http://10.0.2.2:8008";
+    const configuration = buildDefaultApiClientConfiguration();
+
+    return createAPIClient(name, baseUrl, configuration, {
+        validateUrl: false,
+    });
+};
+
 const createMockserverAPIClient = async (): Promise<APIClientItem | null> => {
     const name = "Mockserver API";
     const baseUrl =
         Platform.OS === "ios"
             ? "http://localhost:8080"
             : "http://10.0.2.2:8080";
+    const headers = {
+        "header-1-key": "header-1-value",
+        "header-2-key": "header-2-value",
+    };
+    const configuration = buildDefaultApiClientConfiguration(headers);
+
+    return createAPIClient(name, baseUrl, configuration, {
+        validateUrl: false,
+    });
+};
+
+const createRequestBinAPIClient = async (): Promise<APIClientItem | null> => {
+    const name = "RequestBin API";
+    const baseUrl =
+        Platform.OS === "ios"
+            ? "http://localhost:8000/14dkaof1"
+            : "http://10.0.2.2:8000/14dkaof1";
     const headers = {
         "header-1-key": "header-1-value",
         "header-2-key": "header-2-value",
@@ -199,12 +248,13 @@ const createWebSocketClient = async (
 
 const createMattermostWebSocketClient = async (): Promise<WebSocketClientItem | null> => {
     const name = "Mattermost Web Socket";
-    const host =
-        Platform.OS === "ios" ? "ws://192.168.0.14:8065" : "ws://10.0.2.2:8080";
-    const url = `${host}/api/v4/websocket`;
+    const host = Platform.OS === "ios" ? "192.168.0.14:8065" : "10.0.2.2:8065";
+    const url = `ws://${host}/api/v4/websocket`;
+    const origin = `https://${host}`;
     const configuration: WebSocketClientConfiguration = {
         headers: {
-            origin: host,
+            host,
+            origin,
         },
     };
 
@@ -218,8 +268,11 @@ export const createTestClients = async (): Promise<NetworkClientItem[]> => {
         { name: "Generic", client: GenericClient, type: ClientType.GENERIC },
         await createMattermostAPIClient(),
         await createJSONPlaceholderAPIClient(),
+        await createFastImageServerAPIClient(),
+        await createFileUploadServerAPIClient(),
         await createMockserverAPIClient(),
         await createMattermostWebSocketClient(),
+        await createRequestBinAPIClient(),
     ].reduce((clients: NetworkClientItem[], client) => {
         if (client) {
             return [...clients, client];
@@ -228,6 +281,48 @@ export const createTestClients = async (): Promise<NetworkClientItem[]> => {
         return clients;
     }, []);
 };
+
+export const createNativeFile = async (
+    fileContent: FileContent
+): Promise<File> => {
+    const path = RFNS.DocumentDirectoryPath + `/${fileContent.name}`;
+    await RFNS.writeFile(path, fileContent.content, fileContent.encoding);
+    const statResult: StatResult = await RFNS.stat(path);
+
+    return {
+        name: fileContent.name,
+        size: Number(statResult.size),
+        type: fileContent.type,
+        uri: `file://${statResult.path}`,
+    };
+};
+
+const buildFileContent = (
+    filename: string,
+    content: string,
+    encoding: BufferEncoding,
+    type: string
+): FileContent => {
+    return {
+        name: filename,
+        content,
+        encoding,
+        type,
+    };
+};
+
+export const sampleImage: FileContent = buildFileContent(
+    "sample-image.jpg",
+    sampleImageContent,
+    "base64",
+    "image"
+);
+export const sampleText: FileContent = buildFileContent(
+    "sample-text.txt",
+    sampleTextContent,
+    "ascii",
+    "text"
+);
 
 export const ClientContext = React.createContext({
     clients: [] as NetworkClientItem[],

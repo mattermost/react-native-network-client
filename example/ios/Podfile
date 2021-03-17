@@ -22,4 +22,7 @@ target 'NetworkClientExample' do
 
   permissions_path = '../node_modules/react-native-permissions/ios'
   pod 'Permission-PhotoLibrary', :path => "#{permissions_path}/PhotoLibrary"
+
+  # TODO: Remove this once upstream PR https://github.com/daltoniam/Starscream/pull/871 is merged
+  pod 'Starscream', :git => 'https://github.com/mattermost/Starscream.git', :commit => '1b4b93708fb63d2665625a11e57461772a65364a'
 end

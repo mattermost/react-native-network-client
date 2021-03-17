@@ -46,11 +46,11 @@ describe('Post - API Client Request', () => {
 
         await ApiClientScreen.open(testName);
         await verifyApiClient(testName, testBaseUrl, customHeaders);
-        await ApiClientScreen.postButton.tap();
+        await ApiClientScreen.selectPost();
     });
 
     it('should return a valid response', async () => {
-        // # Perform generic client request
+        // # Perform API client request
         await performApiClientRequest({testPath, testHeaders, testBody});
 
         // * Verify response overlay
