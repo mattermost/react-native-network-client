@@ -29,7 +29,7 @@ const AddHeaders = ({ onHeadersChanged }: AddHeadersProps) => {
             icon={<Icon name="add-circle" size={24} />}
             onPress={addEmptyHeader}
             testID="add_empty_header.button"
-        ></Button>
+        />
     );
 
     return (

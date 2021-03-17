@@ -248,12 +248,14 @@ const createMattermostWebSocketClient = async (): Promise<WebSocketClientItem | 
     const name = "Mattermost Web Socket";
     const host =
         Platform.OS === "ios"
-            ? "ws://192.168.0.14:8065"
-            : "ws://10.0.2.2:8065";
-    const url = `${host}/api/v4/websocket`;
+            ? "192.168.0.14:8065"
+            : "10.0.2.2:8065";
+    const url = `ws://${host}/api/v4/websocket`;
+    const origin = `https://${host}`;
     const configuration: WebSocketClientConfiguration = {
         headers: {
-            origin: host,
+            host,
+            origin,
         },
     };
 

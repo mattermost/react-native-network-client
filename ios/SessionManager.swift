@@ -9,6 +9,7 @@
 
 import Foundation
 import Alamofire
+import SwiftyJSON
 
 @objc public class SessionManager: NSObject {
 
@@ -26,21 +27,31 @@ import Alamofire
     //  * CachedResponseHandler
     //  * EventMonitor(s)
     func createSession(for baseUrl:URL,
+                       withRootQueue rootQueue: DispatchQueue,
+                       withDelegate delegate: SessionDelegate,
                        withConfiguration configuration:URLSessionConfiguration = URLSessionConfiguration.af.default,
                        withInterceptor interceptor:Interceptor? = nil,
                        withRedirectHandler redirectHandler:RedirectHandler? = nil,
                        withCancelRequestsOnUnauthorized cancelRequestsOnUnauthorized:Bool = false,
-                       withBearerAuthTokenResponseHeader bearerAuthTokenResponseHeader:String? = nil) -> Void {
+                       withBearerAuthTokenResponseHeader bearerAuthTokenResponseHeader:String? = nil,
+                       withClientP12Configuration clientP12Configuration:[String:String]? = nil,
+                       withTrustSelfSignedServerCertificate trustSelfSignedServerCertificate:Bool = false) -> Void {
         var session = getSession(for: baseUrl)
         if (session != nil) {
             return
         }
 
-        session = Session(configuration: configuration, interceptor: interceptor, redirectHandler: redirectHandler)
+        session = Session(configuration: configuration, delegate: delegate, rootQueue: rootQueue, interceptor: interceptor, redirectHandler: redirectHandler)
         session?.baseUrl = baseUrl
         session?.cancelRequestsOnUnauthorized = cancelRequestsOnUnauthorized
         session?.bearerAuthTokenResponseHeader = bearerAuthTokenResponseHeader
-
+        session?.trustSelfSignedServerCertificate = trustSelfSignedServerCertificate
+        if let clientP12Configuration = clientP12Configuration {
+            let path = clientP12Configuration["path"]
+            let password = clientP12Configuration["password"]
+            Keychain.importClientP12(withPath: path!, withPassword: password, forServerUrl: session!.baseUrl.absoluteString)
+        }
+        
         sessions[baseUrl] = session
     }
 
@@ -59,21 +70,34 @@ import Alamofire
 
         invalidateSession(for: baseUrl)
 
+        let rootQueue = previousSession.rootQueue
+        let delegate = previousSession.delegate
         let configuration = previousSession.sessionConfiguration
         let previousHeaders = configuration.httpAdditionalHeaders ?? [:]
         let newHeaders = previousHeaders.merging(additionalHeaders) {(_, new) in new}
         configuration.httpAdditionalHeaders = newHeaders
 
         createSession(for: baseUrl,
+                      withRootQueue: rootQueue,
+                      withDelegate: delegate,
                       withConfiguration: configuration,
                       withInterceptor: previousSession.interceptor as? Interceptor,
                       withRedirectHandler: previousSession.redirectHandler,
                       withCancelRequestsOnUnauthorized: previousSession.cancelRequestsOnUnauthorized,
-                      withBearerAuthTokenResponseHeader: previousSession.bearerAuthTokenResponseHeader)
+                      withBearerAuthTokenResponseHeader: previousSession.bearerAuthTokenResponseHeader,
+                      withTrustSelfSignedServerCertificate: previousSession.trustSelfSignedServerCertificate)
     }
     
     func getSession(for baseUrl:URL) -> Session? {
         return sessions[baseUrl]
+    }
+    
+    func getSession(for urlSession:URLSession) -> Session? {
+        guard let session = Array(sessions.values).first(where: {$0.session == urlSession}) else {
+            return nil
+        }
+        
+        return session
     }
     
     @objc public func getSessionBaseUrlString(for request:URLRequest) -> String? {
@@ -116,12 +140,20 @@ import Alamofire
         return nil
     }
     
-    func invalidateSession(for baseUrl:URL) -> Void {
+    func invalidateSession(for baseUrl:URL, withReset reset:Bool = false) -> Void {
         guard let session = getSession(for: baseUrl) else {
             return
         }
         
-        session.session.invalidateAndCancel()
-        sessions.removeValue(forKey: baseUrl)
+        if reset {
+            session.session.reset {
+                Keychain.deleteAll(for: baseUrl.absoluteString)
+                session.session.invalidateAndCancel()
+                self.sessions.removeValue(forKey: baseUrl)
+            }
+        } else {
+            session.session.invalidateAndCancel()
+            self.sessions.removeValue(forKey: baseUrl)
+        }
     }
 }

@@ -22,7 +22,7 @@ const APIClientRequestScreen = ({ route }: APIClientRequestScreenProps) => {
     );
     const [timeoutInterval, setTimeoutInterval] = useState(30);
     const [body, setBody] = useState(
-        '{"login_id":"username","password":"password"}'
+        '{"login_id":"user-1","password":"password"}'
     );
     const [requestHeaders, setRequestHeaders] = useState<Header[]>([]);
     const [response, setResponse] = useState<ClientResponse>();

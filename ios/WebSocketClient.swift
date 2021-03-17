@@ -11,12 +11,12 @@ import Starscream
 import SwiftyJSON
 import React
 
-let EVENTS = [
-    "OPEN_EVENT": "NetworkClient-WebSocket-Open",
-    "CLOSE_EVENT": "NetworkClient-WebSocket-Close",
-    "ERROR_EVENT": "NetworkClient-WebSocket-Error",
-    "MESSAGE_EVENT": "NetworkClient-WebSocket-Message",
-    "READY_STATE_EVENT": "NetworkClient-WebSocket-ReadyState",
+let WEBSOCKET_CLIENT_EVENTS = [
+    "OPEN_EVENT": "WebSocketClient-Open",
+    "CLOSE_EVENT": "WebSocketClient-Close",
+    "ERROR_EVENT": "WebSocketClient-Error",
+    "MESSAGE_EVENT": "WebSocketClient-Message",
+    "READY_STATE_EVENT": "WebSocketClient-ReadyState",
 ]
 
 let READY_STATE = [
@@ -36,11 +36,11 @@ class WebSocketClient: RCTEventEmitter, WebSocketDelegate {
     }
     
     override func constantsToExport() -> [AnyHashable : Any]! {
-        return ["EVENTS": EVENTS, "READY_STATE": READY_STATE]
+        return ["EVENTS": WEBSOCKET_CLIENT_EVENTS, "READY_STATE": READY_STATE]
     }
     
     open override func supportedEvents() -> [String] {
-        return Array(EVENTS.values)
+        return Array(WEBSOCKET_CLIENT_EVENTS.values)
     }
 
     override func startObserving() -> Void {
@@ -118,27 +118,29 @@ class WebSocketClient: RCTEventEmitter, WebSocketDelegate {
         reject("\(error.code)", message, error)
     }
     
+    // MARK: WebSocketDelegate methods
+    
     func didReceive(event: WebSocketEvent, client: WebSocket) {
         let url = client.request.url!.absoluteString
 
         switch event {
         case .connected(let headers):
-            self.sendEvent(withName: EVENTS["OPEN_EVENT"], body: ["url": url, "message": ["headers": headers]])
-            self.sendEvent(withName: EVENTS["READY_STATE_EVENT"], body: ["url": url, "message": READY_STATE["OPEN"]!])
+            self.sendEvent(withName: WEBSOCKET_CLIENT_EVENTS["OPEN_EVENT"], body: ["url": url, "message": ["headers": headers]])
+            self.sendEvent(withName: WEBSOCKET_CLIENT_EVENTS["READY_STATE_EVENT"], body: ["url": url, "message": READY_STATE["OPEN"]!])
         case .disconnected(let reason, let code):
-            self.sendEvent(withName: EVENTS["CLOSE_EVENT"], body: ["url": url, "message": ["reason": reason, "code": code]])
+            self.sendEvent(withName: WEBSOCKET_CLIENT_EVENTS["CLOSE_EVENT"], body: ["url": url, "message": ["reason": reason, "code": code]])
         case .text(let text):
             if let data = text.data(using: .utf16), let json = JSON(data).dictionaryObject {
-                self.sendEvent(withName: EVENTS["MESSAGE_EVENT"], body: ["url": url, "message": json])
+                self.sendEvent(withName: WEBSOCKET_CLIENT_EVENTS["MESSAGE_EVENT"], body: ["url": url, "message": json])
             } else {
-                self.sendEvent(withName: EVENTS["MESSAGE_EVENT"], body: ["url": url, "message": text])
+                self.sendEvent(withName: WEBSOCKET_CLIENT_EVENTS["MESSAGE_EVENT"], body: ["url": url, "message": text])
             }
         case .cancelled:
-            self.sendEvent(withName: EVENTS["CLOSE_EVENT"], body: ["url": url])
-            self.sendEvent(withName: EVENTS["READY_STATE_EVENT"], body: ["url": url, "message": READY_STATE["CLOSED"]!])
+            self.sendEvent(withName: WEBSOCKET_CLIENT_EVENTS["CLOSE_EVENT"], body: ["url": url])
+            self.sendEvent(withName: WEBSOCKET_CLIENT_EVENTS["READY_STATE_EVENT"], body: ["url": url, "message": READY_STATE["CLOSED"]!])
         case .error(let error):
-            self.sendEvent(withName: EVENTS["ERROR_EVENT"], body: ["url": url, "message": ["error": error]])
-            self.sendEvent(withName: EVENTS["READY_STATE_EVENT"], body: ["url": url, "message": READY_STATE["CLOSED"]!])
+            self.sendEvent(withName: WEBSOCKET_CLIENT_EVENTS["ERROR_EVENT"], body: ["url": url, "message": ["error": error]])
+            self.sendEvent(withName: WEBSOCKET_CLIENT_EVENTS["READY_STATE_EVENT"], body: ["url": url, "message": READY_STATE["CLOSED"]!])
         default:
             break
         }

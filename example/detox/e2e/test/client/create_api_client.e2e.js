@@ -94,6 +94,7 @@ describe('Create API Client', () => {
         await CreateApiClientScreen.open();
 
         // # Set an existing url and attempt to create client
+        await setName(testName);
         await setBaseUrl(testBaseUrl);
         await createApiClientScrollView.scrollTo('bottom');
         await createClient();
