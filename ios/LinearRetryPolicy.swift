@@ -23,7 +23,7 @@ open class LinearRetryPolicy: RetryPolicy {
                 retryableURLErrorCodes: Set<URLError.Code> = RetryPolicy.defaultRetryableURLErrorCodes) {
         precondition(retryInterval > 0, "The `retryInterval` must be greater than 0.")
         self.retryInterval = retryInterval
-        super.init(retryLimit: retryLimit, retryableHTTPMethods: retryableHTTPMethods, retryableHTTPStatusCodes: [401], retryableURLErrorCodes: retryableURLErrorCodes)
+        super.init(retryLimit: retryLimit, retryableHTTPMethods: retryableHTTPMethods, retryableHTTPStatusCodes: retryableHTTPStatusCodes, retryableURLErrorCodes: retryableURLErrorCodes)
     }
     
     override open func retry(_ request: Request,
