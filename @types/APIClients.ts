@@ -20,6 +20,7 @@ type RequestOptions = {
 
 type UploadRequestOptions = RequestOptions & {
     skipBytes?: number;
+    stream?: boolean;
 };
 
 type ClientResponse = {

@@ -152,7 +152,8 @@ const createFastImageServerAPIClient = async (): Promise<APIClientItem | null> =
             ? "http://localhost:8009"
             : "http://10.0.2.2:8009";
     const headers = {
-        "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEyMyIsImlhdCI6MTYxNTI0MDUwNn0.-FLR4NUPTuBGLXd082MvNmJemoqfLqQi8-sJhCCaNf0",
+        Authorization:
+            "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEyMyIsImlhdCI6MTYxNTI0MDUwNn0.-FLR4NUPTuBGLXd082MvNmJemoqfLqQi8-sJhCCaNf0",
     };
     const configuration = buildDefaultApiClientConfiguration(headers);
 
@@ -195,8 +196,8 @@ const createRequestBinAPIClient = async (): Promise<APIClientItem | null> => {
     const name = "RequestBin API";
     const baseUrl =
         Platform.OS === "ios"
-            ? "http://localhost:8000/14dkaof1"
-            : "http://10.0.2.2:8000/14dkaof1";
+            ? "http://localhost:8000/"
+            : "http://10.0.2.2:8000/";
     const headers = {
         "header-1-key": "header-1-value",
         "header-2-key": "header-2-value",
@@ -246,10 +247,7 @@ const createWebSocketClient = async (
 
 const createMattermostWebSocketClient = async (): Promise<WebSocketClientItem | null> => {
     const name = "Mattermost Web Socket";
-    const host =
-        Platform.OS === "ios"
-            ? "192.168.0.14:8065"
-            : "10.0.2.2:8065";
+    const host = Platform.OS === "ios" ? "192.168.0.14:8065" : "10.0.2.2:8065";
     const url = `ws://${host}/api/v4/websocket`;
     const origin = `https://${host}`;
     const configuration: WebSocketClientConfiguration = {
@@ -283,7 +281,9 @@ export const createTestClients = async (): Promise<NetworkClientItem[]> => {
     }, []);
 };
 
-export const createNativeFile = async (fileContent: FileContent): Promise<File> => {
+export const createNativeFile = async (
+    fileContent: FileContent
+): Promise<File> => {
     const path = RFNS.DocumentDirectoryPath + `/${fileContent.name}`;
     await RFNS.writeFile(path, fileContent.content, fileContent.encoding);
     const statResult: StatResult = await RFNS.stat(path);
@@ -293,24 +293,35 @@ export const createNativeFile = async (fileContent: FileContent): Promise<File> 
         size: Number(statResult.size),
         type: fileContent.type,
         uri: `file://${statResult.path}`,
-    }
+    };
 };
 
 const buildFileContent = (
     filename: string,
     content: string,
     encoding: BufferEncoding,
-    type: string): FileContent => {
+    type: string
+): FileContent => {
     return {
         name: filename,
         content,
         encoding,
         type,
-    }
+    };
 };
 
-export const sampleImage: FileContent = buildFileContent("sample-image.jpg", sampleImageContent, "base64", "image");
-export const sampleText: FileContent = buildFileContent("sample-text.txt", sampleTextContent, "ascii", "text");
+export const sampleImage: FileContent = buildFileContent(
+    "sample-image.jpg",
+    sampleImageContent,
+    "base64",
+    "image"
+);
+export const sampleText: FileContent = buildFileContent(
+    "sample-text.txt",
+    sampleTextContent,
+    "ascii",
+    "text"
+);
 
 export const ClientContext = React.createContext({
     clients: [] as NetworkClientItem[],

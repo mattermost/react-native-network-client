@@ -80,7 +80,7 @@ export default function CreateAPIClientScreen({
             requestAdapterConfiguration,
         };
 
-        if (clientP12Configuration.path) {
+        if (clientP12Configuration.path && clientP12Configuration.path !== "") {
             options["clientP12Configuration"] = clientP12Configuration;
         }
 
