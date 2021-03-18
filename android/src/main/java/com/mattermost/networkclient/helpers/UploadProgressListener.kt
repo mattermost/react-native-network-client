@@ -1,10 +1,11 @@
 package com.mattermost.networkclient.helpers
 
-import android.util.Log
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReactContext
 import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter
 import com.mattermost.networkclient.enums.APIClientEvents
+import java.math.RoundingMode
+import java.text.DecimalFormat
 
 interface ProgressListenerInterface {
     fun update(bytesRead: Double, contentLength: Double)
@@ -12,6 +13,8 @@ interface ProgressListenerInterface {
 }
 
 class ProgressListener(private val reactContext: ReactContext, private val taskId: String) : ProgressListenerInterface {
+    // 2-Decimal places, rounded up
+    private val df = DecimalFormat("#.00", ).apply{ roundingMode = RoundingMode.UP }
 
     override fun emitProgressEvent(progress: Double) {
         val params = Arguments.createMap()
@@ -21,7 +24,7 @@ class ProgressListener(private val reactContext: ReactContext, private val taskI
     }
 
     override fun update(bytesRead: Double, contentLength: Double) {
-        val progress = bytesRead / contentLength;
-        emitProgressEvent(progress)
+        // Only emit if we can show progress against content length
+        if(contentLength > 0) emitProgressEvent(df.format(bytesRead / contentLength).toDouble())
     }
 }

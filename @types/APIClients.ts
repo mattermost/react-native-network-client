@@ -21,6 +21,7 @@ type RequestOptions = {
 type UploadRequestOptions = RequestOptions & {
     skipBytes?: number;
     stream?: boolean;
+    method?: "POST" | "PUT" | "PATCH";
 };
 
 type ClientResponse = {

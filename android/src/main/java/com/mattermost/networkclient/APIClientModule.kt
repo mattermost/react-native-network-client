@@ -138,7 +138,16 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
             }
 
             // Create a Request
-            var request = sessionsRequest[baseUrl]!!.url("$baseUrl/$endpoint").post(body);
+            var request = if(options?.hasKey("method") == true) {
+                when (options.getString("method")) {
+                    "PUT" -> sessionsRequest[baseUrl]!!.url("$baseUrl/$endpoint").put(body)
+                    "PATCH" -> sessionsRequest[baseUrl]!!.url("$baseUrl/$endpoint").patch(body)
+                    // Default to "POST"
+                    else -> sessionsRequest[baseUrl]!!.url("$baseUrl/$endpoint").post(body)
+                }
+            } else {
+                sessionsRequest[baseUrl]!!.url("$baseUrl/$endpoint").post(body)
+            }
 
             // Parse options into the request / client
             if (options != null) request = request.parseOptions(options, sessionsClient[baseUrl]!!)
