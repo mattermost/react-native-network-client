@@ -42,7 +42,8 @@ class UploadFileRequestBody(private val reactContext: ReactContext, private val 
                 listener.update(totalRead.toDouble(), total)
             }
         } catch (e: IOException) {
-            source.closeQuietly()
+            // Allow upstream to handle
+            throw e
         } finally {
             source.closeQuietly()
         }

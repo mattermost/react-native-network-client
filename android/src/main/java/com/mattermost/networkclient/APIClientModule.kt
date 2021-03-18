@@ -28,9 +28,6 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
             // Attach client options if they are passed in
             sessionsClient[baseUrl]!!.parseOptions(options, sessionsRequest[baseUrl]);
 
-            // Protocols
-            sessionsClient[baseUrl]!!.protocols(listOf(Protocol.HTTP_1_1))
-
             // Return stringified client for success
             promise.resolve(null)
         } catch (err: Throwable) {
