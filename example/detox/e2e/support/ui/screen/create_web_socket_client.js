@@ -1,17 +1,23 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {AddHeaders} from '@support/ui/component';
 import {ClientListScreen} from '@support/ui/screen';
 import {isAndroid} from '@support/utils';
 
 class CreateWebSocketClientScreen {
+    testID = {
+        nameInput: 'create_web_socket_client.name.input',
+        timeoutIntervalInput: 'create_web_socket_client.timeout_interval.input',
+        urlInput: 'create_web_socket_client.url.input',
+    }
+
     createWebSocketClientScreen = element(by.text('CreateWebSocketClient'));
-    allowSelfSignedCertificatesCheckboxFalse = element(by.text('Allow Self Signed Certificates? false'));
-    allowSelfSignedCertificatesCheckboxTrue = element(by.text('Allow Self Signed Certificates? true'));
+    nameInput = element(by.id(this.testID.nameInput));
+    timeoutIntervalInput = element(by.id(this.testID.timeoutIntervalInput));
+    urlInput = element(by.id(this.testID.urlInput));
     enableCompressionCheckboxFalse = element(by.text('Enable Compression? false'));
     enableCompressionCheckboxTrue = element(by.text('Enable Compression? true'));
-    enableSslPinningCheckboxFalse = element(by.text('Enable SSL Pinning? false'));
-    enableSslPinningCheckboxTrue = element(by.text('Enable SSL Pinning? true'));
     clientListButton = element(by.text('ClientList')).atIndex(0);
     createButton = element(by.text('Create'));
 
@@ -37,14 +43,30 @@ class CreateWebSocketClientScreen {
         await expect(this.createWebSocketClientScreen).not.toBeVisible();
     }
 
-    toggleOffAllowSelfSignedCertificatesCheckbox = async () => {
-        await this.allowSelfSignedCertificatesCheckboxTrue.tap();
-        await expect(this.allowSelfSignedCertificatesCheckboxFalse).toBeVisible();
+    createClient = async () => {
+        await this.createButton.tap();
     }
 
-    toggleOnAllowSelfSignedCertificatesCheckbox = async () => {
-        await this.allowSelfSignedCertificatesCheckboxFalse.tap();
-        await expect(this.allowSelfSignedCertificatesCheckboxTrue).toBeVisible();
+    setHeaders = async (headers) => {
+        await AddHeaders.setHeaders(headers);
+    }
+
+    setName = async (name) => {
+        await this.nameInput.clearText();
+        await this.nameInput.replaceText(name);
+        await this.nameInput.tapReturnKey();
+    }
+
+    setTimeoutInterval = async (timeoutInterval) => {
+        await this.timeoutIntervalInput.clearText();
+        await this.timeoutIntervalInput.replaceText(timeoutInterval);
+        await this.timeoutIntervalInput.tapReturnKey();
+    }
+
+    setUrl = async (url) => {
+        await this.urlInput.clearText();
+        await this.urlInput.replaceText(url);
+        await this.urlInput.tapReturnKey();
     }
 
     toggleOffEnableCompressionCheckbox = async () => {
@@ -55,16 +77,6 @@ class CreateWebSocketClientScreen {
     toggleOnEnableCompressionCheckbox = async () => {
         await this.enableCompressionCheckboxFalse.tap();
         await expect(this.enableCompressionCheckboxTrue).toBeVisible();
-    }
-
-    toggleOffEnableSslPinningCheckbox = async () => {
-        await this.enableSslPinningCheckboxTrue.tap();
-        await expect(this.enableSslPinningCheckboxFalse).toBeVisible();
-    }
-
-    toggleOnEnableSslPinningCheckbox = async () => {
-        await this.enableSslPinningCheckboxFalse.tap();
-        await expect(this.enableSslPinningCheckboxTrue).toBeVisible();
     }
 }
 

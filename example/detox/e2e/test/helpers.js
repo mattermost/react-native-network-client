@@ -7,6 +7,7 @@ import {
     ApiClientRequestScreen,
     ApiClientScreen,
     GenericClientRequestScreen,
+    WebSocketClientScreen,
 } from '@support/ui/screen';
 import {
     isAndroid,
@@ -214,5 +215,15 @@ export const verifyApiClient = async (testName, testUrl, testHeaders = {}) => {
             await expect(keyInput).toHaveValue(key);
             await expect(valueInput).toHaveValue(value);
         }
+    }
+};
+
+export const verifyWebSocketEvent = async (eventJson) => {
+    // Currently only for iOS. Android getAttributes support is not yet available.
+    // https://github.com/wix/Detox/issues/2083
+    if (isIos()) {
+        // * Verify web socket event
+        const eventTextAttributes = await WebSocketClientScreen.eventText.getAttributes();
+        jestExpect(JSON.parse(eventTextAttributes.text)).toStrictEqual(eventJson);
     }
 };

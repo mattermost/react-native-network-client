@@ -2,10 +2,15 @@
 // See LICENSE.txt for license information.
 
 import {
+    ClientListItem,
     HeaderListItem,
     MethodButtons,
 } from '@support/ui/component';
-import {isAndroid} from '@support/utils';
+import {
+    isAndroid,
+    timeouts,
+    wait,
+} from '@support/utils'
 
 class ApiClientScreen {
     testID = {
@@ -41,7 +46,9 @@ class ApiClientScreen {
 
     open = async (name) => {
         // # Open API client screen
-        await element(by.text(name)).tap();
+        const {item} = ClientListItem.getItemByName(name);
+        await wait(timeouts.TWO_SEC);
+        await item.tap();
 
         return this.toBeVisible();
     }

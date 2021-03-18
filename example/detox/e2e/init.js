@@ -6,16 +6,19 @@ import {
     fastImageSiteUrl,
     fileUploadSiteUrl,
     siteUrl,
+    webSocketSiteUrl,
 } from '@support/test_config';
 
 const http = require('http');
 const mockserver = require('mockserver');
 const fileServer = require('../../servers/file_server');
+const webSocketServer = require('../../servers/web_socket_server');
 
 beforeAll(async () => {
     launchMockserver();
     launchFastImageServer();
     launchFileUploadServer();
+    launchWebSocketServer();
 
     await device.launchApp({
         newInstance: false,
@@ -39,6 +42,12 @@ function launchFileUploadServer() {
 
 function launchMockserver() {
     launchServer('Mockserver', mockserver, siteUrl, '../mocks');
+}
+
+function launchWebSocketServer() {
+    const port = webSocketSiteUrl.split(':')[2];
+    webSocketServer(port);
+    console.log(`Web Socket Server listening at ${webSocketSiteUrl}`);
 }
 
 function launchServer(serverName, requestListener, url, directory = '') {

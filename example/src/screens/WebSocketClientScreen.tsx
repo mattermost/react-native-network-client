@@ -3,9 +3,8 @@
 
 import React, { useState } from "react";
 import { useEffect } from "react";
-import { SafeAreaView } from "react-native";
-import { Button, Input } from "react-native-elements";
-import Markdown from "react-native-markdown-renderer";
+import { SafeAreaView, ScrollView } from "react-native";
+import { Button, Input, Text } from "react-native-elements";
 
 export default function WebSocketClientScreen({
     route,
@@ -42,7 +41,7 @@ export default function WebSocketClientScreen({
     }, []);
 
     const parseAndSetEvent = (event: WebSocketEvent) => {
-        setEvent("```\n" + JSON.stringify(event, null, 2) + "\n```");
+        setEvent(JSON.stringify(event, null, 2));
     };
 
     const send = () => {
@@ -61,6 +60,7 @@ export default function WebSocketClientScreen({
                     data: { channel_id: "" },
                 })}
                 onChangeText={setMessage}
+                testID="web_socket_client.message.input"
                 value={message}
             />
             <Button
@@ -83,7 +83,11 @@ export default function WebSocketClientScreen({
                     borderColor: "rgba(255,255,255,0)",
                 }}
             />
-            <Markdown>{event}</Markdown>
+            <ScrollView style={{ marginHorizontal: 20 }}>
+                <Text testID="web_socket_client.event.text">
+                    {event}
+                </Text>
+            </ScrollView>
         </SafeAreaView>
     );
 }

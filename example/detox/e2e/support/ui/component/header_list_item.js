@@ -11,7 +11,7 @@ class HeaderListItem {
         return {
             keyInput: element(by.id(`${prefix}${index}.key.input`)).atIndex(0),
             valueInput: element(by.id(`${prefix}${index}.value.input`)).atIndex(0),
-        }
+        };
     }
 
     getAddHeadersItemAtIndex = (index) => {

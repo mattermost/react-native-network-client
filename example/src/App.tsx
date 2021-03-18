@@ -23,7 +23,10 @@ function App() {
     return (
         <NavigationContainer>
             <Stack.Navigator initialRouteName="ClientListScreen">
-                <Stack.Screen name="ClientList" component={ClientListScreen} />
+                <Stack.Screen
+                    name="ClientList"
+                    component={ClientListScreen}
+                />
                 <Stack.Screen
                     name="CreateAPIClient"
                     component={CreateAPIClientScreen}
@@ -36,7 +39,10 @@ function App() {
                     name="GenericClientRequest"
                     component={GenericClientRequestScreen}
                 />
-                <Stack.Screen name="APIClient" component={APIClientScreen} />
+                <Stack.Screen
+                    name="APIClient"
+                    component={APIClientScreen}
+                />
                 <Stack.Screen
                     name="APIClientRequest"
                     component={APIClientRequestScreen}
