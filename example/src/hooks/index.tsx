@@ -3,8 +3,6 @@
 
 import { useState } from "react";
 
-import { Constants } from "@mattermost/react-native-network-client";
-
 type UseSessionConfigurationResponse = [
     SessionConfiguration,
     () => void,
@@ -92,8 +90,9 @@ export const useSessionConfiguration = (): UseSessionConfigurationResponse => {
 
 type UseRetryPolicyConfigurationResponse = [
     RetryPolicyConfiguration,
-    () => void,
+    (type?: RetryTypes) => void,
     (retryLimit: number) => void,
+    (retryInterval: number) => void,
     (exponentialBackoffBase: number) => void,
     (exponentialBackoffScale: number) => void
 ];
@@ -105,21 +104,25 @@ export const useRetryPolicyConfiguration = (): UseRetryPolicyConfigurationRespon
     ] = useState<RetryPolicyConfiguration>({
         type: undefined,
         retryLimit: 2,
+        retryInterval: 2000,
         exponentialBackoffBase: 2,
         exponentialBackoffScale: 0.5,
     });
 
-    const toggleRetryPolicyType = () =>
+    const setRetryPolicyType = (type?: RetryTypes) =>
         setRetryPolicyConfiguration({
             ...retryPolicyConfiguration,
-            type: retryPolicyConfiguration.type
-                ? undefined
-                : Constants.RETRY_TYPES.EXPONENTIAL_BACKOFF,
+            type: type || undefined,
         });
     const setRetryLimit = (retryLimit: number) =>
         setRetryPolicyConfiguration({
             ...retryPolicyConfiguration,
             retryLimit,
+        });
+    const setRetryInterval = (retryInterval: number) =>
+        setRetryPolicyConfiguration({
+            ...retryPolicyConfiguration,
+            retryInterval,
         });
     const setExponentialBackoffBase = (exponentialBackoffBase: number) =>
         setRetryPolicyConfiguration({
@@ -134,8 +137,9 @@ export const useRetryPolicyConfiguration = (): UseRetryPolicyConfigurationRespon
 
     return [
         retryPolicyConfiguration,
-        toggleRetryPolicyType,
+        setRetryPolicyType,
         setRetryLimit,
+        setRetryInterval,
         setExponentialBackoffBase,
         setExponentialBackoffScale,
     ];
