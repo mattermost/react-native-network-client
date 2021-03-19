@@ -60,8 +60,13 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     @ReactMethod
     fun invalidateClientFor(baseUrl: String, promise: Promise) {
         try {
+            // Pass by ref
             sessionsRequest.remove(baseUrl);
-            promise.resolve(sessionsRequest.keys);
+            sessionsClient.remove(baseUrl);
+            sessionsData.remove(baseUrl);
+            sessionsCall.remove(baseUrl);
+
+            promise.resolve(null);
         } catch (err: Throwable) {
             promise.reject(err)
         }
