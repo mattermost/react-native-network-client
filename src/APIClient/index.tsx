@@ -60,9 +60,9 @@ class APIClient implements APIClientInterface {
         );
         this.clientWarningSubscription = Emitter.addListener(
             EVENTS.WARNING,
-            (e: APIClientWarning) => {
-                if (e.serverUrl === this.baseUrl) {
-                    Alert.alert("Warning", e.warning, [{ text: "OK" }], {
+            (event: APIClientWarningEvent) => {
+                if (event.serverUrl === this.baseUrl) {
+                    Alert.alert("Warning", event.warning, [{ text: "OK" }], {
                         cancelable: false,
                     });
                 }
@@ -85,6 +85,7 @@ class APIClient implements APIClientInterface {
     };
     invalidate = (): Promise<void> => {
         this.clientAuthSubscription.remove();
+        this.clientWarningSubscription.remove();
         delete CLIENTS[this.baseUrl];
 
         return NativeAPIClient.invalidateClientFor(this.baseUrl);

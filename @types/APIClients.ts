@@ -109,7 +109,7 @@ type MissingClientCertificateEvent = {
     serverUrl: string;
 };
 
-type APIClientWarning = {
+type APIClientWarningEvent = {
     serverUrl: string;
     warning: string;
 };
