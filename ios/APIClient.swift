@@ -24,7 +24,7 @@ extension APIClientError: LocalizedError {
     
     var errorDescription: String? {
         switch self {
-        case .CertificateForIdentityNotFound:
+        case .ClientCertificateMissing:
             return "Failed to authenticate: missing client certificate"
         }
     }
@@ -215,7 +215,7 @@ class APIClient: RCTEventEmitter, NetworkClient {
         do {
             try resolve(Keychain.importClientP12(withPath: path, withPassword: password, forServerUrl: session.baseUrl.absoluteString))
         } catch {
-            self.sendWarningEvent(for: session.baseUrl.absoluteString, withWarning: error.localizedDescription)
+            self.sendErrorEvent(for: session.baseUrl.absoluteString, withErrorCode: error._code, withErrorDescription: error.localizedDescription)
         }
     }
     
@@ -350,7 +350,7 @@ class APIClient: RCTEventEmitter, NetworkClient {
                 do {
                     try Keychain.setToken(token, forServerUrl: session.baseUrl.absoluteString)
                 } catch {
-                    sendWarningEvent(for: session.baseUrl.absoluteString, withWarning: error.localizedDescription)
+                    sendErrorEvent(for: session.baseUrl.absoluteString, withErrorCode: error._code, withErrorDescription: error.localizedDescription)
                 }
             }
         }
@@ -416,7 +416,7 @@ class APIClient: RCTEventEmitter, NetworkClient {
     @objc(errorHandler:)
     func errorHandler(notification: Notification) {
         self.sendErrorEvent(for: notification.userInfo!["serverUrl"] as! String,
-                              withErrorCode: notification.userInfo!["errorCode"] as! String,
+                              withErrorCode: notification.userInfo!["errorCode"] as! Int,
                               withErrorDescription: notification.userInfo!["errorDescription"] as! String)
     }
     
