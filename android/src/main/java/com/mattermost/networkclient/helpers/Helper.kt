@@ -2,12 +2,18 @@ package com.mattermost.networkclient.helpers
 
 import com.facebook.react.bridge.*
 import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter
-import okhttp3.*
-import java.util.concurrent.TimeUnit
 import com.mattermost.networkclient.interceptors.*
+import okhttp3.*
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.tls.HandshakeCertificates
 import org.json.JSONObject
+import java.io.FileInputStream
+import java.security.KeyStore
+import java.security.cert.X509Certificate
+import java.util.*
+import java.util.concurrent.TimeUnit
+import javax.net.ssl.KeyManagerFactory
 
 /**
  * Parses the response data into the format expected by the App
@@ -73,18 +79,12 @@ fun Request.Builder.parseOptions(options: ReadableMap?, session: OkHttpClient.Bu
 fun OkHttpClient.Builder.parseOptions(options: ReadableMap?, request: Request.Builder?): OkHttpClient.Builder {
     if(options == null) return this;
 
-    // Following Redirects
-    if (options.hasKey("followRedirects")) {
-        val followRedirects = options.getBoolean("followRedirects")
-        this.followRedirects(followRedirects)
-        this.followSslRedirects(followRedirects)
-    }
-
-    // Retries
+    // Retries off by default
     this.retryOnConnectionFailure(false);
+
+    // Set retry policy if provided
     if (options.hasKey("retryPolicyConfiguration")) {
         val retryPolicyConfiguration = options.getMap("retryPolicyConfiguration")!!.toHashMap();
-
         val retryType = retryPolicyConfiguration["type"] as String?
         val retryLimit = retryPolicyConfiguration["retryLimit"] as Double?
         val retryExponentialBackoffBase = retryPolicyConfiguration["exponentialBackoffBase"] as Double?
@@ -135,6 +135,51 @@ fun OkHttpClient.Builder.parseOptions(options: ReadableMap?, request: Request.Bu
         if (sessionConfig.hasKey("enableCompression")) {
             this.minWebSocketMessageToCompress(0);
         }
+    }
+
+    // Request Adapter Config
+    if(options.hasKey("requestAdapterConfiguration")){
+        val requestAdapterConfiguration = options.getMap("requestAdapterConfiguration")!!;
+        if(requestAdapterConfiguration.hasKey("bearerAuthTokenResponseHeader")){
+            val bearerAuthTokenResponseHeader = requestAdapterConfiguration.getString("bearerAuthTokenResponseHeader")!!
+            this.addInterceptor(BearerTokenInterceptor(bearerAuthTokenResponseHeader))
+        }
+    }
+
+    // Client Cert Config
+    if(options.hasKey("clientP12Configuration")){
+        val clientP12Configuration = options.getMap("clientP12Configuration")!!;
+
+        // Get our Cert
+        val path = clientP12Configuration.getString("path")!!;
+        val password = if(clientP12Configuration.hasKey("password")) {
+            clientP12Configuration.getString("password")!!
+        } else {
+            ""
+        }
+
+        // Save P12 into KeyStore
+        val aliases = getAndSaveCertsFromP12(path, password)
+
+        // Use it for our Client
+        val keyStore = KeyStore.getInstance("AndroidKeyStore")
+        keyStore.load(null, null)
+
+        // Certificates Builder
+        val certificatesBuilder = HandshakeCertificates
+                .Builder()
+                .addPlatformTrustedCertificates()
+
+        // Get all the saved certificates from KeyStore
+        while(aliases.hasMoreElements()){
+            val alias = aliases.nextElement() as String
+            val cert: X509Certificate = keyStore.getCertificate(alias) as X509Certificate
+            certificatesBuilder.addTrustedCertificate(cert)
+        }
+
+        // Build our certificates and attach them to the client
+        val certificates = certificatesBuilder.build()
+        this.sslSocketFactory(certificates.sslSocketFactory(), certificates.trustManager)
     }
 
     return this
@@ -198,4 +243,41 @@ fun formUrlString(baseUrl: String, endpoint: String): String{
  */
 fun emitEvent(reactContext: ReactContext, eventName: String, params: Any){
     reactContext.getJSModule(RCTDeviceEventEmitter::class.java).emit(eventName, params)
+}
+
+/**
+ * Get's the certificates from a P12 File, and saves them in the AndroidKeyStore
+ *
+ * @param pathToFile
+ * @param password
+ */
+private fun getAndSaveCertsFromP12(pathToFile: String, password: String): Enumeration<String> {
+    val aliases: Enumeration<String>;
+    try {
+        // Get an instance of the AndroidKeyStore
+        val androidKeyStore: KeyStore = KeyStore.getInstance("AndroidKeyStore")
+        androidKeyStore.load(null)
+
+        // Create an instance of a pkcs12 keystore
+        val keyStore: KeyStore = KeyStore.getInstance("pkcs12")
+
+        // Load our certificate file into it, with the password
+        keyStore.load(FileInputStream(pathToFile), password.toCharArray())
+
+        // Get all the key aliases
+        aliases = keyStore.aliases()
+
+        // Loop through them
+        while (aliases.hasMoreElements()) {
+            val alias = aliases.nextElement() as String
+            val cert: X509Certificate = keyStore.getCertificate(alias) as X509Certificate
+
+            // Add the certificate to the KeyStore
+            androidKeyStore.setCertificateEntry(alias, cert)
+        }
+    } catch (e: Exception) {
+        throw e;
+    }
+
+    return aliases;
 }

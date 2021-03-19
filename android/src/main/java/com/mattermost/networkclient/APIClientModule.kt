@@ -7,12 +7,14 @@ import okio.*
 import java.util.*
 import com.mattermost.networkclient.enums.APIClientEvents
 import com.mattermost.networkclient.helpers.*
+import kotlin.collections.HashMap
 
 class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
 
-    var sessionsClient = mutableMapOf<String, OkHttpClient.Builder>()
-    var sessionsRequest = mutableMapOf<String, Request.Builder>()
-    var calls = mutableMapOf<String, Call>()
+    private val sessionsClient = SessionsObject.client
+    private val sessionsRequest = SessionsObject.request
+    private val sessionsCall = SessionsObject.call
+    private val sessionsData = SessionsObject.data
 
     override fun getName(): String {
         return "APIClient"
@@ -24,6 +26,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
             // Create the client and request builder
             sessionsClient[baseUrl] = OkHttpClient().newBuilder();
             sessionsRequest[baseUrl] = Request.Builder().url(baseUrl);
+            sessionsData[baseUrl] = HashMap<String, Any>();
 
             // Attach client options if they are passed in
             sessionsClient[baseUrl]!!.parseOptions(options, sessionsRequest[baseUrl]);
@@ -153,10 +156,10 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
             if (options != null) request = request.parseOptions(options, sessionsClient[baseUrl]!!)
 
             // Create a cancellable call
-            calls[taskId] = sessionsClient[baseUrl]!!.build().newCall(request.build())
+            sessionsCall[taskId] = sessionsClient[baseUrl]!!.build().newCall(request.build())
 
             // Execute the call!
-            calls[taskId]!!.execute().use { response ->
+            sessionsCall[taskId]!!.execute().use { response ->
                 response.promiseResolution(promise)
             }
         } catch (e: IOException) {
@@ -167,7 +170,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     @ReactMethod
     fun cancelRequest(taskId: String, promise: Promise) {
         try {
-            calls[taskId]!!.cancel()
+            sessionsCall[taskId]!!.cancel()
             promise.resolve(null)
         } catch (e: IOException) {
             promise.reject(e)
