@@ -123,13 +123,13 @@ class WebSocketClient: RCTEventEmitter, WebSocketDelegate {
     
     func rejectMalformed(url: String, withRejecter reject: RCTPromiseRejectBlock) -> Void {
         let message = "Malformed URL: \(url)"
-        let error = NSError(domain: "com.mattermost.react-native-network-client", code: NSURLErrorBadURL, userInfo: [NSLocalizedDescriptionKey: message])
+        let error = NSError(domain: NSURLErrorDomain, code: NSURLErrorBadURL, userInfo: [NSLocalizedDescriptionKey: message])
         reject("\(error.code)", message, error)
     }
     
     func rejectInvalidWebSocket(for url: URL, withRejecter reject: RCTPromiseRejectBlock) -> Void {
         let message = "WebSocket for \(url.absoluteString) has been invalidated"
-        let error = NSError(domain: "com.mattermost.react-native-network-client", code: NSCoderValueNotFoundError, userInfo: [NSLocalizedDescriptionKey: message])
+        let error = NSError(domain: NSCocoaErrorDomain, code: NSCoderValueNotFoundError, userInfo: [NSLocalizedDescriptionKey: message])
         reject("\(error.code)", message, error)
     }
     

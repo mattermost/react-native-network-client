@@ -389,9 +389,7 @@ class APIClient: RCTEventEmitter, NetworkClient {
     
     func rejectInvalidSession(for baseUrl: URL, withRejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
         let message = "Session for \(baseUrl.absoluteString) has been invalidated"
-        let error = NSError(domain: "com.mattermost.react-native-network-client",
-                            code: NSCoderValueNotFoundError,
-                            userInfo: [NSLocalizedDescriptionKey: message])
+        let error = NSError(domain: NSCocoaErrorDomain, code: NSCoderValueNotFoundError, userInfo: [NSLocalizedDescriptionKey: message])
 
         reject("\(error.code)", message, error)
     }
