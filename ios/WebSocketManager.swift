@@ -77,7 +77,15 @@ class WebSocketManager: NSObject {
             return
         }
         
-        Keychain.deleteClientP12(for: url.absoluteString)
+        if let _ = try? Keychain.getClientIdentityAndCertificate(for: url.absoluteString) {
+            do {
+                try Keychain.deleteClientP12(for: url.absoluteString)
+            } catch {
+                NotificationCenter.default.post(name: Notification.Name(WEBSOCKET_CLIENT_EVENTS["CLIENT_ERROR"]!),
+                                                object: nil,
+                                                userInfo: ["url": url.absoluteString, "errorCode": error._code, "errorDescription": error.localizedDescription])
+            }
+        }
         webSocket.forceDisconnect()
         webSocket.delegate = nil
         webSockets.removeValue(forKey: url)
