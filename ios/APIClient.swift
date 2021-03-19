@@ -346,7 +346,15 @@ class APIClient: RCTEventEmitter, NetworkClient {
         if data.response?.statusCode == 401 && session.cancelRequestsOnUnauthorized {
             session.cancelAllRequests()
         } else if let tokenHeader = session.bearerAuthTokenResponseHeader {
-            if let token = data.response?.allHeaderFields[tokenHeader] as? String {
+            var token: String?
+            if #available(iOS 13.0, *) {
+                token = data.response?.value(forHTTPHeaderField: tokenHeader)
+            } else {
+                token = (data.response?.allHeaderFields[tokenHeader] ??
+                            data.response?.allHeaderFields[tokenHeader.lowercased()] ??
+                            data.response?.allHeaderFields[tokenHeader.firstUppercased]) as? String
+            }
+            if let token = token {
                 do {
                     try Keychain.setToken(token, forServerUrl: session.baseUrl.absoluteString)
                 } catch {
