@@ -39,6 +39,7 @@ interface WebSocketClientInterface {
     onClose(callback: WebSocketCallback): void;
     onError(callback: WebSocketCallback): void;
     onMessage(callback: WebSocketCallback): void;
+    invalidate(): Promise<void>;
 }
 
 type WebSocketClientErrorEvent = {

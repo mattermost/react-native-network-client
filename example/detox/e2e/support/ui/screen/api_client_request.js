@@ -28,6 +28,9 @@ class ApiClientRequestScreen {
     responseHeadersText = ResponseSuccessOverlay.responseHeadersText;
     responseLastRequestedUrlText =
         ResponseSuccessOverlay.responseLastRequestedUrlText;
+    responseOkText = ResponseSuccessOverlay.responseOkText;
+    responseRetriesExhaustedText =
+        ResponseSuccessOverlay.responseRetriesExhaustedText;
 
     toBeVisible = async () => {
         await expect(this.apiClientRequestScreen).toBeVisible();
@@ -66,9 +69,11 @@ class ApiClientRequestScreen {
 
     setRetry = async (
         options = {
+            retryPolicyType: "exponential",
             retryLimit: "2",
             exponentialBackoffBase: "2",
             exponentialBackoffScale: "0.5",
+            retryInterval: "2000",
         }
     ) => {
         await RetryPolicyConfiguration.setRetry(options);

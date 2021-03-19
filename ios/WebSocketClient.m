@@ -22,4 +22,6 @@ RCT_EXTERN_METHOD(disconnectFor:(NSString *)url withResolver:(RCTPromiseResolveB
 
 RCT_EXTERN_METHOD(sendDataFor:(NSString *)url withData:(NSString *)data withResolver:(RCTPromiseResolveBlock)resolve withRejecter:(RCTPromiseRejectBlock)reject)
 
+RCT_EXTERN_METHOD(invalidateClientFor:(NSString *)url withResolver:(RCTPromiseResolveBlock)resolve withRejecter:(RCTPromiseRejectBlock)reject)
+
 @end

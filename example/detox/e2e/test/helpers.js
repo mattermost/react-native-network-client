@@ -8,7 +8,7 @@ import {
     ApiClientScreen,
     GenericClientRequestScreen,
 } from "@support/ui/screen";
-import { isAndroid, isIos } from "@support/utils";
+import { getRandomItem, isAndroid, isIos } from "@support/utils";
 
 export const customHeaders = {
     "header-1-key": "header-1-value",
@@ -22,6 +22,7 @@ export const customBody = {
     field1key: "field1value",
     field2key: "field2value",
 };
+export const retryPolicyTypes = ["exponential", "linear"];
 
 /**
  * Perform API client request.
@@ -37,9 +38,11 @@ export const performApiClientRequest = async ({
     testBody = null,
     testTimeoutInterval = "60",
     testRetry = {
+        retryPolicyType: getRandomItem(retryPolicyTypes),
         retryLimit: "3",
         exponentialBackoffBase: "4",
         exponentialBackoffScale: "5",
+        retryInterval: "6",
     },
 }) => {
     const {
@@ -76,9 +79,11 @@ export const performGenericClientRequest = async ({
     testBody = null,
     testTimeoutInterval = "60",
     testRetry = {
+        retryPolicyType: getRandomItem(retryPolicyTypes),
         retryLimit: "3",
         exponentialBackoffBase: "4",
         exponentialBackoffScale: "5",
+        retryInterval: "6",
     },
 }) => {
     const {
@@ -171,11 +176,17 @@ export const verifyResponseSuccessOverlay = async (
         responseDataText,
         responseHeadersText,
         responseLastRequestedUrlText,
+        responseOkText,
+        responseRetriesExhaustedText,
     } = GenericClientRequestScreen;
 
     // * Verify request URL and response status
     await expect(responseLastRequestedUrlText).toHaveText(testUrl);
     await expect(responseCodeText).toHaveText(testStatus.toString());
+    await expect(responseOkText).toHaveText(
+        testStatus === 200 ? "true" : "false"
+    );
+    await expect(responseRetriesExhaustedText).toHaveText("null");
 
     // Currently only for iOS. Android getAttributes support is not yet available.
     // https://github.com/wix/Detox/issues/2083

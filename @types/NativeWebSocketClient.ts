@@ -31,6 +31,7 @@ interface NativeWebSocketClient {
     connectFor(url: string): Promise<void>;
     disconnectFor(url: string): Promise<void>;
     sendDataFor(url: string, data: string): Promise<void>;
+    invalidateClientFor(url: string): Promise<void>;
 
     addListener(): void;
     removeListeners(): void;

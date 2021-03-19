@@ -30,8 +30,14 @@ class GenericClientRequestScreen {
     patchButton = MethodButtons.patchButton;
     postButton = MethodButtons.postButton;
     putButton = MethodButtons.putButton;
-    toggleOffRetryCheckbox = RetryPolicyConfiguration.toggleOffRetryCheckbox;
-    toggleOnRetryCheckbox = RetryPolicyConfiguration.toggleOnRetryCheckbox;
+    toggleOffExponentialRetryCheckbox =
+        RetryPolicyConfiguration.toggleOffExponentialRetryCheckbox;
+    toggleOnExponentialRetryCheckbox =
+        RetryPolicyConfiguration.toggleOnExponentialRetryCheckbox;
+    toggleOffLinearRetryCheckbox =
+        RetryPolicyConfiguration.toggleOffLinearRetryCheckbox;
+    toggleOnLinearRetryCheckbox =
+        RetryPolicyConfiguration.toggleOnLinearRetryCheckbox;
     retryLimitInput = RetryPolicyConfiguration.retryLimitInput;
     exponentialBackoffBaseInput =
         RetryPolicyConfiguration.exponentialBackoffBaseInput;
@@ -42,6 +48,9 @@ class GenericClientRequestScreen {
     responseHeadersText = ResponseSuccessOverlay.responseHeadersText;
     responseLastRequestedUrlText =
         ResponseSuccessOverlay.responseLastRequestedUrlText;
+    responseOkText = ResponseSuccessOverlay.responseOkText;
+    responseRetriesExhaustedText =
+        ResponseSuccessOverlay.responseRetriesExhaustedText;
 
     toBeVisible = async () => {
         await expect(this.genericClientRequestScreen).toBeVisible();
@@ -81,9 +90,11 @@ class GenericClientRequestScreen {
 
     setRetry = async (
         options = {
+            retryPolicyType: "exponential",
             retryLimit: "2",
             exponentialBackoffBase: "2",
             exponentialBackoffScale: "0.5",
+            retryInterval: "2000",
         }
     ) => {
         await RetryPolicyConfiguration.setRetry(options);

@@ -26,7 +26,6 @@ class WebSocketClient implements WebSocketClientInterface {
         this.url = url;
         this.readyState = READY_STATE.CLOSED;
         this.webSocketEventSubscription = Emitter.addListener(
-            // TODO: remove subscription on invalidate
             EVENTS.READY_STATE_EVENT,
             (event: WebSocketEvent) => {
                 if (event.url === this.url) {
@@ -35,7 +34,6 @@ class WebSocketClient implements WebSocketClientInterface {
             }
         );
         this.clientErrorSubscription = Emitter.addListener(
-            // TODO: remove subscription on invalidate
             EVENTS.CLIENT_ERROR,
             (event: WebSocketClientErrorEvent) => {
                 if (event.url === this.url) {
@@ -94,6 +92,14 @@ class WebSocketClient implements WebSocketClientInterface {
 
     onClientError = (callback: WebSocketClientErrorEventHandler) => {
         this.clientErrorEventHandler = callback;
+    };
+
+    invalidate = (): Promise<void> => {
+        this.webSocketEventSubscription.remove();
+        this.clientErrorSubscription.remove();
+        delete SOCKETS[this.url];
+
+        return NativeWebSocketClient.invalidateClientFor(this.url);
     };
 }
 

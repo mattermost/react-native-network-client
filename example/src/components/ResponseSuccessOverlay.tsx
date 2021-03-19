@@ -37,12 +37,12 @@ const ResponseSuccessOverlay = ({
                 </Text>
                 <Divider />
                 <Text h4>OK</Text>
-                <Text testID="response_success_overlay.response.code.ok">
+                <Text testID="response_success_overlay.response.ok.text">
                     {response?.ok.toString()}
                 </Text>
                 <Divider />
                 <Text h4>Retries Exhausted?</Text>
-                <Text testID="response_success_overlay.response.code.retriesExhausted">
+                <Text testID="response_success_overlay.response.retries_exhausted.text">
                     {response?.hasOwnProperty("retriesExhausted")
                         ? response.retriesExhausted!.toString()
                         : "null"}

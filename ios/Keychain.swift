@@ -161,7 +161,15 @@ class Keychain {
         try deleteClientP12(for: serverUrl)
     }
     
-    private static func updateToken(_ tokenData: Data, withAttributes attributes: CFDictionary) throws {
+    static func deleteClientP12(for serverUrl: String) -> Void {
+        guard let query = buildIdentityQuery(for: serverUrl) else {
+            return
+        }
+
+        SecItemDelete(query as CFDictionary)
+    }
+    
+    private static func updateToken(_ tokenData: Data, withAttributes attributes: CFDictionary) -> throws {
         let attributesToUpdate = [kSecValueData: tokenData] as CFDictionary
         let status: OSStatus = SecItemUpdate(attributes, attributesToUpdate)
         if status != errSecSuccess {

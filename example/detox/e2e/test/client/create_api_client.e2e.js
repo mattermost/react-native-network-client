@@ -16,9 +16,11 @@ import {
 import {
     getRandomId,
     getRandomInt,
+    getRandomItem,
 } from '@support/utils';
 import {
     customHeaders,
+    retryPolicyTypes,
     verifyApiClient,
 } from '../helpers';
 
@@ -32,9 +34,11 @@ describe('Create API Client', () => {
     const testResourceTimeoutInterval = getRandomInt(60).toString();
     const testMaxConnections = getRandomInt(10).toString();
     const testRetry = {
+        retryPolicyType: getRandomItem(retryPolicyTypes),
         retryLimit: `${getRandomInt(5) + 1}`,
         exponentialBackoffBase: `${getRandomInt(5) + 2}`,
         exponentialBackoffScale: `${getRandomInt(5) + 3}`,
+        retryInterval: `${getRandomInt(5) + 4}`,
     };
     const {
         clientListScrollView,
