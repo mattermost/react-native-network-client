@@ -48,20 +48,36 @@ Example:
 curl -X GET -H "Authorization: Bearer xyz" http://localhost:8008/protected/api/files/fast-image.jpg
 ```
 
-### Post File Request
-Path: `/api/files/:filename`
+### Multipart Post File Request
+Path: `/api/files/multipart`
 
 Example:
 ```
-curl -X POST http://localhost:8008/api/files/sample-image.jpg
+curl -X POST http://localhost:8008/api/files/multipart
 ```
 
-### Protected Post File Request
-Path: `/protected/api/files/:filename`
+### Protected Multipart Post File Request
+Path: `/protected/api/files/multipart`
 
 Example:
 ```
-curl -X POST -H "Authorization: Bearer xyz" http://localhost:8008/api/files/sample-image.jpg
+curl -X POST -H "Authorization: Bearer xyz" http://localhost:8008/api/files/multipart
+```
+
+### Stream Post File Request
+Path: `/api/files/stream/:filename`
+
+Example:
+```
+curl -X POST http://localhost:8008/api/files/stream/sample-image.jpg
+```
+
+### Protected Stream Post File Request
+Path: `/protected/api/files/stream/:filename`
+
+Example:
+```
+curl -X POST -H "Authorization: Bearer xyz" http://localhost:8008/api/files/stream/sample-image.jpg
 ```
 
 ### Generate Token Request

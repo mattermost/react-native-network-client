@@ -5,6 +5,7 @@ const compression = require('compression');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const express = require('express');
+const fileUpload = require('express-fileupload');
 const fs = require("fs");
 const jwt = require('jsonwebtoken');
 const jwtMiddleware = require('express-jwt');
@@ -80,7 +81,7 @@ const fileServer = (directory) => {
 
     // Create handlers
     const staticHandler = express.static(uploadPath, {index: false});
-    const uploadHandler = (req, res, next) => {
+    const streamUploadHandler = (req, res, next) => {
         const filePath = `${uploadPath}/${req.params.filename}`;
         req.pipe(fs.createWriteStream(filePath)
             .on('pipe', () => {
@@ -98,6 +99,30 @@ const fileServer = (directory) => {
                 status: "OK",
             });
         });
+    };
+    const multipartUploadHandler = (req, res, next) => {
+        if (!req.files || Object.keys(req.files).length === 0) {
+            return res.status(400).send('No files were uploaded.');
+        }
+        console.log('Attempt to upload files...');
+
+        // # Attempt to upload each file
+        const files = Object.values(req.files);
+        for (const file of files) {
+            const filename = file.name;
+            const filePath = `${uploadPath}/${filename}`;
+            console.log(`Uploading file: ${filename}`);
+    
+            // Move to file path
+            file.mv(filePath, (err) => {
+                if (err) {
+                    console.log(err);
+                    return res.status(500).send(err);
+                }
+                console.log(`Finished! Uploaded to: ${filePath}`);
+                res.send(`File ${filename} uploaded!`);
+            });
+        }
     };
     const authHandler = jwtMiddleware({
         secret: AUTH_SECRET,
@@ -131,19 +156,22 @@ const fileServer = (directory) => {
     // Create regular router
     const router = express.Router();
     router.use('/files', staticHandler);
-    router.post('/files/:filename', uploadHandler);
+    router.post('/files/stream/:filename', streamUploadHandler);
+    router.post('/files/multipart', multipartUploadHandler);
 
     // Create protected router
     const protectedRouter = express.Router();
     protectedRouter.use(authHandler);
     protectedRouter.use('/files', staticHandler);
-    protectedRouter.post('/files/:filename', uploadHandler);
+    protectedRouter.post('/files/stream/:filename', streamUploadHandler);
+    protectedRouter.post('/files/multipart', multipartUploadHandler);
 
     // Create app
     const app = express();
     app.use(compression());
     app.use(cookieParser());
     app.use(cors());
+    app.use(fileUpload());
     app.use('/api', router);
     app.use('/protected/api', protectedRouter);
     app.use(authErrorHandler);

@@ -16,9 +16,14 @@ import {isAndroid} from '@support/utils';
 import {verifyApiClient} from '../helpers';
 
 describe('Upload - API Client Request', () => {
+    const {
+        setEndpoint,
+        toggleOnStreamFileCheckbox,
+    } = ApiClientUploadScreen;
     const testBaseUrl = fileUploadServerUrl;
     const testImageFilename = 'sample-image.jpg';
-    const testEndpoint = `/api/files/${testImageFilename}`;
+    const testMultipartEndpoint = `/api/files/multipart`;
+    const testStreamEndpoint = `/api/files/stream/${testImageFilename}`;
     const testName = 'File Upload Server API';
 
     beforeAll(async () => {
@@ -27,44 +32,62 @@ describe('Upload - API Client Request', () => {
         await ApiClientScreen.selectUpload();
     });
 
-    it('should be able to upload selected file', async () => {
+    it('should be able to multipart upload selected file', async () => {
         // # Do not run against Android due to file attachment limitation
         if (isAndroid()) {
             return;
         }
 
-        const {
-            apiClientUploadScrollView,
-            attachImageButton,
-            fileComponent,
-            filename,
-            fileUri,
-            progressBar,
-            setEndpoint,
-            toggleOnStreamFileCheckbox,
-            uploadFileButton,
-        } = ApiClientUploadScreen;
+        // # Set endpoint
+        await setEndpoint(testMultipartEndpoint);
 
-        // # Set endpoint and select file
-        await setEndpoint(testEndpoint);
+        // # Upload file and verify
+        await uploadFileAndVerify(testImageFilename);
+    });
+
+    it('should be able to stream upload selected file', async () => {
+        // # Do not run against Android due to file attachment limitation
+        if (isAndroid()) {
+            return;
+        }
+
+        // # Set endpoint
+        await setEndpoint(testStreamEndpoint);
         await toggleOnStreamFileCheckbox();
-        await attachImageButton.tap();
 
-        // * Verify file is selected
-        await expect(fileComponent).toBeVisible();
-        await expect(filename).toHaveText(testImageFilename);
-        await expect(fileUri).toBeVisible();
-        await expect(progressBar).toBeVisible();
-
-        // # Upload file
-        await apiClientUploadScrollView.scrollTo('bottom');
-        await uploadFileButton.tap();
-
-        // * Verify uploaded
-        await ApiClientUploadScreen.toBeVisible();
-        await expect(uploadFileButton).not.toBeVisible();
-        await expect(fileComponent).not.toBeVisible();
-        await expect(filename).not.toBeVisible();
-        await expect(progressBar).not.toBeVisible();
+        // # Upload file and verify
+        await uploadFileAndVerify(testImageFilename);
     });
 });
+
+async function uploadFileAndVerify(testImageFilename) {
+    const {
+        apiClientUploadScrollView,
+        attachImageButton,
+        fileComponent,
+        filename,
+        fileUri,
+        progressBar,
+        uploadFileButton,
+    } = ApiClientUploadScreen;
+
+    // # Select file
+    await attachImageButton.tap();
+
+    // * Verify file is selected
+    await expect(fileComponent).toBeVisible();
+    await expect(filename).toHaveText(testImageFilename);
+    await expect(fileUri).toBeVisible();
+    await expect(progressBar).toBeVisible();
+
+    // # Upload file
+    await apiClientUploadScrollView.scrollTo('bottom');
+    await uploadFileButton.tap();
+
+    // * Verify uploaded
+    await ApiClientUploadScreen.toBeVisible();
+    await expect(uploadFileButton).not.toBeVisible();
+    await expect(fileComponent).not.toBeVisible();
+    await expect(filename).not.toBeVisible();
+    await expect(progressBar).not.toBeVisible();
+}
