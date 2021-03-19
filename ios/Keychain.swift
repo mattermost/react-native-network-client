@@ -27,13 +27,13 @@ enum KeychainError: Error {
 extension KeychainError: LocalizedError {
     var errorCode: Int32? {
         switch self {
-        case .CertificateForIdentityNotFound: return 0
-        case .IdentityNotFound: return 0
-        case .InvalidToken(_): return 0
-        case .InvalidP12Path(_): return 0
-        case .InvalidP12Contents(_): return 0
-        case .InvalidServerUrl(_): return 0
-        case .FailedAuthSecPKCS12Import: return 0
+        case .CertificateForIdentityNotFound: return -100
+        case .IdentityNotFound: return -101
+        case .InvalidToken(_): return -102
+        case .InvalidP12Path(_): return -103
+        case .InvalidP12Contents(_): return -104
+        case .InvalidServerUrl(_): return -105
+        case .FailedAuthSecPKCS12Import: return -106
         case .FailedSecIdentityCopyCertificate(status: let status): return status
         case .FailedSecItemAdd(status: let status): return status
         case .FailedSecItemCopyMatching(status: let status): return status
