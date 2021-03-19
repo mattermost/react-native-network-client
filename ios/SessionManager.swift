@@ -49,7 +49,13 @@ import SwiftyJSON
         if let clientP12Configuration = clientP12Configuration {
             let path = clientP12Configuration["path"]
             let password = clientP12Configuration["password"]
-            Keychain.importClientP12(withPath: path!, withPassword: password, forServerUrl: session!.baseUrl.absoluteString)
+            do {
+                try Keychain.importClientP12(withPath: path!, withPassword: password, forServerUrl: session!.baseUrl.absoluteString)
+            } catch {
+                NotificationCenter.default.post(name: Notification.Name(API_CLIENT_EVENTS["WARNING"]!),
+                                                object: nil,
+                                                userInfo: ["serverUrl": baseUrl.absoluteString, "warning": error.localizedDescription])
+            }
         }
         
         sessions[baseUrl] = session
@@ -147,7 +153,13 @@ import SwiftyJSON
         
         if reset {
             session.session.reset {
-                Keychain.deleteAll(for: baseUrl.absoluteString)
+                do {
+                    try Keychain.deleteAll(for: baseUrl.absoluteString)
+                } catch {
+                    NotificationCenter.default.post(name: Notification.Name(API_CLIENT_EVENTS["WARNING"]!),
+                                                    object: nil,
+                                                    userInfo: ["serverUrl": baseUrl.absoluteString, "warning": error.localizedDescription])
+                }
                 session.session.invalidateAndCancel()
                 self.sessions.removeValue(forKey: baseUrl)
             }

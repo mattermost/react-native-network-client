@@ -4,6 +4,7 @@
 enum APIClientEvents {
     UPLOAD_PROGRESS = "APIClient-UploadProgress",
     CLIENT_CERTIFICATE_MISSING = "APIClient-Client-Certificate-Missing",
+    WARNING = "APIClient-Warning",
 }
 
 enum RetryTypes {

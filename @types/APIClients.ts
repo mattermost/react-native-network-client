@@ -43,6 +43,7 @@ interface APIClientInterface {
     baseUrl: string;
     config: APIClientConfiguration;
     clientAuthSubscription: EmitterSubscription;
+    clientWarningSubscription: EmitterSubscription;
 
     get(endpoint: string, options?: RequestOptions): Promise<ClientResponse>;
     put(endpoint: string, options?: RequestOptions): Promise<ClientResponse>;
@@ -106,4 +107,9 @@ type UploadProgressEvent = {
 
 type MissingClientCertificateEvent = {
     serverUrl: string;
+};
+
+type APIClientWarning = {
+    serverUrl: string;
+    warning: string;
 };

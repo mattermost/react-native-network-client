@@ -13,8 +13,14 @@ import Alamofire
 @objc public class BearerAuthenticationAdapter: NSObject, RequestAdapter {
     @objc public static func addAuthorizationBearerToken(to urlRequest: URLRequest, withSessionBaseUrlString sessionBaseUrlString: String) -> URLRequest {
         var urlRequest = urlRequest
-        if let bearerToken = Keychain.getToken(for: sessionBaseUrlString) {
-            urlRequest.headers.add(.authorization(bearerToken: bearerToken))
+        do {
+            if let bearerToken = try Keychain.getToken(for: sessionBaseUrlString) {
+                urlRequest.headers.add(.authorization(bearerToken: bearerToken))
+            }
+        } catch {
+            NotificationCenter.default.post(name: Notification.Name(API_CLIENT_EVENTS["WARNING"]!),
+                                            object: nil,
+                                            userInfo: ["serverUrl": sessionBaseUrlString, "warning": error.localizedDescription])
         }
         
         return urlRequest

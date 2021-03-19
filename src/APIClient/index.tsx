@@ -38,6 +38,7 @@ class APIClient implements APIClientInterface {
     baseUrl: string;
     config: APIClientConfiguration;
     clientAuthSubscription: EmitterSubscription;
+    clientWarningSubscription: EmitterSubscription;
 
     constructor(baseUrl: string, config: APIClientConfiguration = {}) {
         this.baseUrl = baseUrl;
@@ -54,6 +55,16 @@ class APIClient implements APIClientInterface {
                             cancelable: false,
                         }
                     );
+                }
+            }
+        );
+        this.clientWarningSubscription = Emitter.addListener(
+            EVENTS.WARNING,
+            (e: APIClientWarning) => {
+                if (e.serverUrl === this.baseUrl) {
+                    Alert.alert("Warning", e.warning, [{ text: "OK" }], {
+                        cancelable: false,
+                    });
                 }
             }
         );

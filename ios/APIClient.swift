@@ -14,9 +14,8 @@ import React
 let API_CLIENT_EVENTS = [
     "UPLOAD_PROGRESS": "APIClient-UploadProgress",
     "CLIENT_CERTIFICATE_MISSING": "APIClient-Client-Certificate-Missing",
+    "WARNING": "APIClient-Warning"
 ]
-
-let MISSING_CLIENT_CERT_NOTIF_NAME = Notification.Name(API_CLIENT_EVENTS["CLIENT_CERTIFICATE_MISSING"]!)
 
 class APIClientSessionDelegate: SessionDelegate {
     override open func urlSession(_ urlSession: URLSession,
@@ -37,10 +36,20 @@ class APIClientSessionDelegate: SessionDelegate {
         } else if authMethod == NSURLAuthenticationMethodClientCertificate {
             if let session = SessionManager.default.getSession(for: urlSession) {
                 let serverUrl = session.baseUrl.absoluteString
-                if let (identity, certificate) = Keychain.getClientIdentityAndCertificate(for: serverUrl) {
-                    credential = URLCredential(identity: identity, certificates: [certificate], persistence: URLCredential.Persistence.permanent)
-                } else {
-                    NotificationCenter.default.post(name: MISSING_CLIENT_CERT_NOTIF_NAME, object: nil, userInfo: ["serverUrl": serverUrl])
+                do {
+                    if let (identity, certificate) = try Keychain.getClientIdentityAndCertificate(for: serverUrl) {
+                        credential = URLCredential(identity: identity,
+                                                   certificates: [certificate],
+                                                   persistence: URLCredential.Persistence.permanent)
+                    } else {
+                        NotificationCenter.default.post(name: Notification.Name(API_CLIENT_EVENTS["CLIENT_CERTIFICATE_MISSING"]!),
+                                                        object: nil,
+                                                        userInfo: ["serverUrl": serverUrl])
+                    }
+                } catch {
+                    NotificationCenter.default.post(name: Notification.Name(API_CLIENT_EVENTS["WARNING"]!),
+                                                    object: nil,
+                                                    userInfo: ["serverUrl": serverUrl, "warning": error.localizedDescription])
                 }
             }
             disposition = .useCredential
@@ -58,11 +67,23 @@ class APIClient: RCTEventEmitter, NetworkClient {
     
     override init() {
         super.init()
-        NotificationCenter.default.addObserver(self, selector: #selector(self.missingCertificateHandler), name: MISSING_CLIENT_CERT_NOTIF_NAME, object: nil)
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(self.missingCertificateHandler),
+                                               name: Notification.Name(API_CLIENT_EVENTS["CLIENT_CERTIFICATE_MISSING"]!),
+                                               object: nil)
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(self.warningHandler),
+                                               name: Notification.Name(API_CLIENT_EVENTS["WARNING"]!),
+                                               object: nil)
     }
     
     deinit {
-        NotificationCenter.default.removeObserver(self, name: MISSING_CLIENT_CERT_NOTIF_NAME, object: nil)
+        NotificationCenter.default.removeObserver(self,
+                                                  name: Notification.Name(API_CLIENT_EVENTS["CLIENT_CERTIFICATE_MISSING"]!),
+                                                  object: nil)
+        NotificationCenter.default.removeObserver(self,
+                                                  name: Notification.Name(API_CLIENT_EVENTS["WARNING"]!),
+                                                  object: nil)
     }
 
     func requiresMainQueueSetup() -> Bool {
@@ -181,7 +202,11 @@ class APIClient: RCTEventEmitter, NetworkClient {
             return
         }
 
-        resolve(Keychain.importClientP12(withPath: path, withPassword: password, forServerUrl: session.baseUrl.absoluteString))
+        do {
+            try resolve(Keychain.importClientP12(withPath: path, withPassword: password, forServerUrl: session.baseUrl.absoluteString))
+        } catch {
+            self.sendWarningEvent(for: session.baseUrl.absoluteString, withWarning: error.localizedDescription)
+        }
     }
     
     @objc(get:forEndpoint:withOptions:withResolver:withRejecter:)
@@ -312,7 +337,11 @@ class APIClient: RCTEventEmitter, NetworkClient {
             session.cancelAllRequests()
         } else if let tokenHeader = session.bearerAuthTokenResponseHeader {
             if let token = data.response?.allHeaderFields[tokenHeader] as? String {
-                Keychain.setToken(token, forServerUrl: session.baseUrl.absoluteString)
+                do {
+                    try Keychain.setToken(token, forServerUrl: session.baseUrl.absoluteString)
+                } catch {
+                    sendWarningEvent(for: session.baseUrl.absoluteString, withWarning: error.localizedDescription)
+                }
             }
         }
     }
@@ -360,18 +389,36 @@ class APIClient: RCTEventEmitter, NetworkClient {
     
     func rejectInvalidSession(for baseUrl: URL, withRejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
         let message = "Session for \(baseUrl.absoluteString) has been invalidated"
-        let error = NSError(domain: "com.mattermost.react-native-network-client", code: NSCoderValueNotFoundError, userInfo: [NSLocalizedDescriptionKey: message])
+        let error = NSError(domain: "com.mattermost.react-native-network-client",
+                            code: NSCoderValueNotFoundError,
+                            userInfo: [NSLocalizedDescriptionKey: message])
+
         reject("\(error.code)", message, error)
     }
     
     func rejectFileSize(for fileUrl: URL, withRejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
         let message = "Unable to read file size for \(fileUrl.absoluteString)"
-        let error = NSError(domain: "com.mattermost.react-native-network-client", code: NSCoderValueNotFoundError, userInfo: [NSLocalizedDescriptionKey: message])
+        let error = NSError(domain: "com.mattermost.react-native-network-client",
+                            code: NSCoderValueNotFoundError,
+                            userInfo: [NSLocalizedDescriptionKey: message])
+
         reject("\(error.code)", message, error)
     }
     
     @objc(missingCertificateHandler:)
     func missingCertificateHandler(notification: Notification) {
-        self.sendEvent(withName: API_CLIENT_EVENTS["CLIENT_CERTIFICATE_MISSING"], body: ["serverUrl": notification.userInfo!["serverUrl"]])
+        self.sendEvent(withName: API_CLIENT_EVENTS["CLIENT_CERTIFICATE_MISSING"],
+                       body: ["serverUrl": notification.userInfo!["serverUrl"]])
+    }
+    
+    @objc(warningHandler:)
+    func warningHandler(notification: Notification) {
+        self.sendWarningEvent(for: notification.userInfo!["serverUrl"] as! String,
+                              withWarning: notification.userInfo!["warning"] as! String)
+    }
+    
+    func sendWarningEvent(for serverUrl: String, withWarning warning: String) {
+        self.sendEvent(withName: API_CLIENT_EVENTS["WARNING"],
+                       body: ["serverUrl": serverUrl, "warning": warning])
     }
 }

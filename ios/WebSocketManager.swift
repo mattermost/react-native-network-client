@@ -46,9 +46,13 @@ class WebSocketManager: NSObject {
             if let clientP12Configuration = options["clientP12Configuration"].dictionaryObject as? [String:String] {
                 let path = clientP12Configuration["path"]
                 let password = clientP12Configuration["password"]
-                Keychain.importClientP12(withPath: path!, withPassword: password, forServerUrl: url.absoluteString)
-                let (identity, certificate) = Keychain.getClientIdentityAndCertificate(for: url.absoluteString)!
-                clientCredential = URLCredential(identity: identity, certificates: [certificate], persistence: URLCredential.Persistence.permanent)
+                do {
+                    try Keychain.importClientP12(withPath: path!, withPassword: password, forServerUrl: url.absoluteString)
+                    let (identity, certificate) = try Keychain.getClientIdentityAndCertificate(for: url.absoluteString)!
+                    clientCredential = URLCredential(identity: identity, certificates: [certificate], persistence: URLCredential.Persistence.permanent)
+                } catch {
+                    // TODO: send error to JS
+                }
             }
             
             if options["enableCompression"].boolValue {
