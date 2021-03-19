@@ -7,16 +7,12 @@ import java.util.concurrent.TimeUnit
 import kotlin.math.pow
 
 class RetryInterceptor(
-        _type: String?,
-        _retryLimit: Int?,
-        _exponentialBackOffBase: Double?,
-        _exponentialBackOffScale: Double?
+        private val type: String? = "EXPONENTIAL",
+        private val retryLimit: Int? = 10,
+        private val retryInterval: Double? = 1.0,
+        private val exponentialBackOffBase: Double? = 2.0,
+        private val exponentialBackOffScale: Double? = 0.5
 ) : Interceptor {
-
-    private val type = _type ?: "EXPONENTIAL";
-    private val retryLimit = _retryLimit ?: 10;
-    private val exponentialBackOffBase = _exponentialBackOffBase ?: 2.0
-    private val exponentialBackOffScale = _exponentialBackOffScale ?: 0.5
 
     @Throws(IOException::class)
     override fun intercept(chain: Interceptor.Chain): Response {
@@ -24,10 +20,23 @@ class RetryInterceptor(
         var response = chain.proceed(request)
         var attempts = 0;
 
-        while (!response.isSuccessful && attempts <= this.retryLimit) {
-            TimeUnit.SECONDS.sleep(calculateNextExponentialWait(attempts))
-            attempts++;
+        // Keep retrying as long as response is not successful and less than the retry limit
+        while (!response.isSuccessful && attempts <= this.retryLimit!!) {
+
+            // End the request
             runCatching { response.close() }
+
+            // Exponential or Linear (as else/default)
+            val wait = when(type){
+                "EXPONENTIAL" -> calculateNextExponentialWait(attempts)
+                else -> retryInterval!!.toLong()
+            }
+
+            // Wait and increment our attempt
+            TimeUnit.SECONDS.sleep(wait)
+            attempts++;
+
+            // Try again!
             response = chain.proceed(request)
         }
 
@@ -35,7 +44,7 @@ class RetryInterceptor(
     }
 
     private fun calculateNextExponentialWait(attempts: Int): Long {
-        return (this.exponentialBackOffBase.pow(attempts) * this.exponentialBackOffScale).toLong()
+        return (this.exponentialBackOffBase!!.pow(attempts) * this.exponentialBackOffScale!!).toLong()
     }
 
 }
