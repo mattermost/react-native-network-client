@@ -32,7 +32,6 @@ extension APIClientError: LocalizedError {
 
 let API_CLIENT_EVENTS = [
     "UPLOAD_PROGRESS": "APIClient-UploadProgress",
-    "CLIENT_CERTIFICATE_MISSING": "APIClient-Client-Certificate-Missing",
     "CLIENT_ERROR": "APIClient-Error"
 ]
 
