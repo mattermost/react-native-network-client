@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import { NativeEventEmitter, NativeModules } from "react-native";
+import { Alert, NativeEventEmitter, NativeModules } from "react-native";
 import isURL from "validator/es/lib/isURL";
 
 const {
@@ -18,16 +18,29 @@ const SOCKETS: { [key: string]: WebSocketClient } = {};
 class WebSocketClient implements WebSocketClientInterface {
     url: string;
     readyState: WebSocketReadyState;
+    webSocketEventSubscription: EmitterSubscription;
+    clientWarningSubscription: EmitterSubscription;
 
     constructor(url: string) {
         this.url = url;
         this.readyState = READY_STATE.CLOSED;
-
-        Emitter.addListener(
+        this.webSocketEventSubscription = Emitter.addListener(
+            // TODO: remove subscription on invalidate
             EVENTS.READY_STATE_EVENT,
             (event: WebSocketEvent) => {
                 if (event.url === this.url) {
                     this.readyState = event.message as WebSocketReadyState;
+                }
+            }
+        );
+        this.clientWarningSubscription = Emitter.addListener(
+            // TODO: remove subscription on invalidate
+            EVENTS.WARNING,
+            (event: WebSocketClientWarningEvent) => {
+                if (event.url === this.url) {
+                    Alert.alert("Warning", event.warning, [{ text: "OK" }], {
+                        cancelable: false,
+                    });
                 }
             }
         );

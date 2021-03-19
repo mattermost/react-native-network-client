@@ -17,6 +17,7 @@ let WEBSOCKET_CLIENT_EVENTS = [
     "ERROR_EVENT": "WebSocketClient-Error",
     "MESSAGE_EVENT": "WebSocketClient-Message",
     "READY_STATE_EVENT": "WebSocketClient-ReadyState",
+    "WARNING": "APIClient-Warning"
 ]
 
 let READY_STATE = [
@@ -30,6 +31,20 @@ let READY_STATE = [
 class WebSocketClient: RCTEventEmitter, WebSocketDelegate {
     var emitter: RCTEventEmitter!
     var hasListeners: Bool!
+    
+    override init() {
+        super.init()
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(self.warningHandler),
+                                               name: Notification.Name(WEBSOCKET_CLIENT_EVENTS["WARNING"]!),
+                                               object: nil)
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self,
+                                                  name: Notification.Name(WEBSOCKET_CLIENT_EVENTS["WARNING"]!),
+                                                  object: nil)
+    }
     
     func requiresMainQueueSetup() -> Bool {
         return false
@@ -118,6 +133,17 @@ class WebSocketClient: RCTEventEmitter, WebSocketDelegate {
         reject("\(error.code)", message, error)
     }
     
+    @objc(warningHandler:)
+    func warningHandler(notification: Notification) {
+        self.sendWarningEvent(for: notification.userInfo!["url"] as! String,
+                              withWarning: notification.userInfo!["warning"] as! String)
+    }
+    
+    func sendWarningEvent(for url: String, withWarning warning: String) {
+        self.sendEvent(withName: WEBSOCKET_CLIENT_EVENTS["WARNING"],
+                       body: ["url": url, "warning": warning])
+    }
+    
     // MARK: WebSocketDelegate methods
     
     func didReceive(event: WebSocketEvent, client: WebSocket) {
@@ -144,5 +170,5 @@ class WebSocketClient: RCTEventEmitter, WebSocketDelegate {
         default:
             break
         }
-        }
+    }
 }

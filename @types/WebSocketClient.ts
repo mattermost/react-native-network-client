@@ -22,6 +22,8 @@ type WebSocketCallback = (event: WebSocketEvent) => void;
 interface WebSocketClientInterface {
     url: string;
     readyState: WebSocketReadyState;
+    webSocketEventSubscription: EmitterSubscription;
+    clientWarningSubscription: EmitterSubscription;
     send(data: string): void;
     open(): void;
     close(): void;
@@ -30,3 +32,8 @@ interface WebSocketClientInterface {
     onError(callback: WebSocketCallback): void;
     onMessage(callback: WebSocketCallback): void;
 }
+
+type WebSocketClientWarningEvent = {
+    url: string;
+    warning: string;
+};
