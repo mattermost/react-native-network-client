@@ -18,9 +18,9 @@ import Alamofire
                 urlRequest.headers.add(.authorization(bearerToken: bearerToken))
             }
         } catch {
-            NotificationCenter.default.post(name: Notification.Name(API_CLIENT_EVENTS["WARNING"]!),
+            NotificationCenter.default.post(name: Notification.Name(API_CLIENT_EVENTS["CLIENT_ERROR"]!),
                                             object: nil,
-                                            userInfo: ["serverUrl": sessionBaseUrlString, "warning": error.localizedDescription])
+                                            userInfo: ["serverUrl": sessionBaseUrlString, "errorCode": error._code, "errorDescription": error.localizedDescription])
         }
         
         return urlRequest

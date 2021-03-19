@@ -31,6 +31,8 @@ type ClientResponse = {
     retriesExhausted?: boolean;
 };
 
+type APIClientErrorEventHandler = (event: APIClientErrorEvent) => void;
+
 interface GenericClientInterface {
     get(url: string, options?: RequestOptions): Promise<ClientResponse>;
     put(url: string, options?: RequestOptions): Promise<ClientResponse>;
@@ -42,8 +44,10 @@ interface GenericClientInterface {
 interface APIClientInterface {
     baseUrl: string;
     config: APIClientConfiguration;
-    clientAuthSubscription: EmitterSubscription;
-    clientWarningSubscription: EmitterSubscription;
+
+    clientErrorSubscription: EmitterSubscription;
+    clientErrorEventHandler?: APIClientErrorEventHandler;
+    onClientError(callback: APIClientErrorEventHandler): void;
 
     get(endpoint: string, options?: RequestOptions): Promise<ClientResponse>;
     put(endpoint: string, options?: RequestOptions): Promise<ClientResponse>;
@@ -109,7 +113,8 @@ type MissingClientCertificateEvent = {
     serverUrl: string;
 };
 
-type APIClientWarningEvent = {
+type APIClientErrorEvent = {
     serverUrl: string;
-    warning: string;
+    errorCode: number;
+    errorDescription: string;
 };

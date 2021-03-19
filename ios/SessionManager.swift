@@ -52,9 +52,9 @@ import SwiftyJSON
             do {
                 try Keychain.importClientP12(withPath: path!, withPassword: password, forServerUrl: session!.baseUrl.absoluteString)
             } catch {
-                NotificationCenter.default.post(name: Notification.Name(API_CLIENT_EVENTS["WARNING"]!),
+                NotificationCenter.default.post(name: Notification.Name(API_CLIENT_EVENTS["CLIENT_ERROR"]!),
                                                 object: nil,
-                                                userInfo: ["serverUrl": baseUrl.absoluteString, "warning": error.localizedDescription])
+                                                userInfo: ["serverUrl": baseUrl.absoluteString, "errorCode": error._code, "errorDescription": error.localizedDescription])
             }
         }
         
@@ -156,9 +156,9 @@ import SwiftyJSON
                 do {
                     try Keychain.deleteAll(for: baseUrl.absoluteString)
                 } catch {
-                    NotificationCenter.default.post(name: Notification.Name(API_CLIENT_EVENTS["WARNING"]!),
+                    NotificationCenter.default.post(name: Notification.Name(API_CLIENT_EVENTS["CLIENT_ERROR"]!),
                                                     object: nil,
-                                                    userInfo: ["serverUrl": baseUrl.absoluteString, "warning": error.localizedDescription])
+                                                    userInfo: ["serverUrl": baseUrl.absoluteString, "errorCode": error._code, "errorDescription": error.localizedDescription])
                 }
                 session.session.invalidateAndCancel()
                 self.sessions.removeValue(forKey: baseUrl)

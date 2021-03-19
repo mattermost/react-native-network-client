@@ -19,11 +19,19 @@ type WebSocketEvent = {
 
 type WebSocketCallback = (event: WebSocketEvent) => void;
 
+type WebSocketClientErrorEventHandler = (
+    event: WebSocketClientErrorEvent
+) => void;
+
 interface WebSocketClientInterface {
     url: string;
     readyState: WebSocketReadyState;
+
     webSocketEventSubscription: EmitterSubscription;
-    clientWarningSubscription: EmitterSubscription;
+    clientErrorSubscription: EmitterSubscription;
+    clientErrorEventHandler?: WebSocketClientErrorEventHandler;
+    onClientError(callback: WebSocketClientErrorEventHandler): void;
+
     send(data: string): void;
     open(): void;
     close(): void;
@@ -33,7 +41,8 @@ interface WebSocketClientInterface {
     onMessage(callback: WebSocketCallback): void;
 }
 
-type WebSocketClientWarningEvent = {
+type WebSocketClientErrorEvent = {
     url: string;
-    warning: string;
+    errorCode: number;
+    errorDescription: string;
 };

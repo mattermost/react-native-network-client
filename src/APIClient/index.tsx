@@ -37,38 +37,37 @@ const generateUploadTaskId = () =>
 class APIClient implements APIClientInterface {
     baseUrl: string;
     config: APIClientConfiguration;
-    clientAuthSubscription: EmitterSubscription;
-    clientWarningSubscription: EmitterSubscription;
+    clientErrorEventHandler?: APIClientErrorEventHandler;
+    clientErrorSubscription: EmitterSubscription;
 
     constructor(baseUrl: string, config: APIClientConfiguration = {}) {
         this.baseUrl = baseUrl;
         this.config = Object.assign({}, DEFAULT_API_CLIENT_CONFIG, config);
-        this.clientAuthSubscription = Emitter.addListener(
-            EVENTS.CLIENT_CERTIFICATE_MISSING,
-            (e: MissingClientCertificateEvent) => {
-                if (e.serverUrl === this.baseUrl) {
-                    Alert.alert(
-                        "SSL handshake error",
-                        `Missing client certificate ${this.baseUrl}`,
-                        [{ text: "OK" }],
-                        {
-                            cancelable: false,
-                        }
-                    );
-                }
-            }
-        );
-        this.clientWarningSubscription = Emitter.addListener(
-            EVENTS.WARNING,
-            (event: APIClientWarningEvent) => {
+
+        this.clientErrorSubscription = Emitter.addListener(
+            EVENTS.CLIENT_ERROR,
+            (event: APIClientErrorEvent) => {
                 if (event.serverUrl === this.baseUrl) {
-                    Alert.alert("Warning", event.warning, [{ text: "OK" }], {
-                        cancelable: false,
-                    });
+                    if (this.clientErrorEventHandler) {
+                        this.clientErrorEventHandler(event);
+                    } else {
+                        Alert.alert(
+                            "Error",
+                            `Code: ${event.errorCode}\nDescription: ${event.errorDescription}`,
+                            [{ text: "OK" }],
+                            {
+                                cancelable: false,
+                            }
+                        );
+                    }
                 }
             }
         );
     }
+
+    onClientError = (callback: APIClientErrorEventHandler) => {
+        this.clientErrorEventHandler = callback;
+    };
 
     getHeaders = (): Promise<ClientHeaders> =>
         NativeAPIClient.getClientHeadersFor(this.baseUrl);
@@ -84,8 +83,7 @@ class APIClient implements APIClientInterface {
         return NativeAPIClient.importClientP12For(this.baseUrl, path, password);
     };
     invalidate = (): Promise<void> => {
-        this.clientAuthSubscription.remove();
-        this.clientWarningSubscription.remove();
+        this.clientErrorSubscription.remove();
         delete CLIENTS[this.baseUrl];
 
         return NativeAPIClient.invalidateClientFor(this.baseUrl);

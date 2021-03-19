@@ -7,7 +7,7 @@ enum WebSocketEvents {
     ERROR_EVENT = "WebSocketClient-Error",
     MESSAGE_EVENT = "WebSocketClient-Message",
     READY_STATE_EVENT = "WebSocketClient-ReadyState",
-    WARNING = "WebSocketClient-Warning",
+    CLIENT_ERROR = "WebSocketClient-Error",
 }
 
 enum WebSocketReadyState {

@@ -17,7 +17,7 @@ let WEBSOCKET_CLIENT_EVENTS = [
     "ERROR_EVENT": "WebSocketClient-Error",
     "MESSAGE_EVENT": "WebSocketClient-Message",
     "READY_STATE_EVENT": "WebSocketClient-ReadyState",
-    "WARNING": "APIClient-Warning"
+    "CLIENT_ERROR": "WebSocketClient-Error"
 ]
 
 let READY_STATE = [
@@ -35,14 +35,14 @@ class WebSocketClient: RCTEventEmitter, WebSocketDelegate {
     override init() {
         super.init()
         NotificationCenter.default.addObserver(self,
-                                               selector: #selector(self.warningHandler),
-                                               name: Notification.Name(WEBSOCKET_CLIENT_EVENTS["WARNING"]!),
+                                               selector: #selector(self.errorHandler),
+                                               name: Notification.Name(WEBSOCKET_CLIENT_EVENTS["CLIENT_ERROR"]!),
                                                object: nil)
     }
     
     deinit {
         NotificationCenter.default.removeObserver(self,
-                                                  name: Notification.Name(WEBSOCKET_CLIENT_EVENTS["WARNING"]!),
+                                                  name: Notification.Name(WEBSOCKET_CLIENT_EVENTS["CLIENT_ERROR"]!),
                                                   object: nil)
     }
     
@@ -133,15 +133,16 @@ class WebSocketClient: RCTEventEmitter, WebSocketDelegate {
         reject("\(error.code)", message, error)
     }
     
-    @objc(warningHandler:)
-    func warningHandler(notification: Notification) {
-        self.sendWarningEvent(for: notification.userInfo!["url"] as! String,
-                              withWarning: notification.userInfo!["warning"] as! String)
+    @objc(errorHandler:)
+    func errorHandler(notification: Notification) {
+        self.sendErrorEvent(for: notification.userInfo!["url"] as! String,
+                            withErrorCode: notification.userInfo!["errorCode"] as! Int,
+                            withErrorDescription: notification.userInfo!["errorDescription"] as! String)
     }
     
-    func sendWarningEvent(for url: String, withWarning warning: String) {
-        self.sendEvent(withName: WEBSOCKET_CLIENT_EVENTS["WARNING"],
-                       body: ["url": url, "warning": warning])
+    func sendErrorEvent(for url: String, withErrorCode errorCode: Int, withErrorDescription errorDescription: String) {
+        self.sendEvent(withName: WEBSOCKET_CLIENT_EVENTS["CLIENT_ERROR"],
+                       body: ["url": url, "errorCode": errorCode, "errorDescription": errorDescription])
     }
     
     // MARK: WebSocketDelegate methods

@@ -11,10 +11,29 @@ import Alamofire
 import SwiftyJSON
 import React
 
+enum APIClientError: Error {
+    case ClientCertificateMissing
+}
+
+extension APIClientError: LocalizedError {
+    var errorCode: Int {
+        switch self {
+        case .ClientCertificateMissing: return -200
+        }
+    }
+    
+    var errorDescription: String? {
+        switch self {
+        case .CertificateForIdentityNotFound:
+            return "Failed to authenticate: missing client certificate"
+        }
+    }
+}
+
 let API_CLIENT_EVENTS = [
     "UPLOAD_PROGRESS": "APIClient-UploadProgress",
     "CLIENT_CERTIFICATE_MISSING": "APIClient-Client-Certificate-Missing",
-    "WARNING": "APIClient-Warning"
+    "CLIENT_ERROR": "APIClient-Error"
 ]
 
 class APIClientSessionDelegate: SessionDelegate {
@@ -42,14 +61,12 @@ class APIClientSessionDelegate: SessionDelegate {
                                                    certificates: [certificate],
                                                    persistence: URLCredential.Persistence.permanent)
                     } else {
-                        NotificationCenter.default.post(name: Notification.Name(API_CLIENT_EVENTS["CLIENT_CERTIFICATE_MISSING"]!),
-                                                        object: nil,
-                                                        userInfo: ["serverUrl": serverUrl])
+                        throw APIClientError.ClientCertificateMissing
                     }
                 } catch {
-                    NotificationCenter.default.post(name: Notification.Name(API_CLIENT_EVENTS["WARNING"]!),
+                    NotificationCenter.default.post(name: Notification.Name(API_CLIENT_EVENTS["CLIENT_ERROR"]!),
                                                     object: nil,
-                                                    userInfo: ["serverUrl": serverUrl, "warning": error.localizedDescription])
+                                                    userInfo: ["serverUrl": serverUrl, "errorCode": error._code, "errorDescription": error.localizedDescription])
                 }
             }
             disposition = .useCredential
@@ -68,21 +85,14 @@ class APIClient: RCTEventEmitter, NetworkClient {
     override init() {
         super.init()
         NotificationCenter.default.addObserver(self,
-                                               selector: #selector(self.missingCertificateHandler),
-                                               name: Notification.Name(API_CLIENT_EVENTS["CLIENT_CERTIFICATE_MISSING"]!),
-                                               object: nil)
-        NotificationCenter.default.addObserver(self,
-                                               selector: #selector(self.warningHandler),
-                                               name: Notification.Name(API_CLIENT_EVENTS["WARNING"]!),
+                                               selector: #selector(self.errorHandler),
+                                               name: Notification.Name(API_CLIENT_EVENTS["CLIENT_ERROR"]!),
                                                object: nil)
     }
     
     deinit {
         NotificationCenter.default.removeObserver(self,
-                                                  name: Notification.Name(API_CLIENT_EVENTS["CLIENT_CERTIFICATE_MISSING"]!),
-                                                  object: nil)
-        NotificationCenter.default.removeObserver(self,
-                                                  name: Notification.Name(API_CLIENT_EVENTS["WARNING"]!),
+                                                  name: Notification.Name(API_CLIENT_EVENTS["CLIENT_ERROR"]!),
                                                   object: nil)
     }
 
@@ -396,27 +406,22 @@ class APIClient: RCTEventEmitter, NetworkClient {
     
     func rejectFileSize(for fileUrl: URL, withRejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
         let message = "Unable to read file size for \(fileUrl.absoluteString)"
-        let error = NSError(domain: "com.mattermost.react-native-network-client",
+        let error = NSError(domain: NSCocoaErrorDomain,
                             code: NSCoderValueNotFoundError,
                             userInfo: [NSLocalizedDescriptionKey: message])
 
         reject("\(error.code)", message, error)
     }
     
-    @objc(missingCertificateHandler:)
-    func missingCertificateHandler(notification: Notification) {
-        self.sendEvent(withName: API_CLIENT_EVENTS["CLIENT_CERTIFICATE_MISSING"],
-                       body: ["serverUrl": notification.userInfo!["serverUrl"]])
+    @objc(errorHandler:)
+    func errorHandler(notification: Notification) {
+        self.sendErrorEvent(for: notification.userInfo!["serverUrl"] as! String,
+                              withErrorCode: notification.userInfo!["errorCode"] as! String,
+                              withErrorDescription: notification.userInfo!["errorDescription"] as! String)
     }
     
-    @objc(warningHandler:)
-    func warningHandler(notification: Notification) {
-        self.sendWarningEvent(for: notification.userInfo!["serverUrl"] as! String,
-                              withWarning: notification.userInfo!["warning"] as! String)
-    }
-    
-    func sendWarningEvent(for serverUrl: String, withWarning warning: String) {
-        self.sendEvent(withName: API_CLIENT_EVENTS["WARNING"],
-                       body: ["serverUrl": serverUrl, "warning": warning])
+    func sendErrorEvent(for serverUrl: String, withErrorCode errorCode: Int, withErrorDescription errorDescription: String) {
+        self.sendEvent(withName: API_CLIENT_EVENTS["CLIENT_ERROR"],
+                       body: ["serverUrl": serverUrl, "errorCode": errorCode, "errorDescription": errorDescription])
     }
 }

@@ -19,7 +19,8 @@ class WebSocketClient implements WebSocketClientInterface {
     url: string;
     readyState: WebSocketReadyState;
     webSocketEventSubscription: EmitterSubscription;
-    clientWarningSubscription: EmitterSubscription;
+    clientErrorEventHandler?: WebSocketClientErrorEventHandler;
+    clientErrorSubscription: EmitterSubscription;
 
     constructor(url: string) {
         this.url = url;
@@ -33,14 +34,23 @@ class WebSocketClient implements WebSocketClientInterface {
                 }
             }
         );
-        this.clientWarningSubscription = Emitter.addListener(
+        this.clientErrorSubscription = Emitter.addListener(
             // TODO: remove subscription on invalidate
-            EVENTS.WARNING,
-            (event: WebSocketClientWarningEvent) => {
+            EVENTS.CLIENT_ERROR,
+            (event: WebSocketClientErrorEvent) => {
                 if (event.url === this.url) {
-                    Alert.alert("Warning", event.warning, [{ text: "OK" }], {
-                        cancelable: false,
-                    });
+                    if (this.clientErrorEventHandler) {
+                        this.clientErrorEventHandler(event);
+                    } else {
+                        Alert.alert(
+                            "Error",
+                            `Code: ${event.errorCode}\nDescription: ${event.errorDescription}`,
+                            [{ text: "OK" }],
+                            {
+                                cancelable: false,
+                            }
+                        );
+                    }
                 }
             }
         );
@@ -80,6 +90,10 @@ class WebSocketClient implements WebSocketClientInterface {
                 callback(event);
             }
         });
+    };
+
+    onClientError = (callback: WebSocketClientErrorEventHandler) => {
+        this.clientErrorEventHandler = callback;
     };
 }
 

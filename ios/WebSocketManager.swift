@@ -51,9 +51,9 @@ class WebSocketManager: NSObject {
                     let (identity, certificate) = try Keychain.getClientIdentityAndCertificate(for: url.absoluteString)!
                     clientCredential = URLCredential(identity: identity, certificates: [certificate], persistence: URLCredential.Persistence.permanent)
                 } catch {
-                    NotificationCenter.default.post(name: Notification.Name(WEBSOCKET_CLIENT_EVENTS["WARNING"]!),
+                    NotificationCenter.default.post(name: Notification.Name(WEBSOCKET_CLIENT_EVENTS["CLIENT_ERROR"]!),
                                                     object: nil,
-                                                    userInfo: ["url": url.absoluteString, "warning": error.localizedDescription])
+                                                    userInfo: ["url": url.absoluteString, "errorCode": error._code, "errorDescription": error.localizedDescription])
                 }
             }
             
