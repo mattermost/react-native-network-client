@@ -12,6 +12,7 @@ import {
     ApiClientScreen,
     ApiClientUploadScreen,
 } from '@support/ui/screen';
+import {isAndroid} from '@support/utils';
 import {verifyApiClient} from '../helpers';
 
 describe('Upload - API Client Request', () => {
@@ -27,18 +28,26 @@ describe('Upload - API Client Request', () => {
     });
 
     it('should be able to upload selected file', async () => {
+        // # Do not run against Android due to file attachment limitation
+        if (isAndroid()) {
+            return;
+        }
+
         const {
+            apiClientUploadScrollView,
             attachImageButton,
             fileComponent,
             filename,
             fileUri,
             progressBar,
             setEndpoint,
+            toggleOnStreamFileCheckbox,
             uploadFileButton,
         } = ApiClientUploadScreen;
 
         // # Set endpoint and select file
         await setEndpoint(testEndpoint);
+        await toggleOnStreamFileCheckbox();
         await attachImageButton.tap();
 
         // * Verify file is selected
@@ -48,6 +57,7 @@ describe('Upload - API Client Request', () => {
         await expect(progressBar).toBeVisible();
 
         // # Upload file
+        await apiClientUploadScrollView.scrollTo('bottom');
         await uploadFileButton.tap();
 
         // * Verify uploaded

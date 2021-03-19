@@ -133,7 +133,7 @@ const APIClientUploadScreen = ({ route }: APIClientUploadScreenProps) => {
 
     return (
         <SafeAreaView style={{ flex: 1 }}>
-            <ScrollView>
+            <ScrollView testID="api_client_upload.scroll_view">
                 <Input
                     label="Endpoint"
                     placeholder="/upload"
@@ -147,7 +147,7 @@ const APIClientUploadScreen = ({ route }: APIClientUploadScreenProps) => {
                     disabled={Boolean(state.status)}
                 />
                 <CheckBox
-                    title={`Stream file`}
+                    title={`Stream file ${stream}`}
                     checked={stream}
                     onPress={() =>
                         stream ? setStream(false) : setStream(true)
