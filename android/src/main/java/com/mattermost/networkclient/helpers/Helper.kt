@@ -87,9 +87,10 @@ fun OkHttpClient.Builder.parseOptions(options: ReadableMap?, request: Request.Bu
 
         val retryType = retryPolicyConfiguration["type"] as String?
         val retryLimit = retryPolicyConfiguration["retryLimit"] as Double?
+        val retryInterval = retryPolicyConfiguration["retryInterval"] as Double?
         val retryExponentialBackoffBase = retryPolicyConfiguration["exponentialBackoffBase"] as Double?
         val retryExponentialBackoffScale = retryPolicyConfiguration["exponentialBackoffScale"] as Double?
-        this.addInterceptor(RetryInterceptor(retryType, retryLimit?.toInt(), retryExponentialBackoffBase, retryExponentialBackoffScale))
+        this.addInterceptor(RetryInterceptor(retryType, retryLimit?.toInt(), retryInterval, retryExponentialBackoffBase, retryExponentialBackoffScale))
     }
 
     // Headers
