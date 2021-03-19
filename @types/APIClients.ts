@@ -31,6 +31,15 @@ type ClientResponse = {
     retriesExhausted?: boolean;
 };
 
+type ClientResponseError = {
+    code: number;
+    message: string;
+    domain: string;
+    userInfo?: Record<string, unknown>;
+    nativeStackAndroid?: Array<unknown>;
+    nativeStackIOS?: Array<unknown>;
+};
+
 type APIClientErrorEventHandler = (event: APIClientErrorEvent) => void;
 
 interface GenericClientInterface {

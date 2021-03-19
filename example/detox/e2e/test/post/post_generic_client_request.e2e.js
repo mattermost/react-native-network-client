@@ -7,43 +7,61 @@
 // - Use element testID when selecting an element. Create one if none.
 // *******************************************************************
 
-import {Request} from '@support/server_api';
-import {
-    host,
-    siteUrl,
-    serverUrl,
-} from '@support/test_config';
-import {GenericClientRequestScreen} from '@support/ui/screen';
+import { Request } from "@support/server_api";
+import { host, siteUrl, serverUrl } from "@support/test_config";
+import { GenericClientRequestScreen } from "@support/ui/screen";
 import {
     customBody,
     customHeaders,
     performGenericClientRequest,
     verifyApiResponse,
-    verifyResponseOverlay,
-} from '../helpers';
+    verifyResponseSuccessOverlay,
+} from "../helpers";
 
-describe('Post - Generic Client Request', () => {
-    const testMethod = 'POST';
+describe("Post - Generic Client Request", () => {
+    const testMethod = "POST";
     const testServerUrl = `${serverUrl}/${testMethod.toLowerCase()}`;
     const testSiteUrl = `${siteUrl}/${testMethod.toLowerCase()}`;
     const testHost = host;
     const testStatus = 200;
-    const testHeaders = {...customHeaders};
-    const testBody = {...customBody};
+    const testHeaders = { ...customHeaders };
+    const testBody = { ...customBody };
 
     beforeAll(async () => {
-        const apiResponse = await Request.apiPost({headers: testHeaders, body: testBody});
-        await verifyApiResponse(apiResponse, testSiteUrl, testStatus, testHost, testMethod, testHeaders, testBody);
+        const apiResponse = await Request.apiPost({
+            headers: testHeaders,
+            body: testBody,
+        });
+        await verifyApiResponse(
+            apiResponse,
+            testSiteUrl,
+            testStatus,
+            testHost,
+            testMethod,
+            testHeaders,
+            testBody
+        );
 
         await GenericClientRequestScreen.open();
         await GenericClientRequestScreen.postButton.tap();
     });
 
-    it('should return a valid response', async () => {
+    it("should return a valid response", async () => {
         // # Perform generic client request
-        await performGenericClientRequest({testUrl: testServerUrl, testHeaders, testBody});
+        await performGenericClientRequest({
+            testUrl: testServerUrl,
+            testHeaders,
+            testBody,
+        });
 
-        // * Verify response overlay
-        await verifyResponseOverlay(testServerUrl, testStatus, testHost, testMethod, testHeaders, testBody);
+        // * Verify response success overlay
+        await verifyResponseSuccessOverlay(
+            testServerUrl,
+            testStatus,
+            testHost,
+            testMethod,
+            testHeaders,
+            testBody
+        );
     });
 });

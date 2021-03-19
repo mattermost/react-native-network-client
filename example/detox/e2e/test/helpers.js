@@ -1,29 +1,26 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import jestExpect from 'expect';
+import jestExpect from "expect";
 
 import {
     ApiClientRequestScreen,
     ApiClientScreen,
     GenericClientRequestScreen,
-} from '@support/ui/screen';
-import {
-    isAndroid,
-    isIos,
-} from '@support/utils';
+} from "@support/ui/screen";
+import { isAndroid, isIos } from "@support/utils";
 
 export const customHeaders = {
-    'header-1-key': 'header-1-value',
-    'header-2-key': 'header-2-value',
+    "header-1-key": "header-1-value",
+    "header-2-key": "header-2-value",
 };
 export const newHeaders = {
-    'new-header-1-key': 'new-header-1-value',
-    'new-header-2-key': 'new-header-2-value',
+    "new-header-1-key": "new-header-1-value",
+    "new-header-2-key": "new-header-2-value",
 };
 export const customBody = {
-    'field1key': 'field1value',
-    'field2key': 'field2value',
+    field1key: "field1value",
+    field2key: "field2value",
 };
 
 /**
@@ -38,8 +35,12 @@ export const performApiClientRequest = async ({
     testPath,
     testHeaders,
     testBody = null,
-    testTimeoutInterval = '60',
-    testRetry = {retryLimit: '3', exponentialBackoffBase: '4', exponentialBackoffScale: '5'}
+    testTimeoutInterval = "60",
+    testRetry = {
+        retryLimit: "3",
+        exponentialBackoffBase: "4",
+        exponentialBackoffScale: "5",
+    },
 }) => {
     const {
         makeRequest,
@@ -73,8 +74,12 @@ export const performGenericClientRequest = async ({
     testUrl,
     testHeaders,
     testBody = null,
-    testTimeoutInterval = '60',
-    testRetry = {retryLimit: '3', exponentialBackoffBase: '4', exponentialBackoffScale: '5'}
+    testTimeoutInterval = "60",
+    testRetry = {
+        retryLimit: "3",
+        exponentialBackoffBase: "4",
+        exponentialBackoffScale: "5",
+    },
 }) => {
     const {
         makeRequest,
@@ -106,7 +111,15 @@ export const performGenericClientRequest = async ({
  * @param {Object} testHeaders - requeset headers
  * @param {Object} testBody - request body
  */
-export const verifyApiResponse = (apiResponse, testUrl, testStatus, testHost, testMethod, testHeaders, testBody = null) => {
+export const verifyApiResponse = (
+    apiResponse,
+    testUrl,
+    testStatus,
+    testHost,
+    testMethod,
+    testHeaders,
+    testBody = null
+) => {
     const apiResponseDataRequest = apiResponse.data.request;
 
     // * Verify request URL and response status
@@ -114,20 +127,22 @@ export const verifyApiResponse = (apiResponse, testUrl, testStatus, testHost, te
     jestExpect(apiResponse.status).toEqual(testStatus);
 
     // * Verify response headers contain server header
-    jestExpect(apiResponse.headers['server']).toBe('mock-server');
+    jestExpect(apiResponse.headers["server"]).toBe("mock-server");
 
     // * Verify response body contains request host and request method
-    jestExpect(apiResponseDataRequest.headers['host']).toBe(testHost);
+    jestExpect(apiResponseDataRequest.headers["host"]).toBe(testHost);
     jestExpect(apiResponseDataRequest.method).toBe(testMethod);
 
     // * Verify response body contains request headers
     for (const [k, v] of Object.entries(testHeaders)) {
         jestExpect(apiResponseDataRequest.headers[k]).toBe(v);
     }
-    
+
     if (testBody) {
         // * Verify response body contains request body
-        jestExpect(Object.keys(apiResponseDataRequest.body)).toHaveLength(Object.keys(testBody).length);
+        jestExpect(Object.keys(apiResponseDataRequest.body)).toHaveLength(
+            Object.keys(testBody).length
+        );
         for (const [k, v] of Object.entries(testBody)) {
             jestExpect(apiResponseDataRequest.body[k]).toBe(v);
         }
@@ -135,7 +150,7 @@ export const verifyApiResponse = (apiResponse, testUrl, testStatus, testHost, te
 };
 
 /**
- * Verify response overlay.
+ * Verify response success overlay.
  * @param {string} testUrl - URL of requested server
  * @param {number} testStatus - expected response status code
  * @param {string} testHost - host header value of requested server
@@ -143,14 +158,21 @@ export const verifyApiResponse = (apiResponse, testUrl, testStatus, testHost, te
  * @param {Object} testHeaders - requeset headers
  * @param {Object} testBody - request body
  */
-export const verifyResponseOverlay = async (testUrl, testStatus, testHost, testMethod, testHeaders, testBody = null) => {
+export const verifyResponseSuccessOverlay = async (
+    testUrl,
+    testStatus,
+    testHost,
+    testMethod,
+    testHeaders,
+    testBody = null
+) => {
     const {
         responseCodeText,
         responseDataText,
         responseHeadersText,
         responseLastRequestedUrlText,
     } = GenericClientRequestScreen;
-    
+
     // * Verify request URL and response status
     await expect(responseLastRequestedUrlText).toHaveText(testUrl);
     await expect(responseCodeText).toHaveText(testStatus.toString());
@@ -161,12 +183,13 @@ export const verifyResponseOverlay = async (testUrl, testStatus, testHost, testM
         // * Verify response headers contain server header
         const responseHeadersTextAttributes = await responseHeadersText.getAttributes();
         const responseHeaders = JSON.parse(responseHeadersTextAttributes.text);
-        jestExpect(responseHeaders['Server']).toBe('mock-server');
+        jestExpect(responseHeaders["Server"]).toBe("mock-server");
 
         // * Verify response body contains request host and request method
         const responseDataTextAttributes = await responseDataText.getAttributes();
-        const responseDataRequest = JSON.parse(responseDataTextAttributes.text).request;
-        jestExpect(responseDataRequest.headers['host']).toBe(testHost);
+        const responseDataRequest = JSON.parse(responseDataTextAttributes.text)
+            .request;
+        jestExpect(responseDataRequest.headers["host"]).toBe(testHost);
         jestExpect(responseDataRequest.method).toBe(testMethod);
 
         // * Verify response body contains request headers
@@ -176,7 +199,9 @@ export const verifyResponseOverlay = async (testUrl, testStatus, testHost, testM
 
         if (testBody) {
             // * Verify response body contains request body
-            jestExpect(Object.keys(responseDataRequest.body)).toHaveLength(Object.keys(testBody).length);
+            jestExpect(Object.keys(responseDataRequest.body)).toHaveLength(
+                Object.keys(testBody).length
+            );
             for (const [k, v] of Object.entries(testBody)) {
                 jestExpect(responseDataRequest.body[k]).toBe(v);
             }
@@ -191,17 +216,19 @@ export const verifyApiClient = async (testName, testUrl, testHeaders = {}) => {
         nameInput,
     } = ApiClientScreen;
 
-    const ordered = Object.keys(testHeaders).sort().reduce((result, key) => {
-        result[key] = testHeaders[key];
-        return result;
-    }, {});
+    const ordered = Object.keys(testHeaders)
+        .sort()
+        .reduce((result, key) => {
+            result[key] = testHeaders[key];
+            return result;
+        }, {});
     const entries = Object.entries(ordered);
     if (isAndroid()) {
         await expect(nameInput).toHaveText(testName);
         await expect(baseUrlInput).toHaveText(testUrl);
 
         for (const [index, [key, value]] of Object.entries(entries)) {
-            const {keyInput, valueInput} = getHeaderListItemAtIndex(index);
+            const { keyInput, valueInput } = getHeaderListItemAtIndex(index);
             await expect(keyInput).toHaveText(key);
             await expect(valueInput).toHaveText(value);
         }
@@ -210,7 +237,7 @@ export const verifyApiClient = async (testName, testUrl, testHeaders = {}) => {
         await expect(baseUrlInput).toHaveValue(testUrl);
 
         for (const [index, [key, value]] of Object.entries(entries)) {
-            const {keyInput, valueInput} = getHeaderListItemAtIndex(index);
+            const { keyInput, valueInput } = getHeaderListItemAtIndex(index);
             await expect(keyInput).toHaveValue(key);
             await expect(valueInput).toHaveValue(value);
         }
