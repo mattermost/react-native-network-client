@@ -9,7 +9,7 @@ const webSocketServer = (port) => {
 
     // On server connection
     wss.on('connection', (ws, request, client) => {
-        console.log('Web socket connected!');
+        console.log('WebSocket connected!');
         ws.send('connected');
 
         const expectedPathname = '/api/websocket';
@@ -25,14 +25,14 @@ const webSocketServer = (port) => {
         }
 
         ws.on('close', function close() {
-            console.log('Web socket disconnected!');
+            console.log('WebSocket disconnected!');
         });
     });
 
     // On error
     wss.on('error', (e) => {
         if (e.code === 'EADDRINUSE') {
-            console.log(`Another Web Socket Server instance is already listening at ${port}`);
+            console.log(`Another WebSocket Server instance is already listening at ${port}`);
         }
     });
 };

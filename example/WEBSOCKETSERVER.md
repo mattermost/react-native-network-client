@@ -1,13 +1,13 @@
-# Web Socket Server
+# WebSocket Server
 
-### How to run Web Socket Server
-1. Run Web Socket Server
+### How to run WebSocket Server
+1. Run WebSocket Server
 ```
-npm run web-socket-server
+npm run websocket-server
 ```
-2. Verify Web Socket Server is running: `ws://localhost:3000`.
+2. Verify WebSocket Server is running: `ws://localhost:3000`.
 
-### Web Socket Request
+### WebSocket Request
 Path: `/api/websocket`
 
 Example:

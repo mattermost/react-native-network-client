@@ -12,7 +12,7 @@ import {
 const http = require('http');
 const mockserver = require('mockserver');
 const fileServer = require('../../servers/file_server');
-const webSocketServer = require('../../servers/web_socket_server');
+const webSocketServer = require('../../servers/websocket_server');
 
 beforeAll(async () => {
     launchMockserver();
@@ -47,7 +47,7 @@ function launchMockserver() {
 function launchWebSocketServer() {
     const port = webSocketSiteUrl.split(':')[2];
     webSocketServer(port);
-    console.log(`Web Socket Server listening at ${webSocketSiteUrl}`);
+    console.log(`WebSocket Server listening at ${webSocketSiteUrl}`);
 }
 
 function launchServer(serverName, requestListener, url, directory = '') {

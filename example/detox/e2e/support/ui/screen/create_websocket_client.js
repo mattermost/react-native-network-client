@@ -7,9 +7,9 @@ import {isAndroid} from '@support/utils';
 
 class CreateWebSocketClientScreen {
     testID = {
-        nameInput: 'create_web_socket_client.name.input',
-        timeoutIntervalInput: 'create_web_socket_client.timeout_interval.input',
-        urlInput: 'create_web_socket_client.url.input',
+        nameInput: 'create_websocket_client.name.input',
+        timeoutIntervalInput: 'create_websocket_client.timeout_interval.input',
+        urlInput: 'create_websocket_client.url.input',
     }
 
     createWebSocketClientScreen = element(by.text('CreateWebSocketClient'));
@@ -28,7 +28,7 @@ class CreateWebSocketClientScreen {
     }
 
     open = async () => {
-        // # Open create web socket client screen
+        // # Open create WebSocket client screen
         await ClientListScreen.addWebSocketClientButton.tap();
 
         return this.toBeVisible();

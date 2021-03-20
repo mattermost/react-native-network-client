@@ -10,8 +10,8 @@
 import {WebSocketClientScreen} from '@support/ui/screen';
 import {verifyWebSocketEvent} from '../helpers';
 
-describe('Web Socket Client Request', () => {
-    const testName = 'Simple Web Socket';
+describe('WebSocket Client Request', () => {
+    const testName = 'Simple WebSocket';
     const testMessageJson = {
         id: 123,
         action: 'user_typing',
@@ -32,7 +32,7 @@ describe('Web Socket Client Request', () => {
     });
 
     it('should be able to connect and send message', async () => {
-        // # Connect to web socket server
+        // # Connect to WebSocket server
         await connectButton.tap();
 
         // * Verify connected
@@ -55,7 +55,7 @@ describe('Web Socket Client Request', () => {
     });
 
     it('should be able to disconnect', async () => {
-        // # Disconnect from web socket server
+        // # Disconnect from WebSocket server
         await disconnectButton.tap();
 
         // * Verify disconnected

@@ -245,7 +245,7 @@ const createWebSocketClient = async (
 };
 
 const createMattermostWebSocketClient = async (): Promise<WebSocketClientItem | null> => {
-    const name = "Mattermost Web Socket";
+    const name = "Mattermost WebSocket";
     const host =
         Platform.OS === "ios"
             ? "192.168.0.14:8065"
@@ -265,7 +265,7 @@ const createMattermostWebSocketClient = async (): Promise<WebSocketClientItem | 
 };
 
 const createSimpleWebSocketClient = async (): Promise<WebSocketClientItem | null> => {
-    const name = "Simple Web Socket";
+    const name = "Simple WebSocket";
     const host =
         Platform.OS === "ios"
             ? "localhost:3000"

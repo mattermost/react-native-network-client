@@ -6,8 +6,8 @@ import {timeouts, wait} from '@support/utils'
 
 class WebSocketClientScreen {
     testID = {
-        messageInput: 'web_socket_client.message.input',
-        eventText: 'web_socket_client.event.text',
+        messageInput: 'websocket_client.message.input',
+        eventText: 'websocket_client.event.text',
     }
 
     webSocketClientScreen = element(by.text('WebSocketClient'));
@@ -25,7 +25,7 @@ class WebSocketClientScreen {
     }
 
     open = async (name) => {
-        // # Open web socket client screen
+        // # Open WebSocket client screen
         const {item} = ClientListItem.getItemByName(name);
         await wait(timeouts.TWO_SEC);
         await item.tap();

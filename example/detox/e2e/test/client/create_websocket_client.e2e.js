@@ -21,10 +21,10 @@ import {
 } from '@support/utils';
 import {customHeaders} from '../helpers';
 
-describe('Create Web Socket Client', () => {
+describe('Create WebSocket Client', () => {
     const randomText = getRandomId(10);
     const testUrl = `ws://example-${randomText}-ws.com`;
-    const testName = `Example ${randomText} Web Socket`;
+    const testName = `Example ${randomText} WebSocket`;
     const testHeaders = {...customHeaders};
     const testTimeoutInterval = getRandomInt(60).toString();
     const {
@@ -61,7 +61,7 @@ describe('Create Web Socket Client', () => {
             okButton,
         } = Alert;
 
-        // # Open create web socket client screen
+        // # Open create WebSocket client screen
         await CreateWebSocketClientScreen.open();
 
         // # Set an existing url and attempt to create client
@@ -79,7 +79,7 @@ describe('Create Web Socket Client', () => {
         await CreateWebSocketClientScreen.back();
     });
 
-    it('should be able to remove a web socket client', async () => {
+    it('should be able to remove a WebSocket client', async () => {
         // # Remove client
         await ClientListScreen.removeClientWithName(testName);
 

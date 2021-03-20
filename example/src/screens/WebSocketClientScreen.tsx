@@ -60,7 +60,7 @@ export default function WebSocketClientScreen({
                     data: { channel_id: "" },
                 })}
                 onChangeText={setMessage}
-                testID="web_socket_client.message.input"
+                testID="websocket_client.message.input"
                 value={message}
             />
             <Button
@@ -84,7 +84,7 @@ export default function WebSocketClientScreen({
                 }}
             />
             <ScrollView style={{ marginHorizontal: 20 }}>
-                <Text testID="web_socket_client.event.text">
+                <Text testID="websocket_client.event.text">
                     {event}
                 </Text>
             </ScrollView>

@@ -222,7 +222,7 @@ export const verifyWebSocketEvent = async (eventJson) => {
     // Currently only for iOS. Android getAttributes support is not yet available.
     // https://github.com/wix/Detox/issues/2083
     if (isIos()) {
-        // * Verify web socket event
+        // * Verify WebSocket event
         const eventTextAttributes = await WebSocketClientScreen.eventText.getAttributes();
         jestExpect(JSON.parse(eventTextAttributes.text)).toStrictEqual(eventJson);
     }
