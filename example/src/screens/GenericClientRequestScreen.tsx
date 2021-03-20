@@ -25,8 +25,9 @@ const GenericClientRequestScreen = ({
     const [responseVisible, setResponseVisible] = useState(false);
     const [
         retryPolicyConfiguration,
-        toggleRetryPolicyType,
+        setRetryPolicyType,
         setRetryLimit,
+        setRetryInterval,
         setExponentialBackoffBase,
         setExponentialBackoffScale,
     ] = useRetryPolicyConfiguration();
@@ -119,10 +120,12 @@ const GenericClientRequestScreen = ({
                     testID="generic_client_request.timeout_interval.input"
                 />
                 <RetryPolicyConfiguration
-                    checked={Boolean(retryPolicyConfiguration.type)}
-                    onCheckBoxPress={toggleRetryPolicyType}
+                    policyType={retryPolicyConfiguration.type}
+                    onTypeSelected={setRetryPolicyType}
                     retryLimit={retryPolicyConfiguration.retryLimit}
                     setRetryLimit={setRetryLimit}
+                    retryInterval={retryPolicyConfiguration.retryInterval}
+                    setRetryInterval={setRetryInterval}
                     exponentialBackoffBase={
                         retryPolicyConfiguration.exponentialBackoffBase
                     }

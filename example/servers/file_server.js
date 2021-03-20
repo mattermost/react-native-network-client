@@ -45,22 +45,22 @@ const getTokenBySource = (req) => {
 
     let token;
     switch (tokenSource) {
-    case 'headers':
-        token = req.headers.authorization.split(' ')[1];
-        console.log(`Get token from headers: ${token}`);
-        break;
-    case 'query':
-        token = req.query.token;
-        console.log(`Get token from query: ${token}`);
-        break;
-    case 'cookies':
-        token = req.cookies.token;
-        console.log(`Get token from cookies: ${token}`);
-        break;
-    default:
-        // Token not found, will return a 401 (unauthorized)
-        token = null;
-        console.log(`Token not found: ${token}`);
+        case 'headers':
+            token = req.headers.authorization.split(' ')[1];
+            console.log(`Get token from headers: ${token}`);
+            break;
+        case 'query':
+            token = req.query.token;
+            console.log(`Get token from query: ${token}`);
+            break;
+        case 'cookies':
+            token = req.cookies.token;
+            console.log(`Get token from cookies: ${token}`);
+            break;
+        default:
+            // Token not found, will return a 401 (unauthorized)
+            token = null;
+            console.log(`Token not found: ${token}`);
     }
     return token;
 }

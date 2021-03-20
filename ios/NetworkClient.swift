@@ -10,7 +10,7 @@
 import Alamofire
 import SwiftyJSON
 
-let RETRY_TYPES = ["EXPONENTIAL_BACKOFF": "exponential"]
+let RETRY_TYPES = ["EXPONENTIAL_RETRY": "exponential", "LINEAR_RETRY": "linear"]
 
 protocol NetworkClient {
     func handleRequest(for url: String,
@@ -67,7 +67,6 @@ extension NetworkClient {
             
             switch (json.result) {
             case .success:
-                debugPrint(json)
                 resolve([
                     "ok": true,
                     "headers": json.response?.allHeaderFields,
@@ -76,8 +75,19 @@ extension NetworkClient {
                     "lastRequestedUrl": json.response?.url?.absoluteString
                 ])
             case .failure(let error):
-                print("==================== ERROR: \(error)")
-                if (error.responseCode != nil) {
+                if error.isRequestRetryError, case let .requestRetryFailed(retryError, _) = error {
+                    let retriesExhausted = retryError.asNetworkClientError?.isRetryExhaustedError
+                    resolve([
+                        "ok": false,
+                        "headers": nil,
+                        "data": nil,
+                        "code": nil,
+                        "retriesExhausted": retriesExhausted,
+                        "lastRequestedUrl": nil
+                    ])
+
+                    return
+                } else if (error.responseCode != nil) {
                     resolve([
                         "ok": false,
                         "headers": nil,
@@ -134,12 +144,18 @@ extension NetworkClient {
         var retriers = [RequestRetrier]()
 
         let configuration = options["retryPolicyConfiguration"]
-        if configuration["type"].string == RETRY_TYPES["EXPONENTIAL_BACKOFF"] {
-            let retryLimit = configuration["retryLimit"].uInt ?? RetryPolicy.defaultRetryLimit
-            let exponentialBackoffBase = configuration["exponentialBackoffBase"].uInt ?? RetryPolicy.defaultExponentialBackoffBase
-            let exponentialBackoffScale = configuration["exponentialBackoffScale"].double ?? RetryPolicy.defaultExponentialBackoffScale
+        if configuration["type"].string == RETRY_TYPES["LINEAR_RETRY"] {
+            let retryLimit = configuration["retryLimit"].uInt ?? LinearRetryPolicy.defaultRetryLimit
+            let retryInterval = configuration["retryInterval"].uInt ?? LinearRetryPolicy.defaultRetryInterval
 
-            let retryPolicy = RetryPolicy(retryLimit: retryLimit, exponentialBackoffBase: exponentialBackoffBase, exponentialBackoffScale: exponentialBackoffScale)
+            let retryPolicy = LinearRetryPolicy(retryLimit: retryLimit, retryInterval: retryInterval)
+            retriers.append(retryPolicy)
+        } else if configuration["type"].string == RETRY_TYPES["EXPONENTIAL_RETRY"] {
+            let retryLimit = configuration["retryLimit"].uInt ?? ExponentialRetryPolicy.defaultRetryLimit
+            let exponentialBackoffBase = configuration["exponentialBackoffBase"].uInt ?? ExponentialRetryPolicy.defaultExponentialBackoffBase
+            let exponentialBackoffScale = configuration["exponentialBackoffScale"].double ?? ExponentialRetryPolicy.defaultExponentialBackoffScale
+
+            let retryPolicy = ExponentialRetryPolicy(retryLimit: retryLimit, exponentialBackoffBase: exponentialBackoffBase, exponentialBackoffScale: exponentialBackoffScale)
             retriers.append(retryPolicy)
         }
 
