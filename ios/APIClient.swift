@@ -299,7 +299,16 @@ class APIClient: RCTEventEmitter, NetworkClient {
                         "lastRequestedUrl": json.response?.url?.absoluteString
                     ])
                 case .failure(let error):
-                    if error.isRequestRetryError, case let .requestRetryFailed(retryError, originalError) = error {
+                    if (error.responseCode != nil) {
+                        resolve([
+                            "ok": false,
+                            "headers": json.response?.allHeaderFields,
+                            "data": json.value,
+                            "code": error.responseCode,
+                            "lastRequestedUrl": json.response?.url?.absoluteString
+                        ])
+                        return
+                    } else if error.isRequestRetryError, case let .requestRetryFailed(retryError, originalError) = error {
                         if let clientError = retryError.asNetworkClientError {
                             let description = "\(clientError.localizedDescription); Underlying Error: \(originalError.localizedDescription)"
                             reject("\(clientError.errorCode!)", description, clientError)
