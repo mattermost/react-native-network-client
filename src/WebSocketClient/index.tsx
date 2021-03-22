@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import { Alert, NativeEventEmitter, NativeModules } from "react-native";
+import { NativeEventEmitter, NativeModules } from "react-native";
 import isURL from "validator/es/lib/isURL";
 
 const {
@@ -39,15 +39,6 @@ class WebSocketClient implements WebSocketClientInterface {
                 if (event.url === this.url) {
                     if (this.clientErrorEventHandler) {
                         this.clientErrorEventHandler(event);
-                    } else {
-                        Alert.alert(
-                            "Error",
-                            `Code: ${event.errorCode}\nDescription: ${event.errorDescription}`,
-                            [{ text: "OK" }],
-                            {
-                                cancelable: false,
-                            }
-                        );
                     }
                 }
             }

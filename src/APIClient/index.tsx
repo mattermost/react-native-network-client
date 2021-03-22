@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import {
-    Alert,
     EmitterSubscription,
     NativeEventEmitter,
     NativeModules,
@@ -50,15 +49,6 @@ class APIClient implements APIClientInterface {
                 if (event.serverUrl === this.baseUrl) {
                     if (this.clientErrorEventHandler) {
                         this.clientErrorEventHandler(event);
-                    } else {
-                        Alert.alert(
-                            "Error",
-                            `Code: ${event.errorCode}\nDescription: ${event.errorDescription}`,
-                            [{ text: "OK" }],
-                            {
-                                cancelable: false,
-                            }
-                        );
                     }
                 }
             }
