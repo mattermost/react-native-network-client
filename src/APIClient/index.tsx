@@ -36,27 +36,26 @@ const generateUploadTaskId = () =>
 class APIClient implements APIClientInterface {
     baseUrl: string;
     config: APIClientConfiguration;
-    clientErrorEventHandler?: APIClientErrorEventHandler;
-    clientErrorSubscription: EmitterSubscription;
+    onClientErrorSubscription?: EmitterSubscription;
 
     constructor(baseUrl: string, config: APIClientConfiguration = {}) {
         this.baseUrl = baseUrl;
         this.config = Object.assign({}, DEFAULT_API_CLIENT_CONFIG, config);
-
-        this.clientErrorSubscription = Emitter.addListener(
-            EVENTS.CLIENT_ERROR,
-            (event: APIClientErrorEvent) => {
-                if (event.serverUrl === this.baseUrl) {
-                    if (this.clientErrorEventHandler) {
-                        this.clientErrorEventHandler(event);
-                    }
-                }
-            }
-        );
     }
 
     onClientError = (callback: APIClientErrorEventHandler) => {
-        this.clientErrorEventHandler = callback;
+        if (this.onClientErrorSubscription) {
+            this.onClientErrorSubscription.remove();
+        }
+
+        this.onClientErrorSubscription = Emitter.addListener(
+            EVENTS.CLIENT_ERROR,
+            (event: APIClientErrorEvent) => {
+                if (event.serverUrl === this.baseUrl && callback) {
+                    callback(event);
+                }
+            }
+        );
     };
 
     getHeaders = (): Promise<ClientHeaders> =>
@@ -73,7 +72,7 @@ class APIClient implements APIClientInterface {
         return NativeAPIClient.importClientP12For(this.baseUrl, path, password);
     };
     invalidate = (): Promise<void> => {
-        this.clientErrorSubscription.remove();
+        this.onClientErrorSubscription?.remove();
         delete CLIENTS[this.baseUrl];
 
         return NativeAPIClient.invalidateClientFor(this.baseUrl);

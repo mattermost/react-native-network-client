@@ -54,8 +54,7 @@ interface APIClientInterface {
     baseUrl: string;
     config: APIClientConfiguration;
 
-    clientErrorSubscription: EmitterSubscription;
-    clientErrorEventHandler?: APIClientErrorEventHandler;
+    onClientErrorSubscription?: EmitterSubscription;
     onClientError(callback: APIClientErrorEventHandler): void;
 
     get(endpoint: string, options?: RequestOptions): Promise<ClientResponse>;
