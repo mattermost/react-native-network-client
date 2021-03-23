@@ -7,28 +7,20 @@
 // - Use element testID when selecting an element. Create one if none.
 // *******************************************************************
 
-import {Alert} from '@support/ui/component';
+import { Alert } from "@support/ui/component";
 import {
     ApiClientScreen,
     ClientListScreen,
     CreateApiClientScreen,
-} from '@support/ui/screen';
-import {
-    getRandomId,
-    getRandomInt,
-    getRandomItem,
-} from '@support/utils';
-import {
-    customHeaders,
-    retryPolicyTypes,
-    verifyApiClient,
-} from '../helpers';
+} from "@support/ui/screen";
+import { getRandomId, getRandomInt, getRandomItem } from "@support/utils";
+import { customHeaders, retryPolicyTypes, verifyApiClient } from "../helpers";
 
-describe('Create API Client', () => {
+describe("Create API Client", () => {
     const randomText = getRandomId(10);
     const testBaseUrl = `https://example-${randomText}-api.com`;
     const testName = `Example ${randomText} API`;
-    const testHeaders = {...customHeaders};
+    const testHeaders = { ...customHeaders };
     const testToken = getRandomId(10);
     const testRequestTimeoutInterval = getRandomInt(60).toString();
     const testResourceTimeoutInterval = getRandomInt(60).toString();
@@ -40,10 +32,7 @@ describe('Create API Client', () => {
         exponentialBackoffScale: `${getRandomInt(5) + 3}`,
         retryInterval: `${getRandomInt(5) + 4}`,
     };
-    const {
-        clientListScrollView,
-        removeClientWithName,
-    } = ClientListScreen;
+    const { clientListScrollView, removeClientWithName } = ClientListScreen;
     const {
         createApiClientScrollView,
         createClient,
@@ -63,7 +52,7 @@ describe('Create API Client', () => {
         await CreateApiClientScreen.open();
     });
 
-    it('should be able to create an API client', async () => {
+    it("should be able to create an API client", async () => {
         // # Set all fields and create client
         await setName(testName);
         await setBaseUrl(testBaseUrl);
@@ -72,15 +61,15 @@ describe('Create API Client', () => {
         await setRequestTimeoutInterval(testRequestTimeoutInterval);
         await setResourceTimeoutInterval(testResourceTimeoutInterval);
         await setMaxConnections(testMaxConnections);
-        await createApiClientScrollView.scrollTo('bottom');
+        await createApiClientScrollView.scrollTo("bottom");
         await setRetry(testRetry);
-        await createApiClientScrollView.scrollTo('bottom');
+        await createApiClientScrollView.scrollTo("bottom");
         await toggleOnWaitsForConnectivityCheckbox();
         await toggleOnCancelRequestsOn401Checkbox();
         await createClient();
 
         // * Verify created client
-        await clientListScrollView.scrollTo('bottom');
+        await clientListScrollView.scrollTo("bottom");
         await ApiClientScreen.open(testName);
         await verifyApiClient(testName, testBaseUrl, testHeaders);
 
@@ -88,11 +77,8 @@ describe('Create API Client', () => {
         await ApiClientScreen.back();
     });
 
-    it('should not be able to create an API client with existing URL', async () => {
-        const {
-            errorTitle,
-            okButton,
-        } = Alert;
+    it("should not be able to create an API client with existing URL", async () => {
+        const { errorTitle, okButton } = Alert;
 
         // # Open create API client screen
         await CreateApiClientScreen.open();
@@ -100,12 +86,14 @@ describe('Create API Client', () => {
         // # Set an existing url and attempt to create client
         await setName(testName);
         await setBaseUrl(testBaseUrl);
-        await createApiClientScrollView.scrollTo('bottom');
+        await createApiClientScrollView.scrollTo("bottom");
         await createClient();
 
         // * Verify error alert
         await expect(errorTitle).toBeVisible();
-        await expect(element(by.text(`A client for ${testBaseUrl} already exists`))).toBeVisible();
+        await expect(
+            element(by.text(`A client for ${testBaseUrl} already exists`))
+        ).toBeVisible();
         await okButton.tap();
         await CreateApiClientScreen.toBeVisible();
 
@@ -113,7 +101,7 @@ describe('Create API Client', () => {
         await CreateApiClientScreen.back();
     });
 
-    it('should be able to remove an API client', async () => {
+    it("should be able to remove an API client", async () => {
         // # Remove client
         await removeClientWithName(testName);
 

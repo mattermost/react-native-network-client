@@ -7,25 +7,19 @@
 // - Use element testID when selecting an element. Create one if none.
 // *******************************************************************
 
-import {
-    Alert,
-    ClientListItem,
-} from '@support/ui/component';
+import { Alert, ClientListItem } from "@support/ui/component";
 import {
     ClientListScreen,
     CreateWebSocketClientScreen,
-} from '@support/ui/screen';
-import {
-    getRandomId,
-    getRandomInt,
-} from '@support/utils';
-import {customHeaders} from '../helpers';
+} from "@support/ui/screen";
+import { getRandomId, getRandomInt } from "@support/utils";
+import { customHeaders } from "../helpers";
 
-describe('Create WebSocket Client', () => {
+describe("Create WebSocket Client", () => {
     const randomText = getRandomId(10);
     const testUrl = `ws://example-${randomText}-ws.com`;
     const testName = `Example ${randomText} WebSocket`;
-    const testHeaders = {...customHeaders};
+    const testHeaders = { ...customHeaders };
     const testTimeoutInterval = getRandomInt(60).toString();
     const {
         createClient,
@@ -40,7 +34,7 @@ describe('Create WebSocket Client', () => {
         await CreateWebSocketClientScreen.open();
     });
 
-    it('should be able to create an API client', async () => {
+    it("should be able to create an API client", async () => {
         // # Set all fields and create client
         await setName(testName);
         await setUrl(testUrl);
@@ -50,16 +44,13 @@ describe('Create WebSocket Client', () => {
         await createClient();
 
         // * Verify created client
-        const {subtitle, title} = ClientListItem.getItemByName(testName);
+        const { subtitle, title } = ClientListItem.getItemByName(testName);
         await expect(title).toHaveText(testName);
         await expect(subtitle).toHaveText(testUrl);
     });
 
-    it('should not be able to create an API client with existing URL', async () => {
-        const {
-            errorTitle,
-            okButton,
-        } = Alert;
+    it("should not be able to create an API client with existing URL", async () => {
+        const { errorTitle, okButton } = Alert;
 
         // # Open create WebSocket client screen
         await CreateWebSocketClientScreen.open();
@@ -71,7 +62,9 @@ describe('Create WebSocket Client', () => {
 
         // * Verify error alert
         await expect(errorTitle).toBeVisible();
-        await expect(element(by.text(`A client for ${testUrl} already exists`))).toBeVisible();
+        await expect(
+            element(by.text(`A client for ${testUrl} already exists`))
+        ).toBeVisible();
         await okButton.tap();
         await CreateWebSocketClientScreen.toBeVisible();
 
@@ -79,7 +72,7 @@ describe('Create WebSocket Client', () => {
         await CreateWebSocketClientScreen.back();
     });
 
-    it('should be able to remove a WebSocket client', async () => {
+    it("should be able to remove a WebSocket client", async () => {
         // # Remove client
         await ClientListScreen.removeClientWithName(testName);
 

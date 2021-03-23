@@ -1,22 +1,22 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import HeaderListItem from './header_list_item';
-import {isAndroid} from '@support/utils';
+import HeaderListItem from "./header_list_item";
+import { isAndroid } from "@support/utils";
 
 class AddHeaders {
     testID = {
-        addEmptyHeaderButton: 'add_empty_header.button',
-    }
+        addEmptyHeaderButton: "add_empty_header.button",
+    };
 
     addEmptyHeaderButton = element(by.id(this.testID.addEmptyHeaderButton));
 
     getHeaderListItemAtIndex = (index) => {
         return HeaderListItem.getAddHeadersItemAtIndex(index);
-    }
+    };
 
     setHeader = async (index, key, value) => {
-        const {keyInput, valueInput} = this.getHeaderListItemAtIndex(index);
+        const { keyInput, valueInput } = this.getHeaderListItemAtIndex(index);
 
         // # Set header key
         await keyInput.clearText();
@@ -36,7 +36,7 @@ class AddHeaders {
             await expect(keyInput).toHaveValue(key);
             await expect(valueInput).toHaveValue(value);
         }
-    }
+    };
 
     setHeaders = async (headers) => {
         const entries = Object.entries(headers);
@@ -46,7 +46,7 @@ class AddHeaders {
                 await this.addEmptyHeaderButton.tap();
             }
         }
-    }
+    };
 }
 
 const adHeaders = new AddHeaders();

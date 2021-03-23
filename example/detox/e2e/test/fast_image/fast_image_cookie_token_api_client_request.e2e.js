@@ -7,18 +7,15 @@
 // - Use element testID when selecting an element. Create one if none.
 // *******************************************************************
 
-import {fastImageServerUrl} from '@support/test_config';
-import {
-    ApiClientFastImageScreen,
-    ApiClientScreen,
-} from '@support/ui/screen';
-import {verifyApiClient} from '../helpers';
+import { fastImageServerUrl } from "@support/test_config";
+import { ApiClientFastImageScreen, ApiClientScreen } from "@support/ui/screen";
+import { verifyApiClient } from "../helpers";
 
-describe('Fast Image Cookie Token - API Client Request', () => {
+describe("Fast Image Cookie Token - API Client Request", () => {
     const testBaseUrl = fastImageServerUrl;
     const testLoginUrl = `${testBaseUrl}/login/123`;
     const testImageUrl = `${testBaseUrl}/protected/api/files/fast-image.jpg`;
-    const testName = 'Fast Image Server API';
+    const testName = "Fast Image Server API";
     const {
         fastImage,
         imageNotSupportedIcon,
@@ -31,7 +28,7 @@ describe('Fast Image Cookie Token - API Client Request', () => {
         await ApiClientScreen.selectFastImage();
     });
 
-    it('should display fast image - with cookie token on protected request', async () => {
+    it("should display fast image - with cookie token on protected request", async () => {
         // # Login to get token
         await setImageUrl(testLoginUrl);
         await expect(imageNotSupportedIcon).toBeVisible();
@@ -43,9 +40,9 @@ describe('Fast Image Cookie Token - API Client Request', () => {
         await expect(fastImage).toBeVisible();
     });
 
-    it('should not display fast image - no cookie token on protected request', async () => {
+    it("should not display fast image - no cookie token on protected request", async () => {
         // * Verify image not supported is displayed
-        await setImageUrl('');
+        await setImageUrl("");
         await expect(imageNotSupportedIcon).toBeVisible();
 
         // # Set image url

@@ -7,13 +7,9 @@
 // - Use element testID when selecting an element. Create one if none.
 // *******************************************************************
 
-import {Request} from '@support/server_api';
-import {
-    host,
-    siteUrl,
-    serverUrl,
-} from '@support/test_config';
-import {ApiClientScreen} from '@support/ui/screen';
+import { Request } from "@support/server_api";
+import { host, siteUrl, serverUrl } from "@support/test_config";
+import { ApiClientScreen } from "@support/ui/screen";
 import {
     customHeaders,
     newHeaders,
@@ -21,37 +17,50 @@ import {
     verifyApiClient,
     verifyApiResponse,
     verifyResponseOverlay,
-} from '../helpers';
+} from "../helpers";
 
-describe('Get - API Client Request', () => {
-    const testMethod = 'GET';
+describe("Get - API Client Request", () => {
+    const testMethod = "GET";
     const testPath = `/${testMethod.toLowerCase()}`;
     const testBaseUrl = serverUrl;
     const testServerUrl = `${testBaseUrl}${testPath}`;
     const testSiteUrl = `${siteUrl}${testPath}`;
     const testHost = host;
     const testStatus = 200;
-    const testName = 'Mockserver API';
-    const testHeaders = {...newHeaders};
+    const testName = "Mockserver API";
+    const testHeaders = { ...newHeaders };
     const combinedHeaders = {
         ...customHeaders,
         ...newHeaders,
-    }
+    };
 
     beforeAll(async () => {
-        const apiResponse = await Request.apiGet({headers: testHeaders});
-        await verifyApiResponse(apiResponse, testSiteUrl, testStatus, testHost, testMethod, testHeaders);
+        const apiResponse = await Request.apiGet({ headers: testHeaders });
+        await verifyApiResponse(
+            apiResponse,
+            testSiteUrl,
+            testStatus,
+            testHost,
+            testMethod,
+            testHeaders
+        );
 
         await ApiClientScreen.open(testName);
         await verifyApiClient(testName, testBaseUrl, customHeaders);
         await ApiClientScreen.selectGet();
     });
 
-    it('should return a valid response', async () => {
+    it("should return a valid response", async () => {
         // # Perform API client request
-        await performApiClientRequest({testPath, testHeaders});
+        await performApiClientRequest({ testPath, testHeaders });
 
         // * Verify response overlay
-        await verifyResponseOverlay(testServerUrl, testStatus, testHost, testMethod, combinedHeaders);
+        await verifyResponseOverlay(
+            testServerUrl,
+            testStatus,
+            testHost,
+            testMethod,
+            combinedHeaders
+        );
     });
 });

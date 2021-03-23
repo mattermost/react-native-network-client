@@ -7,17 +7,14 @@
 // - Use element testID when selecting an element. Create one if none.
 // *******************************************************************
 
-import {fastImageServerUrl} from '@support/test_config';
-import {
-    ApiClientFastImageScreen,
-    ApiClientScreen,
-} from '@support/ui/screen';
-import {verifyApiClient} from '../helpers';
+import { fastImageServerUrl } from "@support/test_config";
+import { ApiClientFastImageScreen, ApiClientScreen } from "@support/ui/screen";
+import { verifyApiClient } from "../helpers";
 
-describe('Fast Image Regular - API Client Request', () => {
+describe("Fast Image Regular - API Client Request", () => {
     const testBaseUrl = fastImageServerUrl;
     const testImageUrl = `${testBaseUrl}/api/files/fast-image.jpg`;
-    const testName = 'Fast Image Server API';
+    const testName = "Fast Image Server API";
     const {
         fastImage,
         imageNotSupportedIcon,
@@ -30,9 +27,9 @@ describe('Fast Image Regular - API Client Request', () => {
         await ApiClientScreen.selectFastImage();
     });
 
-    it('should display fast image - regular request', async () => {
+    it("should display fast image - regular request", async () => {
         // * Verify image not supported is displayed
-        await setImageUrl('');
+        await setImageUrl("");
         await expect(imageNotSupportedIcon).toBeVisible();
 
         // # Set image url

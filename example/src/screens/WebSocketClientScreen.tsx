@@ -84,9 +84,7 @@ export default function WebSocketClientScreen({
                 }}
             />
             <ScrollView style={{ marginHorizontal: 20 }}>
-                <Text testID="websocket_client.event.text">
-                    {event}
-                </Text>
+                <Text testID="websocket_client.event.text">{event}</Text>
             </ScrollView>
         </SafeAreaView>
     );

@@ -7,18 +7,18 @@
 // - Use element testID when selecting an element. Create one if none.
 // *******************************************************************
 
-import {WebSocketClientScreen} from '@support/ui/screen';
-import {verifyWebSocketEvent} from '../helpers';
+import { WebSocketClientScreen } from "@support/ui/screen";
+import { verifyWebSocketEvent } from "../helpers";
 
-describe('WebSocket Client Request', () => {
-    const testName = 'Simple WebSocket';
+describe("WebSocket Client Request", () => {
+    const testName = "Simple WebSocket";
     const testMessageJson = {
         id: 123,
-        action: 'user_typing',
+        action: "user_typing",
         data: {
-            channel_id: 'xyz123',
-        }
-    }
+            channel_id: "xyz123",
+        },
+    };
     const testMessage = JSON.stringify(testMessageJson);
     const {
         connectButton,
@@ -31,15 +31,15 @@ describe('WebSocket Client Request', () => {
         await WebSocketClientScreen.open(testName);
     });
 
-    it('should be able to connect and send message', async () => {
+    it("should be able to connect and send message", async () => {
         // # Connect to WebSocket server
         await connectButton.tap();
 
         // * Verify connected
         const connected = {
-            message: 'connected',
-            url: 'ws://localhost:3000/api/websocket',
-        }
+            message: "connected",
+            url: "ws://localhost:3000/api/websocket",
+        };
         verifyWebSocketEvent(connected);
 
         // # Send message
@@ -49,19 +49,19 @@ describe('WebSocket Client Request', () => {
         // * Verify message sent
         const messageSent = {
             message: testMessageJson,
-            url: 'ws://localhost:3000/api/websocket',
-        }
+            url: "ws://localhost:3000/api/websocket",
+        };
         verifyWebSocketEvent(messageSent);
     });
 
-    it('should be able to disconnect', async () => {
+    it("should be able to disconnect", async () => {
         // # Disconnect from WebSocket server
         await disconnectButton.tap();
 
         // * Verify disconnected
         const disconnected = {
-            url: 'ws://localhost:3000/api/websocket',
-        }
+            url: "ws://localhost:3000/api/websocket",
+        };
         verifyWebSocketEvent(disconnected);
 
         // # Open client list screen

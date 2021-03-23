@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import client from './client';
-import {getResponseFromError, toHttpStatusString} from './common';
+import client from "./client";
+import { getResponseFromError, toHttpStatusString } from "./common";
 
 // ****************************************************************
 // Request Methods
@@ -26,15 +26,17 @@ import {getResponseFromError, toHttpStatusString} from './common';
  * @param {number} options.responseStatus - expected response status code
  * @return {Object} response object
  */
-export const apiDelete = (options = {
-    url: '',
-    subpath: '',
-    params: null,
-    headers: null,
-    body: null,
-    responseStatus: 200,
-}) => {
-    return apiRequest('delete', options);
+export const apiDelete = (
+    options = {
+        url: "",
+        subpath: "",
+        params: null,
+        headers: null,
+        body: null,
+        responseStatus: 200,
+    }
+) => {
+    return apiRequest("delete", options);
 };
 
 /**
@@ -47,15 +49,17 @@ export const apiDelete = (options = {
  * @param {number} options.responseStatus - expected response status code
  * @return {Object} response object
  */
-export const apiGet = (options = {
-    url: '',
-    subpath: '',
-    params: null,
-    headers: null,
-    body: null,
-    responseStatus: 200,
-}) => {
-    return apiRequest('get', options);
+export const apiGet = (
+    options = {
+        url: "",
+        subpath: "",
+        params: null,
+        headers: null,
+        body: null,
+        responseStatus: 200,
+    }
+) => {
+    return apiRequest("get", options);
 };
 
 /**
@@ -69,15 +73,17 @@ export const apiGet = (options = {
  * @param {number} options.responseStatus - expected response status code
  * @return {Object} response object
  */
-export const apiPatch = (options = {
-    url: '',
-    subpath: '',
-    params: null,
-    headers: null,
-    body: null,
-    responseStatus: 200,
-}) => {
-    return apiRequest('patch', options);
+export const apiPatch = (
+    options = {
+        url: "",
+        subpath: "",
+        params: null,
+        headers: null,
+        body: null,
+        responseStatus: 200,
+    }
+) => {
+    return apiRequest("patch", options);
 };
 
 /**
@@ -91,15 +97,17 @@ export const apiPatch = (options = {
  * @param {number} options.responseStatus - expected response status code
  * @return {Object} response object
  */
-export const apiPost = (options = {
-    url: '',
-    subpath: '',
-    params: null,
-    headers: null,
-    body: null,
-    responseStatus: 200,
-}) => {
-    return apiRequest('post', options);
+export const apiPost = (
+    options = {
+        url: "",
+        subpath: "",
+        params: null,
+        headers: null,
+        body: null,
+        responseStatus: 200,
+    }
+) => {
+    return apiRequest("post", options);
 };
 
 /**
@@ -113,15 +121,17 @@ export const apiPost = (options = {
  * @param {number} options.responseStatus - expected response status code
  * @return {Object} response object
  */
-export const apiPut = (options = {
-    url: '',
-    subpath: '',
-    params: null,
-    headers: null,
-    body: null,
-    responseStatus: 200,
-}) => {
-    return apiRequest('put', options);
+export const apiPut = (
+    options = {
+        url: "",
+        subpath: "",
+        params: null,
+        headers: null,
+        body: null,
+        responseStatus: 200,
+    }
+) => {
+    return apiRequest("put", options);
 };
 
 /**
@@ -134,31 +144,32 @@ export const apiPut = (options = {
  * @param {number} options.responseStatus - expected response status code
  * @return {Object} response object
  */
-const apiRequest = async (method = 'get', {
-    url = '',
-    subpath = '',
-    params = {},
-    headers = {},
-    body = {},
-    responseStatus = 200,
-} = {}) => {
+const apiRequest = async (
+    method = "get",
+    {
+        url = "",
+        subpath = "",
+        params = {},
+        headers = {},
+        body = {},
+        responseStatus = 200,
+    } = {}
+) => {
     try {
         const requestHeaders = {
-            'response-status': toHttpStatusString(responseStatus),
-            ...headers
-        }
+            "response-status": toHttpStatusString(responseStatus),
+            ...headers,
+        };
         if (!url) {
             url = `/${method}`;
         }
-        return await client.request(
-            {
-                method,
-                url: `${url}${subpath}`,
-                params,
-                headers: requestHeaders,
-                data: body,
-            },
-        );
+        return await client.request({
+            method,
+            url: `${url}${subpath}`,
+            params,
+            headers: requestHeaders,
+            data: body,
+        });
     } catch (err) {
         return getResponseFromError(err);
     }
