@@ -71,8 +71,28 @@ and you'll need to subscribe to these events by passing your error handler as a 
 For both API client and WebSocket client, the following error codes apply:
 
 - Keychain specific errors will be in the range -100 to -199
+
+  | Code | Reason                                                                                                                     |
+  | ---- | -------------------------------------------------------------------------------------------------------------------------- |
+  | -100 | Retrieval of a client certificate from the Keychain failed due to `SecIdentityCopyCertificate` returning a nil certificate |
+  | -101 | Retrieval of a client certificate from the Keychain failed due to `SecItemCopyMatching` returning a nil `SecIdentity`      |
+  | -102 | Storage of a bearer authentication token in the Keychain failed due an invalid token data                                  |
+  | -103 | Importing of a PKCS#12 file failed due to an invalid file path                                                             |
+  | -104 | Importing of a PKCS#12 file failed due to invalid file contents                                                            |
+  | -105 | Retrieval/storage of a token or client certificate failed due to an invalid server URL                                     |
+  | -106 | Importing of a PKCS#12 file failed due to an incorrect or missing password                                                 |
+
 - APIClient specific errors will be in the range -200 to -299
+
+  | Code | Reason                                                   |
+  | ---- | -------------------------------------------------------- |
+  | -200 | SSL handshake failed due to a missing client certificate |
+
 - General client errors will be in the range -300 to -399
+
+  | Code | Reason                         |
+  | ---- | ------------------------------ |
+  | -300 | Request retries were exhausted |
 
 ## Contributing
 
