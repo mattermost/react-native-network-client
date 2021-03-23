@@ -7,6 +7,7 @@ import okio.*
 import java.util.*
 import com.mattermost.networkclient.enums.APIClientEvents
 import com.mattermost.networkclient.helpers.*
+import kotlin.collections.HashMap
 
 class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
 
@@ -195,7 +196,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     @Override
     override fun getConstants(): Map<String, Any> {
         val constants: MutableMap<String, Any> = HashMap<String, Any>()
-        constants["EXPONENTIAL_RETRY"] = "EXPONENTIAL_RETRY"
+        constants["RETRY_TYPES"] = hashMapOf("EXPONENTIAL_RETRY" to "exponential")
 
         // APIClient Events
         val events = HashMap<String, String>()
