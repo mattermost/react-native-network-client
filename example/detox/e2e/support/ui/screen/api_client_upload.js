@@ -15,8 +15,12 @@ class ApiClientUploadScreen {
         by.id(this.testID.apiClientUploadScrollView)
     );
     endpointInput = element(by.id(this.testID.endpointInput));
-    streamFileCheckboxFalse = element(by.text("Stream file false"));
-    streamFileCheckboxTrue = element(by.text("Stream file true"));
+    sendAsMultipartCheckboxFalse = element(
+        by.text("Send as Multi-part? [false]")
+    );
+    sendAsMultipartCheckboxTrue = element(
+        by.text("Send as Multi-part? [true]")
+    );
     attachImageButton = element(by.text("Attach Image"));
     attachTextButton = element(by.text("Attach Text"));
     cancelUploadButton = element(by.text("Cancel Upload"));
@@ -52,14 +56,18 @@ class ApiClientUploadScreen {
         await this.endpointInput.tapReturnKey();
     };
 
-    toggleOnStreamFileCheckbox = async () => {
-        await this.streamFileCheckboxFalse.tap();
-        await expect(this.streamFileCheckboxTrue).toBeVisible();
+    setMultiparts = async (multiparts) => {
+        await AddMultipart.setMultiparts(multiparts);
     };
 
-    toggleOffStreamFileCheckbox = async () => {
-        await this.streamFileCheckboxTrue.tap();
-        await expect(this.streamFileCheckboxFalse).toBeVisible();
+    toggleOnSendAsMultipartCheckbox = async () => {
+        await this.sendAsMultipartCheckboxFalse.tap();
+        await expect(this.sendAsMultipartCheckboxTrue).toBeVisible();
+    };
+
+    toggleOffSendAsMultipartCheckbox = async () => {
+        await this.sendAsMultipartCheckboxTrue.tap();
+        await expect(this.sendAsMultipartCheckboxFalse).toBeVisible();
     };
 }
 

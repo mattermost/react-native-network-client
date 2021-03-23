@@ -13,7 +13,10 @@ import { isAndroid } from "@support/utils";
 import { verifyApiClient } from "../helpers";
 
 describe("Upload - API Client Request", () => {
-    const { setEndpoint, toggleOnStreamFileCheckbox } = ApiClientUploadScreen;
+    const {
+        setEndpoint,
+        toggleOnSendAsMultipartCheckbox,
+    } = ApiClientUploadScreen;
     const testBaseUrl = fileUploadServerUrl;
     const testImageFilename = "sample-image.jpg";
     const testMultipartEndpoint = `/api/files/multipart`;
@@ -34,6 +37,7 @@ describe("Upload - API Client Request", () => {
 
         // # Set endpoint
         await setEndpoint(testMultipartEndpoint);
+        await toggleOnSendAsMultipartCheckbox();
 
         // # Upload file and verify
         await uploadFileAndVerify(testImageFilename);
@@ -47,7 +51,6 @@ describe("Upload - API Client Request", () => {
 
         // # Set endpoint
         await setEndpoint(testStreamEndpoint);
-        await toggleOnStreamFileCheckbox();
 
         // # Upload file and verify
         await uploadFileAndVerify(testImageFilename);
@@ -71,11 +74,11 @@ async function uploadFileAndVerify(testImageFilename) {
     // * Verify file is selected
     await expect(fileComponent).toBeVisible();
     await expect(filename).toHaveText(testImageFilename);
+    await apiClientUploadScrollView.scrollTo("bottom");
     await expect(fileUri).toBeVisible();
     await expect(progressBar).toBeVisible();
 
     // # Upload file
-    await apiClientUploadScrollView.scrollTo("bottom");
     await uploadFileButton.tap();
 
     // * Verify uploaded
