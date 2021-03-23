@@ -44,8 +44,9 @@ export default function CreateAPIClientScreen({
 
     const [
         retryPolicyConfiguration,
-        toggleRetryPolicyType,
+        setRetryPolicyType,
         setRetryLimit,
+        setRetryInterval,
         setExponentialBackoffBase,
         setExponentialBackoffScale,
     ] = useRetryPolicyConfiguration();
@@ -164,10 +165,12 @@ export default function CreateAPIClientScreen({
                 />
 
                 <RetryPolicyConfiguration
-                    checked={Boolean(retryPolicyConfiguration.type)}
-                    onCheckBoxPress={toggleRetryPolicyType}
+                    policyType={retryPolicyConfiguration.type}
+                    onTypeSelected={setRetryPolicyType}
                     retryLimit={retryPolicyConfiguration.retryLimit}
                     setRetryLimit={setRetryLimit}
+                    retryInterval={retryPolicyConfiguration.retryInterval}
+                    setRetryInterval={setRetryInterval}
                     exponentialBackoffBase={
                         retryPolicyConfiguration.exponentialBackoffBase
                     }

@@ -7,7 +7,8 @@ enum APIClientEvents {
 }
 
 enum RetryTypes {
-    EXPONENTIAL_BACKOFF = "exponential",
+    EXPONENTIAL_RETRY = "exponential",
+    LINEAR_RETRY = "linear",
 }
 
 type APIClientConstants = {

@@ -65,4 +65,15 @@ class WebSocketManager: NSObject {
     func getWebSocket(for url:URL) -> WebSocket? {
         return webSockets[url]
     }
+
+    func invalidateClient(for url:URL) -> Void {
+        guard let webSocket = getWebSocket(for: url) else {
+            return
+        }
+        
+        Keychain.deleteClientP12(for: url.absoluteString)
+        webSocket.forceDisconnect()
+        webSocket.delegate = nil
+        webSockets.removeValue(forKey: url)
+    }
 }

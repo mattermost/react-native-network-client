@@ -30,6 +30,7 @@ type ClientResponse = {
     code: number;
     lastRequestedUrl: string;
     ok: boolean;
+    retriesExhausted?: boolean;
 };
 
 interface GenericClientInterface {
@@ -81,6 +82,7 @@ type SessionConfiguration = {
 type RetryPolicyConfiguration = {
     type?: RetryTypes;
     retryLimit?: number;
+    retryInterval?: number;
     exponentialBackoffBase?: number;
     exponentialBackoffScale?: number;
 };

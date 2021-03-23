@@ -9,6 +9,7 @@ import { sampleImageContent } from "./files/SampleImage";
 import { sampleTextContent } from "./files/SampleText";
 
 import GenericClient, {
+    Constants,
     getOrCreateAPIClient,
     getOrCreateWebSocketClient,
 } from "@mattermost/react-native-network-client";
@@ -53,7 +54,7 @@ export const networkClientKeyExtractor = (item: NetworkClientItem) => {
 const buildDefaultApiClientConfiguration = (
     headers: Record<string, string> = {},
     requestAdapterConfiguration: RequestAdapterConfiguration = {
-        bearerAuthTokenResponseHeader: "token",
+        bearerAuthTokenResponseHeader: "Token",
     }
 ): APIClientConfiguration => {
     const sessionConfiguration = {
@@ -66,8 +67,9 @@ const buildDefaultApiClientConfiguration = (
         cancelRequestsOnUnauthorized: true,
     };
     const retryPolicyConfiguration = {
-        type: undefined,
+        type: Constants.RETRY_TYPES.EXPONENTIAL_RETRY,
         retryLimit: 2,
+        retryInterval: 2000,
         exponentialBackoffBase: 2,
         exponentialBackoffScale: 0.5,
     };
