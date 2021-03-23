@@ -50,7 +50,7 @@ fun Request.Builder.parseOptions(options: ReadableMap?, session: OkHttpClient.Bu
     // Need to always close the connection once finished
     this.header("Connection", "close")
 
-    if(options == null) return this;
+    if (options == null) return this;
 
     // Timeout Interval per request
     if (options.hasKey("timeoutInterval")) {
@@ -71,7 +71,7 @@ fun Request.Builder.parseOptions(options: ReadableMap?, session: OkHttpClient.Bu
  * @params options ReadableMap of options from the App
  */
 fun OkHttpClient.Builder.parseOptions(options: ReadableMap?, request: Request.Builder?): OkHttpClient.Builder {
-    if(options == null) return this;
+    if (options == null) return this;
 
     // Following Redirects
     if (options.hasKey("followRedirects")) {
@@ -185,7 +185,7 @@ fun ReadableMap.bodyToRequestBody(): RequestBody {
  * @param endpoint
  * @return url string
  */
-fun formUrlString(baseUrl: String, endpoint: String): String{
+fun formUrlString(baseUrl: String, endpoint: String): String {
     return baseUrl.toHttpUrlOrNull()!!.newBuilder().addPathSegments(endpoint.trim { c -> c == '/' }).build().toString()
 }
 
@@ -196,6 +196,6 @@ fun formUrlString(baseUrl: String, endpoint: String): String{
  * @param eventName
  * @param params
  */
-fun emitEvent(reactContext: ReactContext, eventName: String, params: Any){
+fun emitEvent(reactContext: ReactContext, eventName: String, params: Any) {
     reactContext.getJSModule(RCTDeviceEventEmitter::class.java).emit(eventName, params)
 }

@@ -6,6 +6,11 @@ type Header = {
     value: string;
 };
 
+type Multipart = {
+    key: string;
+    value: string;
+};
+
 type File = {
     name?: string;
     size?: number;

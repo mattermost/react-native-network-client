@@ -126,27 +126,45 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
     @ReactMethod
     fun upload(baseUrl: String, endpoint: String, file: String, taskId: String, options: ReadableMap?, promise: Promise) {
-        val skipBytes = if (options != null && options.hasKey("skipBytes")) options.getInt("skipBytes").toLong() else 0;
-        val stream = if (options != null && options.hasKey("stream")) options.getBoolean("stream") else false;
+        val body: RequestBody;
+        val uri = Uri.parse(file);
 
-        try {
-            // Create a Request Body
-            val body: RequestBody = if (stream) {
-                UploadFileRequestBody(reactApplicationContext, Uri.parse(file), skipBytes, ProgressListener(reactApplicationContext, taskId))
+        // check for multi-parts options
+        if(options != null && options.hasKey("multipart")){
+            val multipartOptions = options.getMap("multipart")!!
+
+            val multipartBody = MultipartBody.Builder();
+
+            if(multipartOptions.hasKey("fileKey") && multipartOptions.getString("fileKey") !== ""){
+                multipartBody.addFormDataPart(multipartOptions.getString("fileKey")!!, uri.lastPathSegment, UploadFileRequestBody(reactApplicationContext, uri, 0, ProgressListener(reactApplicationContext, taskId)))
             } else {
-                MultipartBody.Builder().addPart(UploadFileRequestBody(reactApplicationContext, Uri.parse(file), skipBytes, ProgressListener(reactApplicationContext, taskId))).build()
+                multipartBody.addPart(UploadFileRequestBody(reactApplicationContext, uri, 0, ProgressListener(reactApplicationContext, taskId)))
             }
 
+            if(multipartOptions.hasKey("data")){
+                val multipartData = multipartOptions.getMap("data")!!.toHashMap();
+                for( (k, v) in multipartData){
+                    multipartBody.addFormDataPart(k, v as String);
+                }
+            }
+
+            body = multipartBody.build()
+        } else {
+            val skipBytes = if (options != null && options.hasKey("skipBytes")) options.getInt("skipBytes").toLong() else 0;
+            body = UploadFileRequestBody(reactApplicationContext, Uri.parse(file), skipBytes, ProgressListener(reactApplicationContext, taskId))
+        }
+
+        try {
             // Create a Request
             var request = if(options?.hasKey("method") == true) {
                 when (options.getString("method")) {
-                    "PUT" -> sessionsRequest[baseUrl]!!.url("$baseUrl/$endpoint").put(body)
-                    "PATCH" -> sessionsRequest[baseUrl]!!.url("$baseUrl/$endpoint").patch(body)
+                    "PUT" -> sessionsRequest[baseUrl]!!.url(formUrlString(baseUrl, endpoint)).put(body)
+                    "PATCH" -> sessionsRequest[baseUrl]!!.url(formUrlString(baseUrl, endpoint)).patch(body)
                     // Default to "POST"
-                    else -> sessionsRequest[baseUrl]!!.url("$baseUrl/$endpoint").post(body)
+                    else -> sessionsRequest[baseUrl]!!.url(formUrlString(baseUrl, endpoint)).post(body)
                 }
             } else {
-                sessionsRequest[baseUrl]!!.url("$baseUrl/$endpoint").post(body)
+                sessionsRequest[baseUrl]!!.url(formUrlString(baseUrl, endpoint)).post(body)
             }
 
             // Parse options into the request / client
