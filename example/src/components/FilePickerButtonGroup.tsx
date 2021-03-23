@@ -88,7 +88,7 @@ const FilePickerButtonGroup = (props: FilePickerButtonGroupProps) => {
     return (
         <ButtonGroup
             buttons={buttons
-                .filter((b) => Platform.OS === "android" ? b.android : true)
+                .filter((b) => (Platform.OS === "android" ? b.android : true))
                 .map((button) => button.title)}
             onPress={onButtonPress}
             disabled={props.disabled}

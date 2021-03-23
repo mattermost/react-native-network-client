@@ -7,24 +7,18 @@
 // - Use element testID when selecting an element. Create one if none.
 // *******************************************************************
 
-import {fileUploadServerUrl} from '@support/test_config';
-import {
-    ApiClientScreen,
-    ApiClientUploadScreen,
-} from '@support/ui/screen';
-import {isAndroid} from '@support/utils';
-import {verifyApiClient} from '../helpers';
+import { fileUploadServerUrl } from "@support/test_config";
+import { ApiClientScreen, ApiClientUploadScreen } from "@support/ui/screen";
+import { isAndroid } from "@support/utils";
+import { verifyApiClient } from "../helpers";
 
-describe('Upload - API Client Request', () => {
-    const {
-        setEndpoint,
-        toggleOnStreamFileCheckbox,
-    } = ApiClientUploadScreen;
+describe("Upload - API Client Request", () => {
+    const { setEndpoint, toggleOnStreamFileCheckbox } = ApiClientUploadScreen;
     const testBaseUrl = fileUploadServerUrl;
-    const testImageFilename = 'sample-image.jpg';
+    const testImageFilename = "sample-image.jpg";
     const testMultipartEndpoint = `/api/files/multipart`;
     const testStreamEndpoint = `/api/files/stream/${testImageFilename}`;
-    const testName = 'File Upload Server API';
+    const testName = "File Upload Server API";
 
     beforeAll(async () => {
         await ApiClientScreen.open(testName);
@@ -32,7 +26,7 @@ describe('Upload - API Client Request', () => {
         await ApiClientScreen.selectUpload();
     });
 
-    it('should be able to multipart upload selected file', async () => {
+    it("should be able to multipart upload selected file", async () => {
         // # Do not run against Android due to file attachment limitation
         if (isAndroid()) {
             return;
@@ -45,7 +39,7 @@ describe('Upload - API Client Request', () => {
         await uploadFileAndVerify(testImageFilename);
     });
 
-    it('should be able to stream upload selected file', async () => {
+    it("should be able to stream upload selected file", async () => {
         // # Do not run against Android due to file attachment limitation
         if (isAndroid()) {
             return;
@@ -81,7 +75,7 @@ async function uploadFileAndVerify(testImageFilename) {
     await expect(progressBar).toBeVisible();
 
     // # Upload file
-    await apiClientUploadScrollView.scrollTo('bottom');
+    await apiClientUploadScrollView.scrollTo("bottom");
     await uploadFileButton.tap();
 
     // * Verify uploaded
