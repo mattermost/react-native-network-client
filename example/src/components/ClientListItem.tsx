@@ -51,21 +51,36 @@ const ClientListItem = (props: ClientListItemProps) => {
 
     const Subtitle = () => {
         if ("baseUrl" in client) {
-            return <ListItem.Subtitle>{client.baseUrl}</ListItem.Subtitle>;
+            return (
+                <ListItem.Subtitle testID="client_list_item.subtitle">
+                    {client.baseUrl}
+                </ListItem.Subtitle>
+            );
         } else if ("url" in client) {
-            return <ListItem.Subtitle>{client.url}</ListItem.Subtitle>;
+            return (
+                <ListItem.Subtitle testID="client_list_item.subtitle">
+                    {client.url}
+                </ListItem.Subtitle>
+            );
         }
 
         return null;
     };
 
     return (
-        <ListItem onPress={viewClient} onLongPress={removeClient} bottomDivider>
-            <ListItem.Content>
-                <ListItem.Title>{name}</ListItem.Title>
+        <ListItem
+            onPress={viewClient}
+            onLongPress={removeClient}
+            bottomDivider
+            testID="client_list_item.item"
+        >
+            <ListItem.Content testID="client_list_item.content">
+                <ListItem.Title testID="client_list_item.title">
+                    {name}
+                </ListItem.Title>
                 <Subtitle />
             </ListItem.Content>
-            <ListItem.Chevron />
+            <ListItem.Chevron testID="client_list_item.chevron" />
         </ListItem>
     );
 };

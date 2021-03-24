@@ -248,7 +248,7 @@ const createWebSocketClient = async (
 };
 
 const createMattermostWebSocketClient = async (): Promise<WebSocketClientItem | null> => {
-    const name = "Mattermost Web Socket";
+    const name = "Mattermost WebSocket";
     const host = Platform.OS === "ios" ? "192.168.0.14:8065" : "10.0.2.2:8065";
     const url = `ws://${host}/api/v4/websocket`;
     const origin = `https://${host}`;
@@ -264,6 +264,23 @@ const createMattermostWebSocketClient = async (): Promise<WebSocketClientItem | 
     });
 };
 
+const createSimpleWebSocketClient = async (): Promise<WebSocketClientItem | null> => {
+    const name = "Simple WebSocket";
+    const host = Platform.OS === "ios" ? "localhost:3000" : "10.0.2.2:3000";
+    const url = `ws://${host}/api/websocket`;
+    const origin = `http://${host}`;
+    const configuration: WebSocketClientConfiguration = {
+        headers: {
+            host,
+            origin,
+        },
+    };
+
+    return createWebSocketClient(name, url, configuration, {
+        validateUrl: false,
+    });
+};
+
 export const createTestClients = async (): Promise<NetworkClientItem[]> => {
     return [
         { name: "Generic", client: GenericClient, type: ClientType.GENERIC },
@@ -272,8 +289,9 @@ export const createTestClients = async (): Promise<NetworkClientItem[]> => {
         await createFastImageServerAPIClient(),
         await createFileUploadServerAPIClient(),
         await createMockserverAPIClient(),
-        await createMattermostWebSocketClient(),
         await createRequestBinAPIClient(),
+        await createMattermostWebSocketClient(),
+        await createSimpleWebSocketClient(),
     ].reduce((clients: NetworkClientItem[], client) => {
         if (client) {
             return [...clients, client];

@@ -7,18 +7,15 @@
 // - Use element testID when selecting an element. Create one if none.
 // *******************************************************************
 
-import {fileUploadServerUrl} from '@support/test_config';
-import {
-    ApiClientScreen,
-    ApiClientUploadScreen,
-} from '@support/ui/screen';
-import {verifyApiClient} from '../helpers';
+import { fileUploadServerUrl } from "@support/test_config";
+import { ApiClientScreen, ApiClientUploadScreen } from "@support/ui/screen";
+import { verifyApiClient } from "../helpers";
 
-describe('Upload - API Client Request', () => {
+describe("Upload - API Client Request", () => {
     const testBaseUrl = fileUploadServerUrl;
-    const testImageFilename = 'sample-image.jpg';
+    const testImageFilename = "sample-image.jpg";
     const testEndpoint = `/api/files/${testImageFilename}`;
-    const testName = 'File Upload Server API';
+    const testName = "File Upload Server API";
 
     beforeAll(async () => {
         await ApiClientScreen.open(testName);
@@ -26,7 +23,7 @@ describe('Upload - API Client Request', () => {
         await ApiClientScreen.selectUpload();
     });
 
-    it('should be able to upload selected file', async () => {
+    it("should be able to upload selected file", async () => {
         const {
             attachImageButton,
             fileComponent,
