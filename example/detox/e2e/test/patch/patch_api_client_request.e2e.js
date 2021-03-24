@@ -17,7 +17,7 @@ import {
     performApiClientRequest,
     verifyApiClient,
     verifyApiResponse,
-    verifyResponseOverlay,
+    verifyResponseSuccessOverlay,
 } from "../helpers";
 
 describe("Patch - API Client Request", () => {
@@ -60,8 +60,8 @@ describe("Patch - API Client Request", () => {
         // # Perform API client request
         await performApiClientRequest({ testPath, testHeaders, testBody });
 
-        // * Verify response overlay
-        await verifyResponseOverlay(
+        // * Verify response success overlay
+        await verifyResponseSuccessOverlay(
             testServerUrl,
             testStatus,
             testHost,

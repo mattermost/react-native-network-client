@@ -17,17 +17,36 @@ type WebSocketEvent = {
     message: WebSocketMessage;
 };
 
-type WebSocketCallback = (event: WebSocketEvent) => void;
+type WebSocketEventHandler = (event: WebSocketEvent) => void;
+
+type WebSocketClientErrorEventHandler = (
+    event: WebSocketClientErrorEvent
+) => void;
 
 interface WebSocketClientInterface {
     url: string;
     readyState: WebSocketReadyState;
+
+    onReadyStateSubscription: EmitterSubscription;
+    onWebSocketOpenSubscription?: EmitterSubscription;
+    onWebSocketCloseSubscription?: EmitterSubscription;
+    onWebSocketErrorSubscription?: EmitterSubscription;
+    onWebSocketMessageSubscription?: EmitterSubscription;
+    onWebSocketClientErrorSubscription?: EmitterSubscription;
+
     send(data: string): void;
     open(): void;
     close(): void;
-    onOpen(callback: WebSocketCallback): void;
-    onClose(callback: WebSocketCallback): void;
-    onError(callback: WebSocketCallback): void;
-    onMessage(callback: WebSocketCallback): void;
+    onOpen(callback: WebSocketEventHandler): void;
+    onClose(callback: WebSocketEventHandler): void;
+    onError(callback: WebSocketEventHandler): void;
+    onMessage(callback: WebSocketEventHandler): void;
+    onClientError(callback: WebSocketClientErrorEventHandler): void;
     invalidate(): Promise<void>;
 }
+
+type WebSocketClientErrorEvent = {
+    url: string;
+    errorCode: number;
+    errorDescription: string;
+};

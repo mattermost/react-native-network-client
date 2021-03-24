@@ -4,7 +4,8 @@ import { Button, ButtonGroup, Input } from "react-native-elements";
 
 import AddHeaders from "../components/AddHeaders";
 import NumericInput from "../components/NumericInput";
-import ResponseOverlay from "../components/ResponseOverlay";
+import ResponseSuccessOverlay from "../components/ResponseSuccessOverlay";
+import ResponseErrorOverlay from "../components/ResponseErrorOverlay";
 import RetryPolicyConfiguration from "../components/RetryPolicyConfiguration";
 import { useRetryPolicyConfiguration } from "../hooks";
 import { parseHeaders, METHODS } from "../utils";
@@ -22,7 +23,9 @@ const GenericClientRequestScreen = ({
     const [body, setBody] = useState('{"login_id":"","password":""}');
     const [requestHeaders, setRequestHeaders] = useState<Header[]>([]);
     const [response, setResponse] = useState<ClientResponse>();
-    const [responseVisible, setResponseVisible] = useState(false);
+    const [responseSuccessVisible, setResponseSuccessVisible] = useState(false);
+    const [error, setError] = useState<ClientResponseError>();
+    const [responseErrorVisible, setResponseErrorVisible] = useState(false);
     const [
         retryPolicyConfiguration,
         setRetryPolicyType,
@@ -76,11 +79,14 @@ const GenericClientRequestScreen = ({
             }
             var response = await clientMethod(url, options);
             setResponse(response);
-            setResponseVisible(true);
-        } catch (e) {
-            Alert.alert("Error", e.message, [{ text: "OK" }], {
-                cancelable: false,
-            });
+            setError(undefined);
+            setResponseSuccessVisible(true);
+            setResponseErrorVisible(false);
+        } catch (error) {
+            setResponse(undefined);
+            setError(error);
+            setResponseSuccessVisible(false);
+            setResponseErrorVisible(true);
         }
     };
 
@@ -135,10 +141,15 @@ const GenericClientRequestScreen = ({
                     }
                     setExponentialBackoffScale={setExponentialBackoffScale}
                 />
-                <ResponseOverlay
+                <ResponseSuccessOverlay
                     response={response}
-                    visible={responseVisible}
-                    setVisible={setResponseVisible}
+                    visible={responseSuccessVisible}
+                    setVisible={setResponseSuccessVisible}
+                />
+                <ResponseErrorOverlay
+                    error={error}
+                    visible={responseErrorVisible}
+                    setVisible={setResponseErrorVisible}
                 />
                 <Button
                     title="Request"

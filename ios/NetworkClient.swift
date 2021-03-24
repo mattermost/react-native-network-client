@@ -75,31 +75,24 @@ extension NetworkClient {
                     "lastRequestedUrl": json.response?.url?.absoluteString
                 ])
             case .failure(let error):
-                if error.isRequestRetryError, case let .requestRetryFailed(retryError, _) = error {
-                    let retriesExhausted = retryError.asNetworkClientError?.isRetryExhaustedError
+                if (error.responseCode != nil) {
                     resolve([
                         "ok": false,
-                        "headers": nil,
-                        "data": nil,
-                        "code": nil,
-                        "retriesExhausted": retriesExhausted,
-                        "lastRequestedUrl": nil
-                    ])
-
-                    return
-                } else if (error.responseCode != nil) {
-                    resolve([
-                        "ok": false,
-                        "headers": nil,
-                        "data": nil,
+                        "headers": json.response?.allHeaderFields,
+                        "data": json.value,
                         "code": error.responseCode,
-                        "lastRequestedUrl": nil
+                        "lastRequestedUrl": json.response?.url?.absoluteString
                     ])
-
                     return
+                } else if error.isRequestRetryError, case let .requestRetryFailed(retryError, originalError) = error {
+                    if let clientError = retryError.asNetworkClientError {
+                        let description = "\(clientError.localizedDescription); Underlying Error: \(originalError.localizedDescription)"
+                        reject("\(clientError.errorCode!)", description, clientError)
+                        return
+                    }
                 }
 
-                reject("\(error.responseCode)", error.errorDescription, error)
+                reject("\(error._code)", error.localizedDescription, error)
             }
         }
     }
@@ -108,7 +101,7 @@ extension NetworkClient {
     
     func rejectMalformed(url: String, withRejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
         let message = "Malformed URL: \(url)"
-        let error = NSError(domain: "com.mattermost.react-native-network-client", code: NSURLErrorBadURL, userInfo: [NSLocalizedDescriptionKey: message])
+        let error = NSError(domain: NSURLErrorDomain, code: NSURLErrorBadURL, userInfo: [NSLocalizedDescriptionKey: message])
         reject("\(error.code)", message, error)
     }
 

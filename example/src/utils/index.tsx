@@ -54,7 +54,7 @@ export const networkClientKeyExtractor = (item: NetworkClientItem) => {
 const buildDefaultApiClientConfiguration = (
     headers: Record<string, string> = {},
     requestAdapterConfiguration: RequestAdapterConfiguration = {
-        bearerAuthTokenResponseHeader: "Token",
+        bearerAuthTokenResponseHeader: "token",
     }
 ): APIClientConfiguration => {
     const sessionConfiguration = {

@@ -3,7 +3,7 @@
 
 import {
     AddHeaders,
-    ResponseOverlay,
+    ResponseSuccessOverlay,
     RetryPolicyConfiguration,
 } from "@support/ui/component";
 import { isAndroid } from "@support/utils";
@@ -23,12 +23,14 @@ class ApiClientRequestScreen {
     requestButton = element(by.text("Request"));
 
     // convenience props
-    responseCodeText = ResponseOverlay.responseCodeText;
-    responseDataText = ResponseOverlay.responseDataText;
-    responseHeadersText = ResponseOverlay.responseHeadersText;
-    responseLastRequestedUrlText = ResponseOverlay.responseLastRequestedUrlText;
-    responseOkText = ResponseOverlay.responseOkText;
-    responseRetriesExhaustedText = ResponseOverlay.responseRetriesExhaustedText;
+    responseCodeText = ResponseSuccessOverlay.responseCodeText;
+    responseDataText = ResponseSuccessOverlay.responseDataText;
+    responseHeadersText = ResponseSuccessOverlay.responseHeadersText;
+    responseLastRequestedUrlText =
+        ResponseSuccessOverlay.responseLastRequestedUrlText;
+    responseOkText = ResponseSuccessOverlay.responseOkText;
+    responseRetriesExhaustedText =
+        ResponseSuccessOverlay.responseRetriesExhaustedText;
 
     toBeVisible = async () => {
         await expect(this.apiClientRequestScreen).toBeVisible();

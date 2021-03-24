@@ -5,17 +5,17 @@ import React from "react";
 import { ScrollView } from "react-native";
 import { Divider, Overlay, Text } from "react-native-elements";
 
-type ResponseOverlayProps = {
+type ResponseSuccessOverlayProps = {
     response: ClientResponse | undefined;
     visible: boolean;
     setVisible: (visible: boolean) => void;
 };
 
-const ResponseOverlay = ({
+const ResponseSuccessOverlay = ({
     response,
     visible,
     setVisible,
-}: ResponseOverlayProps) => {
+}: ResponseSuccessOverlayProps) => {
     const hide = () => setVisible(false);
 
     return (
@@ -23,26 +23,26 @@ const ResponseOverlay = ({
             isVisible={visible}
             onBackdropPress={hide}
             overlayStyle={{ marginHorizontal: 20, marginVertical: 40 }}
-            testID="response_overlay"
+            testID="response_success_overlay"
         >
             <>
                 <Text h4>URL</Text>
-                <Text testID="response_overlay.response.last_requested_url.text">
+                <Text testID="response_success_overlay.response.last_requested_url.text">
                     {response?.lastRequestedUrl}
                 </Text>
                 <Divider />
                 <Text h4>Code</Text>
-                <Text testID="response_overlay.response.code.text">
+                <Text testID="response_success_overlay.response.code.text">
                     {response?.code}
                 </Text>
                 <Divider />
                 <Text h4>OK</Text>
-                <Text testID="response_overlay.response.ok.text">
+                <Text testID="response_success_overlay.response.ok.text">
                     {response?.ok.toString()}
                 </Text>
                 <Divider />
                 <Text h4>Retries Exhausted?</Text>
-                <Text testID="response_overlay.response.retries_exhausted.text">
+                <Text testID="response_success_overlay.response.retries_exhausted.text">
                     {response?.hasOwnProperty("retriesExhausted")
                         ? response.retriesExhausted!.toString()
                         : "null"}
@@ -50,14 +50,14 @@ const ResponseOverlay = ({
                 <Divider />
                 <Text h4>Headers</Text>
                 <ScrollView>
-                    <Text testID="response_overlay.response.headers.text">
+                    <Text testID="response_success_overlay.response.headers.text">
                         {JSON.stringify(response?.headers, null, 2)}
                     </Text>
                 </ScrollView>
                 <Divider />
                 <Text h4>Data</Text>
                 <ScrollView>
-                    <Text testID="response_overlay.response.data.text">
+                    <Text testID="response_success_overlay.response.data.text">
                         {JSON.stringify(response?.data, null, 2)}
                     </Text>
                 </ScrollView>
@@ -66,4 +66,4 @@ const ResponseOverlay = ({
     );
 };
 
-export default ResponseOverlay;
+export default ResponseSuccessOverlay;
