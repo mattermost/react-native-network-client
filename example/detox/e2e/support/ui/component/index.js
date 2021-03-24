@@ -7,7 +7,7 @@ import ClientListItem from "./client_list_item";
 import HeaderListItem from "./header_list_item";
 import ProgressiveFileUpload from "./progressive_file_upload";
 import MethodButtons from "./method_buttons";
-import ResponseOverlay from "./response_overlay";
+import ResponseSuccessOverlay from "./response_success_overlay";
 import RetryPolicyConfiguration from "./retry_policy_configuration";
 
 export {
@@ -17,6 +17,6 @@ export {
     HeaderListItem,
     MethodButtons,
     ProgressiveFileUpload,
-    ResponseOverlay,
+    ResponseSuccessOverlay,
     RetryPolicyConfiguration,
 };

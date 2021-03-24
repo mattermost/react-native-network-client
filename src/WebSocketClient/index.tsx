@@ -18,12 +18,17 @@ const SOCKETS: { [key: string]: WebSocketClient } = {};
 class WebSocketClient implements WebSocketClientInterface {
     url: string;
     readyState: WebSocketReadyState;
+    onReadyStateSubscription: EmitterSubscription;
+    onWebSocketOpenSubscription?: EmitterSubscription;
+    onWebSocketCloseSubscription?: EmitterSubscription;
+    onWebSocketErrorSubscription?: EmitterSubscription;
+    onWebSocketMessageSubscription?: EmitterSubscription;
+    onWebSocketClientErrorSubscription?: EmitterSubscription;
 
     constructor(url: string) {
         this.url = url;
         this.readyState = READY_STATE.CLOSED;
-
-        Emitter.addListener(
+        this.onReadyStateSubscription = Emitter.addListener(
             EVENTS.READY_STATE_EVENT,
             (event: WebSocketEvent) => {
                 if (event.url === this.url) {
@@ -37,39 +42,88 @@ class WebSocketClient implements WebSocketClientInterface {
     close = () => NativeWebSocketClient.disconnectFor(this.url);
     send = (data: string) => NativeWebSocketClient.sendDataFor(this.url, data);
 
-    onOpen = (callback: WebSocketCallback) => {
-        Emitter.addListener(EVENTS.OPEN_EVENT, (event: WebSocketEvent) => {
-            if (event.url === this.url && callback) {
-                callback(event);
+    onOpen = (callback: WebSocketEventHandler) => {
+        if (this.onWebSocketOpenSubscription) {
+            this.onWebSocketOpenSubscription.remove();
+        }
+
+        this.onWebSocketOpenSubscription = Emitter.addListener(
+            EVENTS.OPEN_EVENT,
+            (event: WebSocketEvent) => {
+                if (event.url === this.url && callback) {
+                    callback(event);
+                }
             }
-        });
+        );
     };
 
-    onClose = (callback: WebSocketCallback) => {
-        Emitter.addListener(EVENTS.CLOSE_EVENT, (event: WebSocketEvent) => {
-            if (event.url === this.url && callback) {
-                callback(event);
+    onClose = (callback: WebSocketEventHandler) => {
+        if (this.onWebSocketCloseSubscription) {
+            this.onWebSocketCloseSubscription.remove();
+        }
+
+        this.onWebSocketCloseSubscription = Emitter.addListener(
+            EVENTS.CLOSE_EVENT,
+            (event: WebSocketEvent) => {
+                if (event.url === this.url && callback) {
+                    callback(event);
+                }
             }
-        });
+        );
     };
 
-    onError = (callback: WebSocketCallback) => {
-        Emitter.addListener(EVENTS.ERROR_EVENT, (event: WebSocketEvent) => {
-            if (event.url === this.url && callback) {
-                callback(event);
+    onError = (callback: WebSocketEventHandler) => {
+        if (this.onWebSocketErrorSubscription) {
+            this.onWebSocketErrorSubscription.remove();
+        }
+
+        this.onWebSocketErrorSubscription = Emitter.addListener(
+            EVENTS.ERROR_EVENT,
+            (event: WebSocketEvent) => {
+                if (event.url === this.url && callback) {
+                    callback(event);
+                }
             }
-        });
+        );
     };
 
-    onMessage = (callback: WebSocketCallback) => {
-        Emitter.addListener(EVENTS.MESSAGE_EVENT, (event: WebSocketEvent) => {
-            if (event.url === this.url && callback) {
-                callback(event);
+    onMessage = (callback: WebSocketEventHandler) => {
+        if (this.onWebSocketMessageSubscription) {
+            this.onWebSocketMessageSubscription.remove();
+        }
+
+        this.onWebSocketMessageSubscription = Emitter.addListener(
+            EVENTS.MESSAGE_EVENT,
+            (event: WebSocketEvent) => {
+                if (event.url === this.url && callback) {
+                    callback(event);
+                }
             }
-        });
+        );
+    };
+
+    onClientError = (callback: WebSocketClientErrorEventHandler) => {
+        if (this.onWebSocketClientErrorSubscription) {
+            this.onWebSocketClientErrorSubscription.remove();
+        }
+        this.onWebSocketClientErrorSubscription = Emitter.addListener(
+            EVENTS.CLIENT_ERROR,
+            (event: WebSocketClientErrorEvent) => {
+                if (event.url === this.url) {
+                    callback(event);
+                }
+            }
+        );
     };
 
     invalidate = (): Promise<void> => {
+        this.onReadyStateSubscription.remove();
+        this.onWebSocketOpenSubscription?.remove();
+        this.onWebSocketCloseSubscription?.remove();
+        this.onWebSocketErrorSubscription?.remove();
+        this.onWebSocketMessageSubscription?.remove();
+        this.onWebSocketClientErrorSubscription?.remove();
+
         delete SOCKETS[this.url];
 
         return NativeWebSocketClient.invalidateClientFor(this.url);

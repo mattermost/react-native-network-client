@@ -31,6 +31,17 @@ type ClientResponse = {
     retriesExhausted?: boolean;
 };
 
+type ClientResponseError = {
+    code: number;
+    message: string;
+    domain: string;
+    userInfo?: Record<string, unknown>;
+    nativeStackAndroid?: Array<unknown>;
+    nativeStackIOS?: Array<unknown>;
+};
+
+type APIClientErrorEventHandler = (event: APIClientErrorEvent) => void;
+
 interface GenericClientInterface {
     get(url: string, options?: RequestOptions): Promise<ClientResponse>;
     put(url: string, options?: RequestOptions): Promise<ClientResponse>;
@@ -42,7 +53,9 @@ interface GenericClientInterface {
 interface APIClientInterface {
     baseUrl: string;
     config: APIClientConfiguration;
-    clientAuthSubscription: EmitterSubscription;
+
+    onClientErrorSubscription?: EmitterSubscription;
+    onClientError(callback: APIClientErrorEventHandler): void;
 
     get(endpoint: string, options?: RequestOptions): Promise<ClientResponse>;
     put(endpoint: string, options?: RequestOptions): Promise<ClientResponse>;
@@ -106,4 +119,10 @@ type UploadProgressEvent = {
 
 type MissingClientCertificateEvent = {
     serverUrl: string;
+};
+
+type APIClientErrorEvent = {
+    serverUrl: string;
+    errorCode: number;
+    errorDescription: string;
 };

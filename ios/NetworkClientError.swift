@@ -9,22 +9,28 @@
 
 import Foundation
 
-public enum NetworkClientError: Error {
+enum NetworkClientError: Error {
     case retry(type: Enums.RetryError)
     
-    public class Enums {}
+    class Enums {}
 }
 
 extension Error {
-    public var asNetworkClientError: NetworkClientError? {
+    var asNetworkClientError: NetworkClientError? {
         self as? NetworkClientError
     }
 }
 
 extension NetworkClientError: LocalizedError {
-    public var errorDescription: String? {
+    var errorDescription: String? {
         switch self {
             case .retry(let type): return type.localizedDescription
+        }
+    }
+    
+    var errorCode: Int? {
+        switch self {
+            case .retry(let type): return type.errorCode
         }
     }
 }
@@ -32,21 +38,21 @@ extension NetworkClientError: LocalizedError {
 // MARK: - Retry Errors
 
 extension NetworkClientError.Enums {
-    public enum RetryError {
+    enum RetryError {
         case retriesExhausted
     }
 }
 
 extension NetworkClientError.Enums.RetryError: LocalizedError {
-    public var errorDescription: String? {
+    var errorDescription: String? {
         switch self {
             case .retriesExhausted: return "Retries exhausted"
         }
     }
 
-    public var errorCode: Int? {
+    var errorCode: Int? {
         switch self {
-            case .retriesExhausted: return nil
+            case .retriesExhausted: return -300
         }
     }
 }
@@ -54,7 +60,7 @@ extension NetworkClientError.Enums.RetryError: LocalizedError {
 // MARK: - Booleans
 
 extension NetworkClientError {
-    public var isRetryExhaustedError: Bool {
+    var isRetryExhaustedError: Bool {
         if case .retry(.retriesExhausted) = self { return true }
         return false
     }

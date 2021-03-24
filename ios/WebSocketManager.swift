@@ -46,9 +46,15 @@ class WebSocketManager: NSObject {
             if let clientP12Configuration = options["clientP12Configuration"].dictionaryObject as? [String:String] {
                 let path = clientP12Configuration["path"]
                 let password = clientP12Configuration["password"]
-                Keychain.importClientP12(withPath: path!, withPassword: password, forServerUrl: url.absoluteString)
-                let (identity, certificate) = Keychain.getClientIdentityAndCertificate(for: url.absoluteString)!
-                clientCredential = URLCredential(identity: identity, certificates: [certificate], persistence: URLCredential.Persistence.permanent)
+                do {
+                    try Keychain.importClientP12(withPath: path!, withPassword: password, forServerUrl: url.absoluteString)
+                    let (identity, certificate) = try Keychain.getClientIdentityAndCertificate(for: url.absoluteString)!
+                    clientCredential = URLCredential(identity: identity, certificates: [certificate], persistence: URLCredential.Persistence.permanent)
+                } catch {
+                    NotificationCenter.default.post(name: Notification.Name(WEBSOCKET_CLIENT_EVENTS["CLIENT_ERROR"]!),
+                                                    object: nil,
+                                                    userInfo: ["url": url.absoluteString, "errorCode": error._code, "errorDescription": error.localizedDescription])
+                }
             }
             
             if options["enableCompression"].boolValue {
@@ -71,7 +77,15 @@ class WebSocketManager: NSObject {
             return
         }
         
-        Keychain.deleteClientP12(for: url.absoluteString)
+        if let _ = try? Keychain.getClientIdentityAndCertificate(for: url.absoluteString) {
+            do {
+                try Keychain.deleteClientP12(for: url.absoluteString)
+            } catch {
+                NotificationCenter.default.post(name: Notification.Name(WEBSOCKET_CLIENT_EVENTS["CLIENT_ERROR"]!),
+                                                object: nil,
+                                                userInfo: ["url": url.absoluteString, "errorCode": error._code, "errorDescription": error.localizedDescription])
+            }
+        }
         webSocket.forceDisconnect()
         webSocket.delegate = nil
         webSockets.removeValue(forKey: url)

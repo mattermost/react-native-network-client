@@ -14,7 +14,7 @@ import {
     customHeaders,
     performGenericClientRequest,
     verifyApiResponse,
-    verifyResponseOverlay,
+    verifyResponseSuccessOverlay,
 } from "../helpers";
 
 describe("Get - Generic Client Request", () => {
@@ -47,8 +47,8 @@ describe("Get - Generic Client Request", () => {
             testHeaders,
         });
 
-        // * Verify response overlay
-        await verifyResponseOverlay(
+        // * Verify response success overlay
+        await verifyResponseSuccessOverlay(
             testServerUrl,
             testStatus,
             testHost,

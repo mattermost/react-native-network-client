@@ -4,7 +4,7 @@
 import {
     AddHeaders,
     MethodButtons,
-    ResponseOverlay,
+    ResponseSuccessOverlay,
     RetryPolicyConfiguration,
 } from "@support/ui/component";
 import { ClientListScreen } from "@support/ui/screen";
@@ -43,12 +43,14 @@ class GenericClientRequestScreen {
         RetryPolicyConfiguration.exponentialBackoffBaseInput;
     exponentialBackoffScaleInput =
         RetryPolicyConfiguration.exponentialBackoffScaleInput;
-    responseCodeText = ResponseOverlay.responseCodeText;
-    responseDataText = ResponseOverlay.responseDataText;
-    responseHeadersText = ResponseOverlay.responseHeadersText;
-    responseLastRequestedUrlText = ResponseOverlay.responseLastRequestedUrlText;
-    responseOkText = ResponseOverlay.responseOkText;
-    responseRetriesExhaustedText = ResponseOverlay.responseRetriesExhaustedText;
+    responseCodeText = ResponseSuccessOverlay.responseCodeText;
+    responseDataText = ResponseSuccessOverlay.responseDataText;
+    responseHeadersText = ResponseSuccessOverlay.responseHeadersText;
+    responseLastRequestedUrlText =
+        ResponseSuccessOverlay.responseLastRequestedUrlText;
+    responseOkText = ResponseSuccessOverlay.responseOkText;
+    responseRetriesExhaustedText =
+        ResponseSuccessOverlay.responseRetriesExhaustedText;
 
     toBeVisible = async () => {
         await expect(this.genericClientRequestScreen).toBeVisible();

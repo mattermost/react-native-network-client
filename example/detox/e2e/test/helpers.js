@@ -156,7 +156,7 @@ export const verifyApiResponse = (
 };
 
 /**
- * Verify response overlay.
+ * Verify response success overlay.
  * @param {string} testUrl - URL of requested server
  * @param {number} testStatus - expected response status code
  * @param {string} testHost - host header value of requested server
@@ -164,7 +164,7 @@ export const verifyApiResponse = (
  * @param {Object} testHeaders - requeset headers
  * @param {Object} testBody - request body
  */
-export const verifyResponseOverlay = async (
+export const verifyResponseSuccessOverlay = async (
     testUrl,
     testStatus,
     testHost,

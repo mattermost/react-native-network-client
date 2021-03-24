@@ -17,6 +17,7 @@ let WEBSOCKET_CLIENT_EVENTS = [
     "ERROR_EVENT": "WebSocketClient-Error",
     "MESSAGE_EVENT": "WebSocketClient-Message",
     "READY_STATE_EVENT": "WebSocketClient-ReadyState",
+    "CLIENT_ERROR": "WebSocketClient-Error"
 ]
 
 let READY_STATE = [
@@ -30,6 +31,20 @@ let READY_STATE = [
 class WebSocketClient: RCTEventEmitter, WebSocketDelegate {
     var emitter: RCTEventEmitter!
     var hasListeners: Bool!
+    
+    override init() {
+        super.init()
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(self.errorHandler),
+                                               name: Notification.Name(WEBSOCKET_CLIENT_EVENTS["CLIENT_ERROR"]!),
+                                               object: nil)
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self,
+                                                  name: Notification.Name(WEBSOCKET_CLIENT_EVENTS["CLIENT_ERROR"]!),
+                                                  object: nil)
+    }
     
     func requiresMainQueueSetup() -> Bool {
         return false
@@ -118,14 +133,26 @@ class WebSocketClient: RCTEventEmitter, WebSocketDelegate {
     
     func rejectMalformed(url: String, withRejecter reject: RCTPromiseRejectBlock) -> Void {
         let message = "Malformed URL: \(url)"
-        let error = NSError(domain: "com.mattermost.react-native-network-client", code: NSURLErrorBadURL, userInfo: [NSLocalizedDescriptionKey: message])
+        let error = NSError(domain: NSURLErrorDomain, code: NSURLErrorBadURL, userInfo: [NSLocalizedDescriptionKey: message])
         reject("\(error.code)", message, error)
     }
     
     func rejectInvalidWebSocket(for url: URL, withRejecter reject: RCTPromiseRejectBlock) -> Void {
         let message = "WebSocket for \(url.absoluteString) has been invalidated"
-        let error = NSError(domain: "com.mattermost.react-native-network-client", code: NSCoderValueNotFoundError, userInfo: [NSLocalizedDescriptionKey: message])
+        let error = NSError(domain: NSCocoaErrorDomain, code: NSCoderValueNotFoundError, userInfo: [NSLocalizedDescriptionKey: message])
         reject("\(error.code)", message, error)
+    }
+    
+    @objc(errorHandler:)
+    func errorHandler(notification: Notification) {
+        self.sendErrorEvent(for: notification.userInfo!["url"] as! String,
+                            withErrorCode: notification.userInfo!["errorCode"] as! Int,
+                            withErrorDescription: notification.userInfo!["errorDescription"] as! String)
+    }
+    
+    func sendErrorEvent(for url: String, withErrorCode errorCode: Int, withErrorDescription errorDescription: String) {
+        self.sendEvent(withName: WEBSOCKET_CLIENT_EVENTS["CLIENT_ERROR"],
+                       body: ["url": url, "errorCode": errorCode, "errorDescription": errorDescription])
     }
     
     // MARK: WebSocketDelegate methods
@@ -154,5 +181,5 @@ class WebSocketClient: RCTEventEmitter, WebSocketDelegate {
         default:
             break
         }
-        }
+    }
 }
