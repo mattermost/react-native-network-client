@@ -17,10 +17,10 @@ class CreateWebSocketClientScreen {
     timeoutIntervalInput = element(by.id(this.testID.timeoutIntervalInput));
     urlInput = element(by.id(this.testID.urlInput));
     enableCompressionCheckboxFalse = element(
-        by.text("Enable Compression? false")
+        by.text("Enable Compression? [false]")
     );
     enableCompressionCheckboxTrue = element(
-        by.text("Enable Compression? true")
+        by.text("Enable Compression? [true]")
     );
     clientListButton = element(by.text("ClientList")).atIndex(0);
     createButton = element(by.text("Create"));
