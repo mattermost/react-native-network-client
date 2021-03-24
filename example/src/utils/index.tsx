@@ -206,7 +206,7 @@ const createSecureServerAPIClient = async (): Promise<APIClientItem | null> => {
     };
     const configuration = buildDefaultApiClientConfiguration(headers);
     if (configuration.sessionConfiguration) {
-        configuration.sessionConfiguration["trustSelfSignedServerCertificate"] = true;
+        configuration.sessionConfiguration.trustSelfSignedServerCertificate = true;
     }
 
     return createAPIClient(name, baseUrl, configuration, {
