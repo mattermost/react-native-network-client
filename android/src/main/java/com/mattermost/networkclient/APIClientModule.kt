@@ -139,7 +139,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
             if(multipartOptions.hasKey("fileKey") && multipartOptions.getString("fileKey") !== ""){
                 multipartBody.addFormDataPart(multipartOptions.getString("fileKey")!!, uri.lastPathSegment, UploadFileRequestBody(reactApplicationContext, uri, 0, ProgressListener(reactApplicationContext, taskId)))
             } else {
-                multipartBody.addPart(UploadFileRequestBody(reactApplicationContext, uri, 0, ProgressListener(reactApplicationContext, taskId)))
+                multipartBody.addFormDataPart("files", uri.lastPathSegment, UploadFileRequestBody(reactApplicationContext, uri, 0, ProgressListener(reactApplicationContext, taskId)))
             }
 
             if(multipartOptions.hasKey("data")){
