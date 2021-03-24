@@ -2,12 +2,12 @@
 // See LICENSE.txt for license information.
 
 const getStatus = () => {
-    const defaultStatus = 'HTTP/1.1 200 OK';
+    const defaultStatus = "HTTP/1.1 200 OK";
     if (!request.headers) {
         return defaultStatus;
     }
 
-    const responseStatus = request.headers['response-status'];
+    const responseStatus = request.headers["response-status"];
     if (!responseStatus) {
         return defaultStatus;
     }
