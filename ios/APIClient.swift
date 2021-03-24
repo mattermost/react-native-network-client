@@ -269,10 +269,101 @@ class APIClient: RCTEventEmitter, NetworkClient {
             rejectFileSize(for: fileUrl, withRejecter: reject)
             return
         }
-
+        
+        if let _ = options["multipart"].dictionary {
+            self.multipartUpload(fileUrl, to: url, forSession: session, withFileSize: fileSize, withTaskId: taskId, withOptions: options, withResolver: resolve, withRejecter: reject)
+        } else {
+            self.streamUpload(fileUrl, to: url, forSession: session, withFileSize: fileSize, withTaskId: taskId, withOptions: options, withResolver: resolve, withRejecter: reject)
+        }
+    }
+    
+    func multipartUpload(_ fileUrl: URL, to url: URL, forSession session: Session, withFileSize fileSize: Double, withTaskId taskId: String, withOptions options: JSON, withResolver resolve: @escaping RCTPromiseResolveBlock, withRejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
         let headers = getHTTPHeaders(from: options)
         let interceptor = getInterceptor(from: options)
         let requestModifer = getRequestModifier(from: options)
+
+        let multipartConfig = options["multipart"].dictionaryValue
+        let fileKey = multipartConfig["fileKey"]?.string ?? "files"
+        let data = multipartConfig["data"]?.dictionaryValue.mapValues { String(describing: $0) }
+
+        var method: HTTPMethod
+        switch options["method"].string?.lowercased() {
+            case "patch":
+                method = .patch
+            case "put":
+                method = .put
+            default:
+                method = .post
+        }
+
+        let request = session.upload(multipartFormData: { multipartFormData in
+            multipartFormData.append(fileUrl, withName: fileKey)
+            if let data = data {
+               for (key, value) in data {
+                   multipartFormData.append(value.data(using: .utf8)!, withName: key)
+               }
+            }
+        },
+        to: url, method: method, headers: headers, interceptor: interceptor, requestModifier: requestModifer)
+            .uploadProgress { progress in
+                if (self.hasListeners) {
+                    self.sendEvent(withName: API_CLIENT_EVENTS["UPLOAD_PROGRESS"], body: ["taskId": taskId, "fractionCompleted": progress.fractionCompleted])
+                }
+            }
+            .responseJSON { json in
+                switch (json.result) {
+                case .success:
+                    var ok = false
+                    if let statusCode = json.response?.statusCode {
+                        ok = (200 ... 299).contains(statusCode)
+                    }
+
+                    resolve([
+                        "ok": ok,
+                        "headers": json.response?.allHeaderFields,
+                        "data": json.value,
+                        "code": json.response?.statusCode,
+                        "lastRequestedUrl": json.response?.url?.absoluteString
+                    ])
+                case .failure(let error):
+                    if (error.responseCode != nil) {
+                        resolve([
+                            "ok": false,
+                            "headers": json.response?.allHeaderFields,
+                            "data": json.value,
+                            "code": error.responseCode,
+                            "lastRequestedUrl": json.response?.url?.absoluteString
+                        ])
+                        return
+                    } else if error.isRequestRetryError, case let .requestRetryFailed(retryError, originalError) = error {
+                        if let clientError = retryError.asNetworkClientError {
+                            let description = "\(clientError.localizedDescription); Underlying Error: \(originalError.localizedDescription)"
+                            reject("\(clientError.errorCode!)", description, clientError)
+                            return
+                        }
+                    }
+
+                    reject("\(error._code)", error.localizedDescription, error)
+                }
+            }
+
+        self.requestsTable.setObject(request, forKey: taskId as NSString)
+    }
+    
+    func streamUpload(_ fileUrl: URL, to url: URL, forSession session: Session, withFileSize fileSize: Double, withTaskId taskId: String, withOptions options: JSON, withResolver resolve: @escaping RCTPromiseResolveBlock, withRejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+        let headers = getHTTPHeaders(from: options)
+        let interceptor = getInterceptor(from: options)
+        let requestModifer = getRequestModifier(from: options)
+        
+        var method: HTTPMethod
+        switch options["method"].string?.uppercased() {
+            case "PATCH":
+                method = .patch
+            case "PUT":
+                method = .put
+            default:
+                method = .post
+        }
         
         var initialFractionCompleted: Double = 0;
         let stream = InputStream(url: fileUrl)!
@@ -281,7 +372,7 @@ class APIClient: RCTEventEmitter, NetworkClient {
             initialFractionCompleted = Double(skipBytes) / fileSize
         }
 
-        let request = session.upload(stream, to: url, headers: headers, interceptor: interceptor, requestModifier: requestModifer)
+        let request = session.upload(stream, to: url, method: method, headers: headers, interceptor: interceptor, requestModifier: requestModifer)
             .uploadProgress { progress in
                 if (self.hasListeners) {
                     let fractionCompleted = initialFractionCompleted + (Double(progress.completedUnitCount) / fileSize)
@@ -291,8 +382,13 @@ class APIClient: RCTEventEmitter, NetworkClient {
             .responseJSON { json in
                 switch (json.result) {
                 case .success:
+                    var ok = false
+                    if let statusCode = json.response?.statusCode {
+                        ok = (200 ... 299).contains(statusCode)
+                    }
+
                     resolve([
-                        "ok": true,
+                        "ok": ok,
                         "headers": json.response?.allHeaderFields,
                         "data": json.value,
                         "code": json.response?.statusCode,
