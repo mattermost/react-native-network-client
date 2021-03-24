@@ -162,15 +162,15 @@ const fileServer = (directory) => {
     // Create regular router
     const router = express.Router();
     router.use("/files", staticHandler);
-    router.post("/files/stream/:filename", streamUploadHandler);
-    router.post("/files/multipart", multipartUploadHandler);
+    router.all("/files/stream/:filename", streamUploadHandler);
+    router.all("/files/multipart", multipartUploadHandler);
 
     // Create protected router
     const protectedRouter = express.Router();
     protectedRouter.use(authHandler);
     protectedRouter.use("/files", staticHandler);
-    protectedRouter.post("/files/stream/:filename", streamUploadHandler);
-    protectedRouter.post("/files/multipart", multipartUploadHandler);
+    protectedRouter.all("/files/stream/:filename", streamUploadHandler);
+    protectedRouter.all("/files/multipart", multipartUploadHandler);
 
     // Create app
     const app = express();
