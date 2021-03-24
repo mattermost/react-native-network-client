@@ -6,15 +6,11 @@ import { isAndroid } from "@support/utils";
 
 class ApiClientUploadScreen {
     testID = {
-<<<<<<< HEAD
         apiClientUploadScrollView: "api_client_upload.scroll_view",
-=======
->>>>>>> d29e9a4a058fab4255eb41982ade6adfacecb4b0
         endpointInput: "api_client_upload.endpoint.input",
     };
 
     apiClientUploadScreen = element(by.text("APIClientUpload"));
-<<<<<<< HEAD
     apiClientUploadScrollView = element(
         by.id(this.testID.apiClientUploadScrollView)
     );
@@ -25,9 +21,6 @@ class ApiClientUploadScreen {
     sendAsMultipartCheckboxTrue = element(
         by.text("Send as Multi-part? [true]")
     );
-=======
-    endpointInput = element(by.id(this.testID.endpointInput));
->>>>>>> d29e9a4a058fab4255eb41982ade6adfacecb4b0
     attachImageButton = element(by.text("Attach Image"));
     attachTextButton = element(by.text("Attach Text"));
     cancelUploadButton = element(by.text("Cancel Upload"));

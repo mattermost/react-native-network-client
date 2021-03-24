@@ -4,6 +4,7 @@
 import AddHeaders from "./add_headers";
 import AddMultipart from "./add_multipart";
 import Alert from "./alert";
+import ClientListItem from "./client_list_item";
 import HeaderListItem from "./header_list_item";
 import ProgressiveFileUpload from "./progressive_file_upload";
 import MethodButtons from "./method_buttons";
