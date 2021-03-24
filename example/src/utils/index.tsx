@@ -198,13 +198,16 @@ const createSecureServerAPIClient = async (): Promise<APIClientItem | null> => {
     const name = "Secure Server API";
     const baseUrl =
         Platform.OS === "ios"
-            ? "https://localhost:443"
-            : "https://10.0.2.2:443";
+            ? "https://localhost:4443"
+            : "https://10.0.2.2:4443";
     const headers = {
         "header-1-key": "header-1-value",
         "header-2-key": "header-2-value",
     };
     const configuration = buildDefaultApiClientConfiguration(headers);
+    if (configuration.sessionConfiguration) {
+        configuration.sessionConfiguration["trustSelfSignedServerCertificate"] = true;
+    }
 
     return createAPIClient(name, baseUrl, configuration, {
         validateUrl: false,

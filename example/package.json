@@ -10,7 +10,7 @@
     "file-upload-server": "node file_server.js -p 8008 -u './upload'",
     "mockserver": "node mockserver.js -p 8080 -m './mocks'",
     "postinstall": "patch-package",
-    "secure-server": "node secure_server.js -p 443 -c './certs'",
+    "secure-server": "node secure_server.js -p 4443 -c './certs'",
     "websocket-server": "node websocket_server.js -p 3000",
     "start": "react-native start",
     "start:reset-cache": "react-native start -- --reset-cache"
