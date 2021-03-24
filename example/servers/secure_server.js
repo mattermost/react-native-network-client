@@ -5,17 +5,18 @@ const express = require("express");
 
 const secureServer = () => {
     // Create handlers
-    const requestHandler = (req, res, next) => {
+    const requestHandler = (req, res, next, cert) => {
         const responseStatus = req.responseStatus ? req.responseStatus : 200;
 
         res.type("application/json");
         res.set("server", "secure server");
         res.status(responseStatus).send({
+            message: `Hello ${cert.subject.CN}, your certificate was issued by ${cert.issuer.CN}!`,
             request: {
                 url: req.url,
                 method: req.method,
                 headers: req.headers,
-                body: JSON.parse(req.body),
+                body: req.body,
             },
         });
     };
@@ -23,9 +24,7 @@ const secureServer = () => {
         const cert = req.socket.getPeerCertificate();
 
         if (req.client.authorized) {
-            res.send(
-                `Hello ${cert.subject.CN}, your certificate was issued by ${cert.issuer.CN}!`
-            );
+            requestHandler(req, res, next, cert);
         } else if (cert.subject) {
             res.status(403).send(
                 `Sorry ${cert.subject.CN}, certificates from ${cert.issuer.CN} are not welcome here.`
@@ -39,15 +38,15 @@ const secureServer = () => {
 
     // Create router
     const router = express.Router();
-    router.use(authHandler);
-    router.get("/get", requestHandler);
-    router.post("/post", requestHandler);
-    router.put("/put", requestHandler);
-    router.patch("/patch", requestHandler);
-    router.delete("/delete", requestHandler);
+    router.get("/get", authHandler);
+    router.post("/post", authHandler);
+    router.put("/put", authHandler);
+    router.patch("/patch", authHandler);
+    router.delete("/delete", authHandler);
 
     // Create app
     const app = express();
+    app.use(express.json());
     app.use("/", router);
     app.get("/", (req, res, next) => {
         res.sendStatus(200);
