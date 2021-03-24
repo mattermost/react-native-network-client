@@ -7,7 +7,7 @@
 // - Use element testID when selecting an element. Create one if none.
 // *******************************************************************
 
-import { WebSocketClientScreen } from "@support/ui/screen";
+import { ClientListScreen, WebSocketClientScreen } from "@support/ui/screen";
 import { verifyWebSocketEvent } from "../helpers";
 
 describe("WebSocket Client Request", () => {
@@ -28,6 +28,7 @@ describe("WebSocket Client Request", () => {
     } = WebSocketClientScreen;
 
     beforeAll(async () => {
+        await ClientListScreen.clientListScrollView.scrollTo("bottom");
         await WebSocketClientScreen.open(testName);
     });
 
