@@ -194,6 +194,23 @@ const createMockserverAPIClient = async (): Promise<APIClientItem | null> => {
     });
 };
 
+const createSecureServerAPIClient = async (): Promise<APIClientItem | null> => {
+    const name = "Secure Server API";
+    const baseUrl =
+        Platform.OS === "ios"
+            ? "https://localhost:443"
+            : "https://10.0.2.2:443";
+    const headers = {
+        "header-1-key": "header-1-value",
+        "header-2-key": "header-2-value",
+    };
+    const configuration = buildDefaultApiClientConfiguration(headers);
+
+    return createAPIClient(name, baseUrl, configuration, {
+        validateUrl: false,
+    });
+};
+
 const createRequestBinAPIClient = async (): Promise<APIClientItem | null> => {
     const name = "RequestBin API";
     const baseUrl =
@@ -289,6 +306,7 @@ export const createTestClients = async (): Promise<NetworkClientItem[]> => {
         await createFastImageServerAPIClient(),
         await createFileUploadServerAPIClient(),
         await createMockserverAPIClient(),
+        await createSecureServerAPIClient(),
         await createRequestBinAPIClient(),
         await createMattermostWebSocketClient(),
         await createSimpleWebSocketClient(),

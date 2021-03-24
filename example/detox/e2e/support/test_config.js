@@ -12,6 +12,10 @@ module.exports = {
         (process.env.IOS ? "http://localhost:8008" : "http://10.0.2.2:8008"),
     fileUploadSiteUrl:
         process.env.FILE_UPLOAD_SITE_URL || "http://localhost:8008",
+    secureServerUrl:
+        process.env.SECURE_SITE_URL ||
+        (process.env.IOS ? "https://localhost:443" : "https://10.0.2.2:443"),
+    secureSiteUrl: process.env.SECURE_SITE_URL || "https://localhost:443",
     serverUrl:
         process.env.SITE_URL ||
         (process.env.IOS ? "http://localhost:8080" : "http://10.0.2.2:8080"),

@@ -14,7 +14,7 @@ if (!mocks || !port) {
             "Mockserver",
             "",
             "Usage:",
-            "  mockserver -p PORT -m PATH",
+            "  node mockserver -p PORT -m PATH",
             "",
             "Options:",
             "  -p, --port=PORT    - Port to listen on",
