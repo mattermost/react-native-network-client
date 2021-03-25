@@ -6,11 +6,12 @@ const express = require("express");
 const secureServer = () => {
     // Create handlers
     const requestHandler = (req, res, next, cert) => {
+        console.log('Request is authorized!');
         const responseStatus = req.responseStatus ? req.responseStatus : 200;
 
         res.type("application/json");
         res.set("server", "secure server");
-        res.status(responseStatus).send({
+        res.status(responseStatus).json({
             message: `Hello ${cert.subject.CN}, your certificate was issued by ${cert.issuer.CN}!`,
             request: {
                 url: req.url,
