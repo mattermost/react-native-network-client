@@ -1,5 +1,0 @@
-#import '../response_status.js';
-content-type: application/json; charset=utf-8
-server: mock-server
-
-#import '../response_body.js';

@@ -133,7 +133,7 @@ export const verifyApiResponse = (
     jestExpect(apiResponse.status).toEqual(testStatus);
 
     // * Verify response headers contain server header
-    jestExpect(apiResponse.headers["server"]).toBe("mock-server");
+    jestExpect(apiResponse.headers["server"]).toBe("mockserver");
 
     // * Verify response body contains request host and request method
     jestExpect(apiResponseDataRequest.headers["host"]).toBe(testHost);
@@ -195,7 +195,7 @@ export const verifyResponseSuccessOverlay = async (
         // * Verify response headers contain server header
         const responseHeadersTextAttributes = await responseHeadersText.getAttributes();
         const responseHeaders = JSON.parse(responseHeadersTextAttributes.text);
-        jestExpect(responseHeaders["Server"]).toBe("mock-server");
+        jestExpect(responseHeaders["Server"]).toBe("mockserver");
 
         // * Verify response body contains request host and request method
         const responseDataTextAttributes = await responseDataText.getAttributes();

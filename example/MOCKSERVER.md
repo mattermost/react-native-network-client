@@ -7,27 +7,6 @@ npm run mockserver
 ```
 2. Verify Mockserver is running: `http://localhost:8080`.
 
-### How to create mocks
-[Mock files](https://github.com/namshi/mockserver#mock-files) follow this convention based on the response that they are going to serve:
-```
-$REQUEST-PATH/$HTTP-METHOD.mock
-```
-
-As an example, the mock file for a GET request URL `http://localhost:8080/get` needs to correspond to the file path `mocks/get/GET.mock`. See current folder structure:
-- mocks
-   - delete
-       - DELETE.mock
-   - get
-       - GET.mock
-   - patch
-       - PATCH.mock
-   - post
-       - POST.mock
-   - put
-       - PUT.mock
-
-For more detailed information on Mockserver, please visit the official [Mockserver Readme](https://github.com/namshi/mockserver/blob/master/README.md).
-
 # Request Methods
 Base URL: `http://localhost:8080`
 Options:
@@ -43,9 +22,10 @@ Example response:
 ```
 HTTP/1.1 200 OK
 content-type: application/json; charset=utf-8
-server: mock-server
+server: mockserver
 
 {
+    "message": "Non-secure request!"
     "request" : {
         "url" : "http://localhost:8080/get"
         "method" : "GET",

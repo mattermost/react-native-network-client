@@ -194,8 +194,8 @@ const createMockserverAPIClient = async (): Promise<APIClientItem | null> => {
     });
 };
 
-const createSecureServerAPIClient = async (): Promise<APIClientItem | null> => {
-    const name = "Secure Server API";
+const createSecureMockserverAPIClient = async (): Promise<APIClientItem | null> => {
+    const name = "Secure Mockserver API";
     const baseUrl =
         Platform.OS === "ios"
             ? "https://localhost:4443"
@@ -309,7 +309,7 @@ export const createTestClients = async (): Promise<NetworkClientItem[]> => {
         await createFastImageServerAPIClient(),
         await createFileUploadServerAPIClient(),
         await createMockserverAPIClient(),
-        await createSecureServerAPIClient(),
+        await createSecureMockserverAPIClient(),
         await createRequestBinAPIClient(),
         await createMattermostWebSocketClient(),
         await createSimpleWebSocketClient(),

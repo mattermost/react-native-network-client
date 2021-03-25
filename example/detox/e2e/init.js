@@ -12,17 +12,16 @@ import {
 
 const http = require("http");
 const https = require("https");
-const mockserver = require("mockserver");
+const mockserver = require("../../servers/mockserver");
 const fileServer = require("../../servers/file_server");
-const secureServer = require("../../servers/secure_server");
 const webSocketServer = require("../../servers/websocket_server");
 
 beforeAll(async () => {
     launchMockserver();
+    // launchSecureMockserver();
     launchFastImageServer();
     launchFileUploadServer();
     launchWebSocketServer();
-    launchSecureServer();
 
     await device.launchApp({
         newInstance: false,
@@ -55,16 +54,10 @@ function launchFileUploadServer() {
 }
 
 function launchMockserver() {
-    launchServer("Mockserver", mockserver, siteUrl, "../mocks");
+    launchServer("Mockserver", mockserver, siteUrl);
 }
 
-function launchWebSocketServer() {
-    const port = webSocketSiteUrl.split(":")[2];
-    webSocketServer(port);
-    console.log(`WebSocket Server listening at ${webSocketSiteUrl}`);
-}
-
-function launchSecureServer() {
+function launchSecureMockserver() {
     const certs = "../certs";
     const opts = {
         key: fs.readFileSync(path.join(certs, "server_key.pem")),
@@ -73,7 +66,20 @@ function launchSecureServer() {
         rejectUnauthorized: false, // so we can do own error handling
         ca: [fs.readFileSync(path.join(certs, "server_cert.pem"))],
     };
-    launchServer("Secure Server", secureServer, secureSiteUrl, "", opts, https);
+    launchServer(
+        "Secure Mockserver",
+        mockserver,
+        secureSiteUrl,
+        "",
+        opts,
+        https
+    );
+}
+
+function launchWebSocketServer() {
+    const port = webSocketSiteUrl.split(":")[2];
+    webSocketServer(port);
+    console.log(`WebSocket Server listening at ${webSocketSiteUrl}`);
 }
 
 function launchServer(

@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import client from "./client";
-import { getResponseFromError, toHttpStatusString } from "./common";
+import { getResponseFromError } from "./common";
 
 // ****************************************************************
 // Request Methods
@@ -157,7 +157,7 @@ const apiRequest = async (
 ) => {
     try {
         const requestHeaders = {
-            "response-status": toHttpStatusString(responseStatus),
+            responseStatus,
             ...headers,
         };
         if (!url) {
