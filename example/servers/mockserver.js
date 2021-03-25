@@ -3,13 +3,12 @@
 
 const express = require("express");
 
-const mockserver = () => {
+const mockserver = ({ secure = false } = {}) => {
     // Create handlers
-    const requestHandler = (req, res, next, cert = null) => {
+    const nonSecureRequestHandler = (req, res, next, cert = null) => {
         console.log("Request is received!");
         const responseStatus = req.responseStatus ? req.responseStatus : 200;
 
-        res.type("application/json");
         res.set("server", "mockserver");
         res.status(responseStatus).json({
             message: cert
@@ -28,7 +27,7 @@ const mockserver = () => {
 
         if (req.client.authorized) {
             console.log("Client Authorized!");
-            requestHandler(req, res, next, cert);
+            nonSecureRequestHandler(req, res, next, cert);
         } else if (cert.subject) {
             console.log("Invalid client issuer - 403 Forbidden Error");
             res.status(403).send(
@@ -41,8 +40,11 @@ const mockserver = () => {
             );
         }
     };
+    const requestHandler = secure
+        ? secureRequestHandler
+        : nonSecureRequestHandler;
 
-    // Create regular router
+    // Create router
     const router = express.Router();
     router.get("/get", requestHandler);
     router.post("/post", requestHandler);
@@ -50,19 +52,10 @@ const mockserver = () => {
     router.patch("/patch", requestHandler);
     router.delete("/delete", requestHandler);
 
-    // Create secure router
-    const secureRouter = express.Router();
-    secureRouter.get("/get", secureRequestHandler);
-    secureRouter.post("/post", secureRequestHandler);
-    secureRouter.put("/put", secureRequestHandler);
-    secureRouter.patch("/patch", secureRequestHandler);
-    secureRouter.delete("/delete", secureRequestHandler);
-
     // Create app
     const app = express();
     app.use(express.json());
     app.use("/", router);
-    app.use("/secure", secureRouter);
     app.get("/", (req, res, next) => {
         res.sendStatus(200);
     });

@@ -30,14 +30,16 @@ if (!port) {
     );
 } else {
     if (certs) {
-        const opts = {
+        const serverOptions = {
             key: fs.readFileSync(path.join(certs, "server_key.pem")),
             cert: fs.readFileSync(path.join(certs, "server_cert.pem")),
             requestCert: true,
             rejectUnauthorized: false, // so we can do own error handling
             ca: [fs.readFileSync(path.join(certs, "server_cert.pem"))],
         };
-        https.createServer(opts, mockserver()).listen(port);
+        https
+            .createServer(serverOptions, mockserver({ secure: true }))
+            .listen(port);
         console.log(
             "Secure Mockserver serving with certs " +
                 'under "' +

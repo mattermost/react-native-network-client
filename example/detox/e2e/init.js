@@ -36,30 +36,24 @@ beforeAll(async () => {
 });
 
 function launchFastImageServer() {
-    launchServer(
-        "Fast Image Server",
-        fileServer,
-        fastImageSiteUrl,
-        "./e2e/support/fixtures"
-    );
+    launchServer("Fast Image Server", fileServer, fastImageSiteUrl, {
+        directory: "./e2e/support/fixtures",
+    });
 }
 
 function launchFileUploadServer() {
-    launchServer(
-        "File Upload Server",
-        fileServer,
-        fileUploadSiteUrl,
-        "../upload"
-    );
+    launchServer("File Upload Server", fileServer, fileUploadSiteUrl, {
+        directory: "../upload",
+    });
 }
 
 function launchMockserver() {
-    launchServer("Mockserver", mockserver, siteUrl);
+    launchServer("Mockserver", mockserver, siteUrl, { secure: false });
 }
 
 function launchSecureMockserver() {
     const certs = "../certs";
-    const opts = {
+    const serverOptions = {
         key: fs.readFileSync(path.join(certs, "server_key.pem")),
         cert: fs.readFileSync(path.join(certs, "server_cert.pem")),
         requestCert: true,
@@ -70,8 +64,8 @@ function launchSecureMockserver() {
         "Secure Mockserver",
         mockserver,
         secureSiteUrl,
-        "",
-        opts,
+        { secure: true },
+        serverOptions,
         https
     );
 }
@@ -86,13 +80,15 @@ function launchServer(
     serverName,
     requestListener,
     url,
-    directory = "",
-    opts = {},
+    requestListenerParams = {},
+    serverOptions = {},
     protocol = http
 ) {
     const port = url.split(":")[2];
     const listeningMessage = `${serverName} listening at ${url}`;
-    const notListeningMessage = `${serverName} not listening at port ${port}! Launching ${serverName} (directory: ${directory}) ...`;
+    const notListeningMessage = `${serverName} not listening at port ${port}! Launching ${serverName} with params (${JSON.stringify(
+        requestListenerParams
+    )}) ...`;
 
     // Check if server is listening
     protocol
@@ -103,10 +99,12 @@ function launchServer(
         .on("error", (e) => {
             // Launch server if not listening
             console.log(notListeningMessage);
-            const listener = directory
-                ? requestListener(directory)
+            const listener = requestListenerParams
+                ? requestListener(requestListenerParams)
                 : requestListener();
-            const server = protocol.createServer(opts, listener).listen(port);
+            const server = protocol
+                .createServer(serverOptions, listener)
+                .listen(port);
             checkServerStatus(server, listeningMessage);
         });
 }
