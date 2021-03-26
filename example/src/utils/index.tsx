@@ -325,9 +325,25 @@ export const createTestClients = async (): Promise<NetworkClientItem[]> => {
 export const createNativeFile = async (
     fileContent: FileContent
 ): Promise<File> => {
-    const path = RFNS.DocumentDirectoryPath + `/${fileContent.name}`;
+    const path = `${RFNS.DocumentDirectoryPath}/${fileContent.name}`;
     await RFNS.writeFile(path, fileContent.content, fileContent.encoding);
     const statResult: StatResult = await RFNS.stat(path);
+
+    return {
+        name: fileContent.name,
+        size: Number(statResult.size),
+        type: fileContent.type,
+        uri: `file://${statResult.path}`,
+    };
+};
+
+export const downloadToNativeFile = async (
+    fromUrl: string,
+    fileContent: FileContent
+): Promise<File> => {
+    const toFile = `${RFNS.DocumentDirectoryPath}/${fileContent.name}`;
+    await RFNS.downloadFile({ fromUrl, toFile }).promise;
+    const statResult: StatResult = await RFNS.stat(toFile);
 
     return {
         name: fileContent.name,
@@ -351,6 +367,12 @@ const buildFileContent = (
     };
 };
 
+export const clientCertP12: FileContent = buildFileContent(
+    "client_cert.p12",
+    "",
+    "binary",
+    "binary"
+);
 export const sampleImage: FileContent = buildFileContent(
     "sample-image.jpg",
     sampleImageContent,

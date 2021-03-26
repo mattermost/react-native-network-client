@@ -3,10 +3,11 @@
 
 import React from "react";
 import { View } from "react-native";
-import { Button, Input, Text } from "react-native-elements";
+import { Button, ButtonGroup, Input, Text } from "react-native-elements";
 import DocumentPicker from "react-native-document-picker";
 import { check, request, PERMISSIONS, RESULTS } from "react-native-permissions";
 import Icon from "react-native-vector-icons/MaterialIcons";
+import { downloadToNativeFile, clientCertP12 } from "../utils";
 
 type P12InputsProps = {
     title: string;
@@ -51,10 +52,24 @@ const P12Inputs = (props: P12InputsProps) => {
         }
     };
 
+    const attachCertificate = async () => {
+        const fromUrl =
+            "https://github.com/mattermost/react-native-network-client/raw/e2e-cert/example/certs/client_cert.p12";
+        const file: File = await downloadToNativeFile(fromUrl, clientCertP12);
+        props.onSelectP12(`${file.uri}`);
+    };
+
     const clearP12Configuration = () => {
         props.onSelectP12("");
         props.onPasswordChange(undefined);
     };
+
+    const buttons = [
+        { title: "Select", onPress: pickCertificate },
+        { title: "Attach", onPress: attachCertificate },
+    ];
+
+    const onButtonPress = (index: number) => buttons[index].onPress();
 
     const rightIcon = (
         <View style={{ width: 142 }}>
@@ -80,7 +95,10 @@ const P12Inputs = (props: P12InputsProps) => {
                     />
                 </View>
             ) : (
-                <Button title="Select" onPress={pickCertificate} />
+                <ButtonGroup
+                    buttons={buttons.map((button) => button.title)}
+                    onPress={onButtonPress}
+                />
             )}
         </View>
     );
