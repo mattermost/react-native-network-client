@@ -30,7 +30,7 @@ export const isIos = () => {
 
 /**
  * Get host.
- * @param {string} url - URL to download file from
+ * @param {string} url - the URL
  * @returns {string} host from URL
  */
 export const getHost = (url) => {
