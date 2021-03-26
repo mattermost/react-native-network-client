@@ -175,6 +175,9 @@ const createSecureFastImageServerAPIClient = async (): Promise<APIClientItem | n
             "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEyMyIsImlhdCI6MTYxNTI0MDUwNn0.-FLR4NUPTuBGLXd082MvNmJemoqfLqQi8-sJhCCaNf0",
     };
     const configuration = buildDefaultApiClientConfiguration(headers);
+    if (configuration.sessionConfiguration) {
+        configuration.sessionConfiguration.trustSelfSignedServerCertificate = true;
+    }
 
     return createAPIClient(name, baseUrl, configuration, {
         validateUrl: false,
@@ -201,6 +204,9 @@ const createSecureFileUploadServerAPIClient = async (): Promise<APIClientItem | 
             ? "https://localhost:9008"
             : "https://10.0.2.2:9008";
     const configuration = buildDefaultApiClientConfiguration();
+    if (configuration.sessionConfiguration) {
+        configuration.sessionConfiguration.trustSelfSignedServerCertificate = true;
+    }
 
     return createAPIClient(name, baseUrl, configuration, {
         validateUrl: false,
