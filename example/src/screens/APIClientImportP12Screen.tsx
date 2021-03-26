@@ -40,6 +40,7 @@ const APIClientImportP12Screen = ({
                 password={clientP12Configuration.password}
                 onSelectP12={setClientP12Path}
                 onPasswordChange={setClientP12Password}
+                testID='api_client_import_p12.p12_inputs'
             />
             <Button
                 title="Import"

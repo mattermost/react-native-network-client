@@ -69,7 +69,7 @@ const getTokenBySource = (req) => {
     return token;
 };
 
-const fileServer = ({ directory = "", secure = false }) => {
+const fileServer = ({ directory = "", secure = false } = {}) => {
     // Set upload path
     let uploadPath = path.resolve(process.cwd(), directory);
     if (!fs.existsSync(uploadPath)) {

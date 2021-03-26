@@ -15,6 +15,7 @@ type P12InputsProps = {
     password?: string;
     onSelectP12: (path: string) => void;
     onPasswordChange: (password?: string) => void;
+    testID?: string;
 };
 
 const P12Inputs = (props: P12InputsProps) => {
@@ -77,7 +78,11 @@ const P12Inputs = (props: P12InputsProps) => {
                 <View style={{ flexDirection: "column", height: 50 }}>
                     <View style={{ flexDirection: "row" }}>
                         <View style={{ flex: 1 }}>
-                            <Text numberOfLines={2} ellipsizeMode="middle">
+                            <Text
+                                numberOfLines={2}
+                                ellipsizeMode="middle"
+                                testID={`${props.testID}.path.text`}
+                            >
                                 {props.path}
                             </Text>
                         </View>
@@ -92,6 +97,7 @@ const P12Inputs = (props: P12InputsProps) => {
                         value={props.password}
                         onChangeText={props.onPasswordChange}
                         autoCapitalize="none"
+                        testID={`${props.testID}.password.input`}
                     />
                 </View>
             ) : (

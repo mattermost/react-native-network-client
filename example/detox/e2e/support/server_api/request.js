@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import client from "./client";
+import secureClient from "./secure_client";
 import { getResponseFromError } from "./common";
 
 // ****************************************************************
@@ -34,6 +35,7 @@ export const apiDelete = (
         headers: null,
         body: null,
         responseStatus: 200,
+        secure: false,
     }
 ) => {
     return apiRequest("delete", options);
@@ -57,6 +59,7 @@ export const apiGet = (
         headers: null,
         body: null,
         responseStatus: 200,
+        secure: false,
     }
 ) => {
     return apiRequest("get", options);
@@ -81,6 +84,7 @@ export const apiPatch = (
         headers: null,
         body: null,
         responseStatus: 200,
+        secure: false,
     }
 ) => {
     return apiRequest("patch", options);
@@ -105,6 +109,7 @@ export const apiPost = (
         headers: null,
         body: null,
         responseStatus: 200,
+        secure: false,
     }
 ) => {
     return apiRequest("post", options);
@@ -129,6 +134,7 @@ export const apiPut = (
         headers: null,
         body: null,
         responseStatus: 200,
+        secure: false,
     }
 ) => {
     return apiRequest("put", options);
@@ -153,6 +159,7 @@ const apiRequest = async (
         headers = {},
         body = {},
         responseStatus = 200,
+        secure = false,
     } = {}
 ) => {
     try {
@@ -163,7 +170,8 @@ const apiRequest = async (
         if (!url) {
             url = `/${method}`;
         }
-        return await client.request({
+        const apiClient = secure ? secureClient : client;
+        return await apiClient.request({
             method,
             url: `${url}${subpath}`,
             params,

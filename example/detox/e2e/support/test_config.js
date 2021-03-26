@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 module.exports = {
+    clientCertPassword: "password",
     fastImageServerUrl:
         process.env.FAST_IMAGE_SITE_URL ||
         (process.env.IOS ? "http://localhost:8009" : "http://10.0.2.2:8009"),

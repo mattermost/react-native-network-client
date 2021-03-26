@@ -164,12 +164,42 @@ const createFastImageServerAPIClient = async (): Promise<APIClientItem | null> =
     });
 };
 
+const createSecureFastImageServerAPIClient = async (): Promise<APIClientItem | null> => {
+    const name = "Secure Fast Image Server API";
+    const baseUrl =
+        Platform.OS === "ios"
+            ? "https://localhost:9009"
+            : "https://10.0.2.2:9009";
+    const headers = {
+        Authorization:
+            "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEyMyIsImlhdCI6MTYxNTI0MDUwNn0.-FLR4NUPTuBGLXd082MvNmJemoqfLqQi8-sJhCCaNf0",
+    };
+    const configuration = buildDefaultApiClientConfiguration(headers);
+
+    return createAPIClient(name, baseUrl, configuration, {
+        validateUrl: false,
+    });
+};
+
 const createFileUploadServerAPIClient = async (): Promise<APIClientItem | null> => {
     const name = "File Upload Server API";
     const baseUrl =
         Platform.OS === "ios"
             ? "http://localhost:8008"
             : "http://10.0.2.2:8008";
+    const configuration = buildDefaultApiClientConfiguration();
+
+    return createAPIClient(name, baseUrl, configuration, {
+        validateUrl: false,
+    });
+};
+
+const createSecureFileUploadServerAPIClient = async (): Promise<APIClientItem | null> => {
+    const name = "Secure File Upload Server API";
+    const baseUrl =
+        Platform.OS === "ios"
+            ? "https://localhost:9008"
+            : "https://10.0.2.2:9008";
     const configuration = buildDefaultApiClientConfiguration();
 
     return createAPIClient(name, baseUrl, configuration, {
@@ -198,8 +228,8 @@ const createSecureMockserverAPIClient = async (): Promise<APIClientItem | null> 
     const name = "Secure Mockserver API";
     const baseUrl =
         Platform.OS === "ios"
-            ? "https://localhost:4443"
-            : "https://10.0.2.2:4443";
+            ? "https://localhost:9080"
+            : "https://10.0.2.2:9080";
     const headers = {
         "header-1-key": "header-1-value",
         "header-2-key": "header-2-value",
@@ -301,18 +331,38 @@ const createSimpleWebSocketClient = async (): Promise<WebSocketClientItem | null
     });
 };
 
+const createSecureSimpleWebSocketClient = async (): Promise<WebSocketClientItem | null> => {
+    const name = "Secure Simple WebSocket";
+    const host = Platform.OS === "ios" ? "localhost:4000" : "10.0.2.2:4000";
+    const url = `wss://${host}/api/websocket`;
+    const origin = `https://${host}`;
+    const configuration: WebSocketClientConfiguration = {
+        headers: {
+            host,
+            origin,
+        },
+    };
+
+    return createWebSocketClient(name, url, configuration, {
+        validateUrl: false,
+    });
+};
+
 export const createTestClients = async (): Promise<NetworkClientItem[]> => {
     return [
         { name: "Generic", client: GenericClient, type: ClientType.GENERIC },
         await createMattermostAPIClient(),
         await createJSONPlaceholderAPIClient(),
         await createFastImageServerAPIClient(),
+        await createSecureFastImageServerAPIClient(),
         await createFileUploadServerAPIClient(),
+        await createSecureFileUploadServerAPIClient(),
         await createMockserverAPIClient(),
         await createSecureMockserverAPIClient(),
         await createRequestBinAPIClient(),
         await createMattermostWebSocketClient(),
         await createSimpleWebSocketClient(),
+        await createSecureSimpleWebSocketClient(),
     ].reduce((clients: NetworkClientItem[], client) => {
         if (client) {
             return [...clients, client];

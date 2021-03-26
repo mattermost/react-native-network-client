@@ -21,6 +21,7 @@ class ApiClientScreen {
     nameInput = element(by.id(this.testID.nameInput));
     clientListButton = element(by.text("ClientList")).atIndex(0);
     fastImageButton = element(by.text("FAST IMAGE"));
+    importP12Button = element(by.text("IMPORT P12"));
     uploadButton = element(by.text("UPLOAD"));
 
     // convenience props
@@ -71,6 +72,11 @@ class ApiClientScreen {
     selectFastImage = async () => {
         await this.apiClientScrollView.scrollTo("bottom");
         await this.fastImageButton.tap();
+    };
+
+    selectImportP12 = async () => {
+        await this.apiClientScrollView.scrollTo("bottom");
+        await this.importP12Button.tap();
     };
 
     selectPatch = async () => {

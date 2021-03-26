@@ -170,7 +170,8 @@ export const verifyResponseSuccessOverlay = async (
     testHost,
     testMethod,
     testHeaders,
-    testBody = null
+    testBody = null,
+    { secure = false } = {}
 ) => {
     const {
         responseCodeText,
@@ -217,6 +218,20 @@ export const verifyResponseSuccessOverlay = async (
             for (const [k, v] of Object.entries(testBody)) {
                 jestExpect(responseDataRequest.body[k]).toBe(v);
             }
+        }
+
+        // * Verify certificate
+        const responseDataCertificate = JSON.parse(
+            responseDataTextAttributes.text
+        ).certificate;
+        if (secure) {
+            jestExpect(responseDataCertificate).toBe(
+                `Hello Alice, your certificate was issued by ${
+                    testHost.split(":")[0]
+                }!`
+            );
+        } else {
+            jestExpect(responseDataCertificate).toBe("Non-secure request!");
         }
     }
 };
