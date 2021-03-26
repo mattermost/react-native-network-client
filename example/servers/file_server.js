@@ -85,7 +85,8 @@ const fileServer = (directory) => {
     // Create handlers
     const staticHandler = express.static(uploadPath, { index: false });
     const streamUploadHandler = (req, res, next) => {
-        const filePath = `${uploadPath}/${req.params.filename}`;
+        const filename = req.params.filename;
+        const filePath = `${uploadPath}/${filename}`;
         req.pipe(
             fs
                 .createWriteStream(filePath)
@@ -101,9 +102,9 @@ const fileServer = (directory) => {
         );
         req.on("end", (end) => {
             console.log(`Finished! Uploaded to: ${filePath}`);
-            res.status(200).send({
-                status: "OK",
-            });
+
+            res.set("server", "file-server");
+            res.status(200).json({ file: filename });
         });
     };
     const multipartUploadHandler = (req, res, next) => {
