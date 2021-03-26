@@ -114,9 +114,11 @@ const fileServer = (directory) => {
 
         // # Attempt to upload each file
         const files = Object.values(req.files);
+        const filenames = [];
         for (const file of files) {
             const filename = file.name;
             const filePath = `${uploadPath}/${filename}`;
+            filenames.push(filename);
             console.log(`Uploading file: ${filename}`);
 
             // Move to file path
@@ -126,9 +128,12 @@ const fileServer = (directory) => {
                     return res.status(500).send(err);
                 }
                 console.log(`Finished! Uploaded to: ${filePath}`);
-                res.send(`File ${filename} uploaded!`);
             });
         }
+        console.log("Finished uploading files!");
+
+        res.set("server", "file-server");
+        res.status(200).json({ files: filenames });
     };
     const authHandler = jwtMiddleware({
         secret: AUTH_SECRET,
