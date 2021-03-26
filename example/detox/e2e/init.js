@@ -54,6 +54,7 @@ beforeAll(async () => {
 function launchFastImageServer() {
     launchServer("Fast Image Server", fileServer, fastImageSiteUrl, {
         directory: "./e2e/support/fixtures",
+        secure: false,
     });
 }
 
@@ -71,6 +72,7 @@ function launchSecureFastImageServer() {
 function launchFileUploadServer() {
     launchServer("File Upload Server", fileServer, fileUploadSiteUrl, {
         directory: "../upload",
+        secure: false,
     });
 }
 
@@ -102,7 +104,7 @@ function launchSecureMockserver() {
 
 function launchWebSocketServer() {
     const port = webSocketSiteUrl.split(":")[2];
-    webSocketServer(port);
+    webSocketServer(port, { secure: false });
     console.log(`WebSocket Server listening at ${webSocketSiteUrl}`);
 }
 
