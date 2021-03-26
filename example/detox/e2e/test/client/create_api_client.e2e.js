@@ -69,7 +69,6 @@ describe("Create API Client", () => {
         await createClient();
 
         // * Verify created client
-        await clientListScrollView.scrollTo("bottom");
         await ApiClientScreen.open(testName);
         await verifyApiClient(testName, testBaseUrl, testHeaders);
 

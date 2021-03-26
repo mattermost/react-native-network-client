@@ -6,7 +6,8 @@ import {
     HeaderListItem,
     MethodButtons,
 } from "@support/ui/component";
-import { isAndroid, timeouts, wait } from "@support/utils";
+import { ClientListScreen } from "@support/ui/screen";
+import { isAndroid, waitForAndScrollDown } from "@support/utils";
 
 class ApiClientScreen {
     testID = {
@@ -44,7 +45,10 @@ class ApiClientScreen {
     open = async (name) => {
         // # Open API client screen
         const { item } = ClientListItem.getItemByName(name);
-        await wait(timeouts.TWO_SEC);
+        await waitForAndScrollDown(
+            item,
+            ClientListScreen.testID.clientListScrollView
+        );
         await item.tap();
 
         return this.toBeVisible();
@@ -60,42 +64,66 @@ class ApiClientScreen {
     };
 
     selectDelete = async () => {
-        await this.apiClientScrollView.scrollTo("bottom");
+        await waitForAndScrollDown(
+            this.deleteButton,
+            this.testID.apiClientScrollView
+        );
         await this.deleteButton.tap();
     };
 
     selectGet = async () => {
-        await this.apiClientScrollView.scrollTo("bottom");
+        await waitForAndScrollDown(
+            this.getButton,
+            this.testID.apiClientScrollView
+        );
         await this.getButton.tap();
     };
 
     selectFastImage = async () => {
-        await this.apiClientScrollView.scrollTo("bottom");
+        await waitForAndScrollDown(
+            this.fastImageButton,
+            this.testID.apiClientScrollView
+        );
         await this.fastImageButton.tap();
     };
 
     selectImportP12 = async () => {
-        await this.apiClientScrollView.scrollTo("bottom");
+        await waitForAndScrollDown(
+            this.importP12Button,
+            this.testID.apiClientScrollView
+        );
         await this.importP12Button.tap();
     };
 
     selectPatch = async () => {
-        await this.apiClientScrollView.scrollTo("bottom");
+        await waitForAndScrollDown(
+            this.patchButton,
+            this.testID.apiClientScrollView
+        );
         await this.patchButton.tap();
     };
 
     selectPost = async () => {
-        await this.apiClientScrollView.scrollTo("bottom");
+        await waitForAndScrollDown(
+            this.postButton,
+            this.testID.apiClientScrollView
+        );
         await this.postButton.tap();
     };
 
     selectPut = async () => {
-        await this.apiClientScrollView.scrollTo("bottom");
+        await waitForAndScrollDown(
+            this.putButton,
+            this.testID.apiClientScrollView
+        );
         await this.putButton.tap();
     };
 
     selectUpload = async () => {
-        await this.apiClientScrollView.scrollTo("bottom");
+        await waitForAndScrollDown(
+            this.uploadButton,
+            this.testID.apiClientScrollView
+        );
         await this.uploadButton.tap();
     };
 }

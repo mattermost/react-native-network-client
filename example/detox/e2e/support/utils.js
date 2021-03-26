@@ -77,6 +77,18 @@ export const capitalize = (text) => {
     return text.charAt(0).toUpperCase() + text.slice(1);
 };
 
+/**
+ * Wait for and scroll down.
+ * @param {Object} item - element item to wait for
+ * @param {string} scrollViewTestID - scroll view testID
+ */
+export const waitForAndScrollDown = async (item, scrollViewTestID) => {
+    await waitFor(item)
+        .toBeVisible()
+        .whileElement(by.id(scrollViewTestID))
+        .scroll(500, "down");
+};
+
 const SECOND = 1000;
 const MINUTE = 60 * 1000;
 
