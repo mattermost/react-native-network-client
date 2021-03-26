@@ -29,6 +29,15 @@ export const isIos = () => {
 };
 
 /**
+ * Get host.
+ * @param {string} url - URL to download file from
+ * @returns {string} host from URL
+ */
+export const getHost = (url) => {
+    return url.split("//")[1];
+};
+
+/**
  * Get random id.
  * @param {number} length - length on random string to return, e.g. 6 (default)
  * @return {string} random string

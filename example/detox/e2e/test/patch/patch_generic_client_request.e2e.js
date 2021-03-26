@@ -8,8 +8,9 @@
 // *******************************************************************
 
 import { Request } from "@support/server_api";
-import { host, siteUrl, serverUrl } from "@support/test_config";
+import { siteUrl, serverUrl } from "@support/test_config";
 import { GenericClientRequestScreen } from "@support/ui/screen";
+import { getHost } from "@support/utils";
 import {
     customBody,
     customHeaders,
@@ -22,7 +23,7 @@ describe("Patch - Generic Client Request", () => {
     const testMethod = "PATCH";
     const testServerUrl = `${serverUrl}/${testMethod.toLowerCase()}`;
     const testSiteUrl = `${siteUrl}/${testMethod.toLowerCase()}`;
-    const testHost = host;
+    const testHost = getHost(siteUrl);
     const testStatus = 200;
     const testHeaders = { ...customHeaders };
     const testBody = { ...customBody };
@@ -32,7 +33,7 @@ describe("Patch - Generic Client Request", () => {
             headers: testHeaders,
             body: testBody,
         });
-        await verifyApiResponse(
+        verifyApiResponse(
             apiResponse,
             testSiteUrl,
             testStatus,

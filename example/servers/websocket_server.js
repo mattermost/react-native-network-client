@@ -1,11 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+const http = require("http");
+const https = require("https");
 const url = require("url");
 const WebSocket = require("ws");
 
-const webSocketServer = (port) => {
-    const wss = new WebSocket.Server({ port });
+const webSocketServer = (port, { secure = false, serverOptions = {} } = {}) => {
+    const server = secure
+        ? https.createServer(serverOptions)
+        : http.createServer();
+    const wss = new WebSocket.Server({ server });
 
     // On server connection
     wss.on("connection", (ws, request, client) => {
@@ -39,6 +44,9 @@ const webSocketServer = (port) => {
             );
         }
     });
+
+    // Listen on port
+    server.listen(port);
 };
 
 module.exports = webSocketServer;

@@ -125,7 +125,7 @@ const APIClientUploadScreen = ({ route }: APIClientUploadScreenProps) => {
 
     return (
         <SafeAreaView style={{ flex: 1 }}>
-            <ScrollView>
+            <ScrollView testID="api_client_upload.scroll_view">
                 <Input
                     label="Endpoint"
                     placeholder="/upload"

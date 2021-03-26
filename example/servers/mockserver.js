@@ -11,7 +11,7 @@ const mockserver = ({ secure = false } = {}) => {
 
         res.set("server", "mockserver");
         res.status(responseStatus).json({
-            message: cert
+            certificate: cert
                 ? `Hello ${cert.subject.CN}, your certificate was issued by ${cert.issuer.CN}!`
                 : "Non-secure request!",
             request: {

@@ -12,10 +12,25 @@ module.exports = {
         (process.env.IOS ? "http://localhost:8008" : "http://10.0.2.2:8008"),
     fileUploadSiteUrl:
         process.env.FILE_UPLOAD_SITE_URL || "http://localhost:8008",
+    secureFastImageServerUrl:
+        process.env.SECURE_FAST_IMAGE_SITE_URL ||
+        (process.env.IOS ? "https://localhost:9009" : "https://10.0.2.2:9009"),
+    secureFastImageSiteUrl:
+        process.env.SECURE_FAST_IMAGE_SITE_URL || "https://localhost:9009",
+    secureFileUploadServerUrl:
+        process.env.SECURE_FILE_UPLOAD_SITE_URL ||
+        (process.env.IOS ? "https://localhost:9008" : "https://10.0.2.2:9008"),
+    secureFileUploadSiteUrl:
+        process.env.SECURE_FILE_UPLOAD_SITE_URL || "https://localhost:9008",
     secureServerUrl:
         process.env.SECURE_SITE_URL ||
-        (process.env.IOS ? "https://localhost:4443" : "https://10.0.2.2:4443"),
-    secureSiteUrl: process.env.SECURE_SITE_URL || "https://localhost:4443",
+        (process.env.IOS ? "https://localhost:9080" : "https://10.0.2.2:9080"),
+    secureSiteUrl: process.env.SECURE_SITE_URL || "https://localhost:9080",
+    secureWebSocketServerUrl:
+        process.env.SECURE_WEBSOCKET_URL ||
+        (process.env.IOS ? "wss://localhost:4000" : "wss://10.0.2.2:4000"),
+    secureWebSocketSiteUrl:
+        process.env.SECURE_WEBSOCKET_URL || "wss://localhost:4000",
     serverUrl:
         process.env.SITE_URL ||
         (process.env.IOS ? "http://localhost:8080" : "http://10.0.2.2:8080"),
@@ -24,5 +39,4 @@ module.exports = {
         process.env.WEBSOCKET_URL ||
         (process.env.IOS ? "ws://localhost:3000" : "ws://10.0.2.2:3000"),
     webSocketSiteUrl: process.env.WEBSOCKET_URL || "ws://localhost:3000",
-    host: process.env.HOST || "localhost:8080",
 };

@@ -8,8 +8,9 @@
 // *******************************************************************
 
 import { Request } from "@support/server_api";
-import { host, siteUrl, serverUrl } from "@support/test_config";
+import { siteUrl, serverUrl } from "@support/test_config";
 import { ApiClientScreen } from "@support/ui/screen";
+import { getHost } from "@support/utils";
 import {
     customHeaders,
     newHeaders,
@@ -25,7 +26,7 @@ describe("Get - API Client Request", () => {
     const testBaseUrl = serverUrl;
     const testServerUrl = `${testBaseUrl}${testPath}`;
     const testSiteUrl = `${siteUrl}${testPath}`;
-    const testHost = host;
+    const testHost = getHost(siteUrl);
     const testStatus = 200;
     const testName = "Mockserver API";
     const testHeaders = { ...newHeaders };
@@ -36,7 +37,7 @@ describe("Get - API Client Request", () => {
 
     beforeAll(async () => {
         const apiResponse = await Request.apiGet({ headers: testHeaders });
-        await verifyApiResponse(
+        verifyApiResponse(
             apiResponse,
             testSiteUrl,
             testStatus,

@@ -6,10 +6,14 @@ import { isAndroid } from "@support/utils";
 
 class ApiClientUploadScreen {
     testID = {
+        apiClientUploadScrollView: "api_client_upload.scroll_view",
         endpointInput: "api_client_upload.endpoint.input",
     };
 
     apiClientUploadScreen = element(by.text("APIClientUpload"));
+    apiClientUploadScrollView = element(
+        by.id(this.testID.apiClientUploadScrollView)
+    );
     endpointInput = element(by.id(this.testID.endpointInput));
     attachImageButton = element(by.text("Attach Image"));
     attachTextButton = element(by.text("Attach Text"));

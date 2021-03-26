@@ -25,7 +25,7 @@ if (!port) {
             "",
             "Examples:",
             "  non-secure --> node mockserver.js -p 8080",
-            "  secure     --> node mockserver.js -p 4443 -c './certs'",
+            "  secure     --> node mockserver.js -p 9080 -c './certs'",
         ].join("\n")
     );
 } else {
@@ -41,10 +41,9 @@ if (!port) {
             .createServer(serverOptions, mockserver({ secure: true }))
             .listen(port);
         console.log(
-            "Secure Mockserver serving with certs " +
-                'under "' +
+            "Secure Mockserver serving with certs under " +
                 certs.green +
-                '" at ' +
+                " at " +
                 "https://localhost:".green +
                 port.toString().green
         );

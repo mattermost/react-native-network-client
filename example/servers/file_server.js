@@ -5,6 +5,7 @@ const compression = require("compression");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const express = require("express");
+const fileUpload = require("express-fileupload");
 const fs = require("fs");
 const jwt = require("jsonwebtoken");
 const jwtMiddleware = require("express-jwt");
@@ -68,7 +69,7 @@ const getTokenBySource = (req) => {
     return token;
 };
 
-const fileServer = ({ directory }) => {
+const fileServer = ({ directory = "", secure = false }) => {
     // Set upload path
     let uploadPath = path.resolve(process.cwd(), directory);
     if (!fs.existsSync(uploadPath)) {
@@ -82,9 +83,43 @@ const fileServer = ({ directory }) => {
     };
 
     // Create handlers
-    const staticHandler = express.static(uploadPath, { index: false });
-    const uploadHandler = (req, res, next) => {
-        const filePath = `${uploadPath}/${req.params.filename}`;
+    const secureRequestHandler = (
+        req,
+        res,
+        next,
+        requestHandler,
+        { isStatic = false } = {}
+    ) => {
+        const cert = req.socket.getPeerCertificate();
+
+        if (req.client.authorized) {
+            console.log("Client Authorized!");
+            if (isStatic) {
+                requestHandler();
+            } else {
+                requestHandler(req, res, next, cert);
+            }
+        } else if (cert.subject) {
+            console.log("Invalid client issuer - 403 Forbidden Error");
+            res.status(403).send(
+                `Sorry ${cert.subject.CN}, certificates from ${cert.issuer.CN} are not welcome here.`
+            );
+        } else {
+            console.log("Invalid client certificate - 401 Unauthorized Error");
+            res.status(401).send(
+                "Sorry, but you need to provide a client certificate to continue."
+            );
+        }
+    };
+    const nonSecureStaticHandler = express.static(uploadPath, { index: false });
+    const secureStaticHandler = (req, res, next) => {
+        secureRequestHandler(req, res, next, nonSecureStaticHandler, {
+            isStatic: true,
+        });
+    };
+    const nonSecureStreamUploadHandler = (req, res, next, cert = null) => {
+        const filename = req.params.filename;
+        const filePath = `${uploadPath}/${filename}`;
         req.pipe(
             fs
                 .createWriteStream(filePath)
@@ -100,10 +135,55 @@ const fileServer = ({ directory }) => {
         );
         req.on("end", (end) => {
             console.log(`Finished! Uploaded to: ${filePath}`);
-            res.status(200).send({
-                status: "OK",
+
+            res.set("server", "file-server");
+            res.status(200).json({
+                certificate: cert
+                    ? `Hello ${cert.subject.CN}, your certificate was issued by ${cert.issuer.CN}!`
+                    : "Non-secure request!",
+                file: filename,
             });
         });
+    };
+    const secureStreamUploadHandler = (req, res, next) => {
+        secureRequestHandler(req, res, next, nonSecureStreamUploadHandler);
+    };
+    const nonSecureMultipartUploadHandler = (req, res, next, cert = null) => {
+        if (!req.files || Object.keys(req.files).length === 0) {
+            return res.status(400).send("No files were uploaded.");
+        }
+        console.log("Attempt to upload files...");
+
+        // # Attempt to upload each file
+        const files = Object.values(req.files);
+        const filenames = [];
+        for (const file of files) {
+            const filename = file.name;
+            const filePath = `${uploadPath}/${filename}`;
+            filenames.push(filename);
+            console.log(`Uploading file: ${filename}`);
+
+            // Move to file path
+            file.mv(filePath, (err) => {
+                if (err) {
+                    console.log(err);
+                    return res.status(500).send(err);
+                }
+                console.log(`Finished! Uploaded to: ${filePath}`);
+            });
+        }
+        console.log("Finished uploading files!");
+
+        res.set("server", "file-server");
+        res.status(200).json({
+            certificate: cert
+                ? `Hello ${cert.subject.CN}, your certificate was issued by ${cert.issuer.CN}!`
+                : "Non-secure request!",
+            files: filenames,
+        });
+    };
+    const secureMultipartUploadHandler = (req, res, next) => {
+        secureRequestHandler(req, res, next, nonSecureMultipartUploadHandler);
     };
     const authHandler = jwtMiddleware({
         secret: AUTH_SECRET,
@@ -133,23 +213,33 @@ const fileServer = ({ directory }) => {
             res.status(401).send("invalid token");
         }
     };
+    const staticHandler = secure ? secureStaticHandler : nonSecureStaticHandler;
+    const streamUploadHandler = secure
+        ? secureStreamUploadHandler
+        : nonSecureStreamUploadHandler;
+    const multipartUploadHandler = secure
+        ? secureMultipartUploadHandler
+        : nonSecureMultipartUploadHandler;
 
     // Create regular router
     const router = express.Router();
     router.use("/files", staticHandler);
-    router.post("/files/:filename", uploadHandler);
+    router.all("/files/stream/:filename", streamUploadHandler);
+    router.all("/files/multipart", multipartUploadHandler);
 
     // Create protected router
     const protectedRouter = express.Router();
     protectedRouter.use(authHandler);
     protectedRouter.use("/files", staticHandler);
-    protectedRouter.post("/files/:filename", uploadHandler);
+    protectedRouter.all("/files/stream/:filename", streamUploadHandler);
+    protectedRouter.all("/files/multipart", multipartUploadHandler);
 
     // Create app
     const app = express();
     app.use(compression());
     app.use(cookieParser());
     app.use(cors());
+    app.use(fileUpload());
     app.use("/api", router);
     app.use("/protected/api", protectedRouter);
     app.use(authErrorHandler);
@@ -158,33 +248,45 @@ const fileServer = ({ directory }) => {
     });
 
     // Generate token
-    app.get("/login/:id", (req, res, next) => {
+    const nonSecureGenerateTokenHandler = (req, res, next) => {
         const token = generateToken(req.params.id);
         console.log(`New token: ${token}`);
         res.cookie(TOKEN_KEY, token).set(TOKEN_KEY, token).status(200).send({
             id: req.params.id,
             token,
         });
-    });
+    };
+    const secureGenerateTokenHandler = (req, res, next) => {
+        secureRequestHandler(req, res, next, nonSecureGenerateTokenHandler);
+    };
+    const generateTokenHandler = secure
+        ? secureGenerateTokenHandler
+        : nonSecureGenerateTokenHandler;
+    app.get("/login/:id", generateTokenHandler);
 
     // Expire cookie
+    const nonSecureExpireCookieHandler = (req, res, next) => {
+        const cookieName = req.params.cookieName;
+        const cookieValue = req.params.cookieValue;
+        console.log(`Expire ${cookieName} cookie: ${cookieValue}`);
+        res.set("Set-Cookie", `${cookieName}=${cookieValue}; Max-Age=0; Path=/`)
+            .status(200)
+            .send({
+                expired: "true",
+                token,
+            });
+    };
+    const secureExpireCookieHandler = (req, res, next) => {
+        secureRequestHandler(req, res, next, nonSecureExpireCookieHandler);
+    };
+    const expireCookieHandler = secure
+        ? secureExpireCookieHandler
+        : nonSecureExpireCookieHandler;
     app.get(
         "/cookie/:cookieName/value/:cookieValue/expire",
-        (req, res, next) => {
-            const cookieName = req.params.cookieName;
-            const cookieValue = req.params.cookieValue;
-            console.log(`Expire ${cookieName} cookie: ${cookieValue}`);
-            res.set(
-                "Set-Cookie",
-                `${cookieName}=${cookieValue}; Max-Age=0; Path=/`
-            )
-                .status(200)
-                .send({
-                    expired: "true",
-                    token,
-                });
-        }
+        expireCookieHandler
     );
+
     return app;
 };
 
