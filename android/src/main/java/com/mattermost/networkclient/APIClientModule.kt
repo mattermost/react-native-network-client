@@ -4,7 +4,6 @@ import android.net.Uri
 import com.facebook.react.bridge.*
 import okhttp3.*
 import okio.*
-import java.util.*
 import com.mattermost.networkclient.enums.APIClientEvents
 import com.mattermost.networkclient.helpers.*
 import kotlin.collections.HashMap
@@ -135,8 +134,9 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
             val multipartOptions = options.getMap("multipart")!!
 
             val multipartBody = MultipartBody.Builder();
+            multipartBody.setType(MultipartBody.FORM)
 
-            if(multipartOptions.hasKey("fileKey") && multipartOptions.getString("fileKey") !== ""){
+            if(multipartOptions.hasKey("fileKey") && multipartOptions.getString("fileKey") != ""){
                 multipartBody.addFormDataPart(multipartOptions.getString("fileKey")!!, uri.lastPathSegment, UploadFileRequestBody(reactApplicationContext, uri, 0, ProgressListener(reactApplicationContext, taskId)))
             } else {
                 multipartBody.addFormDataPart("files", uri.lastPathSegment, UploadFileRequestBody(reactApplicationContext, uri, 0, ProgressListener(reactApplicationContext, taskId)))

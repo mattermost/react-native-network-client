@@ -108,12 +108,15 @@ fun OkHttpClient.Builder.parseOptions(options: ReadableMap?, request: Request.Bu
         }
 
         if (sessionConfig.hasKey("timeoutIntervalForRequest")) {
+            this.callTimeout(sessionConfig.getInt("timeoutIntervalForRequest").toLong(), TimeUnit.SECONDS)
             this.connectTimeout(sessionConfig.getInt("timeoutIntervalForRequest").toLong(), TimeUnit.SECONDS)
             this.readTimeout(sessionConfig.getInt("timeoutIntervalForRequest").toLong(), TimeUnit.SECONDS)
         }
 
         if (sessionConfig.hasKey("timeoutIntervalForResource")) {
             this.callTimeout(sessionConfig.getInt("timeoutIntervalForResource").toLong(), TimeUnit.SECONDS)
+            this.connectTimeout(sessionConfig.getInt("timeoutIntervalForResource").toLong(), TimeUnit.SECONDS)
+            this.writeTimeout(sessionConfig.getInt("timeoutIntervalForResource").toLong(), TimeUnit.SECONDS)
         }
 
         if (sessionConfig.hasKey("httpMaximumConnectionsPerHost")) {

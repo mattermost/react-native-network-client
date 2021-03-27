@@ -33,10 +33,14 @@ const AddMultiparts = (props: AddMultipartsProps) => {
         updatedMultiparts[index] = multipart;
         setMultiparts(updatedMultiparts);
 
-        const mdata = {};
-        updatedMultiparts.map((m) => {
-            Object.assign({ [m.key]: m.value }, mdata);
-        });
+        const mdata = updatedMultiparts.reduce<Record<string, string>>(
+            (prev, cur) => {
+                prev[cur.key] = cur.value;
+                return prev;
+            },
+            {}
+        );
+
         props.onMultipartsChanged(mdata);
     };
 

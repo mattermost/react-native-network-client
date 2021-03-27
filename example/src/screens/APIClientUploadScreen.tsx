@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Alert, SafeAreaView, ScrollView, Text, View } from "react-native";
 import { Button, ButtonGroup, CheckBox, Input } from "react-native-elements";
 
@@ -74,7 +74,7 @@ const APIClientUploadScreen = ({ route }: APIClientUploadScreenProps) => {
     } = route.params;
 
     const [state, setState] = useState<UploadState>({
-        endpoint: "/photos",
+        endpoint: "/files",
         progress: 0,
     });
 
@@ -96,6 +96,12 @@ const APIClientUploadScreen = ({ route }: APIClientUploadScreenProps) => {
     const setStatus = (status?: UploadStatus) => {
         setState((state) => ({ ...state, status }));
     };
+
+    useEffect(() => {
+        if (multipart) {
+            setEndpoint("/api/files/multipart");
+        }
+    }, [multipart]);
 
     const resetState = () =>
         setState((state) => ({
