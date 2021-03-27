@@ -135,7 +135,6 @@ const fileServer = ({ directory = "", secure = false } = {}) => {
         );
         req.on("end", (end) => {
             console.log(`Finished! Uploaded to: ${filePath}`);
-
             res.set("server", "file-server");
             res.status(200).json({
                 certificate: cert
@@ -149,32 +148,36 @@ const fileServer = ({ directory = "", secure = false } = {}) => {
         secureRequestHandler(req, res, next, nonSecureStreamUploadHandler);
     };
     const nonSecureMultipartUploadHandler = (req, res, next, cert = null) => {
+        res.set("server", "file-server");
+
         if (!req.files || Object.keys(req.files).length === 0) {
             return res.status(400).send("No files were uploaded.");
         }
-        console.log("Attempt to upload files...");
 
-        // # Attempt to upload each file
-        const files = Object.values(req.files);
+        console.log("Attempt to upload files...", Object.values(req.files));
         const filenames = [];
-        for (const file of files) {
-            const filename = file.name;
-            const filePath = `${uploadPath}/${filename}`;
-            filenames.push(filename);
-            console.log(`Uploading file: ${filename}`);
 
-            // Move to file path
-            file.mv(filePath, (err) => {
-                if (err) {
-                    console.log(err);
-                    return res.status(500).send(err);
-                }
-                console.log(`Finished! Uploaded to: ${filePath}`);
+        try {
+            Object.values(req.files).map((file) => {
+                const filename = file.name;
+                const filePath = `${uploadPath}/${filename}`;
+                filenames.push(filename);
+                console.log(`Uploading file: ${filename}`);
+
+                // Move to file path
+                file.mv(filePath, (err) => {
+                    if (err) {
+                        console.log(err);
+                        return res.status(500).send(err);
+                    }
+                    console.log(`Finished! Uploaded to: ${filePath}`);
+                });
             });
+        } catch (e) {
+            console.log("Error", e);
         }
-        console.log("Finished uploading files!");
 
-        res.set("server", "file-server");
+        console.log("Finished uploading files!", filenames);
         res.status(200).json({
             certificate: cert
                 ? `Hello ${cert.subject.CN}, your certificate was issued by ${cert.issuer.CN}!`
