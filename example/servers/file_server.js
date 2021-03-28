@@ -94,10 +94,16 @@ const fileServer = ({ directory = "", secure = false } = {}) => {
 
         if (req.client.authorized) {
             console.log("Client Authorized!");
-            if (isStatic) {
-                requestHandler();
-            } else {
-                requestHandler(req, res, next, cert);
+            try {
+                if (isStatic) {
+                    console.log("Static request handler.");
+                    requestHandler(req, res, next);
+                } else {
+                    console.log("Non-static request handler.");
+                    requestHandler(req, res, next, cert);
+                }
+            } catch (e) {
+                console.log("Error", e);
             }
         } else if (cert.subject) {
             console.log("Invalid client issuer - 403 Forbidden Error");
@@ -120,6 +126,7 @@ const fileServer = ({ directory = "", secure = false } = {}) => {
     const nonSecureStreamUploadHandler = (req, res, next, cert = null) => {
         const filename = req.params.filename;
         const filePath = `${uploadPath}/${filename}`;
+        console.log("Attempt to upload file...", filename);
         req.pipe(
             fs
                 .createWriteStream(filePath)
@@ -145,12 +152,15 @@ const fileServer = ({ directory = "", secure = false } = {}) => {
         });
     };
     const secureStreamUploadHandler = (req, res, next) => {
-        secureRequestHandler(req, res, next, nonSecureStreamUploadHandler);
+        secureRequestHandler(req, res, next, nonSecureStreamUploadHandler, {
+            isStatic: false,
+        });
     };
     const nonSecureMultipartUploadHandler = (req, res, next, cert = null) => {
         res.set("server", "file-server");
 
         if (!req.files || Object.keys(req.files).length === 0) {
+            console.log("No files were uploaded.");
             return res.status(400).send("No files were uploaded.");
         }
 
@@ -186,7 +196,9 @@ const fileServer = ({ directory = "", secure = false } = {}) => {
         });
     };
     const secureMultipartUploadHandler = (req, res, next) => {
-        secureRequestHandler(req, res, next, nonSecureMultipartUploadHandler);
+        secureRequestHandler(req, res, next, nonSecureMultipartUploadHandler, {
+            isStatic: false,
+        });
     };
     const authHandler = jwtMiddleware({
         secret: AUTH_SECRET,
@@ -227,15 +239,23 @@ const fileServer = ({ directory = "", secure = false } = {}) => {
     // Create regular router
     const router = express.Router();
     router.use("/files", staticHandler);
-    router.all("/files/stream/:filename", streamUploadHandler);
-    router.all("/files/multipart", multipartUploadHandler);
+    router.post("/files/stream/:filename", streamUploadHandler);
+    router.post("/files/multipart", multipartUploadHandler);
+    router.put("/files/stream/:filename", streamUploadHandler);
+    router.put("/files/multipart", multipartUploadHandler);
+    router.patch("/files/stream/:filename", streamUploadHandler);
+    router.patch("/files/multipart", multipartUploadHandler);
 
     // Create protected router
     const protectedRouter = express.Router();
     protectedRouter.use(authHandler);
     protectedRouter.use("/files", staticHandler);
-    protectedRouter.all("/files/stream/:filename", streamUploadHandler);
-    protectedRouter.all("/files/multipart", multipartUploadHandler);
+    protectedRouter.post("/files/stream/:filename", streamUploadHandler);
+    protectedRouter.post("/files/multipart", multipartUploadHandler);
+    protectedRouter.put("/files/stream/:filename", streamUploadHandler);
+    protectedRouter.put("/files/multipart", multipartUploadHandler);
+    protectedRouter.patch("/files/stream/:filename", streamUploadHandler);
+    protectedRouter.patch("/files/multipart", multipartUploadHandler);
 
     // Create app
     const app = express();
