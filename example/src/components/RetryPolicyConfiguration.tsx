@@ -84,15 +84,14 @@ const RetryPolicyConfiguration = (props: RetryPolicyConfigurationProps) => {
                 rightIcon={rightIcon}
                 labelStyle={{ flex: 12, flexWrap: "wrap", height: 100 }}
             />
-            {props.policyType && (
-                <NumericInput
-                    title="Retry limit"
-                    value={props.retryLimit}
-                    onChange={props.setRetryLimit}
-                    minValue={0}
-                    testID="retry_policy_configuration.retry_limit.input"
-                />
-            )}
+            <NumericInput
+                title="Retry limit"
+                value={props.retryLimit}
+                onChange={props.setRetryLimit}
+                minValue={0}
+                testID="retry_policy_configuration.retry_limit.input"
+            />
+
             {props.policyType === Constants.RETRY_TYPES.LINEAR_RETRY && (
                 <NumericInput
                     title="Retry interval"
