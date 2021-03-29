@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import { Alert } from "@support/ui/component";
+import { waitForAndScrollDown } from "@support/utils";
 
 class ClientListScreen {
     testID = {
@@ -23,7 +24,9 @@ class ClientListScreen {
     removeClientWithName = async (name) => {
         const { okButton, removeClientTitle } = Alert;
 
-        await element(by.text(name)).longPress();
+        const item = element(by.text(name));
+        await waitForAndScrollDown(item, this.testID.clientListScrollView);
+        await item.longPress();
         await expect(removeClientTitle).toBeVisible();
         await okButton.tap();
     };

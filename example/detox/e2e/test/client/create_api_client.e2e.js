@@ -32,7 +32,7 @@ describe("Create API Client", () => {
         exponentialBackoffScale: `${getRandomInt(5) + 3}`,
         retryInterval: `${getRandomInt(5) + 4}`,
     };
-    const { clientListScrollView, removeClientWithName } = ClientListScreen;
+    const { removeClientWithName } = ClientListScreen;
     const {
         createApiClientScrollView,
         createClient,
