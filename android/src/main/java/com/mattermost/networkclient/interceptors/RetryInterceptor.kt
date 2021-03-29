@@ -3,16 +3,27 @@ package com.mattermost.networkclient.interceptors
 import okhttp3.Interceptor
 import okhttp3.Response
 import java.io.IOException
+import java.util.*
 import java.util.concurrent.TimeUnit
 import kotlin.math.pow
 
 class RetryInterceptor(
-        private val type: String? = "EXPONENTIAL",
-        private val retryLimit: Int? = 10,
-        private val retryInterval: Double? = 1.0,
-        private val exponentialBackOffBase: Double? = 2.0,
-        private val exponentialBackOffScale: Double? = 0.5
+        private var type: String?,
+        private var retryLimit: Int?,
+        private var retryInterval: Double?,
+        private var exponentialBackOffBase: Double?,
+        private var exponentialBackOffScale: Double?
 ) : Interceptor {
+
+    init {
+        if (type == null) type = "EXPONENTIAL"
+        if (retryLimit == null) retryLimit = 10
+        if (retryInterval == null) retryInterval = 2.0
+        // Convert to Seconds from milliseconds
+        if (retryInterval!! > 60) retryInterval = retryInterval!! / 1000
+        if (exponentialBackOffBase == null) exponentialBackOffBase = 2.0
+        if (exponentialBackOffScale == null) exponentialBackOffScale = 0.5
+    }
 
     @Throws(IOException::class)
     override fun intercept(chain: Interceptor.Chain): Response {
@@ -27,8 +38,8 @@ class RetryInterceptor(
             runCatching { response.close() }
 
             // Exponential or Linear (as else/default)
-            val wait = when(type){
-                "EXPONENTIAL" -> calculateNextExponentialWait(attempts)
+            val wait = when (type!!.toLowerCase(Locale.getDefault())) {
+                "exponential" -> calculateNextExponentialWait(attempts)
                 else -> retryInterval!!.toLong()
             }
 
