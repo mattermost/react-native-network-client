@@ -144,11 +144,11 @@ async function getOrCreateWebSocketClient(
     if (!client) {
         created = true;
         client = new WebSocketClient(url);
+        if (clientErrorEventHandler) {
+            client.onClientError(clientErrorEventHandler);
+        }
         await NativeWebSocketClient.createClientFor(url, config);
         CLIENTS[url] = client;
-    }
-    if (clientErrorEventHandler) {
-        client.onClientError(clientErrorEventHandler);
     }
 
     return { client, created };

@@ -160,12 +160,12 @@ async function getOrCreateAPIClient(
     let client = CLIENTS[baseUrl];
     if (!client) {
         client = new APIClient(baseUrl, config);
+        if (clientErrorEventHandler) {
+            client.onClientError(clientErrorEventHandler);
+        }
         await NativeAPIClient.createClientFor(client.baseUrl, client.config);
         CLIENTS[baseUrl] = client;
         created = true;
-    }
-    if (clientErrorEventHandler) {
-        client.onClientError(clientErrorEventHandler);
     }
 
     return { client, created };
