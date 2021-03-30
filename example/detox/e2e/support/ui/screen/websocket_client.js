@@ -3,7 +3,7 @@
 
 import { ClientListItem } from "@support/ui/component";
 import { ClientListScreen } from "@support/ui/screen";
-import { waitForAndScrollDown } from "@support/utils";
+import { isAndroid, waitForAndScrollDown } from "@support/utils";
 
 class WebSocketClientScreen {
     testID = {
@@ -38,7 +38,11 @@ class WebSocketClientScreen {
     };
 
     back = async () => {
-        await this.clientListButton.tap();
+        if (isAndroid()) {
+            await device.pressBack();
+        } else {
+            await this.clientListButton.tap();
+        }
         await expect(this.webSocketClientScreen).not.toBeVisible();
     };
 

@@ -33,24 +33,26 @@ class CreateApiClientScreen {
         by.id(this.testID.resourceTimeoutIntervalInput)
     );
     allowCellularAccessCheckboxFalse = element(
-        by.text("Allow Cellular Access? false")
+        by.text("Allow Cellular Access? [false]")
     );
     allowCellularAccessCheckboxTrue = element(
-        by.text("Allow Cellular Access? true")
+        by.text("Allow Cellular Access? [true]")
     );
     cancelRequestsOn401CheckboxFalse = element(
-        by.text("Cancel Requests On 401? false")
+        by.text("Cancel Requests On 401? [false]")
     );
     cancelRequestsOn401CheckboxTrue = element(
-        by.text("Cancel Requests On 401? true")
+        by.text("Cancel Requests On 401? [true]")
     );
-    followRedirectsCheckboxFalse = element(by.text("Follow Redirects? false"));
-    followRedirectsCheckboxTrue = element(by.text("Follow Redirects? true"));
+    followRedirectsCheckboxFalse = element(
+        by.text("Follow Redirects? [false]")
+    );
+    followRedirectsCheckboxTrue = element(by.text("Follow Redirects? [true]"));
     waitsForConnectivityCheckboxFalse = element(
-        by.text("Waits For Connectivity? false")
+        by.text("Waits For Connectivity? [false]")
     );
     waitsForConnectivityCheckboxTrue = element(
-        by.text("Waits For Connectivity? true")
+        by.text("Waits For Connectivity? [true]")
     );
     clientListButton = element(by.text("ClientList")).atIndex(0);
     createButton = element(by.text("Create"));

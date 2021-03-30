@@ -21,13 +21,17 @@ import { isAndroid } from "@support/utils";
 import { verifyApiClient } from "../helpers";
 
 describe("Upload - API Client Request", () => {
-    const { setEndpoint } = ApiClientUploadScreen;
+    const {
+        setEndpoint,
+        toggleOnSendAsMultipartCheckbox,
+    } = ApiClientUploadScreen;
     const testBaseUrl = fileUploadServerUrl;
     const testName = "File Upload Server API";
     const testSecureBaseUrl = secureFileUploadServerUrl;
     const testSecureName = "Secure File Upload Server API";
     const testImageFilename = "sample-image.jpg";
     const testStreamEndpoint = `/api/files/stream/${testImageFilename}`;
+    const testMultipartEndpoint = `/api/files/multipart`;
 
     beforeEach(async () => {
         await device.reloadReactNative();
@@ -66,6 +70,21 @@ describe("Upload - API Client Request", () => {
 
         // # Set endpoint
         await setEndpoint(testStreamEndpoint);
+
+        // # Upload file and verify
+        await uploadFileAndVerify(testImageFilename);
+    });
+
+    it("should be able to multipart upload selected file", async () => {
+        // # Do not run against Android due to file attachment limitation
+        if (isAndroid()) {
+            return;
+        }
+
+        // # Set endpoint
+        await setEndpoint(testMultipartEndpoint);
+        await verifyApiClient(testName, testBaseUrl);
+        await toggleOnSendAsMultipartCheckbox();
 
         // # Upload file and verify
         await uploadFileAndVerify(testImageFilename);
