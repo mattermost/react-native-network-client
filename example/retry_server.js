@@ -1,21 +1,94 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+const cors = require("cors");
+const express = require("express");
 const http = require("http");
 
-var attempts = 0;
-var prevAttemptTime = Date.now();
+const retryMap = new Map();
 
-console.log("Starting retry server...");
-const requestListener = function (req, res) {
-    attempts += 1;
-    const attemptTime = Date.now();
-    const diff = (attemptTime - prevAttemptTime) / 1000;
-    prevAttemptTime = attemptTime;
+const delayResponse = (
+    req,
+    res,
+    {
+        clientID,
+        clientAttempts,
+        clientAttemptBeginTime,
+        serverDelay,
+        serverRetryLimit,
+    }
+) => {
+    if (clientAttempts === 1) {
+        console.log(
+            `Delay response by: ${serverDelay} millis with retry limit: ${serverRetryLimit}`
+        );
+        Atomics.wait(
+            new Int32Array(new SharedArrayBuffer(4)),
+            0,
+            0,
+            serverDelay
+        );
+    }
 
-    console.log(`Attempt #${attempts} Diff: ${diff}`);
-
-    if (attempts < 5) res.writeHead(418);
-    else res.writeHead(200);
-    res.end();
+    if (clientAttempts < serverRetryLimit) {
+        const clientAttemptEndTime = Date.now();
+        const clientAttemptTimeDiff =
+            (clientAttemptEndTime - clientAttemptBeginTime) / 1000;
+        console.log(
+            `Client ${clientID} attempt #${clientAttempts} diff: ${clientAttemptTimeDiff}`
+        );
+        retryMap.set(clientID, {
+            serverDelay,
+            serverRetryLimit,
+            clientAttempts,
+            clientAttemptBeginTime,
+            clientAttemptEndTime,
+            clientAttemptTimeDiff,
+        });
+        res.sendStatus(418);
+    } else {
+        console.log(
+            `Successful after attempt ${clientAttempts}! Removing client ${clientID}`
+        );
+        retryMap.delete(clientID);
+        res.sendStatus(200);
+    }
 };
 
-const server = http.createServer(requestListener);
-server.listen(8000);
+const retryServer = () => {
+    // Create handlers
+    const requestHandler = (req, res, next) => {
+        const clientID = req.query.clientID;
+        console.log("Client request received!");
+        if (!retryMap.has(clientID)) {
+            console.log(`Client ${clientID} attempt #1`);
+            delayResponse(req, res, {
+                clientID,
+                clientAttempts: 1,
+                clientAttemptBeginTime: Date.now(),
+                serverDelay: req.query.serverDelay,
+                serverRetryLimit: req.query.serverRetryLimit,
+            });
+        } else {
+            const retry = retryMap.get(clientID);
+            const clientAttempts = retry.clientAttempts + 1;
+            console.log(`Client ${clientID} attempt #${clientAttempts}`);
+            delayResponse(req, res, {
+                clientID,
+                clientAttempts,
+                clientAttemptBeginTime: retry.clientAttemptBeginTime,
+                serverDelay: retry.serverDelay,
+                serverRetryLimit: retry.serverRetryLimit,
+            });
+        }
+    };
+
+    // Create app
+    const app = express();
+    app.use(cors());
+    app.all("/", requestHandler);
+    return app;
+};
+
+console.log("Starting retry server...");
+http.createServer(retryServer()).listen(8000);
