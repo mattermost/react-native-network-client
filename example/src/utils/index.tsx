@@ -88,13 +88,22 @@ const createAPIClient = async (
     name: string,
     baseUrl: string,
     configuration: APIClientConfiguration,
-    { validateUrl = true, isMattermostClient = false } = {}
+    isMattermostClient: boolean = false
 ): Promise<APIClientItem | null> => {
+    const clientErrorEventHandler = (event: APIClientErrorEvent) => {
+        Alert.alert(
+            `Error for ${baseUrl}`,
+            `Code: ${event.errorCode}\nDescription: ${event.errorDescription}`,
+            [{ text: "OK" }],
+            { cancelable: false }
+        );
+    };
+
     try {
         const { client, created } = await getOrCreateAPIClient(
             baseUrl,
             configuration,
-            validateUrl
+            clientErrorEventHandler
         );
 
         if (!created) {
@@ -115,7 +124,7 @@ const createAPIClient = async (
             isMattermostClient,
         };
     } catch (e) {
-        console.log(JSON.stringify(e));
+        console.log(e.message);
         return null;
     }
 };
@@ -129,10 +138,9 @@ const createMattermostAPIClient = async (): Promise<APIClientItem | null> => {
         "User-Agent": userAgent,
     };
     const configuration = buildDefaultApiClientConfiguration(headers);
+    const isMattermostClient = true;
 
-    return createAPIClient(name, baseUrl, configuration, {
-        isMattermostClient: true,
-    });
+    return createAPIClient(name, baseUrl, configuration, isMattermostClient);
 };
 
 const createJSONPlaceholderAPIClient = async (): Promise<APIClientItem | null> => {
@@ -151,7 +159,7 @@ const createFastImageServerAPIClient = async (): Promise<APIClientItem | null> =
     const name = "Fast Image Server API";
     const baseUrl =
         Platform.OS === "ios"
-            ? "http://localhost:8009"
+            ? "http://127.0.0.1:8009"
             : "http://10.0.2.2:8009";
     const headers = {
         Authorization:
@@ -159,29 +167,25 @@ const createFastImageServerAPIClient = async (): Promise<APIClientItem | null> =
     };
     const configuration = buildDefaultApiClientConfiguration(headers);
 
-    return createAPIClient(name, baseUrl, configuration, {
-        validateUrl: false,
-    });
+    return createAPIClient(name, baseUrl, configuration);
 };
 
 const createFileUploadServerAPIClient = async (): Promise<APIClientItem | null> => {
     const name = "File Upload Server API";
     const baseUrl =
         Platform.OS === "ios"
-            ? "http://localhost:8008"
+            ? "http://127.0.0.1:8008"
             : "http://10.0.2.2:8008";
     const configuration = buildDefaultApiClientConfiguration();
 
-    return createAPIClient(name, baseUrl, configuration, {
-        validateUrl: false,
-    });
+    return createAPIClient(name, baseUrl, configuration);
 };
 
 const createMockserverAPIClient = async (): Promise<APIClientItem | null> => {
     const name = "Mockserver API";
     const baseUrl =
         Platform.OS === "ios"
-            ? "http://localhost:8080"
+            ? "http://127.0.0.1:8080"
             : "http://10.0.2.2:8080";
     const headers = {
         "header-1-key": "header-1-value",
@@ -189,16 +193,14 @@ const createMockserverAPIClient = async (): Promise<APIClientItem | null> => {
     };
     const configuration = buildDefaultApiClientConfiguration(headers);
 
-    return createAPIClient(name, baseUrl, configuration, {
-        validateUrl: false,
-    });
+    return createAPIClient(name, baseUrl, configuration);
 };
 
 const createRequestBinAPIClient = async (): Promise<APIClientItem | null> => {
     const name = "RequestBin API";
     const baseUrl =
         Platform.OS === "ios"
-            ? "http://localhost:8000/14dkaof1"
+            ? "http://127.0.0.1:8000/14dkaof1"
             : "http://10.0.2.2:8000/14dkaof1";
     const headers = {
         "header-1-key": "header-1-value",
@@ -206,22 +208,29 @@ const createRequestBinAPIClient = async (): Promise<APIClientItem | null> => {
     };
     const configuration = buildDefaultApiClientConfiguration(headers);
 
-    return createAPIClient(name, baseUrl, configuration, {
-        validateUrl: false,
-    });
+    return createAPIClient(name, baseUrl, configuration);
 };
 
 const createWebSocketClient = async (
     name: string,
     url: string,
     configuration: WebSocketClientConfiguration,
-    { validateUrl = true, isMattermostClient = false } = {}
+    isMattermostClient: boolean = false
 ): Promise<WebSocketClientItem | null> => {
+    const clientErrorEventHandler = (event: WebSocketClientErrorEvent) => {
+        Alert.alert(
+            `Error for ${url}`,
+            `Code: ${event.errorCode}\nDescription: ${event.errorDescription}`,
+            [{ text: "OK" }],
+            { cancelable: false }
+        );
+    };
+
     try {
         const { client, created } = await getOrCreateWebSocketClient(
             url,
             configuration,
-            validateUrl
+            clientErrorEventHandler
         );
 
         if (!created) {
@@ -242,7 +251,7 @@ const createWebSocketClient = async (
             isMattermostClient,
         };
     } catch (e) {
-        console.log(JSON.stringify(e));
+        console.log(e.message);
         return null;
     }
 };
@@ -258,15 +267,14 @@ const createMattermostWebSocketClient = async (): Promise<WebSocketClientItem | 
             origin,
         },
     };
+    const isMattermostClient = true;
 
-    return createWebSocketClient(name, url, configuration, {
-        isMattermostClient: true,
-    });
+    return createWebSocketClient(name, url, configuration, isMattermostClient);
 };
 
 const createSimpleWebSocketClient = async (): Promise<WebSocketClientItem | null> => {
     const name = "Simple WebSocket";
-    const host = Platform.OS === "ios" ? "localhost:3000" : "10.0.2.2:3000";
+    const host = Platform.OS === "ios" ? "127.0.0.1:3000" : "10.0.2.2:3000";
     const url = `ws://${host}/api/websocket`;
     const origin = `http://${host}`;
     const configuration: WebSocketClientConfiguration = {
@@ -276,9 +284,7 @@ const createSimpleWebSocketClient = async (): Promise<WebSocketClientItem | null
         },
     };
 
-    return createWebSocketClient(name, url, configuration, {
-        validateUrl: false,
-    });
+    return createWebSocketClient(name, url, configuration);
 };
 
 export const createTestClients = async (): Promise<NetworkClientItem[]> => {

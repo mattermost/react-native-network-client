@@ -10,7 +10,7 @@ const {
 const Emitter = new NativeEventEmitter(NativeWebSocketClient);
 const { EVENTS, READY_STATE } = NativeWebSocketClient.getConstants();
 
-const SOCKETS: { [key: string]: WebSocketClient } = {};
+const CLIENTS: { [key: string]: WebSocketClient } = {};
 
 /**
  * Configurable WebSocket client
@@ -124,7 +124,7 @@ class WebSocketClient implements WebSocketClientInterface {
         this.onWebSocketMessageSubscription?.remove();
         this.onWebSocketClientErrorSubscription?.remove();
 
-        delete SOCKETS[this.url];
+        delete CLIENTS[this.url];
 
         return NativeWebSocketClient.invalidateClientFor(this.url);
     };
@@ -133,22 +133,25 @@ class WebSocketClient implements WebSocketClientInterface {
 async function getOrCreateWebSocketClient(
     url: string,
     config: WebSocketClientConfiguration = {},
-    validateUrl: boolean = true
+    clientErrorEventHandler?: WebSocketClientErrorEventHandler
 ): Promise<{ client: WebSocketClient; created: boolean }> {
-    if (validateUrl && !isValidWebSocketURL(url)) {
-        throw new Error("url must be a valid WebSocket URL");
+    if (!isValidWebSocketURL(url)) {
+        throw new Error(`"${url}" is not a valid WebSocket URL`);
     }
 
     let created = false;
-    let websocket = SOCKETS[url];
-    if (!websocket) {
+    let client = CLIENTS[url];
+    if (!client) {
         created = true;
-        websocket = new WebSocketClient(url);
+        client = new WebSocketClient(url);
         await NativeWebSocketClient.createClientFor(url, config);
-        SOCKETS[url] = websocket;
+        CLIENTS[url] = client;
+    }
+    if (clientErrorEventHandler) {
+        client.onClientError(clientErrorEventHandler);
     }
 
-    return { client: websocket, created };
+    return { client, created };
 }
 
 const isValidWebSocketURL = (url: string) => {
