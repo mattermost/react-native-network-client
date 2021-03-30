@@ -21,12 +21,7 @@ const delayResponse = (
     console.log(
         `Delay response by: ${serverDelay} millis with retry limit: ${serverRetryLimit}`
     );
-    Atomics.wait(
-        new Int32Array(new SharedArrayBuffer(4)),
-        0,
-        0,
-        serverDelay
-    );
+    Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, serverDelay);
 
     if (clientAttempts < serverRetryLimit) {
         const clientAttemptEndTime = Date.now();
@@ -46,7 +41,7 @@ const delayResponse = (
         res.sendStatus(418);
     } else {
         console.log(
-            `Successful after attempt ${clientAttempts}! Removing client ${clientID}`
+            `Successful after attempt ${clientAttempts}! Reset client ${clientID}!`
         );
         retryMap.delete(clientID);
         res.sendStatus(200);
@@ -55,9 +50,14 @@ const delayResponse = (
 
 const retryServer = () => {
     // Create handlers
-    const requestHandler = (req, res, next) => {
-        const clientID = req.query.clientID;
+    const retryHandler = (req, res, next) => {
         console.log("Client request received!");
+        const clientID = req.query.clientID;
+        if (!clientID) {
+            res.sendStatus(404);
+            return;
+        }
+
         if (!retryMap.has(clientID)) {
             console.log(`Client ${clientID} attempt #1`);
             delayResponse(req, res, {
@@ -65,7 +65,9 @@ const retryServer = () => {
                 clientAttempts: 1,
                 clientAttemptBeginTime: Date.now(),
                 serverDelay: req.query.serverDelay ? req.query.serverDelay : 0,
-                serverRetryLimit: req.query.serverRetryLimit ? req.query.serverRetryLimit : 1,
+                serverRetryLimit: req.query.serverRetryLimit
+                    ? req.query.serverRetryLimit
+                    : 1,
             });
         } else {
             const retry = retryMap.get(clientID);
@@ -80,11 +82,23 @@ const retryServer = () => {
             });
         }
     };
+    const resetHandler = (req, res, next) => {
+        const clientID = req.query.clientID;
+        if (clientID) {
+            console.log(`Reset client ${clientID}!`);
+            retryMap.delete(clientID);
+        } else {
+            console.log("Reset all clients!");
+            retryMap.clear();
+        }
+        res.sendStatus(200);
+    };
 
     // Create app
     const app = express();
     app.use(cors());
-    app.all("/", requestHandler);
+    app.all("/", retryHandler);
+    app.all("/reset", resetHandler);
     return app;
 };
 
