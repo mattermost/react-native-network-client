@@ -28,7 +28,7 @@ class WebSocketClientModule(private val reactContext: ReactApplicationContext) :
             requests[url] = Request.Builder().url(url);
 
             // Attach client options if they are passed in
-            clients[url]!!.parseOptions(options, requests[url]);
+            clients[url]!!.parseOptions(options, requests[url], url);
 
             // Return stringified client for success
             promise.resolve(null)
