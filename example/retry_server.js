@@ -18,17 +18,15 @@ const delayResponse = (
         serverRetryLimit,
     }
 ) => {
-    if (clientAttempts === 1) {
-        console.log(
-            `Delay response by: ${serverDelay} millis with retry limit: ${serverRetryLimit}`
-        );
-        Atomics.wait(
-            new Int32Array(new SharedArrayBuffer(4)),
-            0,
-            0,
-            serverDelay
-        );
-    }
+    console.log(
+        `Delay response by: ${serverDelay} millis with retry limit: ${serverRetryLimit}`
+    );
+    Atomics.wait(
+        new Int32Array(new SharedArrayBuffer(4)),
+        0,
+        0,
+        serverDelay
+    );
 
     if (clientAttempts < serverRetryLimit) {
         const clientAttemptEndTime = Date.now();
@@ -66,8 +64,8 @@ const retryServer = () => {
                 clientID,
                 clientAttempts: 1,
                 clientAttemptBeginTime: Date.now(),
-                serverDelay: req.query.serverDelay,
-                serverRetryLimit: req.query.serverRetryLimit,
+                serverDelay: req.query.serverDelay ? req.query.serverDelay : 0,
+                serverRetryLimit: req.query.serverRetryLimit ? req.query.serverRetryLimit : 1,
             });
         } else {
             const retry = retryMap.get(clientID);
