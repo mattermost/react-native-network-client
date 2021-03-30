@@ -18,7 +18,7 @@ class GenericClientModule(reactContext: ReactApplicationContext) : ReactContextB
 
     @ReactMethod
     fun get(url: String, options: ReadableMap, promise: Promise) {
-        val request = Request.Builder().url(url).parseOptions(options, client).build();
+        val request = Request.Builder().url(url).parseOptions(options, client, url).build();
         client.build().newCall(request).execute().use { response ->
             response.promiseResolution(promise)
         }
@@ -26,7 +26,7 @@ class GenericClientModule(reactContext: ReactApplicationContext) : ReactContextB
 
     @ReactMethod
     fun post(url: String, options: ReadableMap, promise: Promise) {
-        val request = Request.Builder().url(url).post(options.bodyToRequestBody()).parseOptions(options, client).build();
+        val request = Request.Builder().url(url).post(options.bodyToRequestBody()).parseOptions(options, client, url).build();
         client.build().newCall(request).execute().use { response ->
             response.promiseResolution(promise)
         }
@@ -34,7 +34,7 @@ class GenericClientModule(reactContext: ReactApplicationContext) : ReactContextB
 
     @ReactMethod
     fun put(url: String, options: ReadableMap, promise: Promise) {
-        val request = Request.Builder().url(url).put(options.bodyToRequestBody()).parseOptions(options, client).build();
+        val request = Request.Builder().url(url).put(options.bodyToRequestBody()).parseOptions(options, client, url).build();
         client.build().newCall(request).execute().use { response ->
             response.promiseResolution(promise)
         }
@@ -42,7 +42,7 @@ class GenericClientModule(reactContext: ReactApplicationContext) : ReactContextB
 
     @ReactMethod
     fun patch(url: String, options: ReadableMap, promise: Promise) {
-        val request = Request.Builder().url(url).patch(options.bodyToRequestBody()).parseOptions(options, client).build();
+        val request = Request.Builder().url(url).patch(options.bodyToRequestBody()).parseOptions(options, client, url).build();
         client.build().newCall(request).execute().use { response ->
             response.promiseResolution(promise)
         }
@@ -50,7 +50,7 @@ class GenericClientModule(reactContext: ReactApplicationContext) : ReactContextB
 
     @ReactMethod
     fun delete(url: String, options: ReadableMap, promise: Promise) {
-        val request = Request.Builder().url(url).delete(options.bodyToRequestBody()).parseOptions(options, client).build();
+        val request = Request.Builder().url(url).delete(options.bodyToRequestBody()).parseOptions(options, client, url).build();
         client.build().newCall(request).execute().use { response ->
             response.promiseResolution(promise)
         }

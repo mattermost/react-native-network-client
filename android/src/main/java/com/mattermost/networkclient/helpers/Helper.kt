@@ -2,11 +2,13 @@ package com.mattermost.networkclient.helpers
 
 import com.facebook.react.bridge.*
 import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter
+import com.mattermost.networkclient.SessionsObject
 import okhttp3.*
 import java.util.concurrent.TimeUnit
 import com.mattermost.networkclient.interceptors.*
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.internal.immutableListOf
 import org.json.JSONObject
 
 /**
@@ -46,7 +48,7 @@ fun Response.promiseResolution(promise: Promise): Response {
  *
  * @param options ReadableMap of options from the App
  */
-fun Request.Builder.parseOptions(options: ReadableMap?, session: OkHttpClient.Builder): Request.Builder {
+fun Request.Builder.parseOptions(options: ReadableMap?, session: OkHttpClient.Builder, baseUrl: String): Request.Builder {
     // Need to always close the connection once finished
     this.header("Connection", "close")
 
@@ -62,6 +64,20 @@ fun Request.Builder.parseOptions(options: ReadableMap?, session: OkHttpClient.Bu
         this.addHeadersAsReadableMap(options.getMap("headers")!!)
     }
 
+    if (options.hasKey("retryPolicyConfiguration")) {
+        val retryPolicyConfiguration = options.getMap("retryPolicyConfiguration")!!.toHashMap();
+
+        SessionsObject.config[baseUrl]!!["retryRequest"] = mutableMapOf(
+                Pair("retryType", retryPolicyConfiguration["type"] as String?),
+                Pair("retryLimit", retryPolicyConfiguration["retryLimit"] as Double?),
+                Pair("retryInterval", retryPolicyConfiguration["retryInterval"] as Double?),
+                Pair("retryExponentialBackoffBase", retryPolicyConfiguration["retryExponentialBackoffBase"] as Double?),
+                Pair("retryExponentialBackoffScale", retryPolicyConfiguration["retryExponentialBackoffScale"] as Double?),
+        )
+
+        session.addInterceptor(RetryInterceptor())
+    }
+
     return this;
 }
 
@@ -70,7 +86,7 @@ fun Request.Builder.parseOptions(options: ReadableMap?, session: OkHttpClient.Bu
  *
  * @params options ReadableMap of options from the App
  */
-fun OkHttpClient.Builder.parseOptions(options: ReadableMap?, request: Request.Builder?): OkHttpClient.Builder {
+fun OkHttpClient.Builder.parseOptions(options: ReadableMap?, request: Request.Builder?, baseUrl: String): OkHttpClient.Builder {
     if (options == null) return this;
 
     // Following Redirects
@@ -85,12 +101,15 @@ fun OkHttpClient.Builder.parseOptions(options: ReadableMap?, request: Request.Bu
     if (options.hasKey("retryPolicyConfiguration")) {
         val retryPolicyConfiguration = options.getMap("retryPolicyConfiguration")!!.toHashMap();
 
-        val retryType = retryPolicyConfiguration["type"] as String?
-        val retryLimit = retryPolicyConfiguration["retryLimit"] as Double?
-        val retryInterval = retryPolicyConfiguration["retryInterval"] as Double?
-        val retryExponentialBackoffBase = retryPolicyConfiguration["exponentialBackoffBase"] as Double?
-        val retryExponentialBackoffScale = retryPolicyConfiguration["exponentialBackoffScale"] as Double?
-        this.addInterceptor(RetryInterceptor(retryType, retryLimit?.toInt(), retryInterval, retryExponentialBackoffBase, retryExponentialBackoffScale))
+        SessionsObject.config[baseUrl]!!["retryClient"] = mutableMapOf(
+                Pair("retryType", retryPolicyConfiguration["type"] as String?),
+                Pair("retryLimit", retryPolicyConfiguration["retryLimit"] as Double?),
+                Pair("retryInterval", retryPolicyConfiguration["retryInterval"] as Double?),
+                Pair("retryExponentialBackoffBase", retryPolicyConfiguration["retryExponentialBackoffBase"] as Double?),
+                Pair("retryExponentialBackoffScale", retryPolicyConfiguration["retryExponentialBackoffScale"] as Double?),
+        )
+
+        this.addInterceptor(RetryInterceptor())
     }
 
     // Headers
