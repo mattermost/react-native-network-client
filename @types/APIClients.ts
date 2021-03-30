@@ -18,8 +18,15 @@ type RequestOptions = {
     retryPolicyConfiguration?: RetryPolicyConfiguration;
 };
 
+type MultipartUploadConfig = {
+    fileKey?: string;
+    data?: Record<string, string>;
+};
+
 type UploadRequestOptions = RequestOptions & {
     skipBytes?: number;
+    method?: string;
+    multipart?: MultipartUploadConfig;
 };
 
 type ClientResponse = {

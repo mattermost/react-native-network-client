@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import { ClientListItem } from "@support/ui/component";
-import { timeouts, wait } from "@support/utils";
+import { isAndroid, timeouts, wait } from "@support/utils";
 
 class WebSocketClientScreen {
     testID = {
@@ -34,7 +34,11 @@ class WebSocketClientScreen {
     };
 
     back = async () => {
-        await this.clientListButton.tap();
+        if (isAndroid()) {
+            await device.pressBack();
+        } else {
+            await this.clientListButton.tap();
+        }
         await expect(this.webSocketClientScreen).not.toBeVisible();
     };
 

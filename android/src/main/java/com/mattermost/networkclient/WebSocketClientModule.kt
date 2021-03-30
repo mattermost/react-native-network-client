@@ -4,6 +4,7 @@ import com.facebook.react.bridge.*
 import com.mattermost.networkclient.enums.WebSocketEvents
 import com.mattermost.networkclient.enums.WebSocketReadyState
 import com.mattermost.networkclient.events.WebSocketEvent
+import com.mattermost.networkclient.helpers.parseOptions
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.WebSocket

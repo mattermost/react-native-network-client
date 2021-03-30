@@ -29,6 +29,7 @@ describe("Create WebSocket Client", () => {
         setUrl,
         toggleOnEnableCompressionCheckbox,
     } = CreateWebSocketClientScreen;
+    const { clientListScrollView, removeClientWithName } = ClientListScreen;
 
     beforeAll(async () => {
         await CreateWebSocketClientScreen.open();
@@ -44,6 +45,7 @@ describe("Create WebSocket Client", () => {
         await createClient();
 
         // * Verify created client
+        await clientListScrollView.scrollTo("bottom");
         const { subtitle, title } = ClientListItem.getItemByName(testName);
         await expect(title).toHaveText(testName);
         await expect(subtitle).toHaveText(testUrl);
@@ -74,7 +76,8 @@ describe("Create WebSocket Client", () => {
 
     it("should be able to remove a WebSocket client", async () => {
         // # Remove client
-        await ClientListScreen.removeClientWithName(testName);
+        await clientListScrollView.scrollTo("bottom");
+        await removeClientWithName(testName);
 
         // * Verify client is removed
         await expect(element(by.text(testName))).not.toBeVisible();
