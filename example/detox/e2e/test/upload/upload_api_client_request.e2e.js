@@ -81,9 +81,34 @@ describe("Upload - API Client Request", () => {
             return;
         }
 
+        // # Select upload
+        await ApiClientScreen.open(testName);
+        await verifyApiClient(testName, testBaseUrl);
+        await ApiClientScreen.selectUpload();
+
         // # Set endpoint
         await setEndpoint(testMultipartEndpoint);
-        await verifyApiClient(testName, testBaseUrl);
+        await toggleOnSendAsMultipartCheckbox();
+
+        // # Upload file and verify
+        await uploadFileAndVerify(testImageFilename);
+    });
+
+    it("should be able to multipart upload selected file - secure connection", async () => {
+        // # Do not run against Android due to file attachment limitation
+        if (isAndroid()) {
+            return;
+        }
+
+        // # Import p12 and select upload
+        await ApiClientScreen.open(testSecureName);
+        await verifyApiClient(testSecureName, testSecureBaseUrl);
+        await ApiClientScreen.selectImportP12();
+        await ApiClientImportP12Screen.importP12(clientCertPassword);
+        await ApiClientScreen.selectUpload();
+
+        // # Set endpoint
+        await setEndpoint(testMultipartEndpoint);
         await toggleOnSendAsMultipartCheckbox();
 
         // # Upload file and verify
