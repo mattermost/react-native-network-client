@@ -1,5 +1,6 @@
 package com.mattermost.networkclient.interceptors
 
+import com.mattermost.networkclient.SessionsObject
 import okhttp3.Interceptor
 import okhttp3.Response
 import java.io.IOException
@@ -7,40 +8,46 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 import kotlin.math.pow
 
-class RetryInterceptor(
-        private var type: String?,
-        private var retryLimit: Int?,
-        private var retryInterval: Double?,
-        private var exponentialBackOffBase: Double?,
-        private var exponentialBackOffScale: Double?
-) : Interceptor {
+class RetryInterceptor() : Interceptor {
 
-    init {
-        if (type == null) type = "EXPONENTIAL"
-        if (retryLimit == null) retryLimit = 10
-        if (retryInterval == null) retryInterval = 2.0
-        // Convert to Seconds from milliseconds
-        if (retryInterval!! > 60) retryInterval = retryInterval!! / 1000
-        if (exponentialBackOffBase == null) exponentialBackOffBase = 2.0
-        if (exponentialBackOffScale == null) exponentialBackOffScale = 0.5
+    private fun getRetryConfig(baseUrl: String): MutableMap<String, Any> {;
+        val config: MutableMap<String, Any>;
+
+        // Check for request options
+        if (SessionsObject.config[baseUrl]?.containsKey("retryRequest") == true) {
+            config = SessionsObject.config[baseUrl]!!["retryRequest"] as MutableMap<String, Any>;
+
+            // Remove once set
+            SessionsObject.config[baseUrl]!!.remove("retryRequest");
+        // Else check for client options
+        } else if (SessionsObject.config[baseUrl]?.containsKey("retryClient") == true) {
+            config = SessionsObject.config[baseUrl]!!["retryRequest"] as MutableMap<String, Any>
+        // Else use defaults
+        } else {
+            config = SessionsObject.defaultRetry
+        }
+
+        return config;
     }
 
     @Throws(IOException::class)
     override fun intercept(chain: Interceptor.Chain): Response {
+
         val request = chain.request()
         var response = chain.proceed(request)
         var attempts = 0;
+        val config = getRetryConfig(request.url.host)
 
         // Keep retrying as long as response is not successful and less than the retry limit
-        while (!response.isSuccessful && attempts <= this.retryLimit!!) {
+        while (!response.isSuccessful && attempts <= config["retryLimit"] as Int) {
 
             // End the request
             runCatching { response.close() }
 
             // Exponential or Linear (as else/default)
-            val wait = when (type!!.toLowerCase(Locale.getDefault())) {
-                "exponential" -> calculateNextExponentialWait(attempts)
-                else -> retryInterval!!.toLong()
+            val wait = when ((config["type"] as String?)?.toLowerCase(Locale.getDefault())) {
+                "exponential" -> calculateNextExponentialWait(attempts, config["exponentialBackOffBase"] as Double, config["exponentialBackOffScale"] as Double)
+                else -> (config["retryInterval"] as Double).toLong()
             }
 
             // Wait and increment our attempt
@@ -54,8 +61,8 @@ class RetryInterceptor(
         return response;
     }
 
-    private fun calculateNextExponentialWait(attempts: Int): Long {
-        return (this.exponentialBackOffBase!!.pow(attempts) * this.exponentialBackOffScale!!).toLong()
+    private fun calculateNextExponentialWait(attempts: Int, base: Double, scale: Double): Long {
+        return (base.pow(attempts) * scale).toLong()
     }
 
 }

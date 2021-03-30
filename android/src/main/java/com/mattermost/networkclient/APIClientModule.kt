@@ -10,9 +10,10 @@ import kotlin.collections.HashMap
 
 class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
 
-    var sessionsClient = mutableMapOf<String, OkHttpClient.Builder>()
-    var sessionsRequest = mutableMapOf<String, Request.Builder>()
-    var calls = mutableMapOf<String, Call>()
+    private val sessionsClient = SessionsObject.client
+    private val sessionsRequest = SessionsObject.request
+    private val sessionsCall = SessionsObject.call
+    private val sessionsConfig = SessionsObject.config
 
     override fun getName(): String {
         return "APIClient"
@@ -24,9 +25,10 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
             // Create the client and request builder
             sessionsClient[baseUrl] = OkHttpClient().newBuilder();
             sessionsRequest[baseUrl] = Request.Builder().url(baseUrl);
+            sessionsConfig[baseUrl] = hashMapOf("baseUrl" to baseUrl);
 
             // Attach client options if they are passed in
-            sessionsClient[baseUrl]!!.parseOptions(options, sessionsRequest[baseUrl]);
+            sessionsClient[baseUrl]!!.parseOptions(options, sessionsRequest[baseUrl], baseUrl);
 
             // Return stringified client for success
             promise.resolve(null)
@@ -67,7 +69,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     @ReactMethod
     fun get(baseUrl: String, endpoint: String, options: ReadableMap, promise: Promise) {
         try {
-            val request = sessionsRequest[baseUrl]!!.url(formUrlString(baseUrl, endpoint)).parseOptions(options, sessionsClient[baseUrl]!!).build();
+            val request = sessionsRequest[baseUrl]!!.url(formUrlString(baseUrl, endpoint)).parseOptions(options, sessionsClient[baseUrl]!!, baseUrl).build();
             sessionsClient[baseUrl]!!.build().newCall(request).execute().use { response ->
                 response.promiseResolution(promise)
             }
@@ -79,7 +81,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     @ReactMethod
     fun post(baseUrl: String, endpoint: String, options: ReadableMap, promise: Promise) {
         try {
-            val request = sessionsRequest[baseUrl]!!.url(formUrlString(baseUrl, endpoint)).post(options.bodyToRequestBody()).parseOptions(options, sessionsClient[baseUrl]!!).build();
+            val request = sessionsRequest[baseUrl]!!.url(formUrlString(baseUrl, endpoint)).post(options.bodyToRequestBody()).parseOptions(options, sessionsClient[baseUrl]!!, baseUrl).build();
             sessionsClient[baseUrl]!!.build().newCall(request).execute().use { response ->
                 response.promiseResolution(promise)
             }
@@ -91,7 +93,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     @ReactMethod
     fun put(baseUrl: String, endpoint: String, options: ReadableMap, promise: Promise) {
         try {
-            val request = sessionsRequest[baseUrl]!!.url(formUrlString(baseUrl, endpoint)).put(options.bodyToRequestBody()).parseOptions(options, sessionsClient[baseUrl]!!).build();
+            val request = sessionsRequest[baseUrl]!!.url(formUrlString(baseUrl, endpoint)).put(options.bodyToRequestBody()).parseOptions(options, sessionsClient[baseUrl]!!, baseUrl).build();
             sessionsClient[baseUrl]!!.build().newCall(request).execute().use { response ->
                 response.promiseResolution(promise)
             }
@@ -103,7 +105,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     @ReactMethod
     fun patch(baseUrl: String, endpoint: String, options: ReadableMap, promise: Promise) {
         try {
-            val request = sessionsRequest[baseUrl]!!.url(formUrlString(baseUrl, endpoint)).patch(options.bodyToRequestBody()).parseOptions(options, sessionsClient[baseUrl]!!).build();
+            val request = sessionsRequest[baseUrl]!!.url(formUrlString(baseUrl, endpoint)).patch(options.bodyToRequestBody()).parseOptions(options, sessionsClient[baseUrl]!!, baseUrl).build();
             sessionsClient[baseUrl]!!.build().newCall(request).execute().use { response ->
                 response.promiseResolution(promise)
             }
@@ -115,7 +117,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     @ReactMethod
     fun delete(baseUrl: String, endpoint: String, options: ReadableMap, promise: Promise) {
         try {
-            val request = sessionsRequest[baseUrl]!!.url(formUrlString(baseUrl, endpoint)).delete(options.bodyToRequestBody()).parseOptions(options, sessionsClient[baseUrl]!!).build();
+            val request = sessionsRequest[baseUrl]!!.url(formUrlString(baseUrl, endpoint)).delete(options.bodyToRequestBody()).parseOptions(options, sessionsClient[baseUrl]!!, baseUrl).build();
             sessionsClient[baseUrl]!!.build().newCall(request).execute().use { response ->
                 response.promiseResolution(promise)
             }
@@ -169,13 +171,13 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
             }
 
             // Parse options into the request / client
-            if (options != null) request = request.parseOptions(options, sessionsClient[baseUrl]!!)
+            if (options != null) request = request.parseOptions(options, sessionsClient[baseUrl]!!, baseUrl)
 
             // Create a cancellable call
-            calls[taskId] = sessionsClient[baseUrl]!!.build().newCall(request.build())
+            sessionsCall[taskId] = sessionsClient[baseUrl]!!.build().newCall(request.build())
 
             // Execute the call!
-            calls[taskId]!!.execute().use { response ->
+            sessionsCall[taskId]!!.execute().use { response ->
                 response.promiseResolution(promise)
             }
         } catch (e: IOException) {
@@ -186,7 +188,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     @ReactMethod
     fun cancelRequest(taskId: String, promise: Promise) {
         try {
-            calls[taskId]!!.cancel()
+            sessionsCall[taskId]!!.cancel()
             promise.resolve(null)
         } catch (e: IOException) {
             promise.reject(e)
