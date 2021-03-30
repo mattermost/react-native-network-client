@@ -355,3 +355,21 @@ export const ClientContext = React.createContext({
         React.SetStateAction<NetworkClientItem[]>
     >,
 });
+
+export const apiClientErrorEventHandler: APIClientErrorEventHandler = (
+    event: APIClientErrorEvent
+) => {
+    Alert.alert(
+        "Error",
+        `Server: ${event.serverUrl}\nCode: ${event.errorCode}\nDesc: ${event.errorDescription}`
+    );
+};
+
+export const webSocketClientErrorEventHandler: WebSocketClientErrorEventHandler = (
+    event: WebSocketClientErrorEvent
+) => {
+    Alert.alert(
+        "Error",
+        `Server: ${event.url}\nCode: ${event.errorCode}\nDesc: ${event.errorDescription}`
+    );
+};

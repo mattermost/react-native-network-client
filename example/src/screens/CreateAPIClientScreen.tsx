@@ -16,7 +16,7 @@ import {
     useSessionConfiguration,
     useClientP12Configuration,
 } from "../hooks";
-import { ClientType, parseHeaders } from "../utils";
+import { ClientType, parseHeaders, apiClientErrorEventHandler } from "../utils";
 
 const styles = StyleSheet.create({
     checkboxText: { flex: 1 },
@@ -29,6 +29,9 @@ export default function CreateAPIClientScreen({
     const [name, setName] = useState("");
     const [baseUrl, setBaseUrl] = useState("");
     const [clientHeaders, setClientHeaders] = useState<Header[]>([]);
+    const [alertOnClientError, setAlertOnClientError] = useState(true);
+    const toggleAlertOnClientError = () =>
+        setAlertOnClientError((alertOnClientError) => !alertOnClientError);
 
     const [
         sessionConfiguration,
@@ -85,9 +88,14 @@ export default function CreateAPIClientScreen({
             options["clientP12Configuration"] = clientP12Configuration;
         }
 
+        const clientErrorEventHandler = alertOnClientError
+            ? apiClientErrorEventHandler
+            : undefined;
+
         const { client, created } = await getOrCreateAPIClient(
             baseUrl,
-            options
+            options,
+            clientErrorEventHandler
         );
         if (!created) {
             Alert.alert(
@@ -179,6 +187,17 @@ export default function CreateAPIClientScreen({
                         retryPolicyConfiguration.exponentialBackoffScale
                     }
                     setExponentialBackoffScale={setExponentialBackoffScale}
+                />
+
+                <CheckBox
+                    title={`Alert on client error? ${alertOnClientError}`}
+                    checked={alertOnClientError}
+                    onPress={toggleAlertOnClientError}
+                    iconType="ionicon"
+                    checkedIcon="ios-checkmark-circle"
+                    uncheckedIcon="ios-checkmark-circle"
+                    iconRight
+                    textStyle={styles.checkboxText}
                 />
 
                 <CheckBox

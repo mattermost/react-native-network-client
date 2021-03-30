@@ -11,7 +11,11 @@ import AddHeaders from "../components/AddHeaders";
 import P12Inputs from "../components/P12Inputs";
 import NumericInput from "../components/NumericInput";
 import { useClientP12Configuration } from "../hooks";
-import { ClientType, parseHeaders } from "../utils";
+import {
+    ClientType,
+    parseHeaders,
+    webSocketClientErrorEventHandler,
+} from "../utils";
 
 const styles = StyleSheet.create({
     checkboxText: { flex: 1 },
@@ -23,6 +27,10 @@ export default function CreateWebSocketClientScreen({
 }: CreateWebSocketClientScreenProps) {
     const [name, setName] = useState("");
     const [url, setUrl] = useState("");
+    const [alertOnClientError, setAlertOnClientError] = useState(true);
+    const toggleAlertOnClientError = () =>
+        setAlertOnClientError((alertOnClientError) => !alertOnClientError);
+
     const [
         configuration,
         setConfiguration,
@@ -65,10 +73,15 @@ export default function CreateWebSocketClientScreen({
             wsConfiguration["clientP12Configuration"] = clientP12Configuration;
         }
 
+        const clientErrorEventHandler = alertOnClientError
+            ? webSocketClientErrorEventHandler
+            : undefined;
+
         try {
             const { client, created } = await getOrCreateWebSocketClient(
                 url,
-                wsConfiguration
+                wsConfiguration,
+                clientErrorEventHandler
             );
 
             if (!created) {
@@ -125,6 +138,17 @@ export default function CreateWebSocketClientScreen({
                     onChange={setTimeoutInterval}
                     minValue={0}
                     testID="create_websocket_client.timeout_interval.input"
+                />
+
+                <CheckBox
+                    title={`Alert on client error? ${alertOnClientError}`}
+                    checked={alertOnClientError}
+                    onPress={toggleAlertOnClientError}
+                    iconType="ionicon"
+                    checkedIcon="ios-checkmark-circle"
+                    uncheckedIcon="ios-checkmark-circle"
+                    iconRight
+                    textStyle={styles.checkboxText}
                 />
 
                 <CheckBox
