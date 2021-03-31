@@ -54,7 +54,7 @@ describe("Fast Image Regular - API Client Request", () => {
         await expect(fastImage).toBeVisible();
     });
 
-    it("should display fast image - regular request - secure connection", async () => {
+    xit("should display fast image - regular request - secure connection", async () => { // Disabled due to https://mattermost.atlassian.net/browse/MM-34422
         // # Import p12 and select fast image
         await ApiClientScreen.open(testSecureName);
         await verifyApiClient(testSecureName, testSecureBaseUrl);
