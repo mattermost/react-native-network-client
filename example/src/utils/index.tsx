@@ -88,16 +88,20 @@ const createAPIClient = async (
     name: string,
     baseUrl: string,
     configuration: APIClientConfiguration,
-    isMattermostClient: boolean = false
+    isMattermostClient: boolean = false,
+    enableClientErrorEventHandler: boolean = true
 ): Promise<APIClientItem | null> => {
-    const clientErrorEventHandler = (event: APIClientErrorEvent) => {
-        Alert.alert(
-            `Error for ${baseUrl}`,
-            `Code: ${event.errorCode}\nDescription: ${event.errorDescription}`,
-            [{ text: "OK" }],
-            { cancelable: false }
-        );
-    };
+    let clientErrorEventHandler;
+    if (enableClientErrorEventHandler) {
+        clientErrorEventHandler = (event: APIClientErrorEvent) => {
+            Alert.alert(
+                `Error for ${baseUrl}`,
+                `Code: ${event.errorCode}\nDescription: ${event.errorDescription}`,
+                [{ text: "OK" }],
+                { cancelable: false }
+            );
+        };
+    }
 
     try {
         const { client, created } = await getOrCreateAPIClient(
@@ -215,16 +219,20 @@ const createWebSocketClient = async (
     name: string,
     url: string,
     configuration: WebSocketClientConfiguration,
-    isMattermostClient: boolean = false
+    isMattermostClient: boolean = false,
+    enableClientErrorEventHandler: boolean = true
 ): Promise<WebSocketClientItem | null> => {
-    const clientErrorEventHandler = (event: WebSocketClientErrorEvent) => {
-        Alert.alert(
-            `Error for ${url}`,
-            `Code: ${event.errorCode}\nDescription: ${event.errorDescription}`,
-            [{ text: "OK" }],
-            { cancelable: false }
-        );
-    };
+    let clientErrorEventHandler;
+    if (enableClientErrorEventHandler) {
+        clientErrorEventHandler = (event: WebSocketClientErrorEvent) => {
+            Alert.alert(
+                `Error for ${url}`,
+                `Code: ${event.errorCode}\nDescription: ${event.errorDescription}`,
+                [{ text: "OK" }],
+                { cancelable: false }
+            );
+        };
+    }
 
     try {
         const { client, created } = await getOrCreateWebSocketClient(
