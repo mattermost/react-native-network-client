@@ -10,6 +10,7 @@
 import { Request } from "@support/server_api";
 import {
     clientCertPassword,
+    secureServerClientCertUrl,
     secureServerUrl,
     secureSiteUrl,
     serverUrl,
@@ -104,7 +105,10 @@ describe("Get - API Client Request", () => {
         await ApiClientScreen.open(testSecureName);
         await verifyApiClient(testSecureName, testSecureBaseUrl, customHeaders);
         await ApiClientScreen.selectImportP12();
-        await ApiClientImportP12Screen.importP12(clientCertPassword);
+        await ApiClientImportP12Screen.importP12(
+            secureServerClientCertUrl,
+            clientCertPassword
+        );
         await ApiClientScreen.selectGet();
 
         // # Perform API client request

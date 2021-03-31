@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from "react";
-import { View } from "react-native";
+import React, { useState } from "react";
+import { StyleSheet, View } from "react-native";
 import { Button, ButtonGroup, Input, Text } from "react-native-elements";
 import DocumentPicker from "react-native-document-picker";
 import { check, request, PERMISSIONS, RESULTS } from "react-native-permissions";
@@ -19,6 +19,8 @@ type P12InputsProps = {
 };
 
 const P12Inputs = (props: P12InputsProps) => {
+    const [url, setUrl] = useState("");
+
     const hasPhotoLibraryPermissions = async () => {
         let result = await check(PERMISSIONS.IOS.PHOTO_LIBRARY);
         if (result === RESULTS.GRANTED || result === RESULTS.LIMITED) {
@@ -53,10 +55,8 @@ const P12Inputs = (props: P12InputsProps) => {
         }
     };
 
-    const attachCertificate = async () => {
-        const fromUrl =
-            "https://github.com/mattermost/react-native-network-client/raw/e2e-cert/example/certs/client_cert.p12";
-        const file: File = await downloadToNativeFile(fromUrl, clientCertP12);
+    const downloadCertificate = async () => {
+        const file: File = await downloadToNativeFile(url, clientCertP12);
         props.onSelectP12(`${file.uri}`);
     };
 
@@ -67,13 +67,13 @@ const P12Inputs = (props: P12InputsProps) => {
 
     const buttons = [
         { title: "Select", onPress: pickCertificate },
-        { title: "Attach", onPress: attachCertificate },
+        { title: "Download", onPress: downloadCertificate },
     ];
 
     const onButtonPress = (index: number) => buttons[index].onPress();
 
     const rightIcon = (
-        <View style={{ width: 142 }}>
+        <View style={{ width: 250 }}>
             {props.path ? (
                 <View style={{ flexDirection: "column", height: 50 }}>
                     <View style={{ flexDirection: "row" }}>
@@ -101,10 +101,18 @@ const P12Inputs = (props: P12InputsProps) => {
                     />
                 </View>
             ) : (
-                <ButtonGroup
-                    buttons={buttons.map((button) => button.title)}
-                    onPress={onButtonPress}
-                />
+                <View style={{ flexDirection: "column", height: 50 }}>
+                    <Input
+                        placeholder="Download URL"
+                        onChangeText={setUrl}
+                        autoCapitalize="none"
+                        testID={`${props.testID}.url.input`}
+                    />
+                    <ButtonGroup
+                        buttons={buttons.map((button) => button.title)}
+                        onPress={onButtonPress}
+                    />
+                </View>
             )}
         </View>
     );
@@ -114,7 +122,7 @@ const P12Inputs = (props: P12InputsProps) => {
             placeholder={props.title}
             disabled={true}
             style={{ fontWeight: "bold", fontSize: 17, opacity: 1 }}
-            containerStyle={{ flex: 1, paddingBottom: props.path ? 15 : 0 }}
+            containerStyle={{ flex: 1, paddingBottom: 40 }}
             inputContainerStyle={{
                 borderColor: "rgba(255,255,255,0)",
             }}

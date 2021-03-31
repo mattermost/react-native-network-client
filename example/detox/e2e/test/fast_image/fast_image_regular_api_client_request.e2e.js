@@ -10,6 +10,7 @@
 import {
     clientCertPassword,
     fastImageServerUrl,
+    secureFastImageServerClientCertUrl,
     secureFastImageServerUrl,
 } from "@support/test_config";
 import {
@@ -58,7 +59,10 @@ describe("Fast Image Regular - API Client Request", () => {
         await ApiClientScreen.open(testSecureName);
         await verifyApiClient(testSecureName, testSecureBaseUrl);
         await ApiClientScreen.selectImportP12();
-        await ApiClientImportP12Screen.importP12(clientCertPassword);
+        await ApiClientImportP12Screen.importP12(
+            secureFastImageServerClientCertUrl,
+            clientCertPassword
+        );
         await ApiClientScreen.selectFastImage();
 
         // * Verify image not supported is displayed

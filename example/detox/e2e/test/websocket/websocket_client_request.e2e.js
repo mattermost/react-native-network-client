@@ -7,6 +7,7 @@
 // - Use element testID when selecting an element. Create one if none.
 // *******************************************************************
 
+import { secureWebSocketServerClientCertUrl } from "@support/test_config";
 import { WebSocketClientScreen } from "@support/ui/screen";
 import { verifyWebSocketEvent } from "../helpers";
 

@@ -397,6 +397,8 @@ export const downloadToNativeFile = async (
     fromUrl: string,
     fileContent: FileContent
 ): Promise<File> => {
+    const filename = fromUrl.substring(fromUrl.lastIndexOf("/"));
+    fileContent.name = filename;
     const toFile = `${RFNS.DocumentDirectoryPath}/${fileContent.name}`;
     await RFNS.downloadFile({ fromUrl, toFile }).promise;
     const statResult: StatResult = await RFNS.stat(toFile);

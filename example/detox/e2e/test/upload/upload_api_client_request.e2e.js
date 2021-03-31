@@ -10,6 +10,7 @@
 import {
     clientCertPassword,
     fileUploadServerUrl,
+    secureFileUploadServerClientCertUrl,
     secureFileUploadServerUrl,
 } from "@support/test_config";
 import {
@@ -65,7 +66,10 @@ describe("Upload - API Client Request", () => {
         await ApiClientScreen.open(testSecureName);
         await verifyApiClient(testSecureName, testSecureBaseUrl);
         await ApiClientScreen.selectImportP12();
-        await ApiClientImportP12Screen.importP12(clientCertPassword);
+        await ApiClientImportP12Screen.importP12(
+            secureFileUploadServerClientCertUrl,
+            clientCertPassword
+        );
         await ApiClientScreen.selectUpload();
 
         // # Set endpoint
@@ -104,7 +108,10 @@ describe("Upload - API Client Request", () => {
         await ApiClientScreen.open(testSecureName);
         await verifyApiClient(testSecureName, testSecureBaseUrl);
         await ApiClientScreen.selectImportP12();
-        await ApiClientImportP12Screen.importP12(clientCertPassword);
+        await ApiClientImportP12Screen.importP12(
+            secureFileUploadServerClientCertUrl,
+            clientCertPassword
+        );
         await ApiClientScreen.selectUpload();
 
         // # Set endpoint
