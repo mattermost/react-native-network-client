@@ -32,6 +32,12 @@ class CreateApiClientScreen {
     resourceTimeoutIntervalInput = element(
         by.id(this.testID.resourceTimeoutIntervalInput)
     );
+    alertOnClientErrorCheckboxFalse = element(
+        by.text("Alert on client error? [false]")
+    );
+    alertOnClientErrorCheckboxTrue = element(
+        by.text("Alert on client error? [true]")
+    );
     allowCellularAccessCheckboxFalse = element(
         by.text("Allow Cellular Access? [false]")
     );
@@ -48,6 +54,12 @@ class CreateApiClientScreen {
         by.text("Follow Redirects? [false]")
     );
     followRedirectsCheckboxTrue = element(by.text("Follow Redirects? [true]"));
+    trustSelfSignedServerCertificateCheckboxFalse = element(
+        by.text("Trust Self-Signed Server Certificate? [false]")
+    );
+    trustSelfSignedServerCertificateCheckboxTrue = element(
+        by.text("Trust Self-Signed Server Certificate? [true]")
+    );
     waitsForConnectivityCheckboxFalse = element(
         by.text("Waits For Connectivity? [false]")
     );
@@ -154,6 +166,16 @@ class CreateApiClientScreen {
         await RetryPolicyConfiguration.setRetry(options);
     };
 
+    toggleOffAlertOnClientErrorCheckbox = async () => {
+        await this.alertOnClientErrorCheckboxTrue.tap();
+        await expect(this.alertOnClientErrorCheckboxFalse).toBeVisible();
+    };
+
+    toggleOnAlertOnClientErrorCheckbox = async () => {
+        await this.alertOnClientErrorCheckboxFalse.tap();
+        await expect(this.alertOnClientErrorCheckboxTrue).toBeVisible();
+    };
+
     toggleOffAllowCellularAccessCheckbox = async () => {
         await this.allowCellularAccessCheckboxTrue.tap();
         await expect(this.allowCellularAccessCheckboxFalse).toBeVisible();
@@ -182,6 +204,18 @@ class CreateApiClientScreen {
     toggleOnFollowRedirectsCheckbox = async () => {
         await this.followRedirectsCheckboxFalse.tap();
         await expect(this.followRedirectsCheckboxTrue).toBeVisible();
+    };
+
+    toggleOffTrustSelfSignedServerCertificateCheckbox = async () => {
+        await this.trustSelfSignedServerCertificateCheckboxTrue.tap();
+        await expect(
+            this.trustSelfSignedServerCertificateCheckboxFalse
+        ).toBeVisible();
+    };
+
+    toggleOnTrustSelfSignedServerCertificateCheckbox = async () => {
+        await this.trustSelfSignedServerCertificateCheckboxFalse.tap();
+        await expect(this.trustSelfSignedServerCertificateCheckboxTrue).toBeVisible();
     };
 
     toggleOffWaitsForConnectivityCheckbox = async () => {

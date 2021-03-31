@@ -7,20 +7,34 @@ import { isAndroid } from "@support/utils";
 
 class CreateWebSocketClientScreen {
     testID = {
+        createWebSocketClientScrollView: "create_websocket_client.scroll_view",
         nameInput: "create_websocket_client.name.input",
         timeoutIntervalInput: "create_websocket_client.timeout_interval.input",
         urlInput: "create_websocket_client.url.input",
     };
 
     createWebSocketClientScreen = element(by.text("CreateWebSocketClient"));
+    createWebSocketClientScrollView = element(by.id(this.testID.createWebSocketClientScrollView));
     nameInput = element(by.id(this.testID.nameInput));
     timeoutIntervalInput = element(by.id(this.testID.timeoutIntervalInput));
     urlInput = element(by.id(this.testID.urlInput));
+    alertOnClientErrorCheckboxFalse = element(
+        by.text("Alert on client error? [false]")
+    );
+    alertOnClientErrorCheckboxTrue = element(
+        by.text("Alert on client error? [true]")
+    );
     enableCompressionCheckboxFalse = element(
         by.text("Enable Compression? [false]")
     );
     enableCompressionCheckboxTrue = element(
         by.text("Enable Compression? [true]")
+    );
+    trustSelfSignedServerCertificateCheckboxFalse = element(
+        by.text("Trust Self-Signed Server Certificate? [false]")
+    );
+    trustSelfSignedServerCertificateCheckboxTrue = element(
+        by.text("Trust Self-Signed Server Certificate? [true]")
     );
     clientListButton = element(by.text("ClientList")).atIndex(0);
     createButton = element(by.text("Create"));
@@ -73,6 +87,16 @@ class CreateWebSocketClientScreen {
         await this.urlInput.tapReturnKey();
     };
 
+    toggleOffAlertOnClientErrorCheckbox = async () => {
+        await this.alertOnClientErrorCheckboxTrue.tap();
+        await expect(this.alertOnClientErrorCheckboxFalse).toBeVisible();
+    };
+
+    toggleOnAlertOnClientErrorCheckbox = async () => {
+        await this.alertOnClientErrorCheckboxFalse.tap();
+        await expect(this.alertOnClientErrorCheckboxTrue).toBeVisible();
+    };
+
     toggleOffEnableCompressionCheckbox = async () => {
         await this.enableCompressionCheckboxTrue.tap();
         await expect(this.enableCompressionCheckboxFalse).toBeVisible();
@@ -81,6 +105,18 @@ class CreateWebSocketClientScreen {
     toggleOnEnableCompressionCheckbox = async () => {
         await this.enableCompressionCheckboxFalse.tap();
         await expect(this.enableCompressionCheckboxTrue).toBeVisible();
+    };
+
+    toggleOffTrustSelfSignedServerCertificateCheckbox = async () => {
+        await this.trustSelfSignedServerCertificateCheckboxTrue.tap();
+        await expect(
+            this.trustSelfSignedServerCertificateCheckboxFalse
+        ).toBeVisible();
+    };
+
+    toggleOnTrustSelfSignedServerCertificateCheckbox = async () => {
+        await this.trustSelfSignedServerCertificateCheckboxFalse.tap();
+        await expect(this.trustSelfSignedServerCertificateCheckboxTrue).toBeVisible();
     };
 }
 

@@ -150,16 +150,19 @@ class APIClient implements APIClientInterface {
 async function getOrCreateAPIClient(
     baseUrl: string,
     config: APIClientConfiguration = {},
-    validateUrl: boolean = true
+    clientErrorEventHandler?: APIClientErrorEventHandler
 ): Promise<{ client: APIClient; created: boolean }> {
-    if (validateUrl && !isValidBaseURL(baseUrl)) {
-        throw new Error("baseUrl must be a valid API base URL");
+    if (!isValidBaseURL(baseUrl)) {
+        throw new Error(`"${baseUrl}" is not a valid API base URL`);
     }
 
     let created = false;
     let client = CLIENTS[baseUrl];
     if (!client) {
         client = new APIClient(baseUrl, config);
+        if (clientErrorEventHandler) {
+            client.onClientError(clientErrorEventHandler);
+        }
         await NativeAPIClient.createClientFor(client.baseUrl, client.config);
         CLIENTS[baseUrl] = client;
         created = true;

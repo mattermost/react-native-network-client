@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, { useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { View } from "react-native";
 import { Button, ButtonGroup, Input, Text } from "react-native-elements";
 import DocumentPicker from "react-native-document-picker";
 import { check, request, PERMISSIONS, RESULTS } from "react-native-permissions";

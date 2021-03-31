@@ -53,9 +53,8 @@ class APIClientSessionDelegate: SessionDelegate {
             }
         } else if authMethod == NSURLAuthenticationMethodClientCertificate {
             if let session = SessionManager.default.getSession(for: urlSession) {
-                let serverUrl = session.baseUrl.absoluteString
                 do {
-                    if let (identity, certificate) = try Keychain.getClientIdentityAndCertificate(for: serverUrl) {
+                    if let (identity, certificate) = try Keychain.getClientIdentityAndCertificate(for: session.baseUrl.host!) {
                         credential = URLCredential(identity: identity,
                                                    certificates: [certificate],
                                                    persistence: URLCredential.Persistence.permanent)
@@ -65,7 +64,7 @@ class APIClientSessionDelegate: SessionDelegate {
                 } catch {
                     NotificationCenter.default.post(name: Notification.Name(API_CLIENT_EVENTS["CLIENT_ERROR"]!),
                                                     object: nil,
-                                                    userInfo: ["serverUrl": serverUrl, "errorCode": error._code, "errorDescription": error.localizedDescription])
+                                                    userInfo: ["serverUrl": session.baseUrl.absoluteString, "errorCode": error._code, "errorDescription": error.localizedDescription])
                 }
             }
             disposition = .useCredential
@@ -212,7 +211,7 @@ class APIClient: RCTEventEmitter, NetworkClient {
         }
 
         do {
-            try resolve(Keychain.importClientP12(withPath: path, withPassword: password, forServerUrl: session.baseUrl.absoluteString))
+            try resolve(Keychain.importClientP12(withPath: path, withPassword: password, forHost: session.baseUrl.host!))
         } catch {
             self.sendErrorEvent(for: session.baseUrl.absoluteString, withErrorCode: error._code, withErrorDescription: error.localizedDescription)
         }

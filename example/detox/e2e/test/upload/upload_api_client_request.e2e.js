@@ -79,7 +79,8 @@ describe("Upload - API Client Request", () => {
         await uploadFileAndVerify(testImageFilename);
     });
 
-    xit("should be able to multipart upload selected file", async () => { // Disabled due to https://mattermost.atlassian.net/browse/MM-34218
+    xit("should be able to multipart upload selected file", async () => {
+        // Disabled due to https://mattermost.atlassian.net/browse/MM-34218
         // # Do not run against Android due to file attachment limitation
         if (isAndroid()) {
             return;
@@ -98,7 +99,8 @@ describe("Upload - API Client Request", () => {
         await uploadFileAndVerify(testImageFilename);
     });
 
-    xit("should be able to multipart upload selected file - secure connection", async () => { // Disabled due to https://mattermost.atlassian.net/browse/MM-34218
+    xit("should be able to multipart upload selected file - secure connection", async () => {
+        // Disabled due to https://mattermost.atlassian.net/browse/MM-34218
         // # Do not run against Android due to file attachment limitation
         if (isAndroid()) {
             return;

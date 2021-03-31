@@ -51,7 +51,7 @@ if (!port) {
                 " with certs under " +
                 certs.green +
                 " at " +
-                "https://localhost:".green +
+                "https://127.0.0.1:".green +
                 port.toString().green
         );
     } else {
@@ -60,7 +60,7 @@ if (!port) {
             "File Server serving files under " +
                 uploadPath.green +
                 " at " +
-                "http://localhost:".green +
+                "http://127.0.0.1:".green +
                 port.toString().green
         );
     }

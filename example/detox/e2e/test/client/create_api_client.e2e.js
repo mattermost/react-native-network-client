@@ -45,6 +45,7 @@ describe("Create API Client", () => {
         setResourceTimeoutInterval,
         setRetry,
         toggleOnCancelRequestsOn401Checkbox,
+        toggleOnTrustSelfSignedServerCertificateCheckbox,
         toggleOnWaitsForConnectivityCheckbox,
     } = CreateApiClientScreen;
 
@@ -66,6 +67,7 @@ describe("Create API Client", () => {
         await createApiClientScrollView.scrollTo("bottom");
         await toggleOnWaitsForConnectivityCheckbox();
         await toggleOnCancelRequestsOn401Checkbox();
+        await toggleOnTrustSelfSignedServerCertificateCheckbox();
         await createClient();
 
         // * Verify created client

@@ -44,14 +44,14 @@ if (!port) {
             "Secure Mockserver serving with certs under " +
                 certs.green +
                 " at " +
-                "https://localhost:".green +
+                "https://127.0.0.1:".green +
                 port.toString().green
         );
     } else {
         http.createServer(mockserver()).listen(port);
         console.log(
             "Mockserver serving at " +
-                "http://localhost:".green +
+                "http://127.0.0.1:".green +
                 port.toString().green
         );
     }

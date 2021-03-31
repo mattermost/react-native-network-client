@@ -40,14 +40,14 @@ if (!port) {
             "Secure WebSocket Server serving with certs under " +
                 certs.green +
                 " at " +
-                "wss://localhost:".green +
+                "wss://127.0.0.1:".green +
                 port.toString().green
         );
     } else {
         webSocketServer(port);
         console.log(
             "WebSocket Server serving at " +
-                "ws://localhost:".green +
+                "ws://127.0.0.1:".green +
                 port.toString().green
         );
     }

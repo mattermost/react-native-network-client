@@ -23,11 +23,13 @@ describe("Create WebSocket Client", () => {
     const testTimeoutInterval = getRandomInt(60).toString();
     const {
         createClient,
+        createWebSocketClientScrollView,
         setHeaders,
         setName,
         setTimeoutInterval,
         setUrl,
         toggleOnEnableCompressionCheckbox,
+        toggleOnTrustSelfSignedServerCertificateCheckbox,
     } = CreateWebSocketClientScreen;
     const { clientListScrollView, removeClientWithName } = ClientListScreen;
 
@@ -42,6 +44,8 @@ describe("Create WebSocket Client", () => {
         await setHeaders(testHeaders);
         await setTimeoutInterval(testTimeoutInterval);
         await toggleOnEnableCompressionCheckbox();
+        await createWebSocketClientScrollView.scrollTo("bottom");
+        await toggleOnTrustSelfSignedServerCertificateCheckbox();
         await createClient();
 
         // * Verify created client

@@ -13,9 +13,9 @@ import { verifyWebSocketEvent } from "../helpers";
 
 describe("WebSocket Client Request", () => {
     const testName = "Simple WebSocket";
-    const testWebSocketUrl = "ws://localhost:3000/api/websocket";
+    const testWebSocketUrl = "ws://127.0.0.1:3000/api/websocket";
     const testSecureName = "Secure Simple WebSocket";
-    const testSecureWebSocketUrl = "wss://localhost:4000/api/websocket";
+    const testSecureWebSocketUrl = "wss://127.0.0.1:4000/api/websocket";
     const testMessageJson = {
         id: 123,
         action: "user_typing",
@@ -41,7 +41,8 @@ describe("WebSocket Client Request", () => {
         );
     });
 
-    xit("should be able to connect, send message, and disconnect - secure connection", async () => { // Disabled due to https://mattermost.atlassian.net/browse/MM-34374
+    xit("should be able to connect, send message, and disconnect - secure connection", async () => {
+        // Disabled due to https://mattermost.atlassian.net/browse/MM-34374
         // # Open client
         await WebSocketClientScreen.open(testSecureName);
 

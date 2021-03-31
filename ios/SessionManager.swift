@@ -50,7 +50,7 @@ import SwiftyJSON
             let path = clientP12Configuration["path"]
             let password = clientP12Configuration["password"]
             do {
-                try Keychain.importClientP12(withPath: path!, withPassword: password, forServerUrl: session!.baseUrl.absoluteString)
+                try Keychain.importClientP12(withPath: path!, withPassword: password, forHost: baseUrl.host!)
             } catch {
                 NotificationCenter.default.post(name: Notification.Name(API_CLIENT_EVENTS["CLIENT_ERROR"]!),
                                                 object: nil,

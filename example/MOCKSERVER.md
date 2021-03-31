@@ -5,10 +5,10 @@
 ```
 npm run mockserver
 ```
-2. Verify Mockserver is running: `http://localhost:8080`.
+2. Verify Mockserver is running: `http://127.0.0.1:8080`.
 
 # Request Methods
-Base URL: `http://localhost:8080`
+Base URL: `http://127.0.0.1:8080`
 Options:
 | Option | Description | Example |
 | :--- | :--- | :--- |
@@ -27,7 +27,7 @@ server: mockserver
 {
     "message": "Non-secure request!"
     "request" : {
-        "url" : "http://localhost:8080/get"
+        "url" : "http://127.0.0.1:8080/get"
         "method" : "GET",
         "headers" : {
             "key1" : "value1"
@@ -44,7 +44,7 @@ Base Path: `/get`
 
 Example:
 ```
-curl -X GET -H "Content-Type: application/json" http://localhost:8080/get
+curl -X GET -H "Content-Type: application/json" http://127.0.0.1:8080/get
 ```
 
 ### Post Request
@@ -52,7 +52,7 @@ Base Path: `/post`
 
 Example:
 ```
-curl -X POST -d "{\"name\":\"John Doe\",\"phone\":\"333-333-3333\"}" -H "Content-Type: application/json" http://localhost:8080/post
+curl -X POST -d "{\"name\":\"John Doe\",\"phone\":\"333-333-3333\"}" -H "Content-Type: application/json" http://127.0.0.1:8080/post
 ```
 
 ### Put Request
@@ -60,7 +60,7 @@ Base Path: `/put`
 
 Example:
 ```
-curl -X PUT -d "{\"name\":\"John Doe\",\"phone\":\"444-444-4444\"}" -H "Content-Type: application/json" http://localhost:8080/put
+curl -X PUT -d "{\"name\":\"John Doe\",\"phone\":\"444-444-4444\"}" -H "Content-Type: application/json" http://127.0.0.1:8080/put
 ```
 
 ### Patch Request
@@ -68,7 +68,7 @@ Base Path: `/patch`
 
 Example:
 ```
-curl -X PATCH -d "{\"phone\":\"555-555-5555\"}" -H "Content-Type: application/json" http://localhost:8080/patch
+curl -X PATCH -d "{\"phone\":\"555-555-5555\"}" -H "Content-Type: application/json" http://127.0.0.1:8080/patch
 ```
 
 ### Delete Request
@@ -76,5 +76,5 @@ Base Path: `/delete`
 
 Example:
 ```
-curl -X DELETE -d "{\"permanent\":true}" -H "Content-Type: application/json" http://localhost:8080/delete
+curl -X DELETE -d "{\"permanent\":true}" -H "Content-Type: application/json" http://127.0.0.1:8080/delete
 ```
