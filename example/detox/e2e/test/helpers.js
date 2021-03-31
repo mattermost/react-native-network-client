@@ -226,9 +226,7 @@ export const verifyResponseSuccessOverlay = async (
         ).certificate;
         if (secure) {
             jestExpect(responseDataCertificate).toBe(
-                `Hello Alice, your certificate was issued by ${
-                    testHost.split(":")[0]
-                }!`
+                "Hello Alice, your certificate was issued by localhost!"
             );
         } else {
             jestExpect(responseDataCertificate).toBe("Non-secure request!");
