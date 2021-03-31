@@ -47,8 +47,15 @@ class WebSocketManager: NSObject {
                 let path = clientP12Configuration["path"]
                 let password = clientP12Configuration["password"]
                 do {
-                    try Keychain.importClientP12(withPath: path!, withPassword: password, forServerUrl: url.absoluteString)
-                    let (identity, certificate) = try Keychain.getClientIdentityAndCertificate(for: url.absoluteString)!
+                    do {
+                        try Keychain.importClientP12(withPath: path!, withPassword: password, forHost: url.host!)
+                    } catch KeychainError.DuplicateIdentity {
+                        // do nothing
+                    } catch {
+                        throw error
+                    }
+
+                    let (identity, certificate) = try Keychain.getClientIdentityAndCertificate(for: url.host!)!
                     clientCredential = URLCredential(identity: identity, certificates: [certificate], persistence: URLCredential.Persistence.permanent)
                 } catch {
                     NotificationCenter.default.post(name: Notification.Name(WEBSOCKET_CLIENT_EVENTS["CLIENT_ERROR"]!),
@@ -77,9 +84,9 @@ class WebSocketManager: NSObject {
             return
         }
         
-        if let _ = try? Keychain.getClientIdentityAndCertificate(for: url.absoluteString) {
+        if let _ = try? Keychain.getClientIdentityAndCertificate(for: url.host!) {
             do {
-                try Keychain.deleteClientP12(for: url.absoluteString)
+                try Keychain.deleteClientP12(for: url.host!)
             } catch {
                 NotificationCenter.default.post(name: Notification.Name(WEBSOCKET_CLIENT_EVENTS["CLIENT_ERROR"]!),
                                                 object: nil,

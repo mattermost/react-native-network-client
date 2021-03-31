@@ -79,8 +79,10 @@ For both API client and WebSocket client, the following error codes apply:
   | -102 | Storage of a bearer authentication token in the Keychain failed due an invalid token data                                  |
   | -103 | Importing of a PKCS#12 file failed due to an invalid file path                                                             |
   | -104 | Importing of a PKCS#12 file failed due to invalid file contents                                                            |
-  | -105 | Retrieval/storage of a token or client certificate failed due to an invalid server URL                                     |
-  | -106 | Importing of a PKCS#12 file failed due to an incorrect or missing password                                                 |
+  | -105 | Importing of a PKCS#12 file failed due to identity already existing in Keychain                                            |
+  | -106 | Retrieval/storage of a token failed due to an invalid server URL                                                           |
+  | -107 | Retrieval/storage of a client certificate failed due to an invalid host                                                    |
+  | -108 | Importing of a PKCS#12 file failed due to an incorrect or missing password                                                 |
 
 - APIClient specific errors will be in the range -200 to -299
 
