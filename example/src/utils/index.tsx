@@ -345,21 +345,6 @@ const createSimpleWebSocketClient = async (): Promise<WebSocketClientItem | null
     return createWebSocketClient(name, url, configuration, false, false);
 };
 
-const createSecureSimpleWebSocketClient = async (): Promise<WebSocketClientItem | null> => {
-    const name = "Secure Simple WebSocket";
-    const host = Platform.OS === "ios" ? "127.0.0.1:4000" : "10.0.2.2:4000";
-    const url = `wss://${host}/api/websocket`;
-    const origin = `https://${host}`;
-    const configuration: WebSocketClientConfiguration = {
-        headers: {
-            host,
-            origin,
-        },
-    };
-
-    return createWebSocketClient(name, url, configuration, false, false);
-};
-
 export const createTestClients = async (): Promise<NetworkClientItem[]> => {
     return [
         { name: "Generic", client: GenericClient, type: ClientType.GENERIC },
@@ -374,7 +359,6 @@ export const createTestClients = async (): Promise<NetworkClientItem[]> => {
         await createRequestBinAPIClient(),
         await createMattermostWebSocketClient(),
         await createSimpleWebSocketClient(),
-        await createSecureSimpleWebSocketClient(),
     ].reduce((clients: NetworkClientItem[], client) => {
         if (client) {
             return [...clients, client];

@@ -15,7 +15,6 @@ type P12InputsProps = {
     password?: string;
     onSelectP12: (path: string) => void;
     onPasswordChange: (password?: string) => void;
-    testID?: string;
 };
 
 const P12Inputs = (props: P12InputsProps) => {
@@ -81,7 +80,7 @@ const P12Inputs = (props: P12InputsProps) => {
                             <Text
                                 numberOfLines={2}
                                 ellipsizeMode="middle"
-                                testID={`${props.testID}.path.text`}
+                                testID="p12_inputs.path.text"
                             >
                                 {props.path}
                             </Text>
@@ -97,7 +96,7 @@ const P12Inputs = (props: P12InputsProps) => {
                         value={props.password}
                         onChangeText={props.onPasswordChange}
                         autoCapitalize="none"
-                        testID={`${props.testID}.password.input`}
+                        testID="p12_inputs.password.input"
                     />
                 </View>
             ) : (
@@ -106,7 +105,7 @@ const P12Inputs = (props: P12InputsProps) => {
                         placeholder="Download URL"
                         onChangeText={setUrl}
                         autoCapitalize="none"
-                        testID={`${props.testID}.url.input`}
+                        testID="p12_inputs.url.input"
                     />
                     <ButtonGroup
                         buttons={buttons.map((button) => button.title)}

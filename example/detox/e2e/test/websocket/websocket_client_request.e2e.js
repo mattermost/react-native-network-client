@@ -7,8 +7,16 @@
 // - Use element testID when selecting an element. Create one if none.
 // *******************************************************************
 
-import { secureWebSocketServerClientCertUrl } from "@support/test_config";
-import { WebSocketClientScreen } from "@support/ui/screen";
+import {
+    clientCertPassword,
+    secureWebSocketServerClientCertUrl,
+} from "@support/test_config";
+import { ClientListItem } from "@support/ui/component";
+import {
+    ClientListScreen,
+    CreateWebSocketClientScreen,
+    WebSocketClientScreen,
+} from "@support/ui/screen";
 import { verifyWebSocketEvent } from "../helpers";
 
 describe("WebSocket Client Request", () => {
@@ -43,6 +51,13 @@ describe("WebSocket Client Request", () => {
 
     xit("should be able to connect, send message, and disconnect - secure connection", async () => {
         // Disabled due to https://mattermost.atlassian.net/browse/MM-34374
+        // # Create secure WebSocket client
+        await CreateWebSocketClientScreen.open();
+        await createSecureWebSocketClient(
+            testSecureName,
+            testSecureWebSocketUrl
+        );
+
         // # Open client
         await WebSocketClientScreen.open(testSecureName);
 
@@ -98,4 +113,32 @@ async function connectSendMessageAndDisconnect(
 
     // # Open client list screen
     await WebSocketClientScreen.back();
+}
+
+async function createSecureWebSocketClient(
+    testSecureName,
+    testSecureWebSocketUrl
+) {
+    const {
+        createClient,
+        createWebSocketClientScrollView,
+        downloadP12,
+        setName,
+        setUrl,
+        toggleOnTrustSelfSignedServerCertificateCheckbox,
+    } = CreateWebSocketClientScreen;
+
+    // # Set all fields and create client
+    await setName(testSecureName);
+    await setUrl(testSecureWebSocketUrl);
+    await downloadP12(secureWebSocketServerClientCertUrl, clientCertPassword);
+    await createWebSocketClientScrollView.scrollTo("bottom");
+    await toggleOnTrustSelfSignedServerCertificateCheckbox();
+    await createClient();
+
+    // * Verify created client
+    await ClientListScreen.clientListScrollView.scrollTo("bottom");
+    const { subtitle, title } = ClientListItem.getItemByName(testSecureName);
+    await expect(title).toHaveText(testSecureName);
+    await expect(subtitle).toHaveText(testSecureWebSocketUrl);
 }

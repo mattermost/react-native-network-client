@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import { AddHeaders } from "@support/ui/component";
+import { AddHeaders, P12Inputs } from "@support/ui/component";
 import { ClientListScreen } from "@support/ui/screen";
 import { isAndroid } from "@support/utils";
 
@@ -14,7 +14,9 @@ class CreateWebSocketClientScreen {
     };
 
     createWebSocketClientScreen = element(by.text("CreateWebSocketClient"));
-    createWebSocketClientScrollView = element(by.id(this.testID.createWebSocketClientScrollView));
+    createWebSocketClientScrollView = element(
+        by.id(this.testID.createWebSocketClientScrollView)
+    );
     nameInput = element(by.id(this.testID.nameInput));
     timeoutIntervalInput = element(by.id(this.testID.timeoutIntervalInput));
     urlInput = element(by.id(this.testID.urlInput));
@@ -38,6 +40,13 @@ class CreateWebSocketClientScreen {
     );
     clientListButton = element(by.text("ClientList")).atIndex(0);
     createButton = element(by.text("Create"));
+
+    // convenience props
+    p12PathText = P12Inputs.pathText;
+    p12PasswordInput = P12Inputs.passwordInput;
+    p12UrlInput = P12Inputs.urlInput;
+    p12DownloadButton = P12Inputs.downloadButton;
+    p12SelectButton = P12Inputs.selectButton;
 
     toBeVisible = async () => {
         await expect(this.createWebSocketClientScreen).toBeVisible();
@@ -63,6 +72,10 @@ class CreateWebSocketClientScreen {
 
     createClient = async () => {
         await this.createButton.tap();
+    };
+
+    downloadP12 = async (url, password) => {
+        await P12Inputs.downloadP12(url, password);
     };
 
     setHeaders = async (headers) => {
@@ -116,7 +129,9 @@ class CreateWebSocketClientScreen {
 
     toggleOnTrustSelfSignedServerCertificateCheckbox = async () => {
         await this.trustSelfSignedServerCertificateCheckboxFalse.tap();
-        await expect(this.trustSelfSignedServerCertificateCheckboxTrue).toBeVisible();
+        await expect(
+            this.trustSelfSignedServerCertificateCheckboxTrue
+        ).toBeVisible();
     };
 }
 

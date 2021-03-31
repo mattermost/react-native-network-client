@@ -1,7 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import { AddHeaders, RetryPolicyConfiguration } from "@support/ui/component";
+import {
+    AddHeaders,
+    P12Inputs,
+    RetryPolicyConfiguration,
+} from "@support/ui/component";
 import { ClientListScreen } from "@support/ui/screen";
 import { isAndroid } from "@support/utils";
 
@@ -70,6 +74,11 @@ class CreateApiClientScreen {
     createButton = element(by.text("Create"));
 
     // convenience props
+    p12PathText = P12Inputs.pathText;
+    p12PasswordInput = P12Inputs.passwordInput;
+    p12UrlInput = P12Inputs.urlInput;
+    p12DownloadButton = P12Inputs.downloadButton;
+    p12SelectButton = P12Inputs.selectButton;
     toggleOffExponentialRetryCheckbox =
         RetryPolicyConfiguration.toggleOffExponentialRetryCheckbox;
     toggleOnExponentialRetryCheckbox =
@@ -108,6 +117,10 @@ class CreateApiClientScreen {
 
     createClient = async () => {
         await this.createButton.tap();
+    };
+
+    downloadP12 = async (url, password) => {
+        await P12Inputs.downloadP12(url, password);
     };
 
     setBaseUrl = async (url) => {
@@ -215,7 +228,9 @@ class CreateApiClientScreen {
 
     toggleOnTrustSelfSignedServerCertificateCheckbox = async () => {
         await this.trustSelfSignedServerCertificateCheckboxFalse.tap();
-        await expect(this.trustSelfSignedServerCertificateCheckboxTrue).toBeVisible();
+        await expect(
+            this.trustSelfSignedServerCertificateCheckboxTrue
+        ).toBeVisible();
     };
 
     toggleOffWaitsForConnectivityCheckbox = async () => {

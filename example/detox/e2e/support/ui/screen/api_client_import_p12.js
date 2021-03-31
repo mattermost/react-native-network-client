@@ -1,22 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import { P12Inputs } from "@support/ui/component";
 import { isAndroid } from "@support/utils";
 
 class ApiClientImportP12Screen {
-    testID = {
-        pathText: "api_client_import_p12.p12_inputs.path.text",
-        passwordInput: "api_client_import_p12.p12_inputs.password.input",
-        urlInput: "api_client_import_p12.p12_inputs.url.input",
-    };
-
-    apiClientImportP12Screen = element(by.text("APIClientUpload"));
-    pathText = element(by.id(this.testID.pathText));
-    passwordInput = element(by.id(this.testID.passwordInput));
-    urlInput = element(by.id(this.testID.urlInput));
-    downloadButton = element(by.text("Download"));
-    selectButton = element(by.text("Select"));
+    apiClientImportP12Screen = element(by.text("APIClientImportP12"));
     importButton = element(by.text("Import"));
+
+    // convenience props
+    p12PathText = P12Inputs.pathText;
+    p12PasswordInput = P12Inputs.passwordInput;
+    p12UrlInput = P12Inputs.urlInput;
+    p12DownloadButton = P12Inputs.downloadButton;
+    p12SelectButton = P12Inputs.selectButton;
 
     toBeVisible = async () => {
         await expect(this.apiClientImportP12Screen).toBeVisible();
@@ -34,23 +31,16 @@ class ApiClientImportP12Screen {
     };
 
     importP12 = async (url, password) => {
-        await this.setUrl(url);
-        await this.downloadButton.tap();
-        await expect(this.downloadButton).not.toExist();
-        await this.setPassword(password);
+        await P12Inputs.downloadP12(url, password);
         await this.importButton.tap();
     };
 
     setPassword = async (password) => {
-        await this.passwordInput.clearText();
-        await this.passwordInput.replaceText(password);
-        await this.passwordInput.tapReturnKey();
+        await P12Inputs.setPassword(password);
     };
 
     setUrl = async (url) => {
-        await this.urlInput.clearText();
-        await this.urlInput.replaceText(url);
-        await this.urlInput.tapReturnKey();
+        await P12Inputs.setUrl(url);
     };
 }
 
