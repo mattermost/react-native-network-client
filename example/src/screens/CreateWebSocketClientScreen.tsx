@@ -37,6 +37,7 @@ export default function CreateWebSocketClientScreen({
     ] = useState<WebSocketClientConfiguration>({
         timeoutInterval: 5,
         enableCompression: false,
+        trustSelfSignedServerCertificate: false,
     });
     const [
         clientP12Configuration,
@@ -62,6 +63,13 @@ export default function CreateWebSocketClientScreen({
         setConfiguration((configuration) => ({
             ...configuration,
             enableCompression: !configuration.enableCompression,
+        }));
+    };
+
+    const toggleTrustSelfSignedServerCertificate = () => {
+        setConfiguration((configuration) => ({
+            ...configuration,
+            trustSelfSignedServerCertificate: !configuration.trustSelfSignedServerCertificate,
         }));
     };
 
@@ -155,6 +163,19 @@ export default function CreateWebSocketClientScreen({
                     title={`Enable Compression? ${configuration.enableCompression!}`}
                     checked={configuration.enableCompression!}
                     onPress={toggleEnableCompression}
+                    iconType="ionicon"
+                    checkedIcon="ios-checkmark-circle"
+                    uncheckedIcon="ios-checkmark-circle"
+                    iconRight
+                    textStyle={styles.checkboxText}
+                />
+
+                <CheckBox
+                    title={`Trust Self-Signed Server Certificate? ${configuration.trustSelfSignedServerCertificate}`}
+                    checked={
+                        configuration.trustSelfSignedServerCertificate as boolean
+                    }
+                    onPress={toggleTrustSelfSignedServerCertificate}
                     iconType="ionicon"
                     checkedIcon="ios-checkmark-circle"
                     uncheckedIcon="ios-checkmark-circle"

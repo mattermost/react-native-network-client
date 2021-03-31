@@ -6,6 +6,7 @@ type WebSocketClientConfiguration = {
     timeoutInterval?: number;
     enableCompression?: boolean;
     clientP12Configuration?: ClientP12Configuration;
+    trustSelfSignedServerCertificate?: boolean;
 };
 
 type WebSocketMessage =
