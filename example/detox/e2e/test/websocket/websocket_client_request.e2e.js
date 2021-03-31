@@ -10,6 +10,8 @@
 import {
     clientCertPassword,
     secureWebSocketServerClientCertUrl,
+    secureWebSocketServerUrl,
+    webSocketServerUrl,
 } from "@support/test_config";
 import { ClientListItem } from "@support/ui/component";
 import {
@@ -21,9 +23,9 @@ import { verifyWebSocketEvent } from "../helpers";
 
 describe("WebSocket Client Request", () => {
     const testName = "Simple WebSocket";
-    const testWebSocketUrl = "ws://127.0.0.1:3000/api/websocket";
+    const testWebSocketUrl = `${webSocketServerUrl}/api/websocket`;
     const testSecureName = "Secure Simple WebSocket";
-    const testSecureWebSocketUrl = "wss://127.0.0.1:4000/api/websocket";
+    const testSecureWebSocketUrl = `${secureWebSocketServerUrl}/api/websocket`;
     const testMessageJson = {
         id: 123,
         action: "user_typing",
@@ -49,8 +51,7 @@ describe("WebSocket Client Request", () => {
         );
     });
 
-    xit("should be able to connect, send message, and disconnect - secure connection", async () => {
-        // Disabled due to https://mattermost.atlassian.net/browse/MM-34374
+    it("should be able to connect, send message, and disconnect - secure connection", async () => {
         // # Create secure WebSocket client
         await CreateWebSocketClientScreen.open();
         await createSecureWebSocketClient(
