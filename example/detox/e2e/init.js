@@ -110,7 +110,7 @@ function launchWebSocketServer() {
 
 function launchSecureWebSocketServer() {
     const port = secureWebSocketSiteUrl.split(":")[2];
-    webSocketServer(port, { secure: true, secureServerOptions });
+    webSocketServer(port, { secure: true, serverOptions: secureServerOptions });
     console.log(
         `Secure WebSocket Server listening at ${secureWebSocketSiteUrl}`
     );
