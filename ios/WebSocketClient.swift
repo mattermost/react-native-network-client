@@ -73,7 +73,11 @@ class WebSocketClient: RCTEventEmitter, WebSocketDelegate {
             return
         }
 
-        resolve(WebSocketManager.default.createWebSocket(for: url, withOptions: options, withDelegate: self))
+        do {
+            try resolve(WebSocketManager.default.createWebSocket(for: url, withOptions: options, withDelegate: self))
+        } catch {
+            reject("\(error._code)", error.localizedDescription, error)
+        }
     }
     
     @objc(connectFor:withResolver:withRejecter:)
