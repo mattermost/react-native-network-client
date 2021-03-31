@@ -5,6 +5,7 @@ const compression = require("compression");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const express = require("express");
+const fileUpload = require("express-fileupload");
 const fs = require("fs");
 const jwt = require("jsonwebtoken");
 const jwtMiddleware = require("express-jwt");
@@ -83,8 +84,9 @@ const fileServer = (directory) => {
 
     // Create handlers
     const staticHandler = express.static(uploadPath, { index: false });
-    const uploadHandler = (req, res, next) => {
-        const filePath = `${uploadPath}/${req.params.filename}`;
+    const streamUploadHandler = (req, res, next) => {
+        const filename = req.params.filename;
+        const filePath = `${uploadPath}/${filename}`;
         req.pipe(
             fs
                 .createWriteStream(filePath)
@@ -100,11 +102,44 @@ const fileServer = (directory) => {
         );
         req.on("end", (end) => {
             console.log(`Finished! Uploaded to: ${filePath}`);
-            res.status(200).send({
-                status: "OK",
-            });
+
+            res.set("server", "file-server");
+            res.status(200).json({ file: filename });
         });
     };
+    const multipartUploadHandler = (req, res, next) => {
+        res.set("server", "file-server");
+
+        if (!req.files || Object.keys(req.files).length === 0) {
+            return res.status(400).send("No files were uploaded.");
+        }
+
+        console.log("Attempt to upload files...", Object.values(req.files));
+        const filenames = [];
+
+        try {
+            Object.values(req.files).map((file) => {
+                const filename = file.name;
+                const filePath = `${uploadPath}/${filename}`;
+                filenames.push(filename);
+                console.log(`Uploading file: ${filename}`);
+
+                // Move to file path
+                file.mv(filePath, (err) => {
+                    if (err) {
+                        console.log(err);
+                        return res.status(500).send(err);
+                    }
+                    console.log(`Finished! Uploaded to: ${filePath}`);
+                });
+            });
+        } catch (e) {
+            console.log("Error", e);
+        }
+        console.log("Finished uploading files!", filenames);
+        return res.status(200).json(filenames);
+    };
+
     const authHandler = jwtMiddleware({
         secret: AUTH_SECRET,
         algorithms: [AUTH_ALGORITHM],
@@ -137,19 +172,22 @@ const fileServer = (directory) => {
     // Create regular router
     const router = express.Router();
     router.use("/files", staticHandler);
-    router.post("/files/:filename", uploadHandler);
+    router.all("/files/stream/:filename", streamUploadHandler);
+    router.all("/files/multipart", multipartUploadHandler);
 
     // Create protected router
     const protectedRouter = express.Router();
     protectedRouter.use(authHandler);
     protectedRouter.use("/files", staticHandler);
-    protectedRouter.post("/files/:filename", uploadHandler);
+    protectedRouter.all("/files/stream/:filename", streamUploadHandler);
+    protectedRouter.all("/files/multipart", multipartUploadHandler);
 
     // Create app
     const app = express();
     app.use(compression());
     app.use(cookieParser());
     app.use(cors());
+    app.use(fileUpload());
     app.use("/api", router);
     app.use("/protected/api", protectedRouter);
     app.use(authErrorHandler);

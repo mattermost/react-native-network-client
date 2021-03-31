@@ -1,29 +1,33 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import HeaderListItem from "./header_list_item";
+import MultipartListItem from "./multipart_list_item";
 import { isAndroid } from "@support/utils";
 
-class AddHeaders {
+class AddMultipart {
     testID = {
-        addEmptyHeaderButton: "add_empty_header.button",
+        addEmptyMultipartButton: "add_empty_multipart.button",
     };
 
-    addEmptyHeaderButton = element(by.id(this.testID.addEmptyHeaderButton));
+    addEmptyMultipartButton = element(
+        by.id(this.testID.addEmptyMultipartButton)
+    );
 
-    getHeaderListItemAtIndex = (index) => {
-        return HeaderListItem.getAddHeadersItemAtIndex(index);
+    getMultipartListItemAtIndex = (index) => {
+        return MultipartListItem.getAddMultipartItemAtIndex(index);
     };
 
-    setHeader = async (index, key, value) => {
-        const { keyInput, valueInput } = this.getHeaderListItemAtIndex(index);
+    setMultipart = async (index, key, value) => {
+        const { keyInput, valueInput } = this.getMultipartListItemAtIndex(
+            index
+        );
 
-        // # Set header key
+        // # Set multipart key
         await keyInput.clearText();
         await keyInput.replaceText(key);
         await keyInput.tapReturnKey();
 
-        // # Set header value
+        // # Set multipart value
         await valueInput.clearText();
         await valueInput.replaceText(value);
         await valueInput.tapReturnKey();
@@ -38,16 +42,16 @@ class AddHeaders {
         }
     };
 
-    setHeaders = async (headers) => {
-        const entries = Object.entries(headers);
+    setMultiparts = async (multiparts) => {
+        const entries = Object.entries(multiparts);
         for (const [index, [key, value]] of Object.entries(entries)) {
-            await this.setHeader(index, key, value);
+            await this.setMultipart(index, key, value);
             if (index < entries.length - 1) {
-                await this.addEmptyHeaderButton.tap();
+                await this.addEmptyMultipartButton.tap();
             }
         }
     };
 }
 
-const addHeaders = new AddHeaders();
-export default addHeaders;
+const addMultipart = new AddMultipart();
+export default addMultipart;

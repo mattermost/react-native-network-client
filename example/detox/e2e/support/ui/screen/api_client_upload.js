@@ -6,11 +6,21 @@ import { isAndroid } from "@support/utils";
 
 class ApiClientUploadScreen {
     testID = {
+        apiClientUploadScrollView: "api_client_upload.scroll_view",
         endpointInput: "api_client_upload.endpoint.input",
     };
 
     apiClientUploadScreen = element(by.text("APIClientUpload"));
+    apiClientUploadScrollView = element(
+        by.id(this.testID.apiClientUploadScrollView)
+    );
     endpointInput = element(by.id(this.testID.endpointInput));
+    sendAsMultipartCheckboxFalse = element(
+        by.text("Send as Multi-part? [false]")
+    );
+    sendAsMultipartCheckboxTrue = element(
+        by.text("Send as Multi-part? [true]")
+    );
     attachImageButton = element(by.text("Attach Image"));
     attachTextButton = element(by.text("Attach Text"));
     cancelUploadButton = element(by.text("Cancel Upload"));
@@ -44,6 +54,20 @@ class ApiClientUploadScreen {
         await this.endpointInput.clearText();
         await this.endpointInput.replaceText(endpoint);
         await this.endpointInput.tapReturnKey();
+    };
+
+    setMultiparts = async (multiparts) => {
+        await AddMultipart.setMultiparts(multiparts);
+    };
+
+    toggleOnSendAsMultipartCheckbox = async () => {
+        await this.sendAsMultipartCheckboxFalse.tap();
+        await expect(this.sendAsMultipartCheckboxTrue).toBeVisible();
+    };
+
+    toggleOffSendAsMultipartCheckbox = async () => {
+        await this.sendAsMultipartCheckboxTrue.tap();
+        await expect(this.sendAsMultipartCheckboxFalse).toBeVisible();
     };
 }
 

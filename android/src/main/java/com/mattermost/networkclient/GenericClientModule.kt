@@ -1,9 +1,11 @@
 package com.mattermost.networkclient
 
 import com.facebook.react.bridge.*
+import com.mattermost.networkclient.helpers.bodyToRequestBody
+import com.mattermost.networkclient.helpers.parseOptions
+import com.mattermost.networkclient.helpers.promiseResolution
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import okhttp3.RequestBody.Companion.toRequestBody
 
 
 class GenericClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {

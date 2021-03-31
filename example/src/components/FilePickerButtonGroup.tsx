@@ -4,6 +4,7 @@ import { check, request, PERMISSIONS, RESULTS } from "react-native-permissions";
 import { launchImageLibrary } from "react-native-image-picker/src";
 import { ButtonGroup } from "react-native-elements";
 import { createNativeFile, sampleImage, sampleText } from "../utils";
+import { Platform } from "react-native";
 
 type FilePickerButtonGroupProps = {
     disabled: boolean;
@@ -12,6 +13,8 @@ type FilePickerButtonGroupProps = {
 
 const FilePickerButtonGroup = (props: FilePickerButtonGroupProps) => {
     const hasPhotoLibraryPermissions = async () => {
+        if (Platform.OS === "android") return true;
+
         let result = await check(PERMISSIONS.IOS.PHOTO_LIBRARY);
         if (result === RESULTS.GRANTED || result === RESULTS.LIMITED) {
             return true;
@@ -74,17 +77,19 @@ const FilePickerButtonGroup = (props: FilePickerButtonGroupProps) => {
     };
 
     const buttons = [
-        { title: "Select Image", onPress: pickImage },
-        { title: "Select File", onPress: pickFile },
-        { title: "Attach Image", onPress: attachSampleImage },
-        { title: "Attach Text", onPress: attachSampleText },
+        { title: "Select Image", onPress: pickImage, android: true },
+        { title: "Select File", onPress: pickFile, android: true },
+        { title: "Attach Image", onPress: attachSampleImage, android: false },
+        { title: "Attach Text", onPress: attachSampleText, android: false },
     ];
 
     const onButtonPress = (index: number) => buttons[index].onPress();
 
     return (
         <ButtonGroup
-            buttons={buttons.map((button) => button.title)}
+            buttons={buttons
+                .filter((b) => (Platform.OS === "android" ? b.android : true))
+                .map((button) => button.title)}
             onPress={onButtonPress}
             disabled={props.disabled}
         />

@@ -4,6 +4,7 @@ import com.facebook.react.bridge.*
 import com.mattermost.networkclient.enums.WebSocketEvents
 import com.mattermost.networkclient.enums.WebSocketReadyState
 import com.mattermost.networkclient.events.WebSocketEvent
+import com.mattermost.networkclient.helpers.parseOptions
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.WebSocket
@@ -34,6 +35,19 @@ class WebSocketClientModule(private val reactContext: ReactApplicationContext) :
         } catch (err: Throwable) {
             promise.reject(err)
         }
+    }
+
+    @ReactMethod
+    fun invalidateClientFor(url: String, promise: Promise) {
+        // Close the connection
+        sockets[url]?.close(1000, null)
+
+        // Remove
+        sockets.remove(url);
+        clients.remove(url);
+        requests.remove(url);
+
+        promise.resolve(null)
     }
 
     @ReactMethod

@@ -13,10 +13,10 @@ class RetryPolicyConfiguration {
             "retry_policy_configuration.exponential_backoff_scale.input",
     };
 
-    exponentialRetryCheckboxFalse = element(by.text("Exponential false"));
-    exponentialRetryCheckboxTrue = element(by.text("Exponential true"));
-    linearRetryCheckboxFalse = element(by.text("Linear false"));
-    linearRetryCheckboxTrue = element(by.text("Linear true"));
+    exponentialRetryCheckboxFalse = element(by.text("Exponential [false]"));
+    exponentialRetryCheckboxTrue = element(by.text("Exponential [true]"));
+    linearRetryCheckboxFalse = element(by.text("Linear [false]"));
+    linearRetryCheckboxTrue = element(by.text("Linear [true]"));
     retryIntervalInput = element(by.id(this.testID.retryIntervalInput));
     retryLimitInput = element(by.id(this.testID.retryLimitInput));
     exponentialBackoffBaseInput = element(

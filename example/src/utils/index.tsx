@@ -200,8 +200,8 @@ const createRequestBinAPIClient = async (): Promise<APIClientItem | null> => {
     const name = "RequestBin API";
     const baseUrl =
         Platform.OS === "ios"
-            ? "http://127.0.0.1:8000/14dkaof1"
-            : "http://10.0.2.2:8000/14dkaof1";
+            ? "http://127.0.0.1:8000/"
+            : "http://10.0.2.2:8000/";
     const headers = {
         "header-1-key": "header-1-value",
         "header-2-key": "header-2-value",

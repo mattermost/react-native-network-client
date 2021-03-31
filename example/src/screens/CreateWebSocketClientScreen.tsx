@@ -149,7 +149,7 @@ export default function CreateWebSocketClientScreen({
                 />
 
                 <CheckBox
-                    title={`Alert on client error? ${alertOnClientError}`}
+                    title={`Alert on client error? [${alertOnClientError}]`}
                     checked={alertOnClientError}
                     onPress={toggleAlertOnClientError}
                     iconType="ionicon"
@@ -160,7 +160,7 @@ export default function CreateWebSocketClientScreen({
                 />
 
                 <CheckBox
-                    title={`Enable Compression? ${configuration.enableCompression!}`}
+                    title={`Enable Compression? [${configuration.enableCompression!}]`}
                     checked={configuration.enableCompression!}
                     onPress={toggleEnableCompression}
                     iconType="ionicon"
@@ -171,7 +171,7 @@ export default function CreateWebSocketClientScreen({
                 />
 
                 <CheckBox
-                    title={`Trust Self-Signed Server Certificate? ${configuration.trustSelfSignedServerCertificate}`}
+                    title={`Trust Self-Signed Server Certificate? [${configuration.trustSelfSignedServerCertificate}]`}
                     checked={
                         configuration.trustSelfSignedServerCertificate as boolean
                     }

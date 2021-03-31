@@ -84,7 +84,7 @@ export default function CreateAPIClientScreen({
             requestAdapterConfiguration,
         };
 
-        if (clientP12Configuration.path) {
+        if (clientP12Configuration.path && clientP12Configuration.path !== "") {
             options["clientP12Configuration"] = clientP12Configuration;
         }
 
@@ -190,7 +190,7 @@ export default function CreateAPIClientScreen({
                 />
 
                 <CheckBox
-                    title={`Alert on client error? ${alertOnClientError}`}
+                    title={`Alert on client error? [${alertOnClientError}]`}
                     checked={alertOnClientError}
                     onPress={toggleAlertOnClientError}
                     iconType="ionicon"
@@ -201,7 +201,7 @@ export default function CreateAPIClientScreen({
                 />
 
                 <CheckBox
-                    title={`Follow Redirects? ${sessionConfiguration.followRedirects}`}
+                    title={`Follow Redirects? [${sessionConfiguration.followRedirects}]`}
                     checked={sessionConfiguration.followRedirects as boolean}
                     onPress={toggleFollowRedirects}
                     iconType="ionicon"
@@ -212,7 +212,7 @@ export default function CreateAPIClientScreen({
                 />
 
                 <CheckBox
-                    title={`Allow Cellular Access? ${sessionConfiguration.allowsCellularAccess}`}
+                    title={`Allow Cellular Access? [${sessionConfiguration.allowsCellularAccess}]`}
                     checked={
                         sessionConfiguration.allowsCellularAccess as boolean
                     }
@@ -225,7 +225,7 @@ export default function CreateAPIClientScreen({
                 />
 
                 <CheckBox
-                    title={`Waits For Connectivity? ${sessionConfiguration.waitsForConnectivity}`}
+                    title={`Waits For Connectivity? [${sessionConfiguration.waitsForConnectivity}]`}
                     checked={
                         sessionConfiguration.waitsForConnectivity as boolean
                     }
@@ -238,7 +238,7 @@ export default function CreateAPIClientScreen({
                 />
 
                 <CheckBox
-                    title={`Cancel Requests On 401? ${sessionConfiguration.cancelRequestsOnUnauthorized}`}
+                    title={`Cancel Requests On 401? [${sessionConfiguration.cancelRequestsOnUnauthorized}]`}
                     checked={
                         sessionConfiguration.cancelRequestsOnUnauthorized as boolean
                     }
@@ -251,7 +251,7 @@ export default function CreateAPIClientScreen({
                 />
 
                 <CheckBox
-                    title={`Trust Self-Signed Server Certificate? ${sessionConfiguration.trustSelfSignedServerCertificate}`}
+                    title={`Trust Self-Signed Server Certificate? [${sessionConfiguration.trustSelfSignedServerCertificate}]`}
                     checked={
                         sessionConfiguration.trustSelfSignedServerCertificate as boolean
                     }
