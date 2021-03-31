@@ -41,7 +41,7 @@ describe("WebSocket Client Request", () => {
         );
     });
 
-    xt("should be able to connect, send message, and disconnect - secure connection", async () => { // Disabled due to https://mattermost.atlassian.net/browse/MM-34374
+    xit("should be able to connect, send message, and disconnect - secure connection", async () => { // Disabled due to https://mattermost.atlassian.net/browse/MM-34374
         // # Open client
         await WebSocketClientScreen.open(testSecureName);
 
