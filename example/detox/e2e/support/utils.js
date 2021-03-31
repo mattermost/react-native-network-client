@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {v4 as uuidv4} from 'uuid';
+import { v4 as uuidv4 } from "uuid";
 
 /**
  * Explicit `wait` should not normally used but made available for special cases.
@@ -17,7 +17,7 @@ export const wait = async (ms) => {
  * @return {boolean} true if android
  */
 export const isAndroid = () => {
-    return device.getPlatform() === 'android';
+    return device.getPlatform() === "android";
 };
 
 /**
@@ -25,7 +25,7 @@ export const isAndroid = () => {
  * @return {boolean} true if ios
  */
 export const isIos = () => {
-    return device.getPlatform() === 'ios';
+    return device.getPlatform() === "ios";
 };
 
 /**
@@ -36,7 +36,9 @@ export const isIos = () => {
 export const getRandomId = (length = 6) => {
     const MAX_SUBSTRING_INDEX = 27;
 
-    return uuidv4().replace(/-/g, '').substring(MAX_SUBSTRING_INDEX - length, MAX_SUBSTRING_INDEX);
+    return uuidv4()
+        .replace(/-/g, "")
+        .substring(MAX_SUBSTRING_INDEX - length, MAX_SUBSTRING_INDEX);
 };
 
 /**

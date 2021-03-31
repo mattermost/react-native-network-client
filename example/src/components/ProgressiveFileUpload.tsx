@@ -53,8 +53,32 @@ const ProgressiveFileUpload = (props: ProgressiveFileUploadProps) => {
     return (
         <>
             <FileComponent />
-            <Text style={{ alignSelf: "center" }} testID="progress_file_upload.filename">{file!.name}</Text>
-            <Text style={{ alignSelf: "center" }} testID="progress_file_upload.file_uri">{file!.uri}</Text>
+            <Text style={{ fontWeight: "bold", paddingHorizontal: 10 }}>
+                File Name:
+            </Text>
+            <Text
+                style={{
+                    alignSelf: "center",
+                    paddingHorizontal: 10,
+                    paddingBottom: 10,
+                }}
+                testID="progress_file_upload.filename"
+            >
+                {file!.name}
+            </Text>
+            <Text style={{ fontWeight: "bold", paddingHorizontal: 10 }}>
+                File URI:
+            </Text>
+            <Text
+                style={{
+                    alignSelf: "center",
+                    paddingHorizontal: 10,
+                    paddingBottom: 10,
+                }}
+                testID="progress_file_upload.file_uri"
+            >
+                {file!.uri}
+            </Text>
             <ProgressBar
                 progress={props.progress}
                 width={200}

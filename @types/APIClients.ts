@@ -25,7 +25,7 @@ type MultipartUploadConfig = {
 
 type UploadRequestOptions = RequestOptions & {
     skipBytes?: number;
-    method?: "POST" | "PUT" | "PATCH";
+    method?: string;
     multipart?: MultipartUploadConfig;
 };
 

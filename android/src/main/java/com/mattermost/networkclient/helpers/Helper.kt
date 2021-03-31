@@ -1,13 +1,13 @@
-package com.mattermost.networkclient
+package com.mattermost.networkclient.helpers
 
 import com.facebook.react.bridge.*
+import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter
 import okhttp3.*
 import java.util.concurrent.TimeUnit
 import com.mattermost.networkclient.interceptors.*
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
-
 
 /**
  * Parses the response data into the format expected by the App
@@ -46,7 +46,11 @@ fun Response.promiseResolution(promise: Promise): Response {
  *
  * @param options ReadableMap of options from the App
  */
-fun Request.Builder.parseOptions(options: ReadableMap, session: OkHttpClient.Builder): Request.Builder {
+fun Request.Builder.parseOptions(options: ReadableMap?, session: OkHttpClient.Builder): Request.Builder {
+    // Need to always close the connection once finished
+    this.header("Connection", "close")
+
+    if (options == null) return this;
 
     // Timeout Interval per request
     if (options.hasKey("timeoutInterval")) {
@@ -55,11 +59,8 @@ fun Request.Builder.parseOptions(options: ReadableMap, session: OkHttpClient.Bui
 
     // Headers
     if (options.hasKey("headers")) {
-        this.addReadableMap(options.getMap("headers")!!)
+        this.addHeadersAsReadableMap(options.getMap("headers")!!)
     }
-
-    // Need to always close the connection once finished
-    this.header("Connection", "close")
 
     return this;
 }
@@ -69,7 +70,9 @@ fun Request.Builder.parseOptions(options: ReadableMap, session: OkHttpClient.Bui
  *
  * @params options ReadableMap of options from the App
  */
-fun OkHttpClient.Builder.parseOptions(options: ReadableMap, request: Request.Builder?): OkHttpClient.Builder {
+fun OkHttpClient.Builder.parseOptions(options: ReadableMap?, request: Request.Builder?): OkHttpClient.Builder {
+    if (options == null) return this;
+
     // Following Redirects
     if (options.hasKey("followRedirects")) {
         val followRedirects = options.getBoolean("followRedirects")
@@ -91,7 +94,7 @@ fun OkHttpClient.Builder.parseOptions(options: ReadableMap, request: Request.Bui
 
     // Headers
     if (options.hasKey("headers")) {
-        request?.addReadableMap(options.getMap("headers")!!)
+        request?.addHeadersAsReadableMap(options.getMap("headers")!!)
     }
 
     // Session Configuration
@@ -105,12 +108,15 @@ fun OkHttpClient.Builder.parseOptions(options: ReadableMap, request: Request.Bui
         }
 
         if (sessionConfig.hasKey("timeoutIntervalForRequest")) {
+            this.callTimeout(sessionConfig.getInt("timeoutIntervalForRequest").toLong(), TimeUnit.SECONDS)
             this.connectTimeout(sessionConfig.getInt("timeoutIntervalForRequest").toLong(), TimeUnit.SECONDS)
             this.readTimeout(sessionConfig.getInt("timeoutIntervalForRequest").toLong(), TimeUnit.SECONDS)
         }
 
         if (sessionConfig.hasKey("timeoutIntervalForResource")) {
             this.callTimeout(sessionConfig.getInt("timeoutIntervalForResource").toLong(), TimeUnit.SECONDS)
+            this.connectTimeout(sessionConfig.getInt("timeoutIntervalForResource").toLong(), TimeUnit.SECONDS)
+            this.writeTimeout(sessionConfig.getInt("timeoutIntervalForResource").toLong(), TimeUnit.SECONDS)
         }
 
         if (sessionConfig.hasKey("httpMaximumConnectionsPerHost")) {
@@ -153,7 +159,7 @@ fun Headers.readableMap(): ReadableMap {
  *
  * @options headers ReadableMap
  */
-fun Request.Builder.addReadableMap(headers: ReadableMap): Request.Builder {
+fun Request.Builder.addHeadersAsReadableMap(headers: ReadableMap): Request.Builder {
     for ((k, v) in headers.toHashMap()) {
         this.removeHeader(k);
         this.addHeader(k, v as String);
@@ -182,6 +188,17 @@ fun ReadableMap.bodyToRequestBody(): RequestBody {
  * @param endpoint
  * @return url string
  */
-fun formUrlString(baseUrl: String, endpoint: String): String{
+fun formUrlString(baseUrl: String, endpoint: String): String {
     return baseUrl.toHttpUrlOrNull()!!.newBuilder().addPathSegments(endpoint.trim { c -> c == '/' }).build().toString()
+}
+
+/**
+ * Emit an event to the JS Application
+ *
+ * @param reactContext
+ * @param eventName
+ * @param params
+ */
+fun emitEvent(reactContext: ReactContext, eventName: String, params: Any) {
+    reactContext.getJSModule(RCTDeviceEventEmitter::class.java).emit(eventName, params)
 }

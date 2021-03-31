@@ -8,13 +8,13 @@ const getBody = () => {
     }
 
     return {
-        "request" : {
-            "url" : request.url,
-            "method" : request.method,
-            "headers" : request.headers,
-            "body" : requestBody,
-        }
-    }
+        request: {
+            url: request.url,
+            method: request.method,
+            headers: request.headers,
+            body: requestBody,
+        },
+    };
 };
 
 module.exports = getBody();

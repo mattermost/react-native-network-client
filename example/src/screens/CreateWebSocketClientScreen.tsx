@@ -97,11 +97,16 @@ export default function CreateWebSocketClientScreen({
     return (
         <SafeAreaView>
             <ScrollView>
-                <Input label="Name" onChangeText={setName} />
+                <Input
+                    label="Name"
+                    onChangeText={setName}
+                    testID="create_websocket_client.name.input"
+                />
                 <Input
                     label="URL"
                     onChangeText={setUrl}
                     autoCapitalize="none"
+                    testID="create_websocket_client.url.input"
                 />
 
                 <AddHeaders onHeadersChanged={setHeaders} />
@@ -119,10 +124,11 @@ export default function CreateWebSocketClientScreen({
                     value={configuration.timeoutInterval}
                     onChange={setTimeoutInterval}
                     minValue={0}
+                    testID="create_websocket_client.timeout_interval.input"
                 />
 
                 <CheckBox
-                    title={`Enable Compression? ${configuration.enableCompression!}`}
+                    title={`Enable Compression? [${configuration.enableCompression!}]`}
                     checked={configuration.enableCompression!}
                     onPress={toggleEnableCompression}
                     iconType="ionicon"
