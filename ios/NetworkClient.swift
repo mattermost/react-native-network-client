@@ -67,8 +67,13 @@ extension NetworkClient {
             
             switch (json.result) {
             case .success:
+                var ok = false
+                if let statusCode = json.response?.statusCode {
+                    ok = (200 ... 299).contains(statusCode)
+                }
+
                 resolve([
-                    "ok": true,
+                    "ok": ok,
                     "headers": json.response?.allHeaderFields,
                     "data": json.value,
                     "code": json.response?.statusCode,
