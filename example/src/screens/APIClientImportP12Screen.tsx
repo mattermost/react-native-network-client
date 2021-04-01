@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from "react";
-import { SafeAreaView, StyleSheet } from "react-native";
+import React, { useState } from "react";
+import { SafeAreaView, StyleSheet, Text } from "react-native";
 import { Button } from "react-native-elements";
 
 import P12Inputs from "../components/P12Inputs";
@@ -26,9 +26,18 @@ const APIClientImportP12Screen = ({
         setClientP12Password,
     ] = useClientP12Configuration();
 
+    const [error, setError] = useState<ClientResponseError>();
+
     const importClientP12 = () => {
         const { path, password } = clientP12Configuration;
-        client.importClientP12(path, password);
+        try {
+            client.importClientP12(path, password);
+        } catch (e) {
+            setError(e);
+            return;
+        }
+
+        setError(undefined);
         navigation.goBack();
     };
 
@@ -41,6 +50,9 @@ const APIClientImportP12Screen = ({
                 onSelectP12={setClientP12Path}
                 onPasswordChange={setClientP12Password}
             />
+            {error && (
+                <Text>{`Error\nCode: ${error.code}\nMessage: ${error.message}`}</Text>
+            )}
             <Button
                 title="Import"
                 onPress={importClientP12}
