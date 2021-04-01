@@ -38,6 +38,19 @@ class WebSocketClientModule(private val reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
+    fun invalidateClientFor(url: String, promise: Promise) {
+        // Close the connection
+        sockets[url]?.close(1000, null)
+
+        // Remove
+        sockets.remove(url);
+        clients.remove(url);
+        requests.remove(url);
+
+        promise.resolve(null)
+    }
+
+    @ReactMethod
     fun connectFor(url: String, promise: Promise) {
         try {
             sockets[url] = clients[url]!!.build().newWebSocket(requests[url]!!.build(), WebSocketEvent(reactContext, url))
