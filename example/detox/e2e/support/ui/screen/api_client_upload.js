@@ -11,6 +11,7 @@ class ApiClientUploadScreen {
     };
 
     apiClientUploadScreen = element(by.text("APIClientUpload"));
+    apiClientButton = element(by.text("APIClient")).atIndex(0);
     apiClientUploadScrollView = element(
         by.id(this.testID.apiClientUploadScrollView)
     );

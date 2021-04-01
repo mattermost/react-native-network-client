@@ -6,6 +6,7 @@ import { isAndroid } from "@support/utils";
 
 class ApiClientImportP12Screen {
     apiClientImportP12Screen = element(by.text("APIClientImportP12"));
+    apiClientButton = element(by.text("APIClient")).atIndex(0);
     importButton = element(by.text("Import"));
 
     // convenience props
@@ -33,6 +34,7 @@ class ApiClientImportP12Screen {
     importP12 = async (url, password) => {
         await P12Inputs.downloadP12(url, password);
         await this.importButton.tap();
+        await this.back();
     };
 
     setPassword = async (password) => {

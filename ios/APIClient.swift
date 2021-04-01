@@ -213,7 +213,7 @@ class APIClient: RCTEventEmitter, NetworkClient {
         do {
             try resolve(Keychain.importClientP12(withPath: path, withPassword: password, forHost: session.baseUrl.host!))
         } catch {
-            self.sendErrorEvent(for: session.baseUrl.absoluteString, withErrorCode: error._code, withErrorDescription: error.localizedDescription)
+            reject("\(error._code)", error.localizedDescription, error)
         }
     }
     

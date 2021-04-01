@@ -16,10 +16,10 @@ class ApiClientRequestScreen {
     };
 
     apiClientRequestScreen = element(by.text("APIClientRequest"));
+    apiClientButton = element(by.text("APIClient")).atIndex(0);
     bodyInput = element(by.id(this.testID.bodyInput));
     pathInput = element(by.id(this.testID.pathInput));
     timeoutIntervalInput = element(by.id(this.testID.timeoutIntervalInput));
-    apiClientButton = element(by.text("APIClient")).atIndex(0);
     requestButton = element(by.text("Request"));
 
     // convenience props
