@@ -12,10 +12,7 @@ const styles = StyleSheet.create({
     importButton: { padding: 10 },
 });
 
-const APIClientImportP12Screen = ({
-    route,
-    navigation,
-}: APIClientImportP12ScreenProps) => {
+const APIClientImportP12Screen = ({ route }: APIClientImportP12ScreenProps) => {
     const {
         item: { client },
     } = route.params;
@@ -30,15 +27,13 @@ const APIClientImportP12Screen = ({
 
     const importClientP12 = async () => {
         const { path, password } = clientP12Configuration;
+        setError(undefined);
+
         try {
             await client.importClientP12(path, password);
         } catch (e) {
             setError(e);
-            return;
         }
-
-        setError(undefined);
-        navigation.goBack();
     };
 
     return (
