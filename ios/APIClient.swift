@@ -268,14 +268,14 @@ class APIClient: RCTEventEmitter, NetworkClient {
             rejectFileSize(for: fileUrl, withRejecter: reject)
             return
         }
-
+        
         if let _ = options["multipart"].dictionary {
             self.multipartUpload(fileUrl, to: url, forSession: session, withFileSize: fileSize, withTaskId: taskId, withOptions: options, withResolver: resolve, withRejecter: reject)
         } else {
             self.streamUpload(fileUrl, to: url, forSession: session, withFileSize: fileSize, withTaskId: taskId, withOptions: options, withResolver: resolve, withRejecter: reject)
         }
     }
-
+    
     func multipartUpload(_ fileUrl: URL, to url: URL, forSession session: Session, withFileSize fileSize: Double, withTaskId taskId: String, withOptions options: JSON, withResolver resolve: @escaping RCTPromiseResolveBlock, withRejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
         let headers = getHTTPHeaders(from: options)
         let interceptor = getInterceptor(from: options)
@@ -348,7 +348,7 @@ class APIClient: RCTEventEmitter, NetworkClient {
 
         self.requestsTable.setObject(request, forKey: taskId as NSString)
     }
-
+    
     func streamUpload(_ fileUrl: URL, to url: URL, forSession session: Session, withFileSize fileSize: Double, withTaskId taskId: String, withOptions options: JSON, withResolver resolve: @escaping RCTPromiseResolveBlock, withRejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
         let headers = getHTTPHeaders(from: options)
         let interceptor = getInterceptor(from: options)
