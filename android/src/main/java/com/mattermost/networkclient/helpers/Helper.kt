@@ -71,8 +71,8 @@ fun Request.Builder.parseOptions(options: ReadableMap?, session: OkHttpClient.Bu
                 Pair("retryType", retryPolicyConfiguration["type"] as String?),
                 Pair("retryLimit", retryPolicyConfiguration["retryLimit"] as Double?),
                 Pair("retryInterval", retryPolicyConfiguration["retryInterval"] as Double?),
-                Pair("retryExponentialBackoffBase", retryPolicyConfiguration["retryExponentialBackoffBase"] as Double?),
-                Pair("retryExponentialBackoffScale", retryPolicyConfiguration["retryExponentialBackoffScale"] as Double?),
+                Pair("retryExponentialBackoffBase", retryPolicyConfiguration["exponentialBackoffBase"] as Double?),
+                Pair("retryExponentialBackoffScale", retryPolicyConfiguration["exponentialBackoffScale"] as Double?),
         )
 
         session.addInterceptor(RetryInterceptor())
@@ -105,8 +105,8 @@ fun OkHttpClient.Builder.parseOptions(options: ReadableMap?, request: Request.Bu
                 Pair("retryType", retryPolicyConfiguration["type"] as String?),
                 Pair("retryLimit", retryPolicyConfiguration["retryLimit"] as Double?),
                 Pair("retryInterval", retryPolicyConfiguration["retryInterval"] as Double?),
-                Pair("retryExponentialBackoffBase", retryPolicyConfiguration["retryExponentialBackoffBase"] as Double?),
-                Pair("retryExponentialBackoffScale", retryPolicyConfiguration["retryExponentialBackoffScale"] as Double?),
+                Pair("retryExponentialBackoffBase", retryPolicyConfiguration["exponentialBackoffBase"] as Double?),
+                Pair("retryExponentialBackoffScale", retryPolicyConfiguration["exponentialBackoffScale"] as Double?),
         )
 
         this.addInterceptor(RetryInterceptor())
@@ -210,6 +210,13 @@ fun ReadableMap.bodyToRequestBody(): RequestBody {
  */
 fun formUrlString(baseUrl: String, endpoint: String): String {
     return baseUrl.toHttpUrlOrNull()!!.newBuilder().addPathSegments(endpoint.trim { c -> c == '/' }).build().toString()
+}
+
+/**
+ *
+ */
+fun String.trimSlashes(): String {
+    return this.trim { c -> c == '/' }
 }
 
 /**

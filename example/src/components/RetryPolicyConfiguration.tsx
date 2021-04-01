@@ -27,11 +27,7 @@ const RetryPolicyConfiguration = (props: RetryPolicyConfigurationProps) => {
     const onExponentialPress = () =>
         onCheckBoxPress(Constants.RETRY_TYPES.EXPONENTIAL_RETRY);
     const onCheckBoxPress = (policyType: RetryTypes) => {
-        if (policyType === props.policyType) {
-            props.onTypeSelected(undefined);
-        } else {
-            props.onTypeSelected(policyType);
-        }
+        props.onTypeSelected(policyType);
     };
     const linearRetryChecked =
         props.policyType === Constants.RETRY_TYPES.LINEAR_RETRY;

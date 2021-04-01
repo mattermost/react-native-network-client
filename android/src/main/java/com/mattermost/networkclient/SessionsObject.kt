@@ -12,9 +12,9 @@ object SessionsObject {
 
     // Default Retry Config
     val defaultRetry = mutableMapOf<String, Any>(
-            Pair("retryType", "exponential"),
-            Pair("retryLimit", 10),
-            Pair("retryInterval", 2.0),
+            Pair("retryType", "linear"),
+            Pair("retryLimit", 5.0),
+            Pair("retryInterval", 500.0),
             Pair("exponentialBackOffBase", 2.0),
             Pair("exponentialBackOffScale", 0.5)
     )
