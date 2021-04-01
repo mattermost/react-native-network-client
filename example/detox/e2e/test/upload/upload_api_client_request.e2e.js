@@ -19,20 +19,25 @@ import {
     ApiClientUploadScreen,
 } from "@support/ui/screen";
 import { isAndroid } from "@support/utils";
-import { verifyApiClient } from "../helpers";
+import { verifyApiClient, verifyResponseSuccessOverlay } from "../helpers";
 
 describe("Upload - API Client Request", () => {
     const {
         setEndpoint,
         toggleOnSendAsMultipartCheckbox,
     } = ApiClientUploadScreen;
-    const testBaseUrl = fileUploadServerUrl;
-    const testName = "File Upload Server API";
-    const testSecureBaseUrl = secureFileUploadServerUrl;
-    const testSecureName = "Secure File Upload Server API";
     const testImageFilename = "sample-image.jpg";
     const testStreamEndpoint = `/api/files/stream/${testImageFilename}`;
     const testMultipartEndpoint = `/api/files/multipart`;
+    const testBaseUrl = fileUploadServerUrl;
+    const testStreamUrl = `${testBaseUrl}${testStreamEndpoint}`;
+    const testMultipartUrl = `${testBaseUrl}${testMultipartEndpoint}`;
+    const testName = "File Upload Server API";
+    const testSecureBaseUrl = secureFileUploadServerUrl;
+    const testSecureStreamUrl = `${testSecureBaseUrl}${testStreamEndpoint}`;
+    const testSecureMultipartUrl = `${testSecureBaseUrl}${testMultipartEndpoint}`;
+    const testSecureName = "Secure File Upload Server API";
+    const testStatus = 200;
 
     beforeEach(async () => {
         await device.reloadReactNative();
@@ -53,7 +58,12 @@ describe("Upload - API Client Request", () => {
         await setEndpoint(testStreamEndpoint);
 
         // # Upload file and verify
-        await uploadFileAndVerify(testImageFilename);
+        await uploadFileAndVerify(
+            testImageFilename,
+            testStreamUrl,
+            testStatus,
+            { secure: false }
+        );
     });
 
     it("should be able to stream upload selected file - secure connection", async () => {
@@ -76,11 +86,15 @@ describe("Upload - API Client Request", () => {
         await setEndpoint(testStreamEndpoint);
 
         // # Upload file and verify
-        await uploadFileAndVerify(testImageFilename);
+        await uploadFileAndVerify(
+            testImageFilename,
+            testSecureStreamUrl,
+            testStatus,
+            { secure: true }
+        );
     });
 
-    xit("should be able to multipart upload selected file", async () => {
-        // Disabled due to https://mattermost.atlassian.net/browse/MM-34218
+    it("should be able to multipart upload selected file", async () => {
         // # Do not run against Android due to file attachment limitation
         if (isAndroid()) {
             return;
@@ -96,11 +110,15 @@ describe("Upload - API Client Request", () => {
         await toggleOnSendAsMultipartCheckbox();
 
         // # Upload file and verify
-        await uploadFileAndVerify(testImageFilename);
+        await uploadFileAndVerify(
+            testImageFilename,
+            testMultipartUrl,
+            testStatus,
+            { secure: false }
+        );
     });
 
-    xit("should be able to multipart upload selected file - secure connection", async () => {
-        // Disabled due to https://mattermost.atlassian.net/browse/MM-34218
+    it("should be able to multipart upload selected file - secure connection", async () => {
         // # Do not run against Android due to file attachment limitation
         if (isAndroid()) {
             return;
@@ -121,11 +139,21 @@ describe("Upload - API Client Request", () => {
         await toggleOnSendAsMultipartCheckbox();
 
         // # Upload file and verify
-        await uploadFileAndVerify(testImageFilename);
+        await uploadFileAndVerify(
+            testImageFilename,
+            testSecureMultipartUrl,
+            testStatus,
+            { secure: true }
+        );
     });
 });
 
-async function uploadFileAndVerify(testImageFilename) {
+async function uploadFileAndVerify(
+    testImageFilename,
+    testServerUrl,
+    testStatus,
+    { secure = false, server = "file-server" }
+) {
     const {
         apiClientUploadScrollView,
         attachImageButton,
@@ -133,7 +161,6 @@ async function uploadFileAndVerify(testImageFilename) {
         filename,
         fileUri,
         progressBar,
-        resetButton,
         uploadFileButton,
     } = ApiClientUploadScreen;
 
@@ -150,11 +177,14 @@ async function uploadFileAndVerify(testImageFilename) {
     // # Upload file
     await uploadFileButton.tap();
 
-    // * Verify uploaded
-    await ApiClientUploadScreen.toBeVisible();
-    await expect(uploadFileButton).not.toBeVisible();
-    await expect(fileComponent).not.toBeVisible();
-    await expect(filename).not.toBeVisible();
-    await expect(progressBar).not.toBeVisible();
-    await expect(resetButton).not.toBeVisible();
+    // * Verify response success overlay
+    await verifyResponseSuccessOverlay(
+        testServerUrl,
+        testStatus,
+        null,
+        null,
+        null,
+        null,
+        { secure, server }
+    );
 }

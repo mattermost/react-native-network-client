@@ -171,7 +171,7 @@ export const verifyResponseSuccessOverlay = async (
     testMethod,
     testHeaders,
     testBody = null,
-    { secure = false } = {}
+    { secure = false, server = "mockserver" } = {}
 ) => {
     const {
         responseCodeText,
@@ -196,22 +196,28 @@ export const verifyResponseSuccessOverlay = async (
         // * Verify response headers contain server header
         const responseHeadersTextAttributes = await responseHeadersText.getAttributes();
         const responseHeaders = JSON.parse(responseHeadersTextAttributes.text);
-        jestExpect(responseHeaders["Server"]).toBe("mockserver");
+        jestExpect(responseHeaders["Server"]).toBe(server);
 
         // * Verify response body contains request host and request method
         const responseDataTextAttributes = await responseDataText.getAttributes();
         const responseDataRequest = JSON.parse(responseDataTextAttributes.text)
             .request;
-        jestExpect(responseDataRequest.headers["host"]).toBe(testHost);
-        jestExpect(responseDataRequest.method).toBe(testMethod);
-
-        // * Verify response body contains request headers
-        for (const [k, v] of Object.entries(testHeaders)) {
-            jestExpect(responseDataRequest.headers[k]).toBe(v);
+        if (testHost) {
+            jestExpect(responseDataRequest.headers["host"]).toBe(testHost);
+        }
+        if (testMethod) {
+            jestExpect(responseDataRequest.method).toBe(testMethod);
         }
 
+        // * Verify response body contains request headers
+        if (testHeaders) {
+            for (const [k, v] of Object.entries(testHeaders)) {
+                jestExpect(responseDataRequest.headers[k]).toBe(v);
+            }
+        }
+
+        // * Verify response body contains request body
         if (testBody) {
-            // * Verify response body contains request body
             jestExpect(Object.keys(responseDataRequest.body)).toHaveLength(
                 Object.keys(testBody).length
             );

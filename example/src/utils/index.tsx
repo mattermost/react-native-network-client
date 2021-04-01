@@ -166,6 +166,8 @@ const createFastImageServerAPIClient = async (): Promise<APIClientItem | null> =
             ? "http://127.0.0.1:8009"
             : "http://10.0.2.2:8009";
     const headers = {
+        "header-1-key": "header-1-value",
+        "header-2-key": "header-2-value",
         Authorization:
             "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEyMyIsImlhdCI6MTYxNTI0MDUwNn0.-FLR4NUPTuBGLXd082MvNmJemoqfLqQi8-sJhCCaNf0",
     };
@@ -181,6 +183,8 @@ const createSecureFastImageServerAPIClient = async (): Promise<APIClientItem | n
             ? "https://127.0.0.1:9009"
             : "https://10.0.2.2:9009";
     const headers = {
+        "header-1-key": "header-1-value",
+        "header-2-key": "header-2-value",
         Authorization:
             "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEyMyIsImlhdCI6MTYxNTI0MDUwNn0.-FLR4NUPTuBGLXd082MvNmJemoqfLqQi8-sJhCCaNf0",
     };
@@ -198,7 +202,11 @@ const createFileUploadServerAPIClient = async (): Promise<APIClientItem | null> 
         Platform.OS === "ios"
             ? "http://127.0.0.1:8008"
             : "http://10.0.2.2:8008";
-    const configuration = buildDefaultApiClientConfiguration();
+    const headers = {
+        "header-1-key": "header-1-value",
+        "header-2-key": "header-2-value",
+    };
+    const configuration = buildDefaultApiClientConfiguration(headers);
 
     return createAPIClient(name, baseUrl, configuration, false, false);
 };
@@ -209,7 +217,11 @@ const createSecureFileUploadServerAPIClient = async (): Promise<APIClientItem | 
         Platform.OS === "ios"
             ? "https://127.0.0.1:9008"
             : "https://10.0.2.2:9008";
-    const configuration = buildDefaultApiClientConfiguration();
+    const headers = {
+        "header-1-key": "header-1-value",
+        "header-2-key": "header-2-value",
+    };
+    const configuration = buildDefaultApiClientConfiguration(headers);
     if (configuration.sessionConfiguration) {
         configuration.sessionConfiguration.trustSelfSignedServerCertificate = true;
     }
