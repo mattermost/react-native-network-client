@@ -21,16 +21,19 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
     @ReactMethod
     fun createClientFor(baseUrl: String, options: ReadableMap, promise: Promise) {
+
+        // Don't trust user input...
+        val url = baseUrl.trimSlashes();
+
         try {
             // Create the client and request builder
-            sessionsClient[baseUrl] = OkHttpClient().newBuilder();
-            sessionsRequest[baseUrl] = Request.Builder().url(baseUrl);
-            sessionsConfig[baseUrl] = hashMapOf("baseUrl" to baseUrl);
+            sessionsClient[url] = OkHttpClient().newBuilder();
+            sessionsRequest[url] = Request.Builder().url(url);
+            sessionsConfig[url] = hashMapOf("baseUrl" to url);
 
             // Attach client options if they are passed in
-            sessionsClient[baseUrl]!!.parseOptions(options, sessionsRequest[baseUrl], baseUrl);
+            sessionsClient[url]!!.parseOptions(options, sessionsRequest[url], url);
 
-            // Return stringified client for success
             promise.resolve(null)
         } catch (err: Throwable) {
             promise.reject(err)
@@ -40,7 +43,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     @ReactMethod
     fun getClientHeadersFor(baseUrl: String, promise: Promise) {
         try {
-            promise.resolve(sessionsRequest[baseUrl]?.build()?.headers?.readableMap())
+            promise.resolve(sessionsRequest[baseUrl.trimSlashes()]?.build()?.headers?.readableMap())
         } catch (error: Error) {
             promise.reject(error)
         }
@@ -49,7 +52,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     @ReactMethod
     fun addClientHeadersFor(baseUrl: String, headers: ReadableMap, promise: Promise) {
         try {
-            sessionsRequest[baseUrl]?.addHeadersAsReadableMap(headers)
+            sessionsRequest[baseUrl.trimSlashes()]?.addHeadersAsReadableMap(headers)
             promise.resolve(null);
         } catch (error: Error) {
             promise.reject(error)
@@ -59,7 +62,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     @ReactMethod
     fun invalidateClientFor(baseUrl: String, promise: Promise) {
         try {
-            sessionsRequest.remove(baseUrl);
+            sessionsRequest.remove(baseUrl.trimSlashes());
             promise.resolve(sessionsRequest.keys);
         } catch (err: Throwable) {
             promise.reject(err)
@@ -68,9 +71,12 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
     @ReactMethod
     fun get(baseUrl: String, endpoint: String, options: ReadableMap, promise: Promise) {
+        // Don't trust user input...
+        val url = baseUrl.trimSlashes();
+
         try {
-            val request = sessionsRequest[baseUrl]!!.url(formUrlString(baseUrl, endpoint)).parseOptions(options, sessionsClient[baseUrl]!!, baseUrl).build();
-            sessionsClient[baseUrl]!!.build().newCall(request).execute().use { response ->
+            val request = sessionsRequest[url]!!.url(formUrlString(url, endpoint)).parseOptions(options, sessionsClient[url]!!, url).build();
+            sessionsClient[url]!!.build().newCall(request).execute().use { response ->
                 response.promiseResolution(promise)
             }
         } catch (e: IOException) {
@@ -80,9 +86,12 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
     @ReactMethod
     fun post(baseUrl: String, endpoint: String, options: ReadableMap, promise: Promise) {
+        // Don't trust user input...
+        val url = baseUrl.trimSlashes();
+
         try {
-            val request = sessionsRequest[baseUrl]!!.url(formUrlString(baseUrl, endpoint)).post(options.bodyToRequestBody()).parseOptions(options, sessionsClient[baseUrl]!!, baseUrl).build();
-            sessionsClient[baseUrl]!!.build().newCall(request).execute().use { response ->
+            val request = sessionsRequest[url]!!.url(formUrlString(url, endpoint)).post(options.bodyToRequestBody()).parseOptions(options, sessionsClient[url]!!, url).build();
+            sessionsClient[url]!!.build().newCall(request).execute().use { response ->
                 response.promiseResolution(promise)
             }
         } catch (e: IOException) {
@@ -92,9 +101,13 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
     @ReactMethod
     fun put(baseUrl: String, endpoint: String, options: ReadableMap, promise: Promise) {
+
+        // Don't trust user input...
+        val url = baseUrl.trimSlashes();
+
         try {
-            val request = sessionsRequest[baseUrl]!!.url(formUrlString(baseUrl, endpoint)).put(options.bodyToRequestBody()).parseOptions(options, sessionsClient[baseUrl]!!, baseUrl).build();
-            sessionsClient[baseUrl]!!.build().newCall(request).execute().use { response ->
+            val request = sessionsRequest[url]!!.url(formUrlString(url, endpoint)).put(options.bodyToRequestBody()).parseOptions(options, sessionsClient[url]!!, url).build();
+            sessionsClient[url]!!.build().newCall(request).execute().use { response ->
                 response.promiseResolution(promise)
             }
         } catch (e: IOException) {
@@ -104,9 +117,12 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
     @ReactMethod
     fun patch(baseUrl: String, endpoint: String, options: ReadableMap, promise: Promise) {
+        // Don't trust user input...
+        val url = baseUrl.trimSlashes();
+
         try {
-            val request = sessionsRequest[baseUrl]!!.url(formUrlString(baseUrl, endpoint)).patch(options.bodyToRequestBody()).parseOptions(options, sessionsClient[baseUrl]!!, baseUrl).build();
-            sessionsClient[baseUrl]!!.build().newCall(request).execute().use { response ->
+            val request = sessionsRequest[url]!!.url(formUrlString(url, endpoint)).patch(options.bodyToRequestBody()).parseOptions(options, sessionsClient[url]!!, url).build();
+            sessionsClient[url]!!.build().newCall(request).execute().use { response ->
                 response.promiseResolution(promise)
             }
         } catch (e: IOException) {
@@ -116,9 +132,13 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
     @ReactMethod
     fun delete(baseUrl: String, endpoint: String, options: ReadableMap, promise: Promise) {
+
+        // Don't trust user input...
+        val url = baseUrl.trimSlashes();
+
         try {
-            val request = sessionsRequest[baseUrl]!!.url(formUrlString(baseUrl, endpoint)).delete(options.bodyToRequestBody()).parseOptions(options, sessionsClient[baseUrl]!!, baseUrl).build();
-            sessionsClient[baseUrl]!!.build().newCall(request).execute().use { response ->
+            val request = sessionsRequest[url]!!.url(formUrlString(url, endpoint)).delete(options.bodyToRequestBody()).parseOptions(options, sessionsClient[url]!!, url).build();
+            sessionsClient[url]!!.build().newCall(request).execute().use { response ->
                 response.promiseResolution(promise)
             }
         } catch (e: IOException) {
@@ -128,25 +148,28 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
     @ReactMethod
     fun upload(baseUrl: String, endpoint: String, file: String, taskId: String, options: ReadableMap?, promise: Promise) {
+
+        // Don't trust user input...
+        val url = baseUrl.trimSlashes();
         val body: RequestBody;
         val uri = Uri.parse(file);
 
         // check for multi-parts options
-        if(options != null && options.hasKey("multipart")){
+        if (options != null && options.hasKey("multipart")) {
             val multipartOptions = options.getMap("multipart")!!
 
             val multipartBody = MultipartBody.Builder();
             multipartBody.setType(MultipartBody.FORM)
 
-            if(multipartOptions.hasKey("fileKey") && multipartOptions.getString("fileKey") != ""){
+            if (multipartOptions.hasKey("fileKey") && multipartOptions.getString("fileKey") != "") {
                 multipartBody.addFormDataPart(multipartOptions.getString("fileKey")!!, uri.lastPathSegment, UploadFileRequestBody(reactApplicationContext, uri, 0, ProgressListener(reactApplicationContext, taskId)))
             } else {
                 multipartBody.addFormDataPart("files", uri.lastPathSegment, UploadFileRequestBody(reactApplicationContext, uri, 0, ProgressListener(reactApplicationContext, taskId)))
             }
 
-            if(multipartOptions.hasKey("data")){
+            if (multipartOptions.hasKey("data")) {
                 val multipartData = multipartOptions.getMap("data")!!.toHashMap();
-                for( (k, v) in multipartData){
+                for ((k, v) in multipartData) {
                     multipartBody.addFormDataPart(k, v as String);
                 }
             }
@@ -159,22 +182,22 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
         try {
             // Create a Request
-            var request = if(options?.hasKey("method") == true) {
+            var request = if (options?.hasKey("method") == true) {
                 when (options.getString("method")) {
-                    "PUT" -> sessionsRequest[baseUrl]!!.url(formUrlString(baseUrl, endpoint)).put(body)
-                    "PATCH" -> sessionsRequest[baseUrl]!!.url(formUrlString(baseUrl, endpoint)).patch(body)
+                    "PUT" -> sessionsRequest[url]!!.url(formUrlString(url, endpoint)).put(body)
+                    "PATCH" -> sessionsRequest[url]!!.url(formUrlString(url, endpoint)).patch(body)
                     // Default to "POST"
-                    else -> sessionsRequest[baseUrl]!!.url(formUrlString(baseUrl, endpoint)).post(body)
+                    else -> sessionsRequest[url]!!.url(formUrlString(url, endpoint)).post(body)
                 }
             } else {
-                sessionsRequest[baseUrl]!!.url(formUrlString(baseUrl, endpoint)).post(body)
+                sessionsRequest[url]!!.url(formUrlString(url, endpoint)).post(body)
             }
 
             // Parse options into the request / client
-            if (options != null) request = request.parseOptions(options, sessionsClient[baseUrl]!!, baseUrl)
+            if (options != null) request = request.parseOptions(options, sessionsClient[url]!!, url)
 
             // Create a cancellable call
-            sessionsCall[taskId] = sessionsClient[baseUrl]!!.build().newCall(request.build())
+            sessionsCall[taskId] = sessionsClient[url]!!.build().newCall(request.build())
 
             // Execute the call!
             sessionsCall[taskId]!!.execute().use { response ->
@@ -198,7 +221,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     @Override
     override fun getConstants(): Map<String, Any> {
         val constants: MutableMap<String, Any> = HashMap<String, Any>()
-        constants["RETRY_TYPES"] = hashMapOf("EXPONENTIAL_RETRY" to "exponential")
+        constants["RETRY_TYPES"] = hashMapOf("EXPONENTIAL_RETRY" to "exponential", "LINEAR_RETRY" to "linear")
 
         // APIClient Events
         val events = HashMap<String, String>()

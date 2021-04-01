@@ -21,7 +21,7 @@ class RetryInterceptor() : Interceptor {
             SessionsObject.config[baseUrl]!!.remove("retryRequest");
         // Else check for client options
         } else if (SessionsObject.config[baseUrl]?.containsKey("retryClient") == true) {
-            config = SessionsObject.config[baseUrl]!!["retryRequest"] as MutableMap<String, Any>
+            config = SessionsObject.config[baseUrl]!!["retryClient"] as MutableMap<String, Any>
         // Else use defaults
         } else {
             config = SessionsObject.defaultRetry
@@ -36,22 +36,22 @@ class RetryInterceptor() : Interceptor {
         val request = chain.request()
         var response = chain.proceed(request)
         var attempts = 0;
-        val config = getRetryConfig(request.url.host)
+        val config = getRetryConfig(request.url.scheme + "://" + request.url.host + ":" + request.url.port )
 
         // Keep retrying as long as response is not successful and less than the retry limit
-        while (!response.isSuccessful && attempts <= config["retryLimit"] as Int) {
+        while (!response.isSuccessful && attempts <= config["retryLimit"] as Double) {
 
             // End the request
             runCatching { response.close() }
 
             // Exponential or Linear (as else/default)
-            val wait = when ((config["type"] as String?)?.toLowerCase(Locale.getDefault())) {
-                "exponential" -> calculateNextExponentialWait(attempts, config["exponentialBackOffBase"] as Double, config["exponentialBackOffScale"] as Double)
+            val wait = when ((config["retryType"] as String?)?.toLowerCase(Locale.getDefault())) {
+                "exponential" -> calculateNextExponentialWait(attempts, config["retryExponentialBackoffBase"] as Double, config["retryExponentialBackoffScale"] as Double)
                 else -> (config["retryInterval"] as Double).toLong()
             }
 
             // Wait and increment our attempt
-            TimeUnit.SECONDS.sleep(wait)
+            TimeUnit.MILLISECONDS.sleep(wait)
             attempts++;
 
             // Try again!

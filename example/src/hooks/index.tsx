@@ -97,12 +97,18 @@ type UseRetryPolicyConfigurationResponse = [
     (exponentialBackoffScale: number) => void
 ];
 
+// enum RetryTypes =
+enum RetryTypes {
+    EXPONENTIAL_RETRY = "exponential",
+    LINEAR_RETRY = "linear",
+}
+
 export const useRetryPolicyConfiguration = (): UseRetryPolicyConfigurationResponse => {
     const [
         retryPolicyConfiguration,
         setRetryPolicyConfiguration,
     ] = useState<RetryPolicyConfiguration>({
-        type: undefined,
+        type: RetryTypes.LINEAR_RETRY,
         retryLimit: 2,
         retryInterval: 2000,
         exponentialBackoffBase: 2,
@@ -112,7 +118,7 @@ export const useRetryPolicyConfiguration = (): UseRetryPolicyConfigurationRespon
     const setRetryPolicyType = (type?: RetryTypes) =>
         setRetryPolicyConfiguration({
             ...retryPolicyConfiguration,
-            type: type || undefined,
+            type: type,
         });
     const setRetryLimit = (retryLimit: number) =>
         setRetryPolicyConfiguration({
