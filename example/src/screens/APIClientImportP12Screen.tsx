@@ -28,10 +28,10 @@ const APIClientImportP12Screen = ({
 
     const [error, setError] = useState<ClientResponseError>();
 
-    const importClientP12 = () => {
+    const importClientP12 = async () => {
         const { path, password } = clientP12Configuration;
         try {
-            client.importClientP12(path, password);
+            await client.importClientP12(path, password);
         } catch (e) {
             setError(e);
             return;
