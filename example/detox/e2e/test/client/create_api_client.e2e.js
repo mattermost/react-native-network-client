@@ -42,7 +42,7 @@ describe("Create API Client", () => {
         await device.reloadReactNative();
     });
 
-    it("should be able to create an API client", async () => {
+    it("should be able to create, alert for duplicate, and remove an API client", async () => {
         // Create API client
         await CreateApiClientScreen.open();
         await createApiClient(
@@ -64,7 +64,7 @@ describe("Create API Client", () => {
         await removeApiClient(testName);
     });
 
-    it("should be able to create an API client - secure connection", async () => {
+    it("should be able to create, alert for duplicate, and remove an API client - secure connection", async () => {
         // # Remove dupe preset
         await removeApiClient("Secure Mockserver API");
 
