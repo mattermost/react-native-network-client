@@ -57,7 +57,7 @@ describe("Get - API Client Request", () => {
             headers: testHeaders,
             secure: false,
         });
-        verifyApiResponse(
+        await verifyApiResponse(
             apiResponse,
             testSiteUrl,
             testStatus,
@@ -92,7 +92,7 @@ describe("Get - API Client Request", () => {
             headers: testHeaders,
             secure: true,
         });
-        verifyApiResponse(
+        await verifyApiResponse(
             apiResponse,
             testSecureSiteUrl,
             testStatus,

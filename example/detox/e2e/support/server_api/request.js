@@ -27,7 +27,7 @@ import { getResponseFromError } from "./common";
  * @param {number} options.responseStatus - expected response status code
  * @return {Object} response object
  */
-export const apiDelete = (
+export const apiDelete = async (
     options = {
         url: "",
         subpath: "",
@@ -38,7 +38,7 @@ export const apiDelete = (
         secure: false,
     }
 ) => {
-    return apiRequest("delete", options);
+    return await apiRequest("delete", options);
 };
 
 /**
@@ -51,7 +51,7 @@ export const apiDelete = (
  * @param {number} options.responseStatus - expected response status code
  * @return {Object} response object
  */
-export const apiGet = (
+export const apiGet = async (
     options = {
         url: "",
         subpath: "",
@@ -62,7 +62,7 @@ export const apiGet = (
         secure: false,
     }
 ) => {
-    return apiRequest("get", options);
+    return await apiRequest("get", options);
 };
 
 /**
@@ -76,7 +76,7 @@ export const apiGet = (
  * @param {number} options.responseStatus - expected response status code
  * @return {Object} response object
  */
-export const apiPatch = (
+export const apiPatch = async (
     options = {
         url: "",
         subpath: "",
@@ -87,7 +87,7 @@ export const apiPatch = (
         secure: false,
     }
 ) => {
-    return apiRequest("patch", options);
+    return await apiRequest("patch", options);
 };
 
 /**
@@ -101,7 +101,7 @@ export const apiPatch = (
  * @param {number} options.responseStatus - expected response status code
  * @return {Object} response object
  */
-export const apiPost = (
+export const apiPost = async (
     options = {
         url: "",
         subpath: "",
@@ -112,7 +112,7 @@ export const apiPost = (
         secure: false,
     }
 ) => {
-    return apiRequest("post", options);
+    return await apiRequest("post", options);
 };
 
 /**
@@ -126,7 +126,7 @@ export const apiPost = (
  * @param {number} options.responseStatus - expected response status code
  * @return {Object} response object
  */
-export const apiPut = (
+export const apiPut = async (
     options = {
         url: "",
         subpath: "",
@@ -137,7 +137,7 @@ export const apiPut = (
         secure: false,
     }
 ) => {
-    return apiRequest("put", options);
+    return await apiRequest("put", options);
 };
 
 /**

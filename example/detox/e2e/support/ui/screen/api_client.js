@@ -1,11 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {
-    ClientListItem,
-    HeaderListItem,
-    MethodButtons,
-} from "@support/ui/component";
+import { HeaderListItem, MethodButtons } from "@support/ui/component";
 import { ClientListScreen } from "@support/ui/screen";
 import { isAndroid, waitForAndScrollDown } from "@support/utils";
 
@@ -44,7 +40,7 @@ class ApiClientScreen {
 
     open = async (name) => {
         // # Open API client screen
-        const { item } = ClientListItem.getItemByName(name);
+        const { item } = await ClientListScreen.getClientByName(name);
         await waitForAndScrollDown(
             item,
             ClientListScreen.testID.clientListScrollView

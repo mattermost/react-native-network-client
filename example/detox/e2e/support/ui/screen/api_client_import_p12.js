@@ -31,8 +31,8 @@ class ApiClientImportP12Screen {
         await expect(this.apiClientImportP12Screen).not.toBeVisible();
     };
 
-    importP12 = async (url, password) => {
-        await P12Inputs.downloadP12(url, password);
+    importP12 = async (downloadUrl, password) => {
+        await P12Inputs.downloadP12(downloadUrl, password);
         await this.importButton.tap();
         await this.back();
     };
@@ -41,8 +41,8 @@ class ApiClientImportP12Screen {
         await P12Inputs.setPassword(password);
     };
 
-    setUrl = async (url) => {
-        await P12Inputs.setUrl(url);
+    setDownloadUrl = async (downloadUrl) => {
+        await P12Inputs.setDownloadUrl(downloadUrl);
     };
 }
 

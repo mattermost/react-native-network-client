@@ -13,7 +13,6 @@ import {
     secureWebSocketServerUrl,
     webSocketServerUrl,
 } from "@support/test_config";
-import { ClientListItem } from "@support/ui/component";
 import {
     ClientListScreen,
     CreateWebSocketClientScreen,
@@ -122,7 +121,6 @@ async function createSecureWebSocketClient(
 ) {
     const {
         createClient,
-        createWebSocketClientScrollView,
         downloadP12,
         setName,
         setUrl,
@@ -133,13 +131,13 @@ async function createSecureWebSocketClient(
     await setName(testSecureName);
     await setUrl(testSecureWebSocketUrl);
     await downloadP12(secureWebSocketServerClientCertUrl, clientCertPassword);
-    await createWebSocketClientScrollView.scrollTo("bottom");
     await toggleOnTrustSelfSignedServerCertificateCheckbox();
     await createClient();
 
     // * Verify created client
-    await ClientListScreen.clientListScrollView.scrollTo("bottom");
-    const { subtitle, title } = ClientListItem.getItemByName(testSecureName);
+    const { subtitle, title } = await ClientListScreen.getClientByName(
+        testSecureName
+    );
     await expect(title).toHaveText(testSecureName);
     await expect(subtitle).toHaveText(testSecureWebSocketUrl);
 }

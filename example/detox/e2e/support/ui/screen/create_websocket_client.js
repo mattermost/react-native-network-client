@@ -3,7 +3,7 @@
 
 import { AddHeaders, P12Inputs } from "@support/ui/component";
 import { ClientListScreen } from "@support/ui/screen";
-import { isAndroid } from "@support/utils";
+import { isAndroid, waitForAndScrollDown } from "@support/utils";
 
 class CreateWebSocketClientScreen {
     testID = {
@@ -71,11 +71,15 @@ class CreateWebSocketClientScreen {
     };
 
     createClient = async () => {
+        await waitForAndScrollDown(
+            this.createButton,
+            this.testID.createWebSocketClientScrollView
+        );
         await this.createButton.tap();
     };
 
-    downloadP12 = async (url, password) => {
-        await P12Inputs.downloadP12(url, password);
+    downloadP12 = async (downloadUrl, password) => {
+        await P12Inputs.downloadP12(downloadUrl, password);
     };
 
     setHeaders = async (headers) => {
@@ -83,44 +87,76 @@ class CreateWebSocketClientScreen {
     };
 
     setName = async (name) => {
+        await waitForAndScrollDown(
+            this.nameInput,
+            this.testID.createWebSocketClientScrollView
+        );
         await this.nameInput.clearText();
         await this.nameInput.replaceText(name);
         await this.nameInput.tapReturnKey();
     };
 
     setTimeoutInterval = async (timeoutInterval) => {
+        await waitForAndScrollDown(
+            this.timeoutIntervalInput,
+            this.testID.createWebSocketClientScrollView
+        );
         await this.timeoutIntervalInput.clearText();
         await this.timeoutIntervalInput.replaceText(timeoutInterval);
         await this.timeoutIntervalInput.tapReturnKey();
     };
 
     setUrl = async (url) => {
+        await waitForAndScrollDown(
+            this.urlInput,
+            this.testID.createWebSocketClientScrollView
+        );
         await this.urlInput.clearText();
         await this.urlInput.replaceText(url);
         await this.urlInput.tapReturnKey();
     };
 
     toggleOffAlertOnClientErrorCheckbox = async () => {
+        await waitForAndScrollDown(
+            this.alertOnClientErrorCheckboxTrue,
+            this.testID.createWebSocketClientScrollView
+        );
         await this.alertOnClientErrorCheckboxTrue.tap();
         await expect(this.alertOnClientErrorCheckboxFalse).toBeVisible();
     };
 
     toggleOnAlertOnClientErrorCheckbox = async () => {
+        await waitForAndScrollDown(
+            this.alertOnClientErrorCheckboxFalse,
+            this.testID.createWebSocketClientScrollView
+        );
         await this.alertOnClientErrorCheckboxFalse.tap();
         await expect(this.alertOnClientErrorCheckboxTrue).toBeVisible();
     };
 
     toggleOffEnableCompressionCheckbox = async () => {
+        await waitForAndScrollDown(
+            this.enableCompressionCheckboxTrue,
+            this.testID.createWebSocketClientScrollView
+        );
         await this.enableCompressionCheckboxTrue.tap();
         await expect(this.enableCompressionCheckboxFalse).toBeVisible();
     };
 
     toggleOnEnableCompressionCheckbox = async () => {
+        await waitForAndScrollDown(
+            this.enableCompressionCheckboxFalse,
+            this.testID.createWebSocketClientScrollView
+        );
         await this.enableCompressionCheckboxFalse.tap();
         await expect(this.enableCompressionCheckboxTrue).toBeVisible();
     };
 
     toggleOffTrustSelfSignedServerCertificateCheckbox = async () => {
+        await waitForAndScrollDown(
+            this.trustSelfSignedServerCertificateCheckboxTrue,
+            this.testID.createWebSocketClientScrollView
+        );
         await this.trustSelfSignedServerCertificateCheckboxTrue.tap();
         await expect(
             this.trustSelfSignedServerCertificateCheckboxFalse
@@ -128,6 +164,10 @@ class CreateWebSocketClientScreen {
     };
 
     toggleOnTrustSelfSignedServerCertificateCheckbox = async () => {
+        await waitForAndScrollDown(
+            this.trustSelfSignedServerCertificateCheckboxFalse,
+            this.testID.createWebSocketClientScrollView
+        );
         await this.trustSelfSignedServerCertificateCheckboxFalse.tap();
         await expect(
             this.trustSelfSignedServerCertificateCheckboxTrue

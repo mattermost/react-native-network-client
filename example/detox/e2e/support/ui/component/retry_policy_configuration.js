@@ -1,30 +1,42 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import { isAndroid } from "@support/utils";
+import { isAndroid, waitForAndScrollDown } from "@support/utils";
 
 class RetryPolicyConfiguration {
-    testID = {
-        retryIntervalInput: "retry_policy_configuration.retry_interval.input",
-        retryLimitInput: "retry_policy_configuration.retry_limit.input",
-        exponentialBackoffBaseInput:
-            "retry_policy_configuration.exponential_backoff_base.input",
-        exponentialBackoffScaleInput:
-            "retry_policy_configuration.exponential_backoff_scale.input",
-    };
+    constructor(screenScrollView) {
+        this.testID = {
+            screenScrollView,
+            exponentialBackoffBaseInput:
+                "retry_policy_configuration.exponential_backoff_base.input",
+            exponentialBackoffScaleInput:
+                "retry_policy_configuration.exponential_backoff_scale.input",
+            retryIntervalInput:
+                "retry_policy_configuration.retry_interval.input",
+            retryLimitInput: "retry_policy_configuration.retry_limit.input",
+        };
+    }
 
     exponentialRetryCheckboxFalse = element(by.text("Exponential [false]"));
     exponentialRetryCheckboxTrue = element(by.text("Exponential [true]"));
     linearRetryCheckboxFalse = element(by.text("Linear [false]"));
     linearRetryCheckboxTrue = element(by.text("Linear [true]"));
-    retryIntervalInput = element(by.id(this.testID.retryIntervalInput));
-    retryLimitInput = element(by.id(this.testID.retryLimitInput));
-    exponentialBackoffBaseInput = element(
-        by.id(this.testID.exponentialBackoffBaseInput)
-    );
-    exponentialBackoffScaleInput = element(
-        by.id(this.testID.exponentialBackoffScaleInput)
-    );
+
+    getExponentialBackoffBaseInput = () => {
+        return element(by.id(this.testID.exponentialBackoffBaseInput));
+    };
+
+    getExponentialBackoffScaleInput = () => {
+        return element(by.id(this.testID.exponentialBackoffScaleInput));
+    };
+
+    getRetryIntervalInput = () => {
+        return element(by.id(this.testID.retryIntervalInput));
+    };
+
+    getRetryLimitInput = () => {
+        return element(by.id(this.testID.retryLimitInput));
+    };
 
     setRetry = async ({
         retryPolicyType = "exponential",
@@ -60,46 +72,21 @@ class RetryPolicyConfiguration {
         await this.toggleOnExponentialRetryCheckbox();
 
         // # Set retry limit
-        await this.retryLimitInput.clearText();
-        await this.retryLimitInput.replaceText(retryLimit);
-        await this.retryLimitInput.tapReturnKey();
+        await this.setRetryLimit(retryLimit);
 
         // # Set exponential backoff base
-        await this.exponentialBackoffBaseInput.clearText();
-        await this.exponentialBackoffBaseInput.replaceText(
-            exponentialBackoffBase
-        );
-        await this.exponentialBackoffBaseInput.tapReturnKey();
+        await this.setExponentialBackoffBase(exponentialBackoffBase);
 
         // # Set exponential backoff scale
-        await this.exponentialBackoffScaleInput.clearText();
-        await this.exponentialBackoffScaleInput.replaceText(
-            exponentialBackoffScale
-        );
-        await this.exponentialBackoffScaleInput.tapReturnKey();
-
-        // * Verify input values
-        if (isAndroid()) {
-            await expect(this.retryLimitInput).toHaveText(retryLimit);
-            await expect(this.exponentialBackoffBaseInput).toHaveText(
-                exponentialBackoffBase
-            );
-            await expect(this.exponentialBackoffScaleInput).toHaveText(
-                exponentialBackoffScale
-            );
-        } else {
-            await expect(this.retryLimitInput).toHaveValue(retryLimit);
-            await expect(this.exponentialBackoffBaseInput).toHaveValue(
-                exponentialBackoffBase
-            );
-            await expect(this.exponentialBackoffScaleInput).toHaveValue(
-                exponentialBackoffScale
-            );
-        }
+        await this.setExponentialBackoffScale(exponentialBackoffScale);
     };
 
     setLinearRetry = async ({ retryLimit = "2", retryInterval = "2000" }) => {
         if (isAndroid()) {
+            await waitForAndScrollDown(
+                this.linearRetryCheckboxTrue,
+                this.testID.screenScrollView
+            );
             await expect(this.linearRetryCheckboxTrue).toBeVisible();
         } else {
             // # Toggle on linear retry checkbox
@@ -107,45 +94,127 @@ class RetryPolicyConfiguration {
         }
 
         // # Set retry limit
-        await this.retryLimitInput.clearText();
-        await this.retryLimitInput.replaceText(retryLimit);
-        await this.retryLimitInput.tapReturnKey();
+        await this.setRetryLimit(retryLimit);
 
         // # Set retry interval
-        await this.retryIntervalInput.clearText();
-        await this.retryIntervalInput.replaceText(retryInterval);
-        await this.retryIntervalInput.tapReturnKey();
+        await this.setRetryInterval(retryInterval);
+    };
 
-        // * Verify input values
+    setExponentialBackoffBase = async (exponentialBackoffBase) => {
+        const exponentialBackoffBaseInput = this.getExponentialBackoffBaseInput();
+        await waitForAndScrollDown(
+            exponentialBackoffBaseInput,
+            this.testID.screenScrollView
+        );
+        await exponentialBackoffBaseInput.clearText();
+        await exponentialBackoffBaseInput.replaceText(exponentialBackoffBase);
+        await exponentialBackoffBaseInput.tapReturnKey();
+
+        // * Verify input value
         if (isAndroid()) {
-            await expect(this.retryLimitInput).toHaveText(retryLimit);
-            await expect(this.retryIntervalInput).toHaveText(retryInterval);
+            await expect(exponentialBackoffBaseInput).toHaveText(
+                exponentialBackoffBase
+            );
         } else {
-            await expect(this.retryLimitInput).toHaveValue(retryLimit);
-            await expect(this.retryIntervalInput).toHaveValue(retryInterval);
+            await expect(exponentialBackoffBaseInput).toHaveValue(
+                exponentialBackoffBase
+            );
+        }
+    };
+
+    setExponentialBackoffScale = async (exponentialBackoffScale) => {
+        const exponentialBackoffScaleInput = this.getExponentialBackoffScaleInput();
+        await waitForAndScrollDown(
+            exponentialBackoffScaleInput,
+            this.testID.screenScrollView
+        );
+        await exponentialBackoffScaleInput.clearText();
+        await exponentialBackoffScaleInput.replaceText(exponentialBackoffScale);
+        await exponentialBackoffScaleInput.tapReturnKey();
+
+        // * Verify input value
+        if (isAndroid()) {
+            await expect(exponentialBackoffScaleInput).toHaveText(
+                exponentialBackoffScale
+            );
+        } else {
+            await expect(exponentialBackoffScaleInput).toHaveValue(
+                exponentialBackoffScale
+            );
+        }
+    };
+
+    setRetryInterval = async (retryInterval) => {
+        const retryIntervalInput = this.getRetryIntervalInput();
+        await waitForAndScrollDown(
+            retryIntervalInput,
+            this.testID.screenScrollView
+        );
+        await retryIntervalInput.clearText();
+        await retryIntervalInput.replaceText(retryInterval);
+        await retryIntervalInput.tapReturnKey();
+
+        // * Verify input value
+        if (isAndroid()) {
+            await expect(retryIntervalInput).toHaveText(retryInterval);
+        } else {
+            await expect(retryIntervalInput).toHaveValue(retryInterval);
+        }
+    };
+
+    setRetryLimit = async (retryLimit) => {
+        const retryLimitInput = this.getRetryLimitInput();
+        await waitForAndScrollDown(
+            retryLimitInput,
+            this.testID.screenScrollView
+        );
+        await retryLimitInput.clearText();
+        await retryLimitInput.replaceText(retryLimit);
+        await retryLimitInput.tapReturnKey();
+
+        // * Verify input value
+        if (isAndroid()) {
+            await expect(retryLimitInput).toHaveText(retryLimit);
+        } else {
+            await expect(retryLimitInput).toHaveValue(retryLimit);
         }
     };
 
     toggleOffExponentialRetryCheckbox = async () => {
+        await waitForAndScrollDown(
+            this.exponentialRetryCheckboxTrue,
+            this.testID.screenScrollView
+        );
         await this.exponentialRetryCheckboxTrue.tap();
         await expect(this.exponentialRetryCheckboxFalse).toBeVisible();
     };
 
     toggleOnExponentialRetryCheckbox = async () => {
+        await waitForAndScrollDown(
+            this.exponentialRetryCheckboxFalse,
+            this.testID.screenScrollView
+        );
         await this.exponentialRetryCheckboxFalse.tap();
         await expect(this.exponentialRetryCheckboxTrue).toBeVisible();
     };
 
     toggleOffLinearRetryCheckbox = async () => {
+        await waitForAndScrollDown(
+            this.linearRetryCheckboxTrue,
+            this.testID.screenScrollView
+        );
         await this.linearRetryCheckboxTrue.tap();
         await expect(this.linearRetryCheckboxFalse).toBeVisible();
     };
 
     toggleOnLinearRetryCheckbox = async () => {
+        await waitForAndScrollDown(
+            this.linearRetryCheckboxFalse,
+            this.testID.screenScrollView
+        );
         await this.linearRetryCheckboxFalse.tap();
         await expect(this.linearRetryCheckboxTrue).toBeVisible();
     };
 }
 
-const retryPolicyConfiguration = new RetryPolicyConfiguration();
-export default retryPolicyConfiguration;
+export default RetryPolicyConfiguration;

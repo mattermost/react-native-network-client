@@ -117,7 +117,7 @@ export const performGenericClientRequest = async ({
  * @param {Object} testHeaders - requeset headers
  * @param {Object} testBody - request body
  */
-export const verifyApiResponse = (
+export const verifyApiResponse = async (
     apiResponse,
     testUrl,
     testStatus,
@@ -126,7 +126,7 @@ export const verifyApiResponse = (
     testHeaders,
     testBody = null
 ) => {
-    const apiResponseDataRequest = apiResponse.data.request;
+    const apiResponseDataRequest = await apiResponse.data.request;
 
     // * Verify request URL and response status
     jestExpect(testUrl).toContain(apiResponseDataRequest.url);

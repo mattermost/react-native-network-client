@@ -105,7 +105,7 @@ const P12Inputs = (props: P12InputsProps) => {
                         placeholder="Download URL"
                         onChangeText={setUrl}
                         autoCapitalize="none"
-                        testID="p12_inputs.url.input"
+                        testID="p12_inputs.download_url.input"
                     />
                     <ButtonGroup
                         buttons={buttons.map((button) => button.title)}

@@ -7,6 +7,10 @@
 // - Use element testID when selecting an element. Create one if none.
 // *******************************************************************
 
+import {
+    clientCertPassword,
+    secureServerClientCertUrl,
+} from "@support/test_config";
 import { Alert } from "@support/ui/component";
 import {
     ApiClientScreen,
@@ -32,9 +36,46 @@ describe("Create API Client", () => {
         exponentialBackoffScale: `${getRandomInt(5) + 3}`,
         retryInterval: `${getRandomInt(5) + 4}`,
     };
-    const { removeClientWithName } = ClientListScreen;
+
+    beforeEach(async () => {
+        await device.reloadReactNative();
+        await CreateApiClientScreen.open();
+    });
+
+    it("should be able to create an API client", async () => {
+        // Create API client
+        await createApiClient(
+            testName,
+            testBaseUrl,
+            testHeaders,
+            testToken,
+            testRequestTimeoutInterval,
+            testResourceTimeoutInterval,
+            testMaxConnections,
+            testRetry,
+            { secure: false }
+        );
+
+        // Alert for duplicate API client
+        await alertForDuplicateApiClient(testName, testBaseUrl);
+
+        // # Remove API client
+        await removeApiClient(testName);
+    });
+});
+
+async function createApiClient(
+    testName,
+    testBaseUrl,
+    testHeaders,
+    testToken,
+    testRequestTimeoutInterval,
+    testResourceTimeoutInterval,
+    testMaxConnections,
+    testRetry,
+    { secure = false }
+) {
     const {
-        createApiClientScrollView,
         createClient,
         setBaseUrl,
         setBearerAuthToken,
@@ -49,64 +90,62 @@ describe("Create API Client", () => {
         toggleOnWaitsForConnectivityCheckbox,
     } = CreateApiClientScreen;
 
-    beforeAll(async () => {
-        await CreateApiClientScreen.open();
-    });
+    // # Set all fields and create client
+    await setName(testName);
+    await setBaseUrl(testBaseUrl);
+    await setHeaders(testHeaders);
+    await setBearerAuthToken(testToken);
+    if (secure) {
+        await CreateApiClientScreen.downloadP12(
+            secureServerClientCertUrl,
+            clientCertPassword
+        );
+    }
+    await setRequestTimeoutInterval(testRequestTimeoutInterval);
+    await setResourceTimeoutInterval(testResourceTimeoutInterval);
+    await setMaxConnections(testMaxConnections);
+    await setRetry(testRetry);
+    await toggleOnWaitsForConnectivityCheckbox();
+    await toggleOnCancelRequestsOn401Checkbox();
+    await toggleOnTrustSelfSignedServerCertificateCheckbox();
+    await createClient();
 
-    it("should be able to create an API client", async () => {
-        // # Set all fields and create client
-        await setName(testName);
-        await setBaseUrl(testBaseUrl);
-        await setHeaders(testHeaders);
-        await setBearerAuthToken(testToken);
-        await setRequestTimeoutInterval(testRequestTimeoutInterval);
-        await setResourceTimeoutInterval(testResourceTimeoutInterval);
-        await setMaxConnections(testMaxConnections);
-        await createApiClientScrollView.scrollTo("bottom");
-        await setRetry(testRetry);
-        await createApiClientScrollView.scrollTo("bottom");
-        await toggleOnWaitsForConnectivityCheckbox();
-        await toggleOnCancelRequestsOn401Checkbox();
-        await toggleOnTrustSelfSignedServerCertificateCheckbox();
-        await createClient();
+    // * Verify created client
+    await ApiClientScreen.open(testName);
+    await verifyApiClient(testName, testBaseUrl, testHeaders);
 
-        // * Verify created client
-        await ApiClientScreen.open(testName);
-        await verifyApiClient(testName, testBaseUrl, testHeaders);
+    // # Open client list screen
+    await ApiClientScreen.back();
+}
 
-        // # Open client list screen
-        await ApiClientScreen.back();
-    });
+async function alertForDuplicateApiClient(testName, testBaseUrl) {
+    const { createClient, setBaseUrl, setName } = CreateApiClientScreen;
+    const { errorTitle, okButton } = Alert;
 
-    it("should not be able to create an API client with existing URL", async () => {
-        const { errorTitle, okButton } = Alert;
+    // # Open create API client screen
+    await CreateApiClientScreen.open();
 
-        // # Open create API client screen
-        await CreateApiClientScreen.open();
+    // # Set an existing url and attempt to create client
+    await setName(testName);
+    await setBaseUrl(testBaseUrl);
+    await createClient();
 
-        // # Set an existing url and attempt to create client
-        await setName(testName);
-        await setBaseUrl(testBaseUrl);
-        await createApiClientScrollView.scrollTo("bottom");
-        await createClient();
+    // * Verify error alert
+    await expect(errorTitle).toBeVisible();
+    await expect(
+        element(by.text(`A client for ${testBaseUrl} already exists`))
+    ).toBeVisible();
+    await okButton.tap();
+    await CreateApiClientScreen.toBeVisible();
 
-        // * Verify error alert
-        await expect(errorTitle).toBeVisible();
-        await expect(
-            element(by.text(`A client for ${testBaseUrl} already exists`))
-        ).toBeVisible();
-        await okButton.tap();
-        await CreateApiClientScreen.toBeVisible();
+    // # Open client list screen
+    await CreateApiClientScreen.back();
+}
 
-        // # Open client list screen
-        await CreateApiClientScreen.back();
-    });
+async function removeApiClient(testName) {
+    // # Remove client
+    await ClientListScreen.removeClientByName(testName);
 
-    it("should be able to remove an API client", async () => {
-        // # Remove client
-        await removeClientWithName(testName);
-
-        // * Verify client is removed
-        await expect(element(by.text(testName))).not.toBeVisible();
-    });
-});
+    // * Verify client is removed
+    await expect(element(by.text(testName))).not.toBeVisible();
+}

@@ -60,7 +60,7 @@ describe("Patch - API Client Request", () => {
             body: testBody,
             secure: false,
         });
-        verifyApiResponse(
+        await verifyApiResponse(
             apiResponse,
             testSiteUrl,
             testStatus,
@@ -97,7 +97,7 @@ describe("Patch - API Client Request", () => {
             body: testBody,
             secure: true,
         });
-        verifyApiResponse(
+        await verifyApiResponse(
             apiResponse,
             testSecureSiteUrl,
             testStatus,

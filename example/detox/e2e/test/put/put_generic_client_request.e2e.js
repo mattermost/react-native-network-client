@@ -33,7 +33,7 @@ describe("Put - Generic Client Request", () => {
             headers: testHeaders,
             body: testBody,
         });
-        verifyApiResponse(
+        await verifyApiResponse(
             apiResponse,
             testSiteUrl,
             testStatus,

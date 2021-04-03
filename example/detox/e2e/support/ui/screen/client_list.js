@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import { Alert } from "@support/ui/component";
+import { Alert, ClientListItem } from "@support/ui/component";
 import { waitForAndScrollDown } from "@support/utils";
 
 class ClientListScreen {
@@ -21,7 +21,13 @@ class ClientListScreen {
         return this.clientListScreen;
     };
 
-    removeClientWithName = async (name) => {
+    getClientByName = async (name) => {
+        const { item } = ClientListItem.getItemByName(name);
+        await waitForAndScrollDown(item, this.testID.clientListScrollView);
+        return ClientListItem.getItemByName(name);
+    };
+
+    removeClientByName = async (name) => {
         const { okButton, removeClientTitle } = Alert;
 
         const item = element(by.text(name));

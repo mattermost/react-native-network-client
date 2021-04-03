@@ -7,7 +7,7 @@ import {
     RetryPolicyConfiguration,
 } from "@support/ui/component";
 import { ClientListScreen } from "@support/ui/screen";
-import { isAndroid } from "@support/utils";
+import { isAndroid, waitForAndScrollDown } from "@support/utils";
 
 class CreateApiClientScreen {
     testID = {
@@ -79,19 +79,10 @@ class CreateApiClientScreen {
     p12UrlInput = P12Inputs.urlInput;
     p12DownloadButton = P12Inputs.downloadButton;
     p12SelectButton = P12Inputs.selectButton;
-    toggleOffExponentialRetryCheckbox =
-        RetryPolicyConfiguration.toggleOffExponentialRetryCheckbox;
-    toggleOnExponentialRetryCheckbox =
-        RetryPolicyConfiguration.toggleOnExponentialRetryCheckbox;
-    toggleOffLinearRetryCheckbox =
-        RetryPolicyConfiguration.toggleOffLinearRetryCheckbox;
-    toggleOnLinearRetryCheckbox =
-        RetryPolicyConfiguration.toggleOnLinearRetryCheckbox;
-    retryLimitInput = RetryPolicyConfiguration.retryLimitInput;
-    exponentialBackoffBaseInput =
-        RetryPolicyConfiguration.exponentialBackoffBaseInput;
-    exponentialBackoffScaleInput =
-        RetryPolicyConfiguration.exponentialBackoffScaleInput;
+
+    retryPolicyConfiguration = new RetryPolicyConfiguration(
+        this.testID.createApiClientScrollView
+    );
 
     toBeVisible = async () => {
         await expect(this.createApiClientScreen).toBeVisible();
@@ -116,20 +107,32 @@ class CreateApiClientScreen {
     };
 
     createClient = async () => {
+        await waitForAndScrollDown(
+            this.createButton,
+            this.testID.createApiClientScrollView
+        );
         await this.createButton.tap();
     };
 
-    downloadP12 = async (url, password) => {
-        await P12Inputs.downloadP12(url, password);
+    downloadP12 = async (downloadUrl, password) => {
+        await P12Inputs.downloadP12(downloadUrl, password);
     };
 
-    setBaseUrl = async (url) => {
+    setBaseUrl = async (baseUrl) => {
+        await waitForAndScrollDown(
+            this.baseUrlInput,
+            this.testID.createApiClientScrollView
+        );
         await this.baseUrlInput.clearText();
-        await this.baseUrlInput.replaceText(url);
+        await this.baseUrlInput.replaceText(baseUrl);
         await this.baseUrlInput.tapReturnKey();
     };
 
     setBearerAuthToken = async (bearerAuthToken) => {
+        await waitForAndScrollDown(
+            this.bearerAuthTokenInput,
+            this.testID.createApiClientScrollView
+        );
         await this.bearerAuthTokenInput.clearText();
         await this.bearerAuthTokenInput.replaceText(bearerAuthToken);
         await this.bearerAuthTokenInput.tapReturnKey();
@@ -140,18 +143,30 @@ class CreateApiClientScreen {
     };
 
     setMaxConnections = async (maxConnections) => {
+        await waitForAndScrollDown(
+            this.maxConnectionsInput,
+            this.testID.createApiClientScrollView
+        );
         await this.maxConnectionsInput.clearText();
         await this.maxConnectionsInput.replaceText(maxConnections);
         await this.maxConnectionsInput.tapReturnKey();
     };
 
     setName = async (name) => {
+        await waitForAndScrollDown(
+            this.nameInput,
+            this.testID.createApiClientScrollView
+        );
         await this.nameInput.clearText();
         await this.nameInput.replaceText(name);
         await this.nameInput.tapReturnKey();
     };
 
     setRequestTimeoutInterval = async (requestTimeoutInterval) => {
+        await waitForAndScrollDown(
+            this.requestTimeoutIntervalInput,
+            this.testID.createApiClientScrollView
+        );
         await this.requestTimeoutIntervalInput.clearText();
         await this.requestTimeoutIntervalInput.replaceText(
             requestTimeoutInterval
@@ -160,6 +175,10 @@ class CreateApiClientScreen {
     };
 
     setResourceTimeoutInterval = async (resourceTimeoutInterval) => {
+        await waitForAndScrollDown(
+            this.resourceTimeoutIntervalInput,
+            this.testID.createApiClientScrollView
+        );
         await this.resourceTimeoutIntervalInput.clearText();
         await this.resourceTimeoutIntervalInput.replaceText(
             resourceTimeoutInterval
@@ -176,50 +195,86 @@ class CreateApiClientScreen {
             retryInterval: "2000",
         }
     ) => {
-        await RetryPolicyConfiguration.setRetry(options);
+        await this.retryPolicyConfiguration.setRetry(options);
     };
 
     toggleOffAlertOnClientErrorCheckbox = async () => {
+        await waitForAndScrollDown(
+            this.alertOnClientErrorCheckboxTrue,
+            this.testID.createApiClientScrollView
+        );
         await this.alertOnClientErrorCheckboxTrue.tap();
         await expect(this.alertOnClientErrorCheckboxFalse).toBeVisible();
     };
 
     toggleOnAlertOnClientErrorCheckbox = async () => {
+        await waitForAndScrollDown(
+            this.alertOnClientErrorCheckboxFalse,
+            this.testID.createApiClientScrollView
+        );
         await this.alertOnClientErrorCheckboxFalse.tap();
         await expect(this.alertOnClientErrorCheckboxTrue).toBeVisible();
     };
 
     toggleOffAllowCellularAccessCheckbox = async () => {
+        await waitForAndScrollDown(
+            this.allowCellularAccessCheckboxTrue,
+            this.testID.createApiClientScrollView
+        );
         await this.allowCellularAccessCheckboxTrue.tap();
         await expect(this.allowCellularAccessCheckboxFalse).toBeVisible();
     };
 
     toggleOnAllowCellularAccessCheckbox = async () => {
+        await waitForAndScrollDown(
+            this.allowCellularAccessCheckboxFalse,
+            this.testID.createApiClientScrollView
+        );
         await this.allowCellularAccessCheckboxFalse.tap();
         await expect(this.allowCellularAccessCheckboxTrue).toBeVisible();
     };
 
     toggleOffCancelRequestsOn401Checkbox = async () => {
+        await waitForAndScrollDown(
+            this.cancelRequestsOn401CheckboxTrue,
+            this.testID.createApiClientScrollView
+        );
         await this.cancelRequestsOn401CheckboxTrue.tap();
         await expect(this.cancelRequestsOn401CheckboxFalse).toBeVisible();
     };
 
     toggleOnCancelRequestsOn401Checkbox = async () => {
+        await waitForAndScrollDown(
+            this.cancelRequestsOn401CheckboxFalse,
+            this.testID.createApiClientScrollView
+        );
         await this.cancelRequestsOn401CheckboxFalse.tap();
         await expect(this.cancelRequestsOn401CheckboxTrue).toBeVisible();
     };
 
     toggleOffFollowRedirectsCheckbox = async () => {
+        await waitForAndScrollDown(
+            this.followRedirectsCheckboxTrue,
+            this.testID.createApiClientScrollView
+        );
         await this.followRedirectsCheckboxTrue.tap();
         await expect(this.followRedirectsCheckboxFalse).toBeVisible();
     };
 
     toggleOnFollowRedirectsCheckbox = async () => {
+        await waitForAndScrollDown(
+            this.followRedirectsCheckboxFalse,
+            this.testID.createApiClientScrollView
+        );
         await this.followRedirectsCheckboxFalse.tap();
         await expect(this.followRedirectsCheckboxTrue).toBeVisible();
     };
 
     toggleOffTrustSelfSignedServerCertificateCheckbox = async () => {
+        await waitForAndScrollDown(
+            this.trustSelfSignedServerCertificateCheckboxTrue,
+            this.testID.createApiClientScrollView
+        );
         await this.trustSelfSignedServerCertificateCheckboxTrue.tap();
         await expect(
             this.trustSelfSignedServerCertificateCheckboxFalse
@@ -227,6 +282,10 @@ class CreateApiClientScreen {
     };
 
     toggleOnTrustSelfSignedServerCertificateCheckbox = async () => {
+        await waitForAndScrollDown(
+            this.trustSelfSignedServerCertificateCheckboxFalse,
+            this.testID.createApiClientScrollView
+        );
         await this.trustSelfSignedServerCertificateCheckboxFalse.tap();
         await expect(
             this.trustSelfSignedServerCertificateCheckboxTrue
@@ -234,11 +293,19 @@ class CreateApiClientScreen {
     };
 
     toggleOffWaitsForConnectivityCheckbox = async () => {
+        await waitForAndScrollDown(
+            this.waitsForConnectivityCheckboxTrue,
+            this.testID.createApiClientScrollView
+        );
         await this.waitsForConnectivityCheckboxTrue.tap();
         await expect(this.waitsForConnectivityCheckboxFalse).toBeVisible();
     };
 
     toggleOnWaitsForConnectivityCheckbox = async () => {
+        await waitForAndScrollDown(
+            this.waitsForConnectivityCheckboxFalse,
+            this.testID.createApiClientScrollView
+        );
         await this.waitsForConnectivityCheckboxFalse.tap();
         await expect(this.waitsForConnectivityCheckboxTrue).toBeVisible();
     };

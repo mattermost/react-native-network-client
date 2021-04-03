@@ -18,7 +18,7 @@ import {
     ApiClientScreen,
     ApiClientUploadScreen,
 } from "@support/ui/screen";
-import { isAndroid } from "@support/utils";
+import { isAndroid, waitForAndScrollDown } from "@support/utils";
 import { verifyApiClient, verifyResponseSuccessOverlay } from "../helpers";
 
 describe("Upload - API Client Request", () => {
@@ -155,13 +155,12 @@ async function uploadFileAndVerify(
     { secure = false, server = "file-server" }
 ) {
     const {
-        apiClientUploadScrollView,
         attachImageButton,
         fileComponent,
         filename,
         fileUri,
+        makeUploadRequest,
         progressBar,
-        uploadFileButton,
     } = ApiClientUploadScreen;
 
     // # Select file
@@ -170,12 +169,15 @@ async function uploadFileAndVerify(
     // * Verify file is selected
     await expect(fileComponent).toBeVisible();
     await expect(filename).toHaveText(testImageFilename);
-    await apiClientUploadScrollView.scrollTo("bottom");
+    await waitForAndScrollDown(
+        fileUri,
+        ApiClientUploadScreen.testID.apiClientUploadScrollView
+    );
     await expect(fileUri).toBeVisible();
     await expect(progressBar).toBeVisible();
 
     // # Upload file
-    await uploadFileButton.tap();
+    await makeUploadRequest();
 
     // * Verify response success overlay
     await verifyResponseSuccessOverlay(

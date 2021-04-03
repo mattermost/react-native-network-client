@@ -28,7 +28,7 @@ describe("Get - Generic Client Request", () => {
 
     beforeAll(async () => {
         const apiResponse = await Request.apiGet({ headers: testHeaders });
-        verifyApiResponse(
+        await verifyApiResponse(
             apiResponse,
             testSiteUrl,
             testStatus,

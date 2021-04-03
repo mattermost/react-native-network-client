@@ -7,7 +7,11 @@
 // - Use element testID when selecting an element. Create one if none.
 // *******************************************************************
 
-import { Alert, ClientListItem } from "@support/ui/component";
+import {
+    clientCertPassword,
+    secureWebSocketServerClientCertUrl,
+} from "@support/test_config";
+import { Alert } from "@support/ui/component";
 import {
     ClientListScreen,
     CreateWebSocketClientScreen,
@@ -21,9 +25,39 @@ describe("Create WebSocket Client", () => {
     const testName = `Example ${randomText} WebSocket`;
     const testHeaders = { ...customHeaders };
     const testTimeoutInterval = getRandomInt(60).toString();
+
+    beforeEach(async () => {
+        await device.reloadReactNative();
+        await CreateWebSocketClientScreen.open();
+    });
+
+    it("should be able to create, alert for duplicate, and remove a WebSocket client", async () => {
+        // # Create WebSocket client
+        await createWebSocketClient(
+            testName,
+            testUrl,
+            testHeaders,
+            testTimeoutInterval,
+            { secure: false }
+        );
+
+        // # Alert for duplicate WebSocket client
+        await alertForDuplicateWebSocketClient(testName, testUrl);
+
+        // # Remove WebSocket client
+        await removeWebSocketClient(testName);
+    });
+});
+
+async function createWebSocketClient(
+    testName,
+    testUrl,
+    testHeaders,
+    testTimeoutInterval,
+    { secure = false }
+) {
     const {
         createClient,
-        createWebSocketClientScrollView,
         setHeaders,
         setName,
         setTimeoutInterval,
@@ -31,59 +65,58 @@ describe("Create WebSocket Client", () => {
         toggleOnEnableCompressionCheckbox,
         toggleOnTrustSelfSignedServerCertificateCheckbox,
     } = CreateWebSocketClientScreen;
-    const { clientListScrollView, removeClientWithName } = ClientListScreen;
 
-    beforeAll(async () => {
-        await CreateWebSocketClientScreen.open();
-    });
+    // # Set all fields and create client
+    await setName(testName);
+    await setUrl(testUrl);
+    await setHeaders(testHeaders);
+    if (secure) {
+        await CreateWebSocketClientScreen.downloadP12(
+            secureWebSocketServerClientCertUrl,
+            clientCertPassword
+        );
+    }
+    await setTimeoutInterval(testTimeoutInterval);
+    await toggleOnEnableCompressionCheckbox();
+    await toggleOnTrustSelfSignedServerCertificateCheckbox();
+    await createClient();
 
-    it("should be able to create an API client", async () => {
-        // # Set all fields and create client
-        await setName(testName);
-        await setUrl(testUrl);
-        await setHeaders(testHeaders);
-        await setTimeoutInterval(testTimeoutInterval);
-        await toggleOnEnableCompressionCheckbox();
-        await createWebSocketClientScrollView.scrollTo("bottom");
-        await toggleOnTrustSelfSignedServerCertificateCheckbox();
-        await createClient();
+    // * Verify created client
+    const { subtitle, title } = await ClientListScreen.getClientByName(
+        testName
+    );
+    await expect(title).toHaveText(testName);
+    await expect(subtitle).toHaveText(testUrl);
+}
 
-        // * Verify created client
-        await clientListScrollView.scrollTo("bottom");
-        const { subtitle, title } = ClientListItem.getItemByName(testName);
-        await expect(title).toHaveText(testName);
-        await expect(subtitle).toHaveText(testUrl);
-    });
+async function alertForDuplicateWebSocketClient(testName, testUrl) {
+    const { createClient, setName, setUrl } = CreateWebSocketClientScreen;
+    const { errorTitle, okButton } = Alert;
 
-    it("should not be able to create an API client with existing URL", async () => {
-        const { errorTitle, okButton } = Alert;
+    // # Open create WebSocket client screen
+    await CreateWebSocketClientScreen.open();
 
-        // # Open create WebSocket client screen
-        await CreateWebSocketClientScreen.open();
+    // # Set an existing url and attempt to create client
+    await setName(testName);
+    await setUrl(testUrl);
+    await createClient();
 
-        // # Set an existing url and attempt to create client
-        await setName(testName);
-        await setUrl(testUrl);
-        await createClient();
+    // * Verify error alert
+    await expect(errorTitle).toBeVisible();
+    await expect(
+        element(by.text(`A client for ${testUrl} already exists`))
+    ).toBeVisible();
+    await okButton.tap();
+    await CreateWebSocketClientScreen.toBeVisible();
 
-        // * Verify error alert
-        await expect(errorTitle).toBeVisible();
-        await expect(
-            element(by.text(`A client for ${testUrl} already exists`))
-        ).toBeVisible();
-        await okButton.tap();
-        await CreateWebSocketClientScreen.toBeVisible();
+    // # Open client list screen
+    await CreateWebSocketClientScreen.back();
+}
 
-        // # Open client list screen
-        await CreateWebSocketClientScreen.back();
-    });
+async function removeWebSocketClient(testName) {
+    // # Remove client
+    await ClientListScreen.removeClientByName(testName);
 
-    it("should be able to remove a WebSocket client", async () => {
-        // # Remove client
-        await clientListScrollView.scrollTo("bottom");
-        await removeClientWithName(testName);
-
-        // * Verify client is removed
-        await expect(element(by.text(testName))).not.toBeVisible();
-    });
-});
+    // * Verify client is removed
+    await expect(element(by.text(testName))).not.toBeVisible();
+}
