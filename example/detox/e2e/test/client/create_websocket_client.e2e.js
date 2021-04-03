@@ -10,6 +10,7 @@
 import {
     clientCertPassword,
     secureWebSocketServerClientCertUrl,
+    secureWebSocketServerUrl,
 } from "@support/test_config";
 import { Alert } from "@support/ui/component";
 import {
@@ -21,18 +22,18 @@ import { customHeaders } from "../helpers";
 
 describe("Create WebSocket Client", () => {
     const randomText = getRandomId(10);
-    const testUrl = `ws://example-${randomText}-ws.com`;
+    const testUrl = `wss://example-${randomText}-ws.com`;
     const testName = `Example ${randomText} WebSocket`;
     const testHeaders = { ...customHeaders };
     const testTimeoutInterval = getRandomInt(60).toString();
 
     beforeEach(async () => {
         await device.reloadReactNative();
-        await CreateWebSocketClientScreen.open();
     });
 
     it("should be able to create, alert for duplicate, and remove a WebSocket client", async () => {
         // # Create WebSocket client
+        await CreateWebSocketClientScreen.open();
         await createWebSocketClient(
             testName,
             testUrl,
@@ -46,6 +47,26 @@ describe("Create WebSocket Client", () => {
 
         // # Remove WebSocket client
         await removeWebSocketClient(testName);
+    });
+
+    it("should be able to create, alert for duplicate, and remove a WebSocket client - secure connection", async () => {
+        // # Create WebSocket client
+        const testSecureName = `Secure ${testName}`;
+        const testSecureUrl = secureWebSocketServerUrl;
+        await CreateWebSocketClientScreen.open();
+        await createWebSocketClient(
+            testSecureName,
+            testSecureUrl,
+            testHeaders,
+            testTimeoutInterval,
+            { secure: true }
+        );
+
+        // # Alert for duplicate WebSocket client
+        await alertForDuplicateWebSocketClient(testSecureName, testSecureUrl);
+
+        // # Remove WebSocket client
+        await removeWebSocketClient(testSecureName);
     });
 });
 

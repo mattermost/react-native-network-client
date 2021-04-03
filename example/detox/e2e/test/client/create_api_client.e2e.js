@@ -10,6 +10,7 @@
 import {
     clientCertPassword,
     secureServerClientCertUrl,
+    secureServerUrl,
 } from "@support/test_config";
 import { Alert } from "@support/ui/component";
 import {
@@ -39,11 +40,11 @@ describe("Create API Client", () => {
 
     beforeEach(async () => {
         await device.reloadReactNative();
-        await CreateApiClientScreen.open();
     });
 
     it("should be able to create an API client", async () => {
         // Create API client
+        await CreateApiClientScreen.open();
         await createApiClient(
             testName,
             testBaseUrl,
@@ -61,6 +62,33 @@ describe("Create API Client", () => {
 
         // # Remove API client
         await removeApiClient(testName);
+    });
+
+    it("should be able to create an API client - secure connection", async () => {
+        // # Remove dupe preset
+        await removeApiClient("Secure Mockserver API");
+
+        // Create API client
+        const testSecureName = `Secure ${testName}`;
+        const testSecureBaseUrl = secureServerUrl;
+        await CreateApiClientScreen.open();
+        await createApiClient(
+            testSecureName,
+            testSecureBaseUrl,
+            testHeaders,
+            testToken,
+            testRequestTimeoutInterval,
+            testResourceTimeoutInterval,
+            testMaxConnections,
+            testRetry,
+            { secure: true }
+        );
+
+        // Alert for duplicate API client
+        await alertForDuplicateApiClient(testSecureName, testSecureBaseUrl);
+
+        // # Remove API client
+        await removeApiClient(testSecureName);
     });
 });
 
@@ -104,10 +132,10 @@ async function createApiClient(
     await setRequestTimeoutInterval(testRequestTimeoutInterval);
     await setResourceTimeoutInterval(testResourceTimeoutInterval);
     await setMaxConnections(testMaxConnections);
-    await setRetry(testRetry);
     await toggleOnWaitsForConnectivityCheckbox();
     await toggleOnCancelRequestsOn401Checkbox();
     await toggleOnTrustSelfSignedServerCertificateCheckbox();
+    await setRetry(testRetry);
     await createClient();
 
     // * Verify created client
