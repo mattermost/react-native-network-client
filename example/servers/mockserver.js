@@ -66,6 +66,7 @@ const mockserver = ({ secure = false } = {}) => {
             delayResponse(
                 req,
                 res,
+                next,
                 {
                     clientID,
                     clientAttempts: 1,
@@ -86,6 +87,7 @@ const mockserver = ({ secure = false } = {}) => {
             delayResponse(
                 req,
                 res,
+                next,
                 {
                     clientID,
                     clientAttempts,
