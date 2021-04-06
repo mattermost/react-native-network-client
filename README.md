@@ -90,12 +90,6 @@ For both API client and WebSocket client, the following error codes apply:
   | ---- | -------------------------------------------------------- |
   | -200 | SSL handshake failed due to a missing client certificate |
 
-- General client errors will be in the range -300 to -399
-
-  | Code | Reason                         |
-  | ---- | ------------------------------ |
-  | -300 | Request retries were exhausted |
-
 ## Contributing
 
 See the [contributing guide](CONTRIBUTING.md) to learn how to contribute to the repository and the development workflow.
