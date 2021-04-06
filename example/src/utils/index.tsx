@@ -91,19 +91,19 @@ const createAPIClient = async (
     isMattermostClient: boolean = false,
     enableClientErrorEventHandler: boolean = true
 ): Promise<APIClientItem | null> => {
-    try {
-        let clientErrorEventHandler;
-        if (enableClientErrorEventHandler) {
-            clientErrorEventHandler = (event: APIClientErrorEvent) => {
-                Alert.alert(
-                    `Error for ${baseUrl}`,
-                    `Code: ${event.errorCode}\nDescription: ${event.errorDescription}`,
-                    [{ text: "OK" }],
-                    { cancelable: false }
-                );
-            };
-        }
+    let clientErrorEventHandler;
+    if (enableClientErrorEventHandler) {
+        clientErrorEventHandler = (event: APIClientErrorEvent) => {
+            Alert.alert(
+                `Error for ${baseUrl}`,
+                `Code: ${event.errorCode}\nDescription: ${event.errorDescription}`,
+                [{ text: "OK" }],
+                { cancelable: false }
+            );
+        };
+    }
 
+    try {
         const { client, created } = await getOrCreateAPIClient(
             baseUrl,
             configuration,
@@ -284,19 +284,19 @@ const createWebSocketClient = async (
     isMattermostClient: boolean = false,
     enableClientErrorEventHandler: boolean = true
 ): Promise<WebSocketClientItem | null> => {
-    try {
-        let clientErrorEventHandler;
-        if (enableClientErrorEventHandler) {
-            clientErrorEventHandler = (event: WebSocketClientErrorEvent) => {
-                Alert.alert(
-                    `Error for ${url}`,
-                    `Code: ${event.errorCode}\nDescription: ${event.errorDescription}`,
-                    [{ text: "OK" }],
-                    { cancelable: false }
-                );
-            };
-        }
+    let clientErrorEventHandler;
+    if (enableClientErrorEventHandler) {
+        clientErrorEventHandler = (event: WebSocketClientErrorEvent) => {
+            Alert.alert(
+                `Error for ${url}`,
+                `Code: ${event.errorCode}\nDescription: ${event.errorDescription}`,
+                [{ text: "OK" }],
+                { cancelable: false }
+            );
+        };
+    }
 
+    try {
         const { client, created } = await getOrCreateWebSocketClient(
             url,
             configuration,
