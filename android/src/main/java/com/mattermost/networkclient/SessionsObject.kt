@@ -3,12 +3,14 @@ package com.mattermost.networkclient
 import okhttp3.Call
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.WebSocket
 
 object SessionsObject {
     var client = mutableMapOf<String, OkHttpClient.Builder>()
     var request = mutableMapOf<String, Request.Builder>()
     var call = mutableMapOf<String, Call>()
     var config = mutableMapOf<String, HashMap<String, Any>>()
+    var socket = mutableMapOf<String, WebSocket>()
 
     // Default Retry Config
     val defaultRetry = mutableMapOf<String, Any>(

@@ -6,6 +6,9 @@ import okhttp3.*
 import okio.*
 import com.mattermost.networkclient.enums.APIClientEvents
 import com.mattermost.networkclient.helpers.*
+import okhttp3.HttpUrl.Companion.toHttpUrl
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
+import java.net.URI
 import kotlin.collections.HashMap
 
 class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
@@ -21,9 +24,8 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
     @ReactMethod
     fun createClientFor(baseUrl: String, options: ReadableMap, promise: Promise) {
-
         // Don't trust user input...
-        val url = baseUrl.trimSlashes();
+        val url = baseUrl.toHttpUrl().toBaseUrl();
 
         try {
             // Create the client and request builder
@@ -42,8 +44,11 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
     @ReactMethod
     fun getClientHeadersFor(baseUrl: String, promise: Promise) {
+        // Don't trust user input...
+        val url = baseUrl.toHttpUrl().toBaseUrl();
+
         try {
-            promise.resolve(sessionsRequest[baseUrl.trimSlashes()]?.build()?.headers?.readableMap())
+            promise.resolve(sessionsRequest[url]?.build()?.headers?.readableMap())
         } catch (error: Error) {
             promise.reject(error)
         }
@@ -51,8 +56,11 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
     @ReactMethod
     fun addClientHeadersFor(baseUrl: String, headers: ReadableMap, promise: Promise) {
+        // Don't trust user input...
+        val url = baseUrl.toHttpUrl().toBaseUrl();
+
         try {
-            sessionsRequest[baseUrl.trimSlashes()]?.addHeadersAsReadableMap(headers)
+            sessionsRequest[url]?.addHeadersAsReadableMap(headers)
             promise.resolve(null);
         } catch (error: Error) {
             promise.reject(error)
@@ -61,9 +69,13 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
     @ReactMethod
     fun invalidateClientFor(baseUrl: String, promise: Promise) {
+        // Don't trust user input...
+        val url = baseUrl.toHttpUrl().toBaseUrl();
+
         try {
-            sessionsRequest.remove(baseUrl.trimSlashes());
-            sessionsClient.remove(baseUrl.trimSlashes());
+            sessionsRequest.remove(url);
+            sessionsClient.remove(url);
+            sessionsConfig.remove(url);
             promise.resolve(sessionsRequest.keys);
         } catch (err: Throwable) {
             promise.reject(err)
@@ -73,7 +85,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     @ReactMethod
     fun get(baseUrl: String, endpoint: String, options: ReadableMap, promise: Promise) {
         // Don't trust user input...
-        val url = baseUrl.trimSlashes();
+        val url = baseUrl.toHttpUrl().toBaseUrl();
 
         try {
             val request = sessionsRequest[url]!!.url(formUrlString(url, endpoint)).parseOptions(options, sessionsClient[url]!!, url).build();
@@ -88,7 +100,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     @ReactMethod
     fun post(baseUrl: String, endpoint: String, options: ReadableMap, promise: Promise) {
         // Don't trust user input...
-        val url = baseUrl.trimSlashes();
+        val url = baseUrl.toHttpUrl().toBaseUrl();
 
         try {
             val request = sessionsRequest[url]!!.url(formUrlString(url, endpoint)).post(options.bodyToRequestBody()).parseOptions(options, sessionsClient[url]!!, url).build();
@@ -102,9 +114,8 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
     @ReactMethod
     fun put(baseUrl: String, endpoint: String, options: ReadableMap, promise: Promise) {
-
         // Don't trust user input...
-        val url = baseUrl.trimSlashes();
+        val url = baseUrl.toHttpUrl().toBaseUrl();
 
         try {
             val request = sessionsRequest[url]!!.url(formUrlString(url, endpoint)).put(options.bodyToRequestBody()).parseOptions(options, sessionsClient[url]!!, url).build();
@@ -119,7 +130,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     @ReactMethod
     fun patch(baseUrl: String, endpoint: String, options: ReadableMap, promise: Promise) {
         // Don't trust user input...
-        val url = baseUrl.trimSlashes();
+        val url = baseUrl.toHttpUrl().toBaseUrl();
 
         try {
             val request = sessionsRequest[url]!!.url(formUrlString(url, endpoint)).patch(options.bodyToRequestBody()).parseOptions(options, sessionsClient[url]!!, url).build();
@@ -133,9 +144,8 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
     @ReactMethod
     fun delete(baseUrl: String, endpoint: String, options: ReadableMap, promise: Promise) {
-
         // Don't trust user input...
-        val url = baseUrl.trimSlashes();
+        val url = baseUrl.toHttpUrl().toBaseUrl();
 
         try {
             val request = sessionsRequest[url]!!.url(formUrlString(url, endpoint)).delete(options.bodyToRequestBody()).parseOptions(options, sessionsClient[url]!!, url).build();
@@ -151,7 +161,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     fun upload(baseUrl: String, endpoint: String, file: String, taskId: String, options: ReadableMap?, promise: Promise) {
 
         // Don't trust user input...
-        val url = baseUrl.trimSlashes();
+        val url = baseUrl.toHttpUrl().toBaseUrl();
         val body: RequestBody;
         val uri = Uri.parse(file);
 
