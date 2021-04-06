@@ -77,21 +77,23 @@ extension NetworkClient {
                         "lastRequestedUrl": json.response?.url?.absoluteString
                     ])
                 case .failure(let error):
-                    if (error.responseCode != nil) {
+                    var responseCode = error.responseCode
+                    var retriesExhausted = false
+                    if error.isRequestRetryError, let underlyingError = error.underlyingError {
+                        responseCode = underlyingError.asAFError?.responseCode
+                        retriesExhausted = true
+                    }
+                    
+                    if responseCode != nil {
                         resolve([
                             "ok": false,
                             "headers": json.response?.allHeaderFields,
                             "data": json.value,
-                            "code": error.responseCode,
-                            "lastRequestedUrl": json.response?.url?.absoluteString
+                            "code": responseCode,
+                            "lastRequestedUrl": json.response?.url?.absoluteString,
+                            "retriesExhausted": retriesExhausted
                         ])
                         return
-                    } else if error.isRequestRetryError, case let .requestRetryFailed(retryError, originalError) = error {
-                        if let clientError = retryError.asNetworkClientError {
-                            let description = "\(clientError.localizedDescription); Underlying Error: \(originalError.localizedDescription)"
-                            reject("\(clientError.errorCode!)", description, clientError)
-                            return
-                        }
                     }
 
                     reject("\(error._code)", error.localizedDescription, error)

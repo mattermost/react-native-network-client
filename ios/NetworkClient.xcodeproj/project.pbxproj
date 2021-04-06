@@ -18,7 +18,6 @@
 		49EBD8172575CF6500C7C102 /* NetworkClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49EBD8162575CF6500C7C102 /* NetworkClient.swift */; };
 		49EBDB3625781FA200C7C102 /* BearerAuthenticationAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49EBDB3525781FA200C7C102 /* BearerAuthenticationAdapter.swift */; };
 		49EE973E25F95F6700DDF63F /* LinearRetryPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49EE973D25F95F6700DDF63F /* LinearRetryPolicy.swift */; };
-		49EE977F25F995E900DDF63F /* NetworkClientError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49EE977E25F995E900DDF63F /* NetworkClientError.swift */; };
 		49EE97C025F9A0B000DDF63F /* ExponentialRetryPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49EE97BF25F9A0B000DDF63F /* ExponentialRetryPolicy.swift */; };
 		49EFF88725B75B510098B42C /* WebSocketManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49EFF88625B75B510098B42C /* WebSocketManager.swift */; };
 		49FE4ECC252E839900EC2942 /* APIClient.m in Sources */ = {isa = PBXBuildFile; fileRef = B3E7B5891CC2AC0600A0062D /* APIClient.m */; };
@@ -52,7 +51,6 @@
 		49EBDB3525781FA200C7C102 /* BearerAuthenticationAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BearerAuthenticationAdapter.swift; sourceTree = "<group>"; };
 		49EBDC232578903700C7C102 /* NetworkClient-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "NetworkClient-Bridging-Header.h"; sourceTree = "<group>"; };
 		49EE973D25F95F6700DDF63F /* LinearRetryPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinearRetryPolicy.swift; sourceTree = "<group>"; };
-		49EE977E25F995E900DDF63F /* NetworkClientError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkClientError.swift; sourceTree = "<group>"; };
 		49EE97BF25F9A0B000DDF63F /* ExponentialRetryPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExponentialRetryPolicy.swift; sourceTree = "<group>"; };
 		49EFF88625B75B510098B42C /* WebSocketManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebSocketManager.swift; sourceTree = "<group>"; };
 		53A730F5250AA8E40058A8B4 /* SessionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionManager.swift; sourceTree = "<group>"; };
@@ -85,7 +83,6 @@
 				49AC517C2605372D009CABD5 /* StringProtocol+Extensions.swift */,
 				49E7C48225E46BFF000B941D /* Keychain.swift */,
 				4914851525B20EEF00DBD8FF /* URL+Extensions.swift */,
-				49EE977E25F995E900DDF63F /* NetworkClientError.swift */,
 				49EE97BF25F9A0B000DDF63F /* ExponentialRetryPolicy.swift */,
 				4914851225B20EB200DBD8FF /* Session+Extensions.swift */,
 				4983339325B68CFF00C9CB2B /* WebSocketClient.m */,
@@ -163,7 +160,6 @@
 			files = (
 				4914851625B20EEF00DBD8FF /* URL+Extensions.swift in Sources */,
 				4983339725B68D0C00C9CB2B /* WebSocketClient.swift in Sources */,
-				49EE977F25F995E900DDF63F /* NetworkClientError.swift in Sources */,
 				4983339425B68CFF00C9CB2B /* WebSocketClient.m in Sources */,
 				49AC517D2605372D009CABD5 /* StringProtocol+Extensions.swift in Sources */,
 				49917982255A0D8900C32F78 /* GenericClient.swift in Sources */,
