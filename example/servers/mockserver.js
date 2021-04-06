@@ -55,7 +55,7 @@ const mockserver = ({ secure = false } = {}) => {
     };
     const retryDelayResponse = (req, res, next, requestHandler) => {
         console.log("Client request received!");
-        const clientID = req.query.clientID;
+        const clientID = req.params.clientID;
         if (!clientID) {
             console.log("Client ID is missing!");
             return res.sendStatus(404);
@@ -71,12 +71,8 @@ const mockserver = ({ secure = false } = {}) => {
                     clientID,
                     clientAttempts: 1,
                     clientAttemptBeginTime: Date.now(),
-                    serverDelay: req.query.serverDelay
-                        ? req.query.serverDelay
-                        : 0,
-                    serverRetryLimit: req.query.serverRetryLimit
-                        ? req.query.serverRetryLimit
-                        : 1,
+                    serverDelay: req.params.serverDelay,
+                    serverRetryLimit: req.params.serverRetryLimit,
                 },
                 requestHandler
             );
@@ -146,7 +142,7 @@ const mockserver = ({ secure = false } = {}) => {
         retryDelayResponse(req, res, next, secureMockRequestHandler);
     };
     const nonSecureRetryResetHandler = (req, res, next) => {
-        const clientID = req.query.clientID;
+        const clientID = req.params.clientID;
         if (clientID) {
             console.log(`Reset client ${clientID}!`);
             retryMap.delete(clientID);
@@ -172,20 +168,35 @@ const mockserver = ({ secure = false } = {}) => {
     // Create router
     const router = express.Router();
     router.get("/get", mockRequestHandler);
-    router.get("/get/retry", retryMockRequestHandler);
-    router.get("/get/retry/reset", retryResetHandler);
+    router.get(
+        "/get/retry/clientID/:clientID/serverDelay/:serverDelay/serverRetryLimit/:serverRetryLimit",
+        retryMockRequestHandler
+    );
+    router.get("/get/retry/reset/clientID/:clientID", retryResetHandler);
     router.post("/post", mockRequestHandler);
-    router.post("/post/retry", retryMockRequestHandler);
-    router.post("/post/retry/reset", retryResetHandler);
+    router.post(
+        "/post/retry/clientID/:clientID/serverDelay/:serverDelay/serverRetryLimit/:serverRetryLimit",
+        retryMockRequestHandler
+    );
+    router.post("/post/retry/reset/clientID/:clientID", retryResetHandler);
     router.put("/put", mockRequestHandler);
-    router.put("/put/retry", retryMockRequestHandler);
-    router.put("/put/retry/reset", retryResetHandler);
+    router.put(
+        "/put/retry/clientID/:clientID/serverDelay/:serverDelay/serverRetryLimit/:serverRetryLimit",
+        retryMockRequestHandler
+    );
+    router.put("/put/retry/reset/clientID/:clientID", retryResetHandler);
     router.patch("/patch", mockRequestHandler);
-    router.patch("/patch/retry", retryMockRequestHandler);
-    router.patch("/patch/retry/reset", retryResetHandler);
+    router.patch(
+        "/patch/retry/clientID/:clientID/serverDelay/:serverDelay/serverRetryLimit/:serverRetryLimit",
+        retryMockRequestHandler
+    );
+    router.patch("/patch/retry/reset/clientID/:clientID", retryResetHandler);
     router.delete("/delete", mockRequestHandler);
-    router.delete("/delete/retry", retryMockRequestHandler);
-    router.delete("/delete/retry/reset", retryResetHandler);
+    router.delete(
+        "/delete/retry/clientID/:clientID/serverDelay/:serverDelay/serverRetryLimit/:serverRetryLimit",
+        retryMockRequestHandler
+    );
+    router.delete("/delete/retry/reset/clientID/:clientID", retryResetHandler);
 
     // Create app
     const app = express();
