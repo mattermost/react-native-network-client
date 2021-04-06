@@ -16,6 +16,7 @@ const mockserver = ({ secure = false } = {}) => {
             clientAttemptBeginTime,
             serverDelay,
             serverRetryLimit,
+            failureResponseStatus,
         },
         requestHandler
     ) => {
@@ -43,8 +44,9 @@ const mockserver = ({ secure = false } = {}) => {
                 clientAttemptBeginTime,
                 clientAttemptEndTime,
                 clientAttemptTimeDiff,
+                failureResponseStatus,
             });
-            return res.sendStatus(408);
+            return res.sendStatus(failureResponseStatus);
         }
 
         console.log(
@@ -56,13 +58,11 @@ const mockserver = ({ secure = false } = {}) => {
     const retryDelayResponse = (req, res, next, requestHandler) => {
         console.log("Client request received!");
         const clientID = req.params.clientID;
-        if (!clientID) {
-            console.log("Client ID is missing!");
-            return res.sendStatus(404);
-        }
-
         if (!retryMap.has(clientID)) {
             console.log(`Client ${clientID} attempt #1`);
+            const failureResponseStatus = req.headers.failureResponseStatus
+                ? req.headers.failureResponseStatus
+                : 408;
             delayResponse(
                 req,
                 res,
@@ -73,6 +73,7 @@ const mockserver = ({ secure = false } = {}) => {
                     clientAttemptBeginTime: Date.now(),
                     serverDelay: req.params.serverDelay,
                     serverRetryLimit: req.params.serverRetryLimit,
+                    failureResponseStatus,
                 },
                 requestHandler
             );
@@ -90,6 +91,7 @@ const mockserver = ({ secure = false } = {}) => {
                     clientAttemptBeginTime: retry.clientAttemptBeginTime,
                     serverDelay: retry.serverDelay,
                     serverRetryLimit: retry.serverRetryLimit,
+                    failureResponseStatus: retry.failureResponseStatus,
                 },
                 requestHandler
             );
@@ -117,7 +119,9 @@ const mockserver = ({ secure = false } = {}) => {
     };
     const nonSecureMockRequestHandler = (req, res, next, cert = null) => {
         console.log("Request is received!");
-        const responseStatus = req.responseStatus ? req.responseStatus : 200;
+        const responseStatus = req.headers.responseStatus
+            ? req.headers.responseStatus
+            : 200;
 
         res.set("server", "mockserver");
         res.status(responseStatus).json({
