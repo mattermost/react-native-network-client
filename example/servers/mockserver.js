@@ -44,7 +44,7 @@ const mockserver = ({ secure = false } = {}) => {
                 clientAttemptEndTime,
                 clientAttemptTimeDiff,
             });
-            return res.sendStatus(418);
+            return res.sendStatus(408);
         }
 
         console.log(
