@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+const bodyParser = require("body-parser");
 const cors = require("cors");
 const express = require("express");
 const http = require("http");
@@ -52,8 +53,9 @@ const retryServer = () => {
     // Create handlers
     const retryHandler = (req, res, next) => {
         console.log("Client request received!");
-        const clientID = req.query.clientID;
+        const clientID = req.params.clientID;
         if (!clientID) {
+            console.log("Client ID is missing!");
             res.sendStatus(404);
             return;
         }
@@ -64,9 +66,11 @@ const retryServer = () => {
                 clientID,
                 clientAttempts: 1,
                 clientAttemptBeginTime: Date.now(),
-                serverDelay: req.query.serverDelay ? req.query.serverDelay : 0,
-                serverRetryLimit: req.query.serverRetryLimit
-                    ? req.query.serverRetryLimit
+                serverDelay: req.params.serverDelay
+                    ? req.params.serverDelay
+                    : 0,
+                serverRetryLimit: req.params.serverRetryLimit
+                    ? req.params.serverRetryLimit
                     : 1,
             });
         } else {
@@ -83,7 +87,7 @@ const retryServer = () => {
         }
     };
     const resetHandler = (req, res, next) => {
-        const clientID = req.query.clientID;
+        const clientID = req.params.clientID;
         if (clientID) {
             console.log(`Reset client ${clientID}!`);
             retryMap.delete(clientID);
@@ -97,8 +101,11 @@ const retryServer = () => {
     // Create app
     const app = express();
     app.use(cors());
-    app.all("/", retryHandler);
-    app.all("/reset", resetHandler);
+    app.all(
+        "/retry/clientID/:clientID/serverDelay/:serverDelay/serverRetryLimit/:serverRetryLimit",
+        retryHandler
+    );
+    app.all("/reset/clientID/:clientID", resetHandler);
     return app;
 };
 
