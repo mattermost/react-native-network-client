@@ -62,38 +62,40 @@ extension NetworkClient {
         let requestModifer = getRequestModifier(from: options)
         let interceptor = getInterceptor(from: options)
 
-        session.request(url, method: method, parameters: parameters, encoder: encoder, headers: headers, interceptor: interceptor, requestModifier: requestModifer).responseJSON { json in
-            self.handleResponse(for: session, withUrl: url, withData: json)
-            
-            switch (json.result) {
-            case .success:
-                resolve([
-                    "ok": true,
-                    "headers": json.response?.allHeaderFields,
-                    "data": json.value,
-                    "code": json.response?.statusCode,
-                    "lastRequestedUrl": json.response?.url?.absoluteString
-                ])
-            case .failure(let error):
-                if (error.responseCode != nil) {
+        session.request(url, method: method, parameters: parameters, encoder: encoder, headers: headers, interceptor: interceptor, requestModifier: requestModifer)
+            .validate()
+            .responseJSON { json in
+                self.handleResponse(for: session, withUrl: url, withData: json)
+
+                switch (json.result) {
+                case .success:
                     resolve([
-                        "ok": false,
+                        "ok": true,
                         "headers": json.response?.allHeaderFields,
                         "data": json.value,
-                        "code": error.responseCode,
+                        "code": json.response?.statusCode,
                         "lastRequestedUrl": json.response?.url?.absoluteString
                     ])
-                    return
-                } else if error.isRequestRetryError, case let .requestRetryFailed(retryError, originalError) = error {
-                    if let clientError = retryError.asNetworkClientError {
-                        let description = "\(clientError.localizedDescription); Underlying Error: \(originalError.localizedDescription)"
-                        reject("\(clientError.errorCode!)", description, clientError)
+                case .failure(let error):
+                    if (error.responseCode != nil) {
+                        resolve([
+                            "ok": false,
+                            "headers": json.response?.allHeaderFields,
+                            "data": json.value,
+                            "code": error.responseCode,
+                            "lastRequestedUrl": json.response?.url?.absoluteString
+                        ])
                         return
+                    } else if error.isRequestRetryError, case let .requestRetryFailed(retryError, originalError) = error {
+                        if let clientError = retryError.asNetworkClientError {
+                            let description = "\(clientError.localizedDescription); Underlying Error: \(originalError.localizedDescription)"
+                            reject("\(clientError.errorCode!)", description, clientError)
+                            return
+                        }
                     }
-                }
 
-                reject("\(error._code)", error.localizedDescription, error)
-            }
+                    reject("\(error._code)", error.localizedDescription, error)
+                }
         }
     }
     
