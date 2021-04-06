@@ -15,7 +15,9 @@ enum KeychainError: Error {
     case InvalidToken(_ token: String)
     case InvalidP12Path(_ path: String)
     case InvalidP12Contents(_ path: String)
+    case DuplicateIdentity
     case InvalidServerUrl(_ serverUrl: String)
+    case InvalidHost(_ host: String)
     case FailedAuthSecPKCS12Import
     case FailedSecIdentityCopyCertificate(_ status: OSStatus)
     case FailedSecItemAdd(_ status: OSStatus)
@@ -32,8 +34,10 @@ extension KeychainError: LocalizedError {
         case .InvalidToken(_): return -102
         case .InvalidP12Path(_): return -103
         case .InvalidP12Contents(_): return -104
-        case .InvalidServerUrl(_): return -105
-        case .FailedAuthSecPKCS12Import: return -106
+        case .DuplicateIdentity: return -105
+        case .InvalidServerUrl(_): return -106
+        case .InvalidHost(_): return -107
+        case .FailedAuthSecPKCS12Import: return -108
         case .FailedSecIdentityCopyCertificate(status: let status): return status
         case .FailedSecItemAdd(status: let status): return status
         case .FailedSecItemCopyMatching(status: let status): return status
@@ -54,8 +58,12 @@ extension KeychainError: LocalizedError {
             return "Invalid P12 path: \(path)"
         case .InvalidP12Contents(path: let path):
             return "Invalid P12 file contents: \(path)"
+        case .DuplicateIdentity:
+            return "Identity has already been imported"
         case .InvalidServerUrl(serverUrl: let serverUrl):
             return "Invalid server URL: \(serverUrl)"
+        case .InvalidHost(host: let host):
+            return "Invalid host: \(host)"
         case .FailedAuthSecPKCS12Import:
             return "Incorrect or missing P12 password"
         case .FailedSecIdentityCopyCertificate(status: let status):
@@ -109,7 +117,7 @@ class Keychain {
         return nil
     }
     
-    static func importClientP12(withPath path:String, withPassword password:String? = nil, forServerUrl serverUrl: String) throws {
+    static func importClientP12(withPath path:String, withPassword password:String? = nil, forHost host: String) throws {
         guard let url = URL(string: path) else {
             throw KeychainError.InvalidP12Path(path)
         }
@@ -117,21 +125,20 @@ class Keychain {
             throw KeychainError.InvalidP12Contents(path)
         }
         let identity = try identityFromP12Import(data, password)
-        let attributes = try buildIdentityAttributes(identity!, for: serverUrl)
-        
-        if let _ = try? getClientIdentityAndCertificate(for: serverUrl) {
-            try deleteClientP12(for: serverUrl)
-        }
+        let attributes = try buildIdentityAttributes(identity!, for: host)
 
-        var persistentRef: AnyObject?
-        let addStatus = SecItemAdd(attributes as CFDictionary, &persistentRef)
+        let addStatus = SecItemAdd(attributes as CFDictionary, nil)
         guard addStatus == errSecSuccess else {
+            if addStatus == errSecDuplicateItem {
+                throw KeychainError.DuplicateIdentity
+            }
+
             throw KeychainError.FailedSecItemAdd(addStatus)
         }
     }
     
-    static func getClientIdentityAndCertificate(for serverUrl: String) throws -> (SecIdentity, SecCertificate)? {
-        let query = try buildIdentityQuery(for: serverUrl)
+    static func getClientIdentityAndCertificate(for host: String) throws -> (SecIdentity, SecCertificate)? {
+        let query = try buildIdentityQuery(for: host)
 
         var result: AnyObject?
         let identityStatus = SecItemCopyMatching(query as CFDictionary, &result)
@@ -158,7 +165,9 @@ class Keychain {
     
     static func deleteAll(for serverUrl: String) throws {
         try deleteToken(for: serverUrl)
-        try deleteClientP12(for: serverUrl)
+        if let url = URL(string: serverUrl), let host = url.host {
+            try deleteClientP12(for: host)
+        }
     }
     
     private static func updateToken(_ tokenData: Data, withAttributes attributes: CFDictionary) throws {
@@ -193,14 +202,14 @@ class Keychain {
         return attributes
     }
     
-    private static func buildIdentityAttributes(_ identity: SecIdentity, for serverUrl: String) throws -> [CFString: Any] {
-        guard let serverUrlData = serverUrl.data(using: .utf8) else {
-            throw KeychainError.InvalidServerUrl(serverUrl)
+    private static func buildIdentityAttributes(_ identity: SecIdentity, for host: String) throws -> [CFString: Any] {
+        guard let hostData = host.data(using: .utf8) else {
+            throw KeychainError.InvalidHost(host)
         }
         
         var attributes: [CFString:Any] = [
             kSecValueRef: identity,
-            kSecAttrLabel: serverUrlData,
+            kSecAttrLabel: hostData,
             kSecAttrAccessible: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
         ]
 
@@ -211,22 +220,22 @@ class Keychain {
         return attributes
     }
     
-    private static func buildIdentityQuery(for serverUrl: String) throws -> [CFString: Any] {
-        guard let serverUrlData = serverUrl.data(using: .utf8) else {
-            throw KeychainError.InvalidServerUrl(serverUrl)
+    private static func buildIdentityQuery(for host: String) throws -> [CFString: Any] {
+        guard let hostData = host.data(using: .utf8) else {
+            throw KeychainError.InvalidHost(host)
         }
         
         let query: [CFString:Any] = [
             kSecClass: kSecClassIdentity,
-            kSecAttrLabel: serverUrlData,
+            kSecAttrLabel: hostData,
             kSecReturnRef: true
         ]
 
         return query
     }
     
-    static func deleteClientP12(for serverUrl: String) throws {
-        let query = try buildIdentityQuery(for: serverUrl)
+    static func deleteClientP12(for host: String) throws {
+        let query = try buildIdentityQuery(for: host)
         SecItemDelete(query as CFDictionary)
     }
     

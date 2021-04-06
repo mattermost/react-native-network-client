@@ -11,7 +11,11 @@ import AddHeaders from "../components/AddHeaders";
 import P12Inputs from "../components/P12Inputs";
 import NumericInput from "../components/NumericInput";
 import { useClientP12Configuration } from "../hooks";
-import { ClientType, parseHeaders } from "../utils";
+import {
+    ClientType,
+    parseHeaders,
+    webSocketClientErrorEventHandler,
+} from "../utils";
 
 const styles = StyleSheet.create({
     checkboxText: { flex: 1 },
@@ -23,12 +27,17 @@ export default function CreateWebSocketClientScreen({
 }: CreateWebSocketClientScreenProps) {
     const [name, setName] = useState("");
     const [url, setUrl] = useState("");
+    const [alertOnClientError, setAlertOnClientError] = useState(true);
+    const toggleAlertOnClientError = () =>
+        setAlertOnClientError((alertOnClientError) => !alertOnClientError);
+
     const [
         configuration,
         setConfiguration,
     ] = useState<WebSocketClientConfiguration>({
         timeoutInterval: 5,
         enableCompression: false,
+        trustSelfSignedServerCertificate: false,
     });
     const [
         clientP12Configuration,
@@ -57,6 +66,13 @@ export default function CreateWebSocketClientScreen({
         }));
     };
 
+    const toggleTrustSelfSignedServerCertificate = () => {
+        setConfiguration((configuration) => ({
+            ...configuration,
+            trustSelfSignedServerCertificate: !configuration.trustSelfSignedServerCertificate,
+        }));
+    };
+
     const createClient = async () => {
         const wsConfiguration = {
             ...configuration,
@@ -65,10 +81,15 @@ export default function CreateWebSocketClientScreen({
             wsConfiguration["clientP12Configuration"] = clientP12Configuration;
         }
 
+        const clientErrorEventHandler = alertOnClientError
+            ? webSocketClientErrorEventHandler
+            : undefined;
+
         try {
             const { client, created } = await getOrCreateWebSocketClient(
                 url,
-                wsConfiguration
+                wsConfiguration,
+                clientErrorEventHandler
             );
 
             if (!created) {
@@ -128,9 +149,33 @@ export default function CreateWebSocketClientScreen({
                 />
 
                 <CheckBox
+                    title={`Alert on client error? [${alertOnClientError}]`}
+                    checked={alertOnClientError}
+                    onPress={toggleAlertOnClientError}
+                    iconType="ionicon"
+                    checkedIcon="ios-checkmark-circle"
+                    uncheckedIcon="ios-checkmark-circle"
+                    iconRight
+                    textStyle={styles.checkboxText}
+                />
+
+                <CheckBox
                     title={`Enable Compression? [${configuration.enableCompression!}]`}
                     checked={configuration.enableCompression!}
                     onPress={toggleEnableCompression}
+                    iconType="ionicon"
+                    checkedIcon="ios-checkmark-circle"
+                    uncheckedIcon="ios-checkmark-circle"
+                    iconRight
+                    textStyle={styles.checkboxText}
+                />
+
+                <CheckBox
+                    title={`Trust Self-Signed Server Certificate? [${configuration.trustSelfSignedServerCertificate}]`}
+                    checked={
+                        configuration.trustSelfSignedServerCertificate as boolean
+                    }
+                    onPress={toggleTrustSelfSignedServerCertificate}
                     iconType="ionicon"
                     checkedIcon="ios-checkmark-circle"
                     uncheckedIcon="ios-checkmark-circle"

@@ -53,9 +53,8 @@ class APIClientSessionDelegate: SessionDelegate {
             }
         } else if authMethod == NSURLAuthenticationMethodClientCertificate {
             if let session = SessionManager.default.getSession(for: urlSession) {
-                let serverUrl = session.baseUrl.absoluteString
                 do {
-                    if let (identity, certificate) = try Keychain.getClientIdentityAndCertificate(for: serverUrl) {
+                    if let (identity, certificate) = try Keychain.getClientIdentityAndCertificate(for: session.baseUrl.host!) {
                         credential = URLCredential(identity: identity,
                                                    certificates: [certificate],
                                                    persistence: URLCredential.Persistence.permanent)
@@ -65,7 +64,7 @@ class APIClientSessionDelegate: SessionDelegate {
                 } catch {
                     NotificationCenter.default.post(name: Notification.Name(API_CLIENT_EVENTS["CLIENT_ERROR"]!),
                                                     object: nil,
-                                                    userInfo: ["serverUrl": serverUrl, "errorCode": error._code, "errorDescription": error.localizedDescription])
+                                                    userInfo: ["serverUrl": session.baseUrl.absoluteString, "errorCode": error._code, "errorDescription": error.localizedDescription])
                 }
             }
             disposition = .useCredential
@@ -212,9 +211,9 @@ class APIClient: RCTEventEmitter, NetworkClient {
         }
 
         do {
-            try resolve(Keychain.importClientP12(withPath: path, withPassword: password, forServerUrl: session.baseUrl.absoluteString))
+            try resolve(Keychain.importClientP12(withPath: path, withPassword: password, forHost: session.baseUrl.host!))
         } catch {
-            self.sendErrorEvent(for: session.baseUrl.absoluteString, withErrorCode: error._code, withErrorDescription: error.localizedDescription)
+            reject("\(error._code)", error.localizedDescription, error)
         }
     }
     
@@ -326,21 +325,23 @@ class APIClient: RCTEventEmitter, NetworkClient {
                         "lastRequestedUrl": json.response?.url?.absoluteString
                     ])
                 case .failure(let error):
-                    if (error.responseCode != nil) {
+                    var responseCode = error.responseCode
+                    var retriesExhausted = false
+                    if error.isRequestRetryError, let underlyingError = error.underlyingError {
+                        responseCode = underlyingError.asAFError?.responseCode
+                        retriesExhausted = true
+                    }
+                    
+                    if responseCode != nil {
                         resolve([
                             "ok": false,
                             "headers": json.response?.allHeaderFields,
                             "data": json.value,
-                            "code": error.responseCode,
-                            "lastRequestedUrl": json.response?.url?.absoluteString
+                            "code": responseCode,
+                            "lastRequestedUrl": json.response?.url?.absoluteString,
+                            "retriesExhausted": retriesExhausted
                         ])
                         return
-                    } else if error.isRequestRetryError, case let .requestRetryFailed(retryError, originalError) = error {
-                        if let clientError = retryError.asNetworkClientError {
-                            let description = "\(clientError.localizedDescription); Underlying Error: \(originalError.localizedDescription)"
-                            reject("\(clientError.errorCode!)", description, clientError)
-                            return
-                        }
                     }
 
                     reject("\(error._code)", error.localizedDescription, error)
@@ -395,21 +396,23 @@ class APIClient: RCTEventEmitter, NetworkClient {
                         "lastRequestedUrl": json.response?.url?.absoluteString
                     ])
                 case .failure(let error):
-                    if (error.responseCode != nil) {
+                    var responseCode = error.responseCode
+                    var retriesExhausted = false
+                    if error.isRequestRetryError, let underlyingError = error.underlyingError {
+                        responseCode = underlyingError.asAFError?.responseCode
+                        retriesExhausted = true
+                    }
+                    
+                    if responseCode != nil {
                         resolve([
                             "ok": false,
                             "headers": json.response?.allHeaderFields,
                             "data": json.value,
-                            "code": error.responseCode,
-                            "lastRequestedUrl": json.response?.url?.absoluteString
+                            "code": responseCode,
+                            "lastRequestedUrl": json.response?.url?.absoluteString,
+                            "retriesExhausted": retriesExhausted
                         ])
                         return
-                    } else if error.isRequestRetryError, case let .requestRetryFailed(retryError, originalError) = error {
-                        if let clientError = retryError.asNetworkClientError {
-                            let description = "\(clientError.localizedDescription); Underlying Error: \(originalError.localizedDescription)"
-                            reject("\(clientError.errorCode!)", description, clientError)
-                            return
-                        }
                     }
 
                     reject("\(error._code)", error.localizedDescription, error)

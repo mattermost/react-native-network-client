@@ -10,8 +10,6 @@
 import Foundation
 import Alamofire
 
-
-
 open class LinearRetryPolicy: RetryPolicy {
     public static let defaultRetryInterval: UInt = 2000
     public let retryInterval: UInt
@@ -30,15 +28,16 @@ open class LinearRetryPolicy: RetryPolicy {
                         for session: Session,
                         dueTo error: Error,
                         completion: @escaping (RetryResult) -> Void) {
-        if shouldRetry(request: request, dueTo: error) {
-            if request.retryCount < retryLimit {
-                completion(.retryWithDelay(Double(retryInterval) / 1000))
-            } else {
-                let retryError = NetworkClientError.retry(type: .retriesExhausted)
-                completion(.doNotRetryWithError(retryError))
-            }
+        if request.retryCount < retryLimit, shouldRetry(request: request, dueTo: error) {
+            completion(.retryWithDelay(Double(retryInterval) / 1000))
+        } else if let underlyingError = error.asAFError?.underlyingError {
+                // AF calls retry again after deserialization (see https://github.com/Alamofire/Alamofire/issues/3177)
+                // Because of this, the error in the second call might already be an instance
+                // of `requestRetryFailed` and so we prevent double-wrapping by using the
+                // underlying error.
+                completion(.doNotRetryWithError(underlyingError))
         } else {
-            completion(.doNotRetry)
+            completion(.doNotRetryWithError(error))
         }
     }
 }

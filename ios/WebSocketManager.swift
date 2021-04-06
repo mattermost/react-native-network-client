@@ -20,7 +20,7 @@ class WebSocketManager: NSObject {
         return webSockets.count
     }
     
-    func createWebSocket(for url:URL, withOptions options: Dictionary<String, Any>, withDelegate delegate: WebSocketClient) -> Void {
+    func createWebSocket(for url:URL, withOptions options: Dictionary<String, Any>, withDelegate delegate: WebSocketClient) throws -> Void {
         let existingWebSocket = getWebSocket(for: url)
         if (existingWebSocket != nil) {
             existingWebSocket!.delegate = delegate
@@ -30,6 +30,7 @@ class WebSocketManager: NSObject {
         var request = URLRequest(url: url)
         var compressionHandler: CompressionHandler? = nil
         var clientCredential: URLCredential? = nil
+        var certPinner: FoundationSecurity? = nil
 
         let options = JSON(options)
         if options != JSON.null {
@@ -46,23 +47,29 @@ class WebSocketManager: NSObject {
             if let clientP12Configuration = options["clientP12Configuration"].dictionaryObject as? [String:String] {
                 let path = clientP12Configuration["path"]
                 let password = clientP12Configuration["password"]
+                
                 do {
-                    try Keychain.importClientP12(withPath: path!, withPassword: password, forServerUrl: url.absoluteString)
-                    let (identity, certificate) = try Keychain.getClientIdentityAndCertificate(for: url.absoluteString)!
-                    clientCredential = URLCredential(identity: identity, certificates: [certificate], persistence: URLCredential.Persistence.permanent)
+                    try Keychain.importClientP12(withPath: path!, withPassword: password, forHost: url.host!)
+                } catch KeychainError.DuplicateIdentity {
+                    // do nothing
                 } catch {
-                    NotificationCenter.default.post(name: Notification.Name(WEBSOCKET_CLIENT_EVENTS["CLIENT_ERROR"]!),
-                                                    object: nil,
-                                                    userInfo: ["url": url.absoluteString, "errorCode": error._code, "errorDescription": error.localizedDescription])
+                    throw error
                 }
+
+                let (identity, certificate) = try Keychain.getClientIdentityAndCertificate(for: url.host!)!
+                clientCredential = URLCredential(identity: identity, certificates: [certificate], persistence: URLCredential.Persistence.permanent)
             }
             
             if options["enableCompression"].boolValue {
                 compressionHandler = WSCompression()
             }
+            
+            if options["trustSelfSignedServerCertificate"].boolValue {
+                certPinner = FoundationSecurity(allowSelfSigned: true)
+            }
         }
 
-        let webSocket = WebSocket(request: request, clientCredential: clientCredential, compressionHandler: compressionHandler)
+        let webSocket = WebSocket(request: request, certPinner: certPinner, clientCredential: clientCredential, compressionHandler: compressionHandler)
         webSocket.delegate = delegate
         
         webSockets[url] = webSocket
@@ -77,9 +84,9 @@ class WebSocketManager: NSObject {
             return
         }
         
-        if let _ = try? Keychain.getClientIdentityAndCertificate(for: url.absoluteString) {
+        if let _ = try? Keychain.getClientIdentityAndCertificate(for: url.host!) {
             do {
-                try Keychain.deleteClientP12(for: url.absoluteString)
+                try Keychain.deleteClientP12(for: url.host!)
             } catch {
                 NotificationCenter.default.post(name: Notification.Name(WEBSOCKET_CLIENT_EVENTS["CLIENT_ERROR"]!),
                                                 object: nil,
