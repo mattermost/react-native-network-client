@@ -16,14 +16,13 @@ class RetryInterceptor() : Interceptor {
         // Check for request options
         if (SessionsObject.config[baseUrl]?.containsKey("retryRequest") == true) {
             config = SessionsObject.config[baseUrl]!!["retryRequest"] as MutableMap<String, Any>;
-
             // Remove once set
             SessionsObject.config[baseUrl]!!.remove("retryRequest");
-        // Else check for client options
         } else if (SessionsObject.config[baseUrl]?.containsKey("retryClient") == true) {
+            // Else check for client options
             config = SessionsObject.config[baseUrl]!!["retryClient"] as MutableMap<String, Any>
-        // Else use defaults
         } else {
+            // Else use defaults
             config = SessionsObject.defaultRetry
         }
 
@@ -35,8 +34,8 @@ class RetryInterceptor() : Interceptor {
 
         val request = chain.request()
         var response = chain.proceed(request)
-        var attempts = 0;
-        val config = getRetryConfig(request.url.scheme + "://" + request.url.host + ":" + request.url.port )
+        var attempts = 1;
+        val config = getRetryConfig(request.url.scheme + "://" + request.url.host + ":" + request.url.port)
 
         // Keep retrying as long as response is not successful and less than the retry limit
         while (!response.isSuccessful && attempts <= config["retryLimit"] as Double) {
