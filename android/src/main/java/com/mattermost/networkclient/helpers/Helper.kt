@@ -74,8 +74,6 @@ fun Request.Builder.parseOptions(options: ReadableMap?, session: OkHttpClient.Bu
                 Pair("retryExponentialBackoffBase", retryPolicyConfiguration["exponentialBackoffBase"] as Double?),
                 Pair("retryExponentialBackoffScale", retryPolicyConfiguration["exponentialBackoffScale"] as Double?),
         )
-
-        session.addInterceptor(RetryInterceptor())
     }
 
     return this;
@@ -98,9 +96,10 @@ fun OkHttpClient.Builder.parseOptions(options: ReadableMap?, request: Request.Bu
 
     // Retries
     this.retryOnConnectionFailure(false);
+    this.addInterceptor(RetryInterceptor())
+
     if (options.hasKey("retryPolicyConfiguration")) {
         val retryPolicyConfiguration = options.getMap("retryPolicyConfiguration")!!.toHashMap();
-
         SessionsObject.config[baseUrl]!!["retryClient"] = mutableMapOf(
                 Pair("retryType", retryPolicyConfiguration["type"] as String?),
                 Pair("retryLimit", retryPolicyConfiguration["retryLimit"] as Double?),
@@ -108,8 +107,6 @@ fun OkHttpClient.Builder.parseOptions(options: ReadableMap?, request: Request.Bu
                 Pair("retryExponentialBackoffBase", retryPolicyConfiguration["exponentialBackoffBase"] as Double?),
                 Pair("retryExponentialBackoffScale", retryPolicyConfiguration["exponentialBackoffScale"] as Double?),
         )
-
-        this.addInterceptor(RetryInterceptor())
     }
 
     // Headers

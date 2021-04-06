@@ -4,6 +4,7 @@ import com.facebook.react.bridge.*
 import com.mattermost.networkclient.helpers.bodyToRequestBody
 import com.mattermost.networkclient.helpers.parseOptions
 import com.mattermost.networkclient.helpers.promiseResolution
+import com.mattermost.networkclient.interceptors.RetryInterceptor
 import okhttp3.OkHttpClient
 import okhttp3.Request
 
@@ -14,6 +15,10 @@ class GenericClientModule(reactContext: ReactApplicationContext) : ReactContextB
 
     override fun getName(): String {
         return "GenericClient"
+    }
+
+    init {
+        client.addInterceptor(RetryInterceptor())
     }
 
     @ReactMethod
