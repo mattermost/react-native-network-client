@@ -82,8 +82,8 @@
     if ([authenticationMethod isEqualToString:NSURLAuthenticationMethodServerTrust]) {
       if ([nativeClientSessionManager getTrustSelfSignedServerCertificateFor:sessionBaseUrl]) {
         credential = [NSURLCredential credentialForTrust:challenge.protectionSpace.serverTrust];
+        disposition = NSURLSessionAuthChallengeUseCredential;
       }
-      disposition = NSURLSessionAuthChallengeUseCredential;
     } else if ([authenticationMethod isEqualToString:NSURLAuthenticationMethodClientCertificate]) {
       credential = [nativeClientSessionManager getCredentialFor:sessionBaseUrl];
       disposition = NSURLSessionAuthChallengeUseCredential;
