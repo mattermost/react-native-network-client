@@ -1,5 +1,5 @@
 //
-//  SDWebImageDownloaderOperation+initWithRequest.h
+//  SDWebImageDownloaderOperation+Swizzle.h
 //  NetworkClientExample
 //
 //  Created by Miguel Alatzar on 12/2/20.
@@ -9,6 +9,6 @@
 
 #import "SDWebImageDownloaderOperation.h"
 
-@interface SDWebImageDownloaderOperation (initWithRequest)
+@interface SDWebImageDownloaderOperation (Swizzle)
 
 @end
