@@ -53,19 +53,7 @@ class APIClientSessionDelegate: SessionDelegate {
             }
         } else if authMethod == NSURLAuthenticationMethodClientCertificate {
             if let session = SessionManager.default.getSession(for: urlSession) {
-                do {
-                    if let (identity, certificate) = try Keychain.getClientIdentityAndCertificate(for: session.baseUrl.host!) {
-                        credential = URLCredential(identity: identity,
-                                                   certificates: [certificate],
-                                                   persistence: URLCredential.Persistence.permanent)
-                    } else {
-                        throw APIClientError.ClientCertificateMissing
-                    }
-                } catch {
-                    NotificationCenter.default.post(name: Notification.Name(API_CLIENT_EVENTS["CLIENT_ERROR"]!),
-                                                    object: nil,
-                                                    userInfo: ["serverUrl": session.baseUrl.absoluteString, "errorCode": error._code, "errorDescription": error.localizedDescription])
-                }
+                credential = SessionManager.default.getCredential(for: session.baseUrl)
             }
             disposition = .useCredential
         }
