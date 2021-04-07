@@ -25,7 +25,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     @ReactMethod
     fun createClientFor(baseUrl: String, options: ReadableMap, promise: Promise) {
         // Don't trust user input...
-        val url = baseUrl.toHttpUrl().toBaseUrl();
+        val url = baseUrl.toHttpUrl().toString();
 
         try {
             // Create the client and request builder
@@ -45,7 +45,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     @ReactMethod
     fun getClientHeadersFor(baseUrl: String, promise: Promise) {
         // Don't trust user input...
-        val url = baseUrl.toHttpUrl().toBaseUrl();
+        val url = baseUrl.toHttpUrl().toString();
 
         try {
             promise.resolve(sessionsRequest[url]?.build()?.headers?.readableMap())
@@ -57,7 +57,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     @ReactMethod
     fun addClientHeadersFor(baseUrl: String, headers: ReadableMap, promise: Promise) {
         // Don't trust user input...
-        val url = baseUrl.toHttpUrl().toBaseUrl();
+        val url = baseUrl.toHttpUrl().toString();
 
         try {
             sessionsRequest[url]?.addHeadersAsReadableMap(headers)
@@ -70,7 +70,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     @ReactMethod
     fun invalidateClientFor(baseUrl: String, promise: Promise) {
         // Don't trust user input...
-        val url = baseUrl.toHttpUrl().toBaseUrl();
+        val url = baseUrl.toHttpUrl().toString();
 
         try {
             sessionsRequest.remove(url);
@@ -85,7 +85,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     @ReactMethod
     fun get(baseUrl: String, endpoint: String, options: ReadableMap, promise: Promise) {
         // Don't trust user input...
-        val url = baseUrl.toHttpUrl().toBaseUrl();
+        val url = baseUrl.toHttpUrl().toString();
 
         try {
             val request = sessionsRequest[url]!!.url(formUrlString(url, endpoint)).parseOptions(options, sessionsClient[url]!!, url).build();
@@ -100,7 +100,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     @ReactMethod
     fun post(baseUrl: String, endpoint: String, options: ReadableMap, promise: Promise) {
         // Don't trust user input...
-        val url = baseUrl.toHttpUrl().toBaseUrl();
+        val url = baseUrl.toHttpUrl().toString();
 
         try {
             val request = sessionsRequest[url]!!.url(formUrlString(url, endpoint)).post(options.bodyToRequestBody()).parseOptions(options, sessionsClient[url]!!, url).build();
@@ -115,7 +115,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     @ReactMethod
     fun put(baseUrl: String, endpoint: String, options: ReadableMap, promise: Promise) {
         // Don't trust user input...
-        val url = baseUrl.toHttpUrl().toBaseUrl();
+        val url = baseUrl.toHttpUrl().toString();
 
         try {
             val request = sessionsRequest[url]!!.url(formUrlString(url, endpoint)).put(options.bodyToRequestBody()).parseOptions(options, sessionsClient[url]!!, url).build();
@@ -130,7 +130,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     @ReactMethod
     fun patch(baseUrl: String, endpoint: String, options: ReadableMap, promise: Promise) {
         // Don't trust user input...
-        val url = baseUrl.toHttpUrl().toBaseUrl();
+        val url = baseUrl.toHttpUrl().toString();
 
         try {
             val request = sessionsRequest[url]!!.url(formUrlString(url, endpoint)).patch(options.bodyToRequestBody()).parseOptions(options, sessionsClient[url]!!, url).build();
@@ -145,7 +145,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     @ReactMethod
     fun delete(baseUrl: String, endpoint: String, options: ReadableMap, promise: Promise) {
         // Don't trust user input...
-        val url = baseUrl.toHttpUrl().toBaseUrl();
+        val url = baseUrl.toHttpUrl().toString();
 
         try {
             val request = sessionsRequest[url]!!.url(formUrlString(url, endpoint)).delete(options.bodyToRequestBody()).parseOptions(options, sessionsClient[url]!!, url).build();
@@ -161,7 +161,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     fun upload(baseUrl: String, endpoint: String, file: String, taskId: String, options: ReadableMap?, promise: Promise) {
 
         // Don't trust user input...
-        val url = baseUrl.toHttpUrl().toBaseUrl();
+        val url = baseUrl.toHttpUrl().toString();
         val body: RequestBody;
         val uri = Uri.parse(file);
 

@@ -210,7 +210,7 @@ fun formUrlString(baseUrl: String, endpoint: String): String {
 }
 
 /**
- *
+ * Trims leading / trailing slashes in a string; ideal for URL's
  */
 fun String.trimSlashes(): String {
     return this.trim { c -> c == '/' }
@@ -225,11 +225,4 @@ fun String.trimSlashes(): String {
  */
 fun emitEvent(reactContext: ReactContext, eventName: String, params: Any) {
     reactContext.getJSModule(RCTDeviceEventEmitter::class.java).emit(eventName, params)
-}
-
-/**
- * Returns a "Base URL" for a given HTTP URL
- */
-fun HttpUrl.toBaseUrl(): String {
-    return "${this.scheme}://${this.host}:${this.port}"
 }
