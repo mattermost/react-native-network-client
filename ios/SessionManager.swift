@@ -11,7 +11,7 @@ import Foundation
 import Alamofire
 import SwiftyJSON
 
-@objc public class SessionManager: NSObject {
+public class SessionManager: NSObject {
 
     @objc public static let `default` = SessionManager()
     private override init() {}
@@ -21,11 +21,6 @@ import SwiftyJSON
         return sessions.count
     }
 
-    // TODO
-    // Configure sesssion:
-    //  * ServerTrustManager
-    //  * CachedResponseHandler
-    //  * EventMonitor(s)
     func createSession(for baseUrl:URL,
                        withRootQueue rootQueue: DispatchQueue,
                        withDelegate delegate: SessionDelegate,
@@ -106,10 +101,10 @@ import SwiftyJSON
         return session
     }
     
-    @objc public func getSessionBaseUrlString(for request:URLRequest) -> String? {
+    func getSession(for request:URLRequest) -> Session? {
         if let requestUrl = request.url {
             if let session = getSession(for: requestUrl) {
-                return session.baseUrl.absoluteString
+                return session
             }
             
             let port = requestUrl.port != nil ? ":\(String(requestUrl.port!))" : ""
@@ -124,23 +119,15 @@ import SwiftyJSON
                     url = url.appendingPathComponent(component)
                 }
                 if let session = getSession(for: url) {
-                    return session.baseUrl.absoluteString
+                    return session
                 }
                 
                 pathComponents.removeLast()
             }
             
             if let session = getSession(for: hostUrl) {
-                return session.baseUrl.absoluteString
+                return session
             }
-        }
-        
-        return nil
-    }
-    
-    @objc public func getSessionConfiguration(for baseUrlString:String) -> URLSessionConfiguration? {
-        if let baseUrl = URL(string: baseUrlString), let session = getSession(for: baseUrl) {
-            return session.session.configuration
         }
         
         return nil

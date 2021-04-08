@@ -24,6 +24,7 @@ const APIClientImportP12Screen = ({ route }: APIClientImportP12ScreenProps) => {
     ] = useClientP12Configuration();
 
     const [error, setError] = useState<ClientResponseError>();
+    const [success, setSuccess] = useState<boolean>(false);
 
     const importClientP12 = async () => {
         const { path, password } = clientP12Configuration;
@@ -31,6 +32,7 @@ const APIClientImportP12Screen = ({ route }: APIClientImportP12ScreenProps) => {
 
         try {
             await client.importClientP12(path, password);
+            setSuccess(true);
         } catch (e) {
             setError(e);
         }
@@ -45,9 +47,8 @@ const APIClientImportP12Screen = ({ route }: APIClientImportP12ScreenProps) => {
                 onSelectP12={setClientP12Path}
                 onPasswordChange={setClientP12Password}
             />
-            {error && (
-                <Text>{`Error\nCode: ${error.code}\nMessage: ${error.message}`}</Text>
-            )}
+            {error && <Text>{`Success\nMessage: ${error.message}`}</Text>}
+            {success && <Text>Message: Identity has been imported</Text>}
             <Button
                 title="Import"
                 onPress={importClientP12}
