@@ -5,7 +5,7 @@ Configurable network clients for React Native. Uses Alamofire for iOS and OkHttp
 ## Installation
 
 ```sh
-npm install react-native-network-client
+
 ```
 
 ## Usage
