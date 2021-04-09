@@ -8,6 +8,11 @@ import {
 } from "react-native";
 import isURL from "validator/es/lib/isURL";
 
+import {
+    validateAPIClientConfiguration,
+    validateRequestOptions,
+} from "../schemas";
+
 const { APIClient: NativeAPIClient } = NativeModules;
 const Emitter = new NativeEventEmitter(NativeAPIClient);
 const { EVENTS } = NativeAPIClient.getConstants();
@@ -41,6 +46,7 @@ class APIClient implements APIClientInterface {
     constructor(baseUrl: string, config: APIClientConfiguration = {}) {
         this.baseUrl = baseUrl;
         this.config = Object.assign({}, DEFAULT_API_CLIENT_CONFIG, config);
+        validateAPIClientConfiguration(config);
     }
 
     onClientError = (callback: APIClientErrorEventHandler) => {
@@ -81,33 +87,44 @@ class APIClient implements APIClientInterface {
     get = (
         endpoint: string,
         options?: RequestOptions
-    ): Promise<ClientResponse> =>
-        NativeAPIClient.get(this.baseUrl, endpoint, options);
+    ): Promise<ClientResponse> => {
+        validateRequestOptions(options);
+        return NativeAPIClient.get(this.baseUrl, endpoint, options);
+    };
     put = (
         endpoint: string,
         options?: RequestOptions
-    ): Promise<ClientResponse> =>
-        NativeAPIClient.put(this.baseUrl, endpoint, options);
+    ): Promise<ClientResponse> => {
+        validateRequestOptions(options);
+        return NativeAPIClient.put(this.baseUrl, endpoint, options);
+    };
     post = (
         endpoint: string,
         options?: RequestOptions
-    ): Promise<ClientResponse> =>
-        NativeAPIClient.post(this.baseUrl, endpoint, options);
+    ): Promise<ClientResponse> => {
+        validateRequestOptions(options);
+        return NativeAPIClient.post(this.baseUrl, endpoint, options);
+    };
     patch = (
         endpoint: string,
         options?: RequestOptions
-    ): Promise<ClientResponse> =>
-        NativeAPIClient.patch(this.baseUrl, endpoint, options);
+    ): Promise<ClientResponse> => {
+        validateRequestOptions(options);
+        return NativeAPIClient.patch(this.baseUrl, endpoint, options);
+    };
     delete = (
         endpoint: string,
         options?: RequestOptions
-    ): Promise<ClientResponse> =>
-        NativeAPIClient.delete(this.baseUrl, endpoint, options);
+    ): Promise<ClientResponse> => {
+        validateRequestOptions(options);
+        return NativeAPIClient.delete(this.baseUrl, endpoint, options);
+    };
     upload = (
         endpoint: string,
         fileUrl: string,
         options?: UploadRequestOptions
     ): ProgressPromise<ClientResponse> => {
+        validateRequestOptions(options);
         const taskId = generateUploadTaskId();
         const promise: ProgressPromise<ClientResponse> = new Promise(
             (resolve, reject) => {
