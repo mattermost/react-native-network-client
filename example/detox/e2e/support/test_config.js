@@ -14,27 +14,27 @@ module.exports = {
     fileUploadSiteUrl:
         process.env.FILE_UPLOAD_SITE_URL || "http://127.0.0.1:8008",
     secureFastImageServerClientCertUrl:
-        "https://github.com/mattermost/react-native-network-client/raw/e2e-cert/example/certs/secure_fast_image_server_client_cert.p12",
+        "https://github.com/mattermost/react-native-network-client/raw/master/example/certs/secure_fast_image_server_client_cert.p12",
     secureFastImageServerUrl:
         process.env.SECURE_FAST_IMAGE_SITE_URL ||
         (process.env.IOS ? "https://127.0.0.1:9009" : "https://10.0.2.2:9009"),
     secureFastImageSiteUrl:
         process.env.SECURE_FAST_IMAGE_SITE_URL || "https://127.0.0.1:9009",
     secureFileUploadServerClientCertUrl:
-        "https://github.com/mattermost/react-native-network-client/raw/e2e-cert/example/certs/secure_file_upload_server_client_cert.p12",
+        "https://github.com/mattermost/react-native-network-client/raw/master/example/certs/secure_file_upload_server_client_cert.p12",
     secureFileUploadServerUrl:
         process.env.SECURE_FILE_UPLOAD_SITE_URL ||
         (process.env.IOS ? "https://127.0.0.1:9008" : "https://10.0.2.2:9008"),
     secureFileUploadSiteUrl:
         process.env.SECURE_FILE_UPLOAD_SITE_URL || "https://127.0.0.1:9008",
     secureServerClientCertUrl:
-        "https://github.com/mattermost/react-native-network-client/raw/e2e-cert/example/certs/secure_mockserver_client_cert.p12",
+        "https://github.com/mattermost/react-native-network-client/raw/master/example/certs/secure_mockserver_client_cert.p12",
     secureServerUrl:
         process.env.SECURE_SITE_URL ||
         (process.env.IOS ? "https://127.0.0.1:9080" : "https://10.0.2.2:9080"),
     secureSiteUrl: process.env.SECURE_SITE_URL || "https://127.0.0.1:9080",
     secureWebSocketServerClientCertUrl:
-        "https://github.com/mattermost/react-native-network-client/raw/e2e-cert/example/certs/secure_websocket_server_client_cert.p12",
+        "https://github.com/mattermost/react-native-network-client/raw/master/example/certs/secure_websocket_server_client_cert.p12",
     secureWebSocketServerUrl:
         process.env.SECURE_WEBSOCKET_URL ||
         (process.env.IOS ? "wss://127.0.0.1:4000" : "wss://10.0.2.2:4000"),
