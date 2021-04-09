@@ -90,6 +90,10 @@ For both API client and WebSocket client, the following error codes apply:
   | ---- | -------------------------------------------------------- |
   | -200 | SSL handshake failed due to a missing client certificate |
 
+## Method Swizzling
+
+There may be cases where network requests are made by another dependency of your app, for example, [react-native-fast-image](https://github.com/DylanVann/react-native-fast-image), and you'll want those requests to adopt the configuration of your `react-native-network-client` created client. While there might be a cleaner solution to this, we've opted for method swizzling for our own use case at Mattermost. You can find an example of how to do this in `example/ios/SDWebImageDownloaderOperation+Swizzle.m`. The specific swizzle code to write will depend on your dependency and on the dependency version as well since method implementations change.
+
 ## Contributing
 
 See the [contributing guide](CONTRIBUTING.md) to learn how to contribute to the repository and the development workflow.
