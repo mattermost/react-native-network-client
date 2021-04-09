@@ -17,6 +17,11 @@ import APIClientImportP12Screen from "./screens/APIClientImportP12Screen";
 import MattermostClientUploadScreen from "./screens/MattermostClientUploadScreen";
 import WebSocketClientScreen from "./screens/WebSocketClientScreen";
 
+if (__DEV__) {
+    const LogBox = require("react-native/Libraries/LogBox/LogBox");
+    LogBox.ignoreLogs(["Require cycle: ../node_modules/zod/lib/src/index.js"]);
+}
+
 const Stack = createStackNavigator();
 
 function App() {

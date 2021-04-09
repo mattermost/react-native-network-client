@@ -118,5 +118,8 @@
       "module",
       "typescript"
     ]
+  },
+  "dependencies": {
+    "zod": "1.11.13"
   }
 }
