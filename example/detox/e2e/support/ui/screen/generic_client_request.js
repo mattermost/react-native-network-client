@@ -8,16 +8,20 @@ import {
     RetryPolicyConfiguration,
 } from "@support/ui/component";
 import { ClientListScreen } from "@support/ui/screen";
-import { isAndroid } from "@support/utils";
+import { isAndroid, waitForAndScrollDown } from "@support/utils";
 
 class GenericClientRequestScreen {
     testID = {
+        genericClientRequestScrollView: "generic_client_request.scroll_view",
         bodyInput: "generic_client_request.body.input",
         timeoutIntervalInput: "generic_client_request.timeout_interval.input",
         urlInput: "generic_client_request.url.input",
     };
 
     genericClientRequestScreen = element(by.text("GenericClientRequest"));
+    genericClientRequestScrollView = element(
+        by.id(this.testID.genericClientRequestScrollView)
+    );
     bodyInput = element(by.id(this.testID.bodyInput));
     timeoutIntervalInput = element(by.id(this.testID.timeoutIntervalInput));
     urlInput = element(by.id(this.testID.urlInput));
@@ -30,19 +34,6 @@ class GenericClientRequestScreen {
     patchButton = MethodButtons.patchButton;
     postButton = MethodButtons.postButton;
     putButton = MethodButtons.putButton;
-    toggleOffExponentialRetryCheckbox =
-        RetryPolicyConfiguration.toggleOffExponentialRetryCheckbox;
-    toggleOnExponentialRetryCheckbox =
-        RetryPolicyConfiguration.toggleOnExponentialRetryCheckbox;
-    toggleOffLinearRetryCheckbox =
-        RetryPolicyConfiguration.toggleOffLinearRetryCheckbox;
-    toggleOnLinearRetryCheckbox =
-        RetryPolicyConfiguration.toggleOnLinearRetryCheckbox;
-    retryLimitInput = RetryPolicyConfiguration.retryLimitInput;
-    exponentialBackoffBaseInput =
-        RetryPolicyConfiguration.exponentialBackoffBaseInput;
-    exponentialBackoffScaleInput =
-        RetryPolicyConfiguration.exponentialBackoffScaleInput;
     responseCodeText = ResponseSuccessOverlay.responseCodeText;
     responseDataText = ResponseSuccessOverlay.responseDataText;
     responseHeadersText = ResponseSuccessOverlay.responseHeadersText;
@@ -51,6 +42,10 @@ class GenericClientRequestScreen {
     responseOkText = ResponseSuccessOverlay.responseOkText;
     responseRetriesExhaustedText =
         ResponseSuccessOverlay.responseRetriesExhaustedText;
+
+    retryPolicyConfiguration = new RetryPolicyConfiguration(
+        this.testID.genericClientRequestScrollView
+    );
 
     toBeVisible = async () => {
         await expect(this.genericClientRequestScreen).toBeVisible();
@@ -75,10 +70,18 @@ class GenericClientRequestScreen {
     };
 
     makeRequest = async () => {
+        await waitForAndScrollDown(
+            this.requestButton,
+            this.testID.genericClientRequestScrollView
+        );
         await this.requestButton.tap();
     };
 
     setBody = async (body) => {
+        await waitForAndScrollDown(
+            this.bodyInput,
+            this.testID.genericClientRequestScrollView
+        );
         await this.bodyInput.clearText();
         await this.bodyInput.replaceText(body);
         await this.bodyInput.tapReturnKey();
@@ -97,16 +100,24 @@ class GenericClientRequestScreen {
             retryInterval: "2000",
         }
     ) => {
-        await RetryPolicyConfiguration.setRetry(options);
+        await this.retryPolicyConfiguration.setRetry(options);
     };
 
     setTimeoutInterval = async (timeoutInterval) => {
+        await waitForAndScrollDown(
+            this.timeoutIntervalInput,
+            this.testID.genericClientRequestScrollView
+        );
         await this.timeoutIntervalInput.clearText();
         await this.timeoutIntervalInput.replaceText(timeoutInterval);
         await this.timeoutIntervalInput.tapReturnKey();
     };
 
     setUrl = async (url) => {
+        await waitForAndScrollDown(
+            this.urlInput,
+            this.testID.genericClientRequestScrollView
+        );
         await this.urlInput.clearText();
         await this.urlInput.replaceText(url);
         await this.urlInput.tapReturnKey();

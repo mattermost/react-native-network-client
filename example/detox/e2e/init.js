@@ -1,24 +1,43 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import jestexpect from "expect";
 import {
     fastImageSiteUrl,
     fileUploadSiteUrl,
+    secureFastImageSiteUrl,
+    secureFileUploadSiteUrl,
+    secureSiteUrl,
+    secureWebSocketSiteUrl,
     siteUrl,
     webSocketSiteUrl,
 } from "@support/test_config";
 
+const fs = require("fs");
 const http = require("http");
-const mockserver = require("mockserver");
+const https = require("https");
+const path = require("path");
+const mockserver = require("../../servers/mockserver");
 const fileServer = require("../../servers/file_server");
 const webSocketServer = require("../../servers/websocket_server");
 
+const certs = "../certs";
+const secureServerOptions = {
+    key: fs.readFileSync(path.join(certs, "server_key.pem")),
+    cert: fs.readFileSync(path.join(certs, "server_cert.pem")),
+    requestCert: true,
+    rejectUnauthorized: false, // so we can do own error handling
+    ca: [fs.readFileSync(path.join(certs, "server_cert.pem"))],
+};
+
 beforeAll(async () => {
     launchMockserver();
+    launchSecureMockserver();
     launchFastImageServer();
+    launchSecureFastImageServer();
     launchFileUploadServer();
+    launchSecureFileUploadServer();
     launchWebSocketServer();
+    launchSecureWebSocketServer();
 
     await device.launchApp({
         newInstance: false,
@@ -33,59 +52,106 @@ beforeAll(async () => {
 });
 
 function launchFastImageServer() {
+    launchServer("Fast Image Server", fileServer, fastImageSiteUrl, {
+        directory: "./e2e/support/fixtures",
+        secure: false,
+    });
+}
+
+function launchSecureFastImageServer() {
     launchServer(
-        "Fast Image Server",
+        "Secure Fast Image Server",
         fileServer,
-        fastImageSiteUrl,
-        "./e2e/support/fixtures"
+        secureFastImageSiteUrl,
+        { directory: "./e2e/support/fixtures", secure: true },
+        secureServerOptions,
+        https
     );
 }
 
 function launchFileUploadServer() {
+    launchServer("File Upload Server", fileServer, fileUploadSiteUrl, {
+        directory: "../upload",
+        secure: false,
+    });
+}
+
+function launchSecureFileUploadServer() {
     launchServer(
-        "File Upload Server",
+        "Secure File Upload Server",
         fileServer,
-        fileUploadSiteUrl,
-        "../upload"
+        secureFileUploadSiteUrl,
+        { directory: "../upload", secure: true },
+        secureServerOptions,
+        https
     );
 }
 
 function launchMockserver() {
-    launchServer("Mockserver", mockserver, siteUrl, "../mocks");
+    launchServer("Mockserver", mockserver, siteUrl, { secure: false });
+}
+
+function launchSecureMockserver() {
+    launchServer(
+        "Secure Mockserver",
+        mockserver,
+        secureSiteUrl,
+        { secure: true },
+        secureServerOptions,
+        https
+    );
 }
 
 function launchWebSocketServer() {
     const port = webSocketSiteUrl.split(":")[2];
-    webSocketServer(port);
+    webSocketServer(port, { secure: false });
     console.log(`WebSocket Server listening at ${webSocketSiteUrl}`);
 }
 
-function launchServer(serverName, requestListener, url, directory = "") {
-    const port = url.split(":")[2];
-    const listeningMessage = `${serverName} listening at ${url}`;
-    const notListeningMessage = `${serverName} not listening at port ${port}! Launching ${serverName} (directory: ${directory}) ...`;
-
-    // Check if server is listening
-    http.get(url, (res) => {
-        jestexpect(res.statusCode).toBe(200);
-        console.log(listeningMessage);
-    }).on("error", (e) => {
-        // Launch server if not listening
-        console.log(notListeningMessage);
-        const listener = directory
-            ? requestListener(directory)
-            : requestListener();
-        const server = http.createServer(listener).listen(port);
-        checkServerStatus(server, listeningMessage);
-    });
+function launchSecureWebSocketServer() {
+    const port = secureWebSocketSiteUrl.split(":")[2];
+    webSocketServer(port, { secure: true, serverOptions: secureServerOptions });
+    console.log(
+        `Secure WebSocket Server listening at ${secureWebSocketSiteUrl}`
+    );
 }
 
-function checkServerStatus(server, listeningMessage) {
+function launchServer(
+    serverName,
+    requestListener,
+    url,
+    requestListenerParams = {},
+    serverOptions = {},
+    protocol = http
+) {
+    console.log(`Launching ${serverName} ...`);
+    const port = url.split(":")[2];
+    const listeningMessage = `${serverName} listening at ${url} with params (${JSON.stringify(
+        requestListenerParams
+    )})`;
+
+    // Create server
+    const listener = requestListenerParams
+        ? requestListener(requestListenerParams)
+        : requestListener();
+    const server = protocol.createServer(serverOptions, listener).listen(port);
+
+    // Check server status
+    checkServerStatus(server, serverName, port, listeningMessage);
+}
+
+function checkServerStatus(server, serverName, port, listeningMessage) {
     server.on("listening", () => {
         console.log(listeningMessage);
     });
-    server.on("error", (err) => {
-        console.log(err);
-        process.exit(1);
+    server.on("error", (error) => {
+        if (error.code === "EADDRINUSE") {
+            console.log(
+                `Another ${serverName} instance is already listening at ${port}`
+            );
+        } else {
+            console.log(error);
+            process.exit(1);
+        }
     });
 }

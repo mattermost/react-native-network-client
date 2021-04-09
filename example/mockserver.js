@@ -1,37 +1,58 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-var http = require("http");
-var mockserver = require("mockserver");
-var argv = require("yargs").argv;
-var colors = require("colors");
-var mocks = argv.m || argv.mocks;
-var port = argv.p || argv.port;
+const fs = require("fs");
+const http = require("http");
+const https = require("https");
+const path = require("path");
+const mockserver = require("./servers/mockserver");
+const argv = require("yargs").argv;
+const colors = require("colors");
+const certs = argv.c || argv.certs;
+const port = argv.p || argv.port;
 
-if (!mocks || !port) {
+if (!port) {
     console.log(
         [
             "Mockserver",
             "",
             "Usage:",
-            "  mockserver -p PORT -m PATH",
+            "  node mockserver -p PORT -c PATH",
             "",
             "Options:",
             "  -p, --port=PORT    - Port to listen on",
-            "  -m, --mocks=PATH   - Path to mock files",
+            "  -c, --certs=PATH   - Path to cert files",
             "",
-            "Example:",
-            "  node mockserver.js -p 8080 -m './mocks'",
+            "Examples:",
+            "  non-secure --> node mockserver.js -p 8080",
+            "  secure     --> node mockserver.js -p 9080 -c './certs'",
         ].join("\n")
     );
 } else {
-    http.createServer(mockserver(mocks)).listen(port);
-    console.log(
-        "Mockserver serving mocks " +
-            'under "' +
-            mocks.green +
-            '" at ' +
-            "http://localhost:".green +
-            port.toString().green
-    );
+    if (certs) {
+        const serverOptions = {
+            key: fs.readFileSync(path.join(certs, "server_key.pem")),
+            cert: fs.readFileSync(path.join(certs, "server_cert.pem")),
+            requestCert: true,
+            rejectUnauthorized: false, // so we can do own error handling
+            ca: [fs.readFileSync(path.join(certs, "server_cert.pem"))],
+        };
+        https
+            .createServer(serverOptions, mockserver({ secure: true }))
+            .listen(port);
+        console.log(
+            "Secure Mockserver serving with certs under " +
+                certs.green +
+                " at " +
+                "https://127.0.0.1:".green +
+                port.toString().green
+        );
+    } else {
+        http.createServer(mockserver()).listen(port);
+        console.log(
+            "Mockserver serving at " +
+                "http://127.0.0.1:".green +
+                port.toString().green
+        );
+    }
 }

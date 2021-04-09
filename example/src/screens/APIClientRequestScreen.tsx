@@ -93,7 +93,7 @@ const APIClientRequestScreen = ({ route }: APIClientRequestScreenProps) => {
 
     return (
         <SafeAreaView>
-            <ScrollView>
+            <ScrollView testID="api_client_request.scroll_view">
                 <Input
                     label={`${method}\n\n${client.baseUrl}`}
                     placeholder="/api/v4/system/ping"

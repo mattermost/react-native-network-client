@@ -166,12 +166,34 @@ const createFastImageServerAPIClient = async (): Promise<APIClientItem | null> =
             ? "http://127.0.0.1:8009"
             : "http://10.0.2.2:8009";
     const headers = {
+        "header-1-key": "header-1-value",
+        "header-2-key": "header-2-value",
         Authorization:
             "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEyMyIsImlhdCI6MTYxNTI0MDUwNn0.-FLR4NUPTuBGLXd082MvNmJemoqfLqQi8-sJhCCaNf0",
     };
     const configuration = buildDefaultApiClientConfiguration(headers);
 
-    return createAPIClient(name, baseUrl, configuration);
+    return createAPIClient(name, baseUrl, configuration, false, false);
+};
+
+const createSecureFastImageServerAPIClient = async (): Promise<APIClientItem | null> => {
+    const name = "Secure Fast Image Server API";
+    const baseUrl =
+        Platform.OS === "ios"
+            ? "https://127.0.0.1:9009"
+            : "https://10.0.2.2:9009";
+    const headers = {
+        "header-1-key": "header-1-value",
+        "header-2-key": "header-2-value",
+        Authorization:
+            "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEyMyIsImlhdCI6MTYxNTI0MDUwNn0.-FLR4NUPTuBGLXd082MvNmJemoqfLqQi8-sJhCCaNf0",
+    };
+    const configuration = buildDefaultApiClientConfiguration(headers);
+    if (configuration.sessionConfiguration) {
+        configuration.sessionConfiguration.trustSelfSignedServerCertificate = true;
+    }
+
+    return createAPIClient(name, baseUrl, configuration, false, false);
 };
 
 const createFileUploadServerAPIClient = async (): Promise<APIClientItem | null> => {
@@ -180,9 +202,31 @@ const createFileUploadServerAPIClient = async (): Promise<APIClientItem | null> 
         Platform.OS === "ios"
             ? "http://127.0.0.1:8008"
             : "http://10.0.2.2:8008";
-    const configuration = buildDefaultApiClientConfiguration();
+    const headers = {
+        "header-1-key": "header-1-value",
+        "header-2-key": "header-2-value",
+    };
+    const configuration = buildDefaultApiClientConfiguration(headers);
 
-    return createAPIClient(name, baseUrl, configuration);
+    return createAPIClient(name, baseUrl, configuration, false, false);
+};
+
+const createSecureFileUploadServerAPIClient = async (): Promise<APIClientItem | null> => {
+    const name = "Secure File Upload Server API";
+    const baseUrl =
+        Platform.OS === "ios"
+            ? "https://127.0.0.1:9008"
+            : "https://10.0.2.2:9008";
+    const headers = {
+        "header-1-key": "header-1-value",
+        "header-2-key": "header-2-value",
+    };
+    const configuration = buildDefaultApiClientConfiguration(headers);
+    if (configuration.sessionConfiguration) {
+        configuration.sessionConfiguration.trustSelfSignedServerCertificate = true;
+    }
+
+    return createAPIClient(name, baseUrl, configuration, false, false);
 };
 
 const createMockserverAPIClient = async (): Promise<APIClientItem | null> => {
@@ -197,7 +241,25 @@ const createMockserverAPIClient = async (): Promise<APIClientItem | null> => {
     };
     const configuration = buildDefaultApiClientConfiguration(headers);
 
-    return createAPIClient(name, baseUrl, configuration);
+    return createAPIClient(name, baseUrl, configuration, false, false);
+};
+
+const createSecureMockserverAPIClient = async (): Promise<APIClientItem | null> => {
+    const name = "Secure Mockserver API";
+    const baseUrl =
+        Platform.OS === "ios"
+            ? "https://127.0.0.1:9080"
+            : "https://10.0.2.2:9080";
+    const headers = {
+        "header-1-key": "header-1-value",
+        "header-2-key": "header-2-value",
+    };
+    const configuration = buildDefaultApiClientConfiguration(headers);
+    if (configuration.sessionConfiguration) {
+        configuration.sessionConfiguration.trustSelfSignedServerCertificate = true;
+    }
+
+    return createAPIClient(name, baseUrl, configuration, false, false);
 };
 
 const createRequestBinAPIClient = async (): Promise<APIClientItem | null> => {
@@ -292,7 +354,7 @@ const createSimpleWebSocketClient = async (): Promise<WebSocketClientItem | null
         },
     };
 
-    return createWebSocketClient(name, url, configuration);
+    return createWebSocketClient(name, url, configuration, false, false);
 };
 
 export const createTestClients = async (): Promise<NetworkClientItem[]> => {
@@ -301,8 +363,11 @@ export const createTestClients = async (): Promise<NetworkClientItem[]> => {
         await createMattermostAPIClient(),
         await createJSONPlaceholderAPIClient(),
         await createFastImageServerAPIClient(),
+        await createSecureFastImageServerAPIClient(),
         await createFileUploadServerAPIClient(),
+        await createSecureFileUploadServerAPIClient(),
         await createMockserverAPIClient(),
+        await createSecureMockserverAPIClient(),
         await createRequestBinAPIClient(),
         await createMattermostWebSocketClient(),
         await createSimpleWebSocketClient(),
@@ -318,9 +383,27 @@ export const createTestClients = async (): Promise<NetworkClientItem[]> => {
 export const createNativeFile = async (
     fileContent: FileContent
 ): Promise<File> => {
-    const path = RFNS.DocumentDirectoryPath + `/${fileContent.name}`;
+    const path = `${RFNS.DocumentDirectoryPath}/${fileContent.name}`;
     await RFNS.writeFile(path, fileContent.content, fileContent.encoding);
     const statResult: StatResult = await RFNS.stat(path);
+
+    return {
+        name: fileContent.name,
+        size: Number(statResult.size),
+        type: fileContent.type,
+        uri: `file://${statResult.path}`,
+    };
+};
+
+export const downloadToNativeFile = async (
+    fromUrl: string,
+    fileContent: FileContent
+): Promise<File> => {
+    const filename = fromUrl.substring(fromUrl.lastIndexOf("/"));
+    fileContent.name = filename;
+    const toFile = `${RFNS.DocumentDirectoryPath}/${fileContent.name}`;
+    await RFNS.downloadFile({ fromUrl, toFile }).promise;
+    const statResult: StatResult = await RFNS.stat(toFile);
 
     return {
         name: fileContent.name,
@@ -344,6 +427,12 @@ const buildFileContent = (
     };
 };
 
+export const clientCertP12: FileContent = buildFileContent(
+    "client_cert.p12",
+    "",
+    "binary",
+    "binary"
+);
 export const sampleImage: FileContent = buildFileContent(
     "sample-image.jpg",
     sampleImageContent,

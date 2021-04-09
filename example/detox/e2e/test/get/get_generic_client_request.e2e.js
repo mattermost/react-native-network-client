@@ -8,8 +8,9 @@
 // *******************************************************************
 
 import { Request } from "@support/server_api";
-import { host, siteUrl, serverUrl } from "@support/test_config";
+import { siteUrl, serverUrl } from "@support/test_config";
 import { GenericClientRequestScreen } from "@support/ui/screen";
+import { getHost } from "@support/utils";
 import {
     customHeaders,
     performGenericClientRequest,
@@ -21,7 +22,7 @@ describe("Get - Generic Client Request", () => {
     const testMethod = "GET";
     const testServerUrl = `${serverUrl}/${testMethod.toLowerCase()}`;
     const testSiteUrl = `${siteUrl}/${testMethod.toLowerCase()}`;
-    const testHost = host;
+    const testHost = getHost(siteUrl);
     const testStatus = 200;
     const testHeaders = { ...customHeaders };
 

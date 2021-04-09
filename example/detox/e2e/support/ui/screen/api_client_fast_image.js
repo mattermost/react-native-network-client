@@ -11,6 +11,7 @@ class ApiClientFastImageScreen {
     };
 
     apiClientFastImageScreen = element(by.text("APIClientFastImage"));
+    apiClientButton = element(by.text("APIClient")).atIndex(0);
     imageUrlInput = element(by.id(this.testID.imageUrlInput));
     fastImage = element(by.id(this.testID.fastImage));
     imageNotSupportedIcon = element(by.id(this.testID.imageNotSupportedIcon));
