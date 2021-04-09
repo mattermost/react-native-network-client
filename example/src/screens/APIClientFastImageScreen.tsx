@@ -40,7 +40,13 @@ const APIClientFastImageScreen = ({ route }: APIClientFastImageScreenProps) => {
                 }}
             >
                 {loading && <ActivityIndicator />}
-                {errored && <Icon name="image-not-supported" size={100} testID="api_client_fast_image.image_not_supported.icon"/>}
+                {errored && (
+                    <Icon
+                        name="image-not-supported"
+                        size={100}
+                        testID="api_client_fast_image.image_not_supported.icon"
+                    />
+                )}
                 <FastImage
                     source={{ uri: imageUrl }}
                     onLoadStart={onLoadStart}

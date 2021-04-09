@@ -29,6 +29,15 @@ export const isIos = () => {
 };
 
 /**
+ * Get host.
+ * @param {string} url - the URL
+ * @returns {string} host from URL
+ */
+export const getHost = (url) => {
+    return url.split("//")[1];
+};
+
+/**
  * Get random id.
  * @param {number} length - length on random string to return, e.g. 6 (default)
  * @return {string} random string
@@ -66,6 +75,18 @@ export const getRandomItem = (items) => {
  */
 export const capitalize = (text) => {
     return text.charAt(0).toUpperCase() + text.slice(1);
+};
+
+/**
+ * Wait for and scroll down.
+ * @param {Object} item - element item to wait for
+ * @param {string} scrollViewTestID - scroll view testID
+ */
+export const waitForAndScrollDown = async (item, scrollViewTestID) => {
+    await waitFor(item)
+        .toBeVisible()
+        .whileElement(by.id(scrollViewTestID))
+        .scroll(500, "down");
 };
 
 const SECOND = 1000;

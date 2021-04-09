@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import { ProgressiveFileUpload } from "@support/ui/component";
-import { isAndroid } from "@support/utils";
+import { isAndroid, waitForAndScrollDown } from "@support/utils";
 
 class ApiClientUploadScreen {
     testID = {
@@ -11,6 +11,7 @@ class ApiClientUploadScreen {
     };
 
     apiClientUploadScreen = element(by.text("APIClientUpload"));
+    apiClientButton = element(by.text("APIClient")).atIndex(0);
     apiClientUploadScrollView = element(
         by.id(this.testID.apiClientUploadScrollView)
     );
@@ -48,6 +49,14 @@ class ApiClientUploadScreen {
             await this.apiClientButton.tap();
         }
         await expect(this.apiClientUploadScreen).not.toBeVisible();
+    };
+
+    makeUploadRequest = async () => {
+        await waitForAndScrollDown(
+            this.uploadFileButton,
+            this.testID.apiClientUploadScrollView
+        );
+        await this.uploadFileButton.tap();
     };
 
     setEndpoint = async (endpoint) => {

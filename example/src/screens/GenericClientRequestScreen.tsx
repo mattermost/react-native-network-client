@@ -92,7 +92,7 @@ const GenericClientRequestScreen = ({
 
     return (
         <SafeAreaView>
-            <ScrollView>
+            <ScrollView testID="generic_client_request.scroll_view">
                 <ButtonGroup
                     onPress={setSelectedMethodIndex}
                     selectedIndex={selectedMethodIndex}

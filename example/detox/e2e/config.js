@@ -6,6 +6,7 @@ const platform = process.env.IOS ? "ios" : "android";
 module.exports = {
     setupFilesAfterEnv: ["./init.js"],
     testEnvironment: "./environment",
+    testSequencer: "./test_sequencer",
     testRunner: "jest-circus/runner",
     testTimeout: 120000,
     testRegex: "\\.e2e\\.js$",

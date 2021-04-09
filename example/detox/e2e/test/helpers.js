@@ -117,7 +117,7 @@ export const performGenericClientRequest = async ({
  * @param {Object} testHeaders - requeset headers
  * @param {Object} testBody - request body
  */
-export const verifyApiResponse = (
+export const verifyApiResponse = async (
     apiResponse,
     testUrl,
     testStatus,
@@ -126,14 +126,14 @@ export const verifyApiResponse = (
     testHeaders,
     testBody = null
 ) => {
-    const apiResponseDataRequest = apiResponse.data.request;
+    const apiResponseDataRequest = await apiResponse.data.request;
 
     // * Verify request URL and response status
     jestExpect(testUrl).toContain(apiResponseDataRequest.url);
     jestExpect(apiResponse.status).toEqual(testStatus);
 
     // * Verify response headers contain server header
-    jestExpect(apiResponse.headers["server"]).toBe("mock-server");
+    jestExpect(apiResponse.headers["server"]).toBe("mockserver");
 
     // * Verify response body contains request host and request method
     jestExpect(apiResponseDataRequest.headers["host"]).toBe(testHost);
@@ -170,7 +170,8 @@ export const verifyResponseSuccessOverlay = async (
     testHost,
     testMethod,
     testHeaders,
-    testBody = null
+    testBody = null,
+    { secure = false, server = "mockserver" } = {}
 ) => {
     const {
         responseCodeText,
@@ -195,28 +196,46 @@ export const verifyResponseSuccessOverlay = async (
         // * Verify response headers contain server header
         const responseHeadersTextAttributes = await responseHeadersText.getAttributes();
         const responseHeaders = JSON.parse(responseHeadersTextAttributes.text);
-        jestExpect(responseHeaders["Server"]).toBe("mock-server");
+        jestExpect(responseHeaders["Server"]).toBe(server);
 
         // * Verify response body contains request host and request method
         const responseDataTextAttributes = await responseDataText.getAttributes();
         const responseDataRequest = JSON.parse(responseDataTextAttributes.text)
             .request;
-        jestExpect(responseDataRequest.headers["host"]).toBe(testHost);
-        jestExpect(responseDataRequest.method).toBe(testMethod);
-
-        // * Verify response body contains request headers
-        for (const [k, v] of Object.entries(testHeaders)) {
-            jestExpect(responseDataRequest.headers[k]).toBe(v);
+        if (testHost) {
+            jestExpect(responseDataRequest.headers["host"]).toBe(testHost);
+        }
+        if (testMethod) {
+            jestExpect(responseDataRequest.method).toBe(testMethod);
         }
 
+        // * Verify response body contains request headers
+        if (testHeaders) {
+            for (const [k, v] of Object.entries(testHeaders)) {
+                jestExpect(responseDataRequest.headers[k]).toBe(v);
+            }
+        }
+
+        // * Verify response body contains request body
         if (testBody) {
-            // * Verify response body contains request body
             jestExpect(Object.keys(responseDataRequest.body)).toHaveLength(
                 Object.keys(testBody).length
             );
             for (const [k, v] of Object.entries(testBody)) {
                 jestExpect(responseDataRequest.body[k]).toBe(v);
             }
+        }
+
+        // * Verify certificate
+        const responseDataCertificate = JSON.parse(
+            responseDataTextAttributes.text
+        ).certificate;
+        if (secure) {
+            jestExpect(responseDataCertificate).toBe(
+                "Hello Alice, your certificate was issued by localhost!"
+            );
+        } else {
+            jestExpect(responseDataCertificate).toBe("Non-secure request!");
         }
     }
 };

@@ -117,7 +117,7 @@ export default function CreateWebSocketClientScreen({
 
     return (
         <SafeAreaView>
-            <ScrollView>
+            <ScrollView testID="create_websocket_client.scroll_view">
                 <Input
                     label="Name"
                     onChangeText={setName}

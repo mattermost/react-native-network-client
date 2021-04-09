@@ -1,12 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from "react";
+import React, { useState } from "react";
 import { View } from "react-native";
-import { Button, Input, Text } from "react-native-elements";
+import { Button, ButtonGroup, Input, Text } from "react-native-elements";
 import DocumentPicker from "react-native-document-picker";
 import { check, request, PERMISSIONS, RESULTS } from "react-native-permissions";
 import Icon from "react-native-vector-icons/MaterialIcons";
+import { downloadToNativeFile, clientCertP12 } from "../utils";
 
 type P12InputsProps = {
     title: string;
@@ -17,6 +18,8 @@ type P12InputsProps = {
 };
 
 const P12Inputs = (props: P12InputsProps) => {
+    const [url, setUrl] = useState("");
+
     const hasPhotoLibraryPermissions = async () => {
         let result = await check(PERMISSIONS.IOS.PHOTO_LIBRARY);
         if (result === RESULTS.GRANTED || result === RESULTS.LIMITED) {
@@ -51,18 +54,34 @@ const P12Inputs = (props: P12InputsProps) => {
         }
     };
 
+    const downloadCertificate = async () => {
+        const file: File = await downloadToNativeFile(url, clientCertP12);
+        props.onSelectP12(`${file.uri}`);
+    };
+
     const clearP12Configuration = () => {
         props.onSelectP12("");
         props.onPasswordChange(undefined);
     };
 
+    const buttons = [
+        { title: "Select", onPress: pickCertificate },
+        { title: "Download", onPress: downloadCertificate },
+    ];
+
+    const onButtonPress = (index: number) => buttons[index].onPress();
+
     const rightIcon = (
-        <View style={{ width: 142 }}>
+        <View style={{ width: 250 }}>
             {props.path ? (
                 <View style={{ flexDirection: "column", height: 50 }}>
                     <View style={{ flexDirection: "row" }}>
                         <View style={{ flex: 1 }}>
-                            <Text numberOfLines={2} ellipsizeMode="middle">
+                            <Text
+                                numberOfLines={2}
+                                ellipsizeMode="middle"
+                                testID="p12_inputs.path.text"
+                            >
                                 {props.path}
                             </Text>
                         </View>
@@ -77,10 +96,22 @@ const P12Inputs = (props: P12InputsProps) => {
                         value={props.password}
                         onChangeText={props.onPasswordChange}
                         autoCapitalize="none"
+                        testID="p12_inputs.password.input"
                     />
                 </View>
             ) : (
-                <Button title="Select" onPress={pickCertificate} />
+                <View style={{ flexDirection: "column", height: 50 }}>
+                    <Input
+                        placeholder="Download URL"
+                        onChangeText={setUrl}
+                        autoCapitalize="none"
+                        testID="p12_inputs.download_url.input"
+                    />
+                    <ButtonGroup
+                        buttons={buttons.map((button) => button.title)}
+                        onPress={onButtonPress}
+                    />
+                </View>
             )}
         </View>
     );
@@ -90,7 +121,7 @@ const P12Inputs = (props: P12InputsProps) => {
             placeholder={props.title}
             disabled={true}
             style={{ fontWeight: "bold", fontSize: 17, opacity: 1 }}
-            containerStyle={{ flex: 1, paddingBottom: props.path ? 15 : 0 }}
+            containerStyle={{ flex: 1, paddingBottom: 40 }}
             inputContainerStyle={{
                 borderColor: "rgba(255,255,255,0)",
             }}

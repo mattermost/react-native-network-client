@@ -2,7 +2,8 @@
 // See LICENSE.txt for license information.
 
 import { ClientListItem } from "@support/ui/component";
-import { isAndroid, timeouts, wait } from "@support/utils";
+import { ClientListScreen } from "@support/ui/screen";
+import { isAndroid, waitForAndScrollDown } from "@support/utils";
 
 class WebSocketClientScreen {
     testID = {
@@ -27,7 +28,10 @@ class WebSocketClientScreen {
     open = async (name) => {
         // # Open WebSocket client screen
         const { item } = ClientListItem.getItemByName(name);
-        await wait(timeouts.TWO_SEC);
+        await waitForAndScrollDown(
+            item,
+            ClientListScreen.testID.clientListScrollView
+        );
         await item.tap();
 
         return this.toBeVisible();

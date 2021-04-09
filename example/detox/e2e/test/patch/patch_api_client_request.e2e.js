@@ -8,8 +8,16 @@
 // *******************************************************************
 
 import { Request } from "@support/server_api";
-import { host, siteUrl, serverUrl } from "@support/test_config";
-import { ApiClientScreen } from "@support/ui/screen";
+import {
+    clientCertPassword,
+    secureServerClientCertUrl,
+    secureServerUrl,
+    secureSiteUrl,
+    serverUrl,
+    siteUrl,
+} from "@support/test_config";
+import { ApiClientImportP12Screen, ApiClientScreen } from "@support/ui/screen";
+import { getHost } from "@support/utils";
 import {
     customBody,
     customHeaders,
@@ -26,9 +34,14 @@ describe("Patch - API Client Request", () => {
     const testBaseUrl = serverUrl;
     const testServerUrl = `${testBaseUrl}${testPath}`;
     const testSiteUrl = `${siteUrl}${testPath}`;
-    const testHost = host;
-    const testStatus = 200;
+    const testHost = getHost(siteUrl);
     const testName = "Mockserver API";
+    const testSecureBaseUrl = secureServerUrl;
+    const testSecureServerUrl = `${testSecureBaseUrl}${testPath}`;
+    const testSecureSiteUrl = `${secureSiteUrl}${testPath}`;
+    const testSecureHost = getHost(secureSiteUrl);
+    const testSecureName = "Secure Mockserver API";
+    const testStatus = 200;
     const testHeaders = { ...newHeaders };
     const testBody = { ...customBody };
     const combinedHeaders = {
@@ -36,10 +49,16 @@ describe("Patch - API Client Request", () => {
         ...newHeaders,
     };
 
-    beforeAll(async () => {
+    beforeEach(async () => {
+        await device.reloadReactNative();
+    });
+
+    it("should return a valid response", async () => {
+        // * Verify direct server response
         const apiResponse = await Request.apiPatch({
             headers: testHeaders,
             body: testBody,
+            secure: false,
         });
         await verifyApiResponse(
             apiResponse,
@@ -51,12 +70,11 @@ describe("Patch - API Client Request", () => {
             testBody
         );
 
+        // # Select patch
         await ApiClientScreen.open(testName);
         await verifyApiClient(testName, testBaseUrl, customHeaders);
         await ApiClientScreen.selectPatch();
-    });
 
-    it("should return a valid response", async () => {
         // # Perform API client request
         await performApiClientRequest({ testPath, testHeaders, testBody });
 
@@ -67,7 +85,50 @@ describe("Patch - API Client Request", () => {
             testHost,
             testMethod,
             combinedHeaders,
+            testBody,
+            { secure: false }
+        );
+    });
+
+    it("should return a valid response - secure connection", async () => {
+        // * Verify direct server response
+        const apiResponse = await Request.apiPatch({
+            headers: testHeaders,
+            body: testBody,
+            secure: true,
+        });
+        await verifyApiResponse(
+            apiResponse,
+            testSecureSiteUrl,
+            testStatus,
+            testSecureHost,
+            testMethod,
+            testHeaders,
             testBody
+        );
+
+        // # Import p12 and select patch
+        await ApiClientScreen.open(testSecureName);
+        await verifyApiClient(testSecureName, testSecureBaseUrl, customHeaders);
+        await ApiClientScreen.selectImportP12();
+        await ApiClientImportP12Screen.importP12(
+            secureServerClientCertUrl,
+            clientCertPassword
+        );
+        await ApiClientScreen.selectPatch();
+
+        // # Perform API client request
+        await performApiClientRequest({ testPath, testHeaders, testBody });
+
+        // * Verify response success overlay
+        await verifyResponseSuccessOverlay(
+            testSecureServerUrl,
+            testStatus,
+            testSecureHost,
+            testMethod,
+            combinedHeaders,
+            testBody,
+            { secure: true }
         );
     });
 });

@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import ApiClientFastImageScreen from "./api_client_fast_image";
+import ApiClientImportP12Screen from "./api_client_import_p12";
 import ApiClientRequestScreen from "./api_client_request";
 import ApiClientScreen from "./api_client";
 import ApiClientUploadScreen from "./api_client_upload";
@@ -13,6 +14,7 @@ import WebSocketClientScreen from "./websocket_client";
 
 export {
     ApiClientFastImageScreen,
+    ApiClientImportP12Screen,
     ApiClientRequestScreen,
     ApiClientScreen,
     ApiClientUploadScreen,

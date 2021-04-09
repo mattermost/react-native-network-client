@@ -5,14 +5,14 @@
 ```
 npm run fast-image-server
 ```
-2. Verify Fast Image Server is running: `http://localhost:8009`.
+2. Verify Fast Image Server is running: `http://127.0.0.1:8009`.
 
 ### How to run File Upload Server
 1. Run File Upload Server
 ```
 npm run file-upload-server
 ```
-2. Verify File Upload Server is running: `http://localhost:8008`.
+2. Verify File Upload Server is running: `http://127.0.0.1:8008`.
 
 # Request Paths
 Headers:
@@ -37,7 +37,7 @@ Path: `/api/files/:filename`
 
 Example:
 ```
-curl -X GET http://localhost:8008/api/files/fast-image.jpg
+curl -X GET http://127.0.0.1:8008/api/files/fast-image.jpg
 ```
 
 ### Protected Get File Request
@@ -45,7 +45,7 @@ Path: `/protected/api/files/:filename`
 
 Example:
 ```
-curl -X GET -H "Authorization: Bearer xyz" http://localhost:8008/protected/api/files/fast-image.jpg
+curl -X GET -H "Authorization: Bearer xyz" http://127.0.0.1:8008/protected/api/files/fast-image.jpg
 ```
 
 ### Multipart Post File Request
@@ -53,7 +53,7 @@ Path: `/api/files/multipart`
 
 Example:
 ```
-curl -X POST http://localhost:8008/api/files/multipart
+curl -X POST http://127.0.0.1:8008/api/files/multipart
 ```
 
 ### Protected Multipart Post File Request
@@ -61,7 +61,7 @@ Path: `/protected/api/files/multipart`
 
 Example:
 ```
-curl -X POST -H "Authorization: Bearer xyz" http://localhost:8008/api/files/multipart
+curl -X POST -H "Authorization: Bearer xyz" http://127.0.0.1:8008/api/files/multipart
 ```
 
 ### Stream Post File Request
@@ -69,7 +69,7 @@ Path: `/api/files/stream/:filename`
 
 Example:
 ```
-curl -X POST http://localhost:8008/api/files/stream/sample-image.jpg
+curl -X POST http://127.0.0.1:8008/api/files/stream/sample-image.jpg
 ```
 
 ### Protected Stream Post File Request
@@ -77,7 +77,7 @@ Path: `/protected/api/files/stream/:filename`
 
 Example:
 ```
-curl -X POST -H "Authorization: Bearer xyz" http://localhost:8008/api/files/stream/sample-image.jpg
+curl -X POST -H "Authorization: Bearer xyz" http://127.0.0.1:8008/api/files/stream/sample-image.jpg
 ```
 
 ### Generate Token Request
@@ -85,7 +85,7 @@ Path: `/login/:id`
 
 Example:
 ```
-curl -X GET http://localhost:8008/login/123
+curl -X GET http://127.0.0.1:8008/login/123
 ```
 
 Example response:

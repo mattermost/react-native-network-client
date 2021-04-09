@@ -30,28 +30,28 @@ const ResponseErrorOverlay = ({
                     Error
                 </Text>
                 <Text h4>Code</Text>
-                <Text testID="response_error_overlay.error.code">
+                <Text testID="response_error_overlay.error.code.text">
                     {error?.code}
                 </Text>
                 <Divider />
                 <Text h4>Message</Text>
-                <Text testID="response_error_overlay.error.message">
+                <Text testID="response_error_overlay.error.message.text">
                     {error?.message}
                 </Text>
                 <Divider />
                 <Text h4>Domain</Text>
-                <Text testID="response_error_overlay.error.domain">
+                <Text testID="response_error_overlay.error.domain.text">
                     {error?.domain}
                 </Text>
                 <Divider />
                 <Text h4>User Info</Text>
-                <Text testID="response_error_overlay.error.userInfo">
+                <Text testID="response_error_overlay.error.user_info.text">
                     {JSON.stringify(error?.userInfo)}
                 </Text>
                 <Divider />
                 <Text h4>Native Stack</Text>
                 <ScrollView>
-                    <Text testID="response_error_overlay.error.nativeStack">
+                    <Text testID="response_error_overlay.error.native_stack.text">
                         {JSON.stringify(
                             error?.nativeStackAndroid || error?.nativeStackIOS
                         )}
