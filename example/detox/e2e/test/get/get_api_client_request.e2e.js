@@ -16,14 +16,20 @@ import {
     serverUrl,
     siteUrl,
 } from "@support/test_config";
-import { ApiClientImportP12Screen, ApiClientScreen } from "@support/ui/screen";
-import { getHost } from "@support/utils";
+import {
+    ApiClientImportP12Screen,
+    ApiClientRequestScreen,
+    ApiClientScreen,
+} from "@support/ui/screen";
+import { getHost, getRandomId } from "@support/utils";
 import {
     customHeaders,
     newHeaders,
     performApiClientRequest,
     verifyApiClient,
     verifyApiResponse,
+    verifyExponentialRetryTimeDiff,
+    verifyLinearRetryTimeDiff,
     verifyResponseSuccessOverlay,
 } from "../helpers";
 
@@ -123,6 +129,123 @@ describe("Get - API Client Request", () => {
             combinedHeaders,
             null,
             { secure: true }
+        );
+    });
+
+    it("should be able to linear retry", async () => {
+        // # Select get
+        await ApiClientScreen.open(testName);
+        await verifyApiClient(testName, testBaseUrl, customHeaders);
+        await ApiClientScreen.selectGet();
+
+        // # Perform API client request
+        const retryLimit = 2;
+        const retryInterval = 2000;
+        const testRetry = {
+            retryPolicyType: "linear",
+            retryLimit: retryLimit.toString(),
+            retryInterval: retryInterval.toString(),
+        };
+        const clientID = getRandomId();
+        const testRetryPath = `${testPath}/retry/clientID/${clientID}/serverDelay/0/serverRetryLimit/5`;
+        const beginTime = await performApiClientRequest({
+            testPath: testRetryPath,
+            testHeaders,
+            testRetry,
+        });
+
+        // * Verify retry response
+        const testRetryStatus = 408;
+        const testRetryUrl = `${testBaseUrl}${testRetryPath}`;
+        const endTime = await verifyResponseSuccessOverlay(
+            testRetryUrl,
+            testRetryStatus,
+            null,
+            null,
+            null,
+            null,
+            { retriesExhausted: "true" }
+        );
+
+        // * Verify retry time difference
+        verifyLinearRetryTimeDiff(
+            beginTime,
+            endTime,
+            retryLimit,
+            retryInterval
+        );
+
+        // # Make another request
+        await ApiClientRequestScreen.responseSuccessCloseButton.tap();
+        await ApiClientRequestScreen.makeRequest();
+
+        // * Verify response success overlay
+        await verifyResponseSuccessOverlay(
+            testRetryUrl,
+            testStatus,
+            testHost,
+            testMethod,
+            combinedHeaders
+        );
+    });
+
+    it("should be able to exponential retry", async () => {
+        // # Select get
+        await ApiClientScreen.open(testName);
+        await verifyApiClient(testName, testBaseUrl, customHeaders);
+        await ApiClientScreen.selectGet();
+
+        // # Perform API client request
+        const retryLimit = 2;
+        const exponentialBackoffBase = 6;
+        const exponentialBackoffScale = 0.5;
+        const testRetry = {
+            retryPolicyType: "exponential",
+            retryLimit: retryLimit.toString(),
+            exponentialBackoffBase: exponentialBackoffBase.toString(),
+            exponentialBackoffScale: exponentialBackoffScale.toString(),
+        };
+        const clientID = getRandomId();
+        const testRetryPath = `${testPath}/retry/clientID/${clientID}/serverDelay/0/serverRetryLimit/5`;
+        const beginTime = await performApiClientRequest({
+            testPath: testRetryPath,
+            testHeaders,
+            testRetry,
+        });
+
+        // * Verify retry response
+        const testRetryStatus = 408;
+        const testRetryUrl = `${testBaseUrl}${testRetryPath}`;
+        const endTime = await verifyResponseSuccessOverlay(
+            testRetryUrl,
+            testRetryStatus,
+            null,
+            null,
+            null,
+            null,
+            { retriesExhausted: "true" }
+        );
+
+        // * Verify retry time difference
+        verifyExponentialRetryTimeDiff(
+            beginTime,
+            endTime,
+            retryLimit,
+            exponentialBackoffBase,
+            exponentialBackoffScale
+        );
+
+        // # Make another request
+        await ApiClientRequestScreen.responseSuccessCloseButton.tap();
+        await ApiClientRequestScreen.makeRequest();
+
+        // * Verify response success overlay
+        await verifyResponseSuccessOverlay(
+            testRetryUrl,
+            testStatus,
+            testHost,
+            testMethod,
+            combinedHeaders
         );
     });
 });

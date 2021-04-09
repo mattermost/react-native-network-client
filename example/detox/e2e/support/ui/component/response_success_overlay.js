@@ -3,25 +3,35 @@
 
 class ResponseSuccessOverlay {
     testID = {
-        responseCodeText: "response_success_overlay.response.code.text",
-        responseDataText: "response_success_overlay.response.data.text",
-        responseHeadersText: "response_success_overlay.response.headers.text",
-        responseLastRequestedUrlText:
-            "response_success_overlay.response.last_requested_url.text",
-        responseOkText: "response_success_overlay.response.ok.text",
-        responseRetriesExhaustedText:
-            "response_success_overlay.response.retries_exhausted.text",
+        responseSuccessOverlay: "response_success_overlay",
+        responseSuccessCodeText: "response_success_overlay.success.code.text",
+        responseSuccessDataText: "response_success_overlay.success.data.text",
+        responseSuccessHeadersText:
+            "response_success_overlay.success.headers.text",
+        responseSuccessLastRequestedUrlText:
+            "response_success_overlay.success.last_requested_url.text",
+        responseSuccessOkText: "response_success_overlay.success.ok.text",
+        responseSuccessRetriesExhaustedText:
+            "response_success_overlay.success.retries_exhausted.text",
     };
 
-    responseCodeText = element(by.id(this.testID.responseCodeText));
-    responseDataText = element(by.id(this.testID.responseDataText));
-    responseHeadersText = element(by.id(this.testID.responseHeadersText));
-    responseLastRequestedUrlText = element(
-        by.id(this.testID.responseLastRequestedUrlText)
+    responseSuccessOverlay = element(by.id(this.testID.responseSuccessOverlay));
+    responseSuccessCloseButton = element(by.text("Close"));
+    responseSuccessCodeText = element(
+        by.id(this.testID.responseSuccessCodeText)
     );
-    responseOkText = element(by.id(this.testID.responseOkText));
-    responseRetriesExhaustedText = element(
-        by.id(this.testID.responseRetriesExhaustedText)
+    responseSuccessDataText = element(
+        by.id(this.testID.responseSuccessDataText)
+    );
+    responseSuccessHeadersText = element(
+        by.id(this.testID.responseSuccessHeadersText)
+    );
+    responseSuccessLastRequestedUrlText = element(
+        by.id(this.testID.responseSuccessLastRequestedUrlText)
+    );
+    responseSuccessOkText = element(by.id(this.testID.responseSuccessOkText));
+    responseSuccessRetriesExhaustedText = element(
+        by.id(this.testID.responseSuccessRetriesExhaustedText)
     );
 }
 

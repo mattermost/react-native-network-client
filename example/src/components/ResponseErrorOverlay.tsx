@@ -3,7 +3,7 @@
 
 import React from "react";
 import { ScrollView } from "react-native";
-import { Divider, Overlay, Text } from "react-native-elements";
+import { Button, Divider, Overlay, Text } from "react-native-elements";
 
 type ResponseErrorOverlayProps = {
     error?: ClientResponseError;
@@ -26,6 +26,7 @@ const ResponseErrorOverlay = ({
             testID="response_error_overlay"
         >
             <>
+                <Button title="Close" onPress={hide} />
                 <Text h2 style={{ alignSelf: "center" }}>
                     Error
                 </Text>
