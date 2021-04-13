@@ -89,7 +89,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         try {
             val request = sessionsRequest[url]!!.url(formUrlString(url, endpoint)).parseOptions(options, sessionsClient[url]!!, url).build();
             sessionsClient[url]!!.build().newCall(request).execute().use { response ->
-                promise.resolve(response.returnAsWriteableMap(baseUrl))
+                promise.resolve(response.returnAsWriteableMap(url))
             }
         } catch (e: IOException) {
             promise.reject(e)
@@ -104,7 +104,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         try {
             val request = sessionsRequest[url]!!.url(formUrlString(url, endpoint)).post(options.bodyToRequestBody()).parseOptions(options, sessionsClient[url]!!, url).build();
             sessionsClient[url]!!.build().newCall(request).execute().use { response ->
-                promise.resolve(response.returnAsWriteableMap(baseUrl))
+                promise.resolve(response.returnAsWriteableMap(url))
             }
         } catch (e: IOException) {
             promise.reject(e)
@@ -119,7 +119,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         try {
             val request = sessionsRequest[url]!!.url(formUrlString(url, endpoint)).put(options.bodyToRequestBody()).parseOptions(options, sessionsClient[url]!!, url).build();
             sessionsClient[url]!!.build().newCall(request).execute().use { response ->
-                promise.resolve(response.returnAsWriteableMap(baseUrl))
+                promise.resolve(response.returnAsWriteableMap(url))
             }
         } catch (e: IOException) {
             promise.reject(e)
@@ -134,7 +134,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         try {
             val request = sessionsRequest[url]!!.url(formUrlString(url, endpoint)).patch(options.bodyToRequestBody()).parseOptions(options, sessionsClient[url]!!, url).build();
             sessionsClient[url]!!.build().newCall(request).execute().use { response ->
-                promise.resolve(response.returnAsWriteableMap(baseUrl))
+                promise.resolve(response.returnAsWriteableMap(url))
             }
         } catch (e: IOException) {
             promise.reject(e)
@@ -149,7 +149,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         try {
             val request = sessionsRequest[url]!!.url(formUrlString(url, endpoint)).delete(options.bodyToRequestBody()).parseOptions(options, sessionsClient[url]!!, url).build();
             sessionsClient[url]!!.build().newCall(request).execute().use { response ->
-                promise.resolve(response.returnAsWriteableMap(baseUrl))
+                promise.resolve(response.returnAsWriteableMap(url))
             }
         } catch (e: IOException) {
             promise.reject(e)
@@ -211,7 +211,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
             // Execute the call!
             sessionsCall[taskId]!!.execute().use { response ->
-                promise.resolve(response.returnAsWriteableMap(baseUrl))
+                promise.resolve(response.returnAsWriteableMap(url))
             }
         } catch (e: IOException) {
             promise.reject(e)
