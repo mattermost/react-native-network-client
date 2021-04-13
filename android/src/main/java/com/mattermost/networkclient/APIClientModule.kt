@@ -5,10 +5,9 @@ import com.facebook.react.bridge.*
 import okhttp3.*
 import okio.*
 import com.mattermost.networkclient.enums.APIClientEvents
+import com.mattermost.networkclient.enums.RetryTypes
 import com.mattermost.networkclient.helpers.*
 import okhttp3.HttpUrl.Companion.toHttpUrl
-import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
-import java.net.URI
 import kotlin.collections.HashMap
 
 class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
@@ -90,7 +89,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         try {
             val request = sessionsRequest[url]!!.url(formUrlString(url, endpoint)).parseOptions(options, sessionsClient[url]!!, url).build();
             sessionsClient[url]!!.build().newCall(request).execute().use { response ->
-                response.promiseResolution(promise)
+                promise.resolve(response.returnAsWriteableMap(baseUrl))
             }
         } catch (e: IOException) {
             promise.reject(e)
@@ -105,7 +104,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         try {
             val request = sessionsRequest[url]!!.url(formUrlString(url, endpoint)).post(options.bodyToRequestBody()).parseOptions(options, sessionsClient[url]!!, url).build();
             sessionsClient[url]!!.build().newCall(request).execute().use { response ->
-                response.promiseResolution(promise)
+                promise.resolve(response.returnAsWriteableMap(baseUrl))
             }
         } catch (e: IOException) {
             promise.reject(e)
@@ -120,7 +119,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         try {
             val request = sessionsRequest[url]!!.url(formUrlString(url, endpoint)).put(options.bodyToRequestBody()).parseOptions(options, sessionsClient[url]!!, url).build();
             sessionsClient[url]!!.build().newCall(request).execute().use { response ->
-                response.promiseResolution(promise)
+                promise.resolve(response.returnAsWriteableMap(baseUrl))
             }
         } catch (e: IOException) {
             promise.reject(e)
@@ -135,7 +134,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         try {
             val request = sessionsRequest[url]!!.url(formUrlString(url, endpoint)).patch(options.bodyToRequestBody()).parseOptions(options, sessionsClient[url]!!, url).build();
             sessionsClient[url]!!.build().newCall(request).execute().use { response ->
-                response.promiseResolution(promise)
+                promise.resolve(response.returnAsWriteableMap(baseUrl))
             }
         } catch (e: IOException) {
             promise.reject(e)
@@ -150,7 +149,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         try {
             val request = sessionsRequest[url]!!.url(formUrlString(url, endpoint)).delete(options.bodyToRequestBody()).parseOptions(options, sessionsClient[url]!!, url).build();
             sessionsClient[url]!!.build().newCall(request).execute().use { response ->
-                response.promiseResolution(promise)
+                promise.resolve(response.returnAsWriteableMap(baseUrl))
             }
         } catch (e: IOException) {
             promise.reject(e)
@@ -212,7 +211,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
             // Execute the call!
             sessionsCall[taskId]!!.execute().use { response ->
-                response.promiseResolution(promise)
+                promise.resolve(response.returnAsWriteableMap(baseUrl))
             }
         } catch (e: IOException) {
             promise.reject(e)
@@ -232,12 +231,17 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     @Override
     override fun getConstants(): Map<String, Any> {
         val constants: MutableMap<String, Any> = HashMap<String, Any>()
-        constants["RETRY_TYPES"] = hashMapOf("EXPONENTIAL_RETRY" to "exponential", "LINEAR_RETRY" to "linear")
 
         // APIClient Events
         val events = HashMap<String, String>()
         APIClientEvents.values().forEach { enum -> events[enum.name] = enum.event }
         constants["EVENTS"] = events
+
+        // Retry Types
+        val retryTypes = HashMap<String, String>()
+        RetryTypes.values().forEach { enum -> retryTypes[enum.name] = enum.type }
+        constants["RETRY_TYPES"] = retryTypes
+
         return constants
     }
 }

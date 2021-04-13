@@ -3,12 +3,13 @@ package com.mattermost.networkclient.helpers
 import com.facebook.react.bridge.*
 import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter
 import com.mattermost.networkclient.SessionsObject
+import com.mattermost.networkclient.enums.RetryTypes
 import okhttp3.*
 import java.util.concurrent.TimeUnit
 import com.mattermost.networkclient.interceptors.*
+import com.mattermost.networkclient.interfaces.RetryConfig
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
-import okhttp3.internal.immutableListOf
 import org.json.JSONObject
 
 /**
@@ -16,7 +17,7 @@ import org.json.JSONObject
  *
  * @return WriteableMap for passing back to App
  */
-fun Response.returnAsWriteableMap(): WritableMap {
+fun Response.returnAsWriteableMap(baseUrl: String): WritableMap {
     val headers = Arguments.createMap();
     this.headers.forEach { k -> headers.putString(k.first, k.second) }
 
@@ -26,21 +27,14 @@ fun Response.returnAsWriteableMap(): WritableMap {
     map.putInt("code", this.code)
     map.putBoolean("ok", this.isSuccessful)
     map.putString("lastRequestedUrl", this.request.url.toString())
-    return map;
-}
 
-/**
- * Completes the response handling by calling a promise resolve / reject based on response type
- *
- * @param promise The promise to resolve/reject
- */
-fun Response.promiseResolution(promise: Promise): Response {
-    if (this.isSuccessful) {
-        promise.resolve(this.returnAsWriteableMap());
-    } else {
-        promise.reject(this.code.toString(), this.returnAsWriteableMap())
+    val retriesExhausted = SessionsObject.config[baseUrl]!!["retriesExhausted"]
+
+    if(retriesExhausted != null && retriesExhausted == true){
+        map.putBoolean("retriesExhausted", true)
+        SessionsObject.config[baseUrl]!!.remove("retriesExhausted")
     }
-    return this
+    return map;
 }
 
 /**
@@ -65,15 +59,26 @@ fun Request.Builder.parseOptions(options: ReadableMap?, session: OkHttpClient.Bu
     }
 
     if (options.hasKey("retryPolicyConfiguration")) {
-        val retryPolicyConfiguration = options.getMap("retryPolicyConfiguration")!!.toHashMap();
+        val retryPolicyConfiguration = options.getMap("retryPolicyConfiguration")!!;
 
-        SessionsObject.config[baseUrl]!!["retryRequest"] = mutableMapOf(
-                Pair("retryType", retryPolicyConfiguration["type"] as String?),
-                Pair("retryLimit", retryPolicyConfiguration["retryLimit"] as Double?),
-                Pair("retryInterval", retryPolicyConfiguration["retryInterval"] as Double?),
-                Pair("retryExponentialBackoffBase", retryPolicyConfiguration["exponentialBackoffBase"] as Double?),
-                Pair("retryExponentialBackoffScale", retryPolicyConfiguration["exponentialBackoffScale"] as Double?),
-        )
+        SessionsObject.config[baseUrl]!!["retryRequest"] = object: RetryConfig {
+            override val retryType = RetryTypes.values().find { r -> r.type == retryPolicyConfiguration.getString("type")} ?: SessionsObject.DefaultRetry.retryType
+            override val retryLimit = retryPolicyConfiguration.getDouble("retryLimit")
+            override val retryInterval = retryPolicyConfiguration.getDouble("retryInterval")
+            override val retryExponentialBackOffBase = retryPolicyConfiguration.getDouble("exponentialBackoffBase")
+            override val retryExponentialBackOffScale = retryPolicyConfiguration.getDouble("exponentialBackoffScale")
+            override val retryStatusCodes = if(retryPolicyConfiguration.hasKey("statusCodes") && retryPolicyConfiguration.getArray("statusCodes") != null) {
+                (retryPolicyConfiguration.getArray("statusCodes")!!.toArrayList() as ArrayList<Double>).map { code -> code.toInt() }.toSet()
+            } else {
+                SessionsObject.DefaultRetry.retryStatusCodes;
+            }
+            override val retryMethods = if(retryPolicyConfiguration.hasKey("retryMethods") && retryPolicyConfiguration.getArray("retryMethods") != null) {
+                (retryPolicyConfiguration.getArray("retryMethods")!!.toArrayList() as ArrayList<String>).toSet()
+            } else {
+                SessionsObject.DefaultRetry.retryMethods;
+            }
+        }
+
     }
 
     return this;
@@ -96,17 +101,28 @@ fun OkHttpClient.Builder.parseOptions(options: ReadableMap?, request: Request.Bu
 
     // Retries
     this.retryOnConnectionFailure(false);
-    this.addInterceptor(RetryInterceptor())
+    this.addInterceptor(RetryInterceptor(baseUrl))
 
     if (options.hasKey("retryPolicyConfiguration")) {
-        val retryPolicyConfiguration = options.getMap("retryPolicyConfiguration")!!.toHashMap();
-        SessionsObject.config[baseUrl]!!["retryClient"] = mutableMapOf(
-                Pair("retryType", retryPolicyConfiguration["type"] as String?),
-                Pair("retryLimit", retryPolicyConfiguration["retryLimit"] as Double?),
-                Pair("retryInterval", retryPolicyConfiguration["retryInterval"] as Double?),
-                Pair("retryExponentialBackoffBase", retryPolicyConfiguration["exponentialBackoffBase"] as Double?),
-                Pair("retryExponentialBackoffScale", retryPolicyConfiguration["exponentialBackoffScale"] as Double?),
-        )
+        val retryPolicyConfiguration = options.getMap("retryPolicyConfiguration")!!;
+
+        SessionsObject.config[baseUrl]!!["retryClient"] = object: RetryConfig {
+            override val retryType = RetryTypes.values().find { r -> r.type == retryPolicyConfiguration.getString("type")} ?: SessionsObject.DefaultRetry.retryType
+            override val retryLimit = retryPolicyConfiguration.getDouble("retryLimit")
+            override val retryInterval = retryPolicyConfiguration.getDouble("retryInterval")
+            override val retryExponentialBackOffBase = retryPolicyConfiguration.getDouble("exponentialBackoffBase")
+            override val retryExponentialBackOffScale = retryPolicyConfiguration.getDouble("exponentialBackoffScale")
+            override val retryStatusCodes = if(retryPolicyConfiguration.hasKey("statusCodes") && retryPolicyConfiguration.getArray("statusCodes") != null) {
+                (retryPolicyConfiguration.getArray("statusCodes")!!.toArrayList() as ArrayList<Double>).map { code -> code.toInt() }.toSet()
+            } else {
+                SessionsObject.DefaultRetry.retryStatusCodes;
+            }
+            override val retryMethods = if(retryPolicyConfiguration.hasKey("retryMethods") && retryPolicyConfiguration.getArray("retryMethods") != null) {
+                (retryPolicyConfiguration.getArray("retryMethods")!!.toArrayList() as ArrayList<String>).toSet()
+            } else {
+                SessionsObject.DefaultRetry.retryMethods;
+            }
+        }
     }
 
     // Headers

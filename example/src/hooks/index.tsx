@@ -94,7 +94,9 @@ type UseRetryPolicyConfigurationResponse = [
     (retryLimit: number) => void,
     (retryInterval: number) => void,
     (exponentialBackoffBase: number) => void,
-    (exponentialBackoffScale: number) => void
+    (exponentialBackoffScale: number) => void,
+    (statusCodes: number[]) => void,
+    (retryMethods: string[]) => void
 ];
 
 // enum RetryTypes =
@@ -113,6 +115,8 @@ export const useRetryPolicyConfiguration = (): UseRetryPolicyConfigurationRespon
         retryInterval: 2000,
         exponentialBackoffBase: 2,
         exponentialBackoffScale: 0.5,
+        statusCodes: [408, 500, 502, 503, 504],
+        retryMethods: ["get", "post", "put", "patch", "delete"],
     });
 
     const setRetryPolicyType = (type?: RetryTypes) =>
@@ -141,6 +145,20 @@ export const useRetryPolicyConfiguration = (): UseRetryPolicyConfigurationRespon
             exponentialBackoffScale,
         });
 
+    const setStatusCodes = (statusCodes: number[]) => {
+        setRetryPolicyConfiguration({
+            ...retryPolicyConfiguration,
+            statusCodes,
+        });
+    };
+
+    const setRetryMethods = (retryMethods: string[]) => {
+        setRetryPolicyConfiguration({
+            ...retryPolicyConfiguration,
+            retryMethods,
+        });
+    };
+
     return [
         retryPolicyConfiguration,
         setRetryPolicyType,
@@ -148,6 +166,8 @@ export const useRetryPolicyConfiguration = (): UseRetryPolicyConfigurationRespon
         setRetryInterval,
         setExponentialBackoffBase,
         setExponentialBackoffScale,
+        setStatusCodes,
+        setRetryMethods,
     ];
 };
 

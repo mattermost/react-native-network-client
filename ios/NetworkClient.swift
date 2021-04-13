@@ -144,20 +144,27 @@ extension NetworkClient {
 
     func getRequestRetriers(from options: JSON) -> [RequestRetrier] {
         var retriers = [RequestRetrier]()
+        
+        var retryStatusCodes = LinearRetryPolicy.defaultRetryableHTTPStatusCodes
 
         let configuration = options["retryPolicyConfiguration"]
+        
+        if let statusCodesArray = configuration["statusCodes"].array as? Array<Int> {
+            retryStatusCodes = Set(statusCodesArray.map{ Int($0) })
+        }
+        
         if configuration["type"].string == RETRY_TYPES["LINEAR_RETRY"] {
             let retryLimit = configuration["retryLimit"].uInt ?? LinearRetryPolicy.defaultRetryLimit
             let retryInterval = configuration["retryInterval"].uInt ?? LinearRetryPolicy.defaultRetryInterval
 
-            let retryPolicy = LinearRetryPolicy(retryLimit: retryLimit, retryInterval: retryInterval)
+            let retryPolicy = LinearRetryPolicy(retryLimit: retryLimit, retryInterval: retryInterval, retryableHTTPStatusCodes: retryStatusCodes)
             retriers.append(retryPolicy)
         } else if configuration["type"].string == RETRY_TYPES["EXPONENTIAL_RETRY"] {
             let retryLimit = configuration["retryLimit"].uInt ?? ExponentialRetryPolicy.defaultRetryLimit
             let exponentialBackoffBase = configuration["exponentialBackoffBase"].uInt ?? ExponentialRetryPolicy.defaultExponentialBackoffBase
             let exponentialBackoffScale = configuration["exponentialBackoffScale"].double ?? ExponentialRetryPolicy.defaultExponentialBackoffScale
 
-            let retryPolicy = ExponentialRetryPolicy(retryLimit: retryLimit, exponentialBackoffBase: exponentialBackoffBase, exponentialBackoffScale: exponentialBackoffScale)
+            let retryPolicy = ExponentialRetryPolicy(retryLimit: retryLimit, exponentialBackoffBase: exponentialBackoffBase, exponentialBackoffScale: exponentialBackoffScale, retryableHTTPStatusCodes: retryStatusCodes)
             retriers.append(retryPolicy)
         }
 

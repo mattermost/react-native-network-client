@@ -33,6 +33,8 @@ const GenericClientRequestScreen = ({
         setRetryInterval,
         setExponentialBackoffBase,
         setExponentialBackoffScale,
+        setStatusCodes,
+        setRetryMethods,
     ] = useRetryPolicyConfiguration();
 
     const methods = Object.keys(METHODS);
@@ -140,6 +142,10 @@ const GenericClientRequestScreen = ({
                         retryPolicyConfiguration.exponentialBackoffScale
                     }
                     setExponentialBackoffScale={setExponentialBackoffScale}
+                    statusCodes={retryPolicyConfiguration.statusCodes}
+                    setStatusCodes={setStatusCodes}
+                    retryMethods={retryPolicyConfiguration.retryMethods}
+                    setRetryMethods={setRetryMethods}
                 />
                 <ResponseSuccessOverlay
                     response={response}

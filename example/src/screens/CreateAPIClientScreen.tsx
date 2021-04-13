@@ -52,6 +52,8 @@ export default function CreateAPIClientScreen({
         setRetryInterval,
         setExponentialBackoffBase,
         setExponentialBackoffScale,
+        setStatusCodes,
+        setRetryMethods,
     ] = useRetryPolicyConfiguration();
 
     const [
@@ -187,6 +189,10 @@ export default function CreateAPIClientScreen({
                         retryPolicyConfiguration.exponentialBackoffScale
                     }
                     setExponentialBackoffScale={setExponentialBackoffScale}
+                    statusCodes={retryPolicyConfiguration.statusCodes}
+                    setStatusCodes={setStatusCodes}
+                    retryMethods={retryPolicyConfiguration.retryMethods}
+                    setRetryMethods={setRetryMethods}
                 />
 
                 <CheckBox

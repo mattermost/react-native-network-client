@@ -103,6 +103,8 @@ type RetryPolicyConfiguration = {
     retryInterval?: number;
     exponentialBackoffBase?: number;
     exponentialBackoffScale?: number;
+    statusCodes?: number[];
+    retryMethods?: string[];
 };
 
 type RequestAdapterConfiguration = {
