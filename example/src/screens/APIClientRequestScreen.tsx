@@ -37,6 +37,8 @@ const APIClientRequestScreen = ({ route }: APIClientRequestScreenProps) => {
         setRetryInterval,
         setExponentialBackoffBase,
         setExponentialBackoffScale,
+        setStatusCodes,
+        setRetryMethods,
     ] = useRetryPolicyConfiguration();
 
     const makeRequest = async () => {
@@ -135,6 +137,10 @@ const APIClientRequestScreen = ({ route }: APIClientRequestScreenProps) => {
                         retryPolicyConfiguration.exponentialBackoffScale
                     }
                     setExponentialBackoffScale={setExponentialBackoffScale}
+                    statusCodes={retryPolicyConfiguration.statusCodes}
+                    setStatusCodes={setStatusCodes}
+                    retryMethods={retryPolicyConfiguration.retryMethods}
+                    setRetryMethods={setRetryMethods}
                 />
                 <ResponseSuccessOverlay
                     response={response}
