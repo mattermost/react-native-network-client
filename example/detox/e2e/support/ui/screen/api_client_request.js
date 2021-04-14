@@ -27,14 +27,18 @@ class ApiClientRequestScreen {
     requestButton = element(by.text("Request"));
 
     // convenience props
-    responseCodeText = ResponseSuccessOverlay.responseCodeText;
-    responseDataText = ResponseSuccessOverlay.responseDataText;
-    responseHeadersText = ResponseSuccessOverlay.responseHeadersText;
-    responseLastRequestedUrlText =
-        ResponseSuccessOverlay.responseLastRequestedUrlText;
-    responseOkText = ResponseSuccessOverlay.responseOkText;
-    responseRetriesExhaustedText =
-        ResponseSuccessOverlay.responseRetriesExhaustedText;
+    responseSuccessOverlay = ResponseSuccessOverlay.responseSuccessOverlay;
+    responseSuccessCloseButton =
+        ResponseSuccessOverlay.responseSuccessCloseButton;
+    responseSuccessCodeText = ResponseSuccessOverlay.responseSuccessCodeText;
+    responseSuccessDataText = ResponseSuccessOverlay.responseSuccessDataText;
+    responseSuccessHeadersText =
+        ResponseSuccessOverlay.responseSuccessHeadersText;
+    responseSuccessLastRequestedUrlText =
+        ResponseSuccessOverlay.responseSuccessLastRequestedUrlText;
+    responseSuccessOkText = ResponseSuccessOverlay.responseSuccessOkText;
+    responseSuccessRetriesExhaustedText =
+        ResponseSuccessOverlay.responseSuccessRetriesExhaustedText;
 
     retryPolicyConfiguration = new RetryPolicyConfiguration(
         this.testID.apiClientRequestScrollView

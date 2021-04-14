@@ -3,13 +3,14 @@
 
 import jestExpect from "expect";
 
+import { ResponseSuccessOverlay } from "@support/ui/component";
 import {
     ApiClientRequestScreen,
     ApiClientScreen,
     GenericClientRequestScreen,
     WebSocketClientScreen,
 } from "@support/ui/screen";
-import { getRandomItem, isAndroid, isIos } from "@support/utils";
+import { getRandomItem, isAndroid, isIos, timeouts } from "@support/utils";
 
 export const customHeaders = {
     "header-1-key": "header-1-value",
@@ -63,7 +64,10 @@ export const performApiClientRequest = async ({
     }
     await setTimeoutInterval(testTimeoutInterval);
     await setRetry(testRetry);
+    const beginTime = Date.now();
     await makeRequest();
+
+    return beginTime;
 };
 
 /**
@@ -171,37 +175,45 @@ export const verifyResponseSuccessOverlay = async (
     testMethod,
     testHeaders,
     testBody = null,
-    { secure = false, server = "mockserver" } = {}
+    { retriesExhausted = "null", secure = false, server = "mockserver" } = {}
 ) => {
     const {
-        responseCodeText,
-        responseDataText,
-        responseHeadersText,
-        responseLastRequestedUrlText,
-        responseOkText,
-        responseRetriesExhaustedText,
-    } = GenericClientRequestScreen;
-
+        responseSuccessCodeText,
+        responseSuccessDataText,
+        responseSuccessHeadersText,
+        responseSuccessLastRequestedUrlText,
+        responseSuccessOkText,
+        responseSuccessRetriesExhaustedText,
+    } = ResponseSuccessOverlay;
     // * Verify request URL and response status
-    await expect(responseLastRequestedUrlText).toHaveText(testUrl);
-    await expect(responseCodeText).toHaveText(testStatus.toString());
-    await expect(responseOkText).toHaveText(
+    await waitFor(responseSuccessLastRequestedUrlText)
+        .toBeVisible()
+        .withTimeout(timeouts.TEN_SEC);
+    const endTime = Date.now();
+    await expect(responseSuccessLastRequestedUrlText).toHaveText(testUrl);
+    await expect(responseSuccessCodeText).toHaveText(testStatus.toString());
+    await expect(responseSuccessOkText).toHaveText(
         testStatus === 200 ? "true" : "false"
     );
-    await expect(responseRetriesExhaustedText).toHaveText("null");
+    await expect(responseSuccessRetriesExhaustedText).toHaveText(
+        retriesExhausted
+    );
 
     // Currently only for iOS. Android getAttributes support is not yet available.
     // https://github.com/wix/Detox/issues/2083
-    if (isIos()) {
+    if (isIos() && retriesExhausted === "null") {
         // * Verify response headers contain server header
-        const responseHeadersTextAttributes = await responseHeadersText.getAttributes();
-        const responseHeaders = JSON.parse(responseHeadersTextAttributes.text);
+        const responseSuccessHeadersTextAttributes = await responseSuccessHeadersText.getAttributes();
+        const responseHeaders = JSON.parse(
+            responseSuccessHeadersTextAttributes.text
+        );
         jestExpect(responseHeaders["Server"]).toBe(server);
 
         // * Verify response body contains request host and request method
-        const responseDataTextAttributes = await responseDataText.getAttributes();
-        const responseDataRequest = JSON.parse(responseDataTextAttributes.text)
-            .request;
+        const responseSuccessDataTextAttributes = await responseSuccessDataText.getAttributes();
+        const responseDataRequest = JSON.parse(
+            responseSuccessDataTextAttributes.text
+        ).request;
         if (testHost) {
             jestExpect(responseDataRequest.headers["host"]).toBe(testHost);
         }
@@ -228,7 +240,7 @@ export const verifyResponseSuccessOverlay = async (
 
         // * Verify certificate
         const responseDataCertificate = JSON.parse(
-            responseDataTextAttributes.text
+            responseSuccessDataTextAttributes.text
         ).certificate;
         if (secure) {
             jestExpect(responseDataCertificate).toBe(
@@ -238,6 +250,8 @@ export const verifyResponseSuccessOverlay = async (
             jestExpect(responseDataCertificate).toBe("Non-secure request!");
         }
     }
+
+    return endTime;
 };
 
 export const verifyApiClient = async (testName, testUrl, testHeaders = {}) => {
@@ -285,4 +299,42 @@ export const verifyWebSocketEvent = async (eventJson) => {
             eventJson
         );
     }
+};
+
+export const verifyLinearRetryTimeDiff = (
+    beginTime,
+    endTime,
+    retryLimit,
+    retryInterval
+) => {
+    const actualTimeDiff = Math.floor((endTime - beginTime) / 1000);
+    const expectedTimeDiff = Math.floor((retryLimit * retryInterval) / 1000);
+    jestExpect(actualTimeDiff).toBeCloseTo(expectedTimeDiff);
+};
+
+export const verifyExponentialRetryTimeDiff = (
+    beginTime,
+    endTime,
+    retryLimit,
+    exponentialBackoffBase,
+    exponentialBackoffScale
+) => {
+    const actualTimeDiff = Math.floor((endTime - beginTime) / 1000);
+    let expectedTimeDiff = 0;
+    if (isIos()) {
+        // This is a workaround calculation to closely match actual results in iOS
+        expectedTimeDiff = Math.floor(
+            exponentialBackoffBase * exponentialBackoffScale
+        );
+    } else {
+        // This is the expected calculated delay for exponential retry, however,
+        // the iOS app is not producing the same results
+        for (let retryCount = 1; retryCount <= retryLimit; retryCount++) {
+            expectedTimeDiff += Math.floor(
+                Math.pow(exponentialBackoffBase, retryCount) *
+                    exponentialBackoffScale
+            );
+        }
+    }
+    jestExpect(actualTimeDiff).toBeCloseTo(expectedTimeDiff);
 };

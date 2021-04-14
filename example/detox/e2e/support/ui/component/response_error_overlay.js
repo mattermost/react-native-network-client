@@ -3,18 +3,31 @@
 
 class ResponseErrorOverlay {
     testID = {
-        errorCodeText: "response_error_overlay.error.code.text",
-        errorDomainText: "response_error_overlay.error.domain.text",
-        errorMessageText: "response_error_overlay.error.message.text",
-        errorNativeStackText: "response_error_overlay.error.native_stack.text",
-        errorUserInfoText: "response_error_overlay.error.user_info.text",
+        responseErrorOverlay: "response_error_overlay",
+        responseErrorCodeText: "response_error_overlay.error.code.text",
+        responseErrorDomainText: "response_error_overlay.error.domain.text",
+        responseErrorMessageText: "response_error_overlay.error.message.text",
+        responseErrorNativeStackText:
+            "response_error_overlay.error.native_stack.text",
+        responseErrorUserInfoText:
+            "response_error_overlay.error.user_info.text",
     };
 
-    errorCodeText = element(by.id(this.testID.errorCodeText));
-    errorDomainText = element(by.id(this.testID.errorDomainText));
-    errorMessageText = element(by.id(this.testID.errorMessageText));
-    errorNativeStackText = element(by.id(this.testID.errorNativeStackText));
-    errorUserInfoText = element(by.id(this.testID.errorUserInfoText));
+    responseErrorOverlay = element(by.id(this.testID.responseErrorOverlay));
+    responseErrorCloseButton = element(by.text("Close"));
+    responseErrorCodeText = element(by.id(this.testID.responseErrorCodeText));
+    responseErrorDomainText = element(
+        by.id(this.testID.responseErrorDomainText)
+    );
+    responseErrorMessageText = element(
+        by.id(this.testID.responseErrorMessageText)
+    );
+    responseErrorNativeStackText = element(
+        by.id(this.testID.responseErrorNativeStackText)
+    );
+    responseErrorUserInfoText = element(
+        by.id(this.testID.responseErrorUserInfoText)
+    );
 }
 
 const responseErrorOverlay = new ResponseErrorOverlay();
