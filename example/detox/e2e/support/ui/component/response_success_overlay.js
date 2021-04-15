@@ -33,6 +33,10 @@ class ResponseSuccessOverlay {
     responseSuccessRetriesExhaustedText = element(
         by.id(this.testID.responseSuccessRetriesExhaustedText)
     );
+
+    close = async () => {
+        await this.responseSuccessCloseButton.tap();
+    };
 }
 
 const responseSuccessOverlay = new ResponseSuccessOverlay();

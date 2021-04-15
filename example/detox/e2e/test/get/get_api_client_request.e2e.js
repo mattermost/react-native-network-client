@@ -176,7 +176,6 @@ describe("Get - API Client Request", () => {
         );
 
         // # Make another request
-        await ApiClientRequestScreen.responseSuccessCloseButton.tap();
         await ApiClientRequestScreen.makeRequest();
 
         // * Verify response success overlay
@@ -236,7 +235,6 @@ describe("Get - API Client Request", () => {
         );
 
         // # Make another request
-        await ApiClientRequestScreen.responseSuccessCloseButton.tap();
         await ApiClientRequestScreen.makeRequest();
 
         // * Verify response success overlay

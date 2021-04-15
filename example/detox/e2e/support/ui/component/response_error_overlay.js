@@ -28,6 +28,10 @@ class ResponseErrorOverlay {
     responseErrorUserInfoText = element(
         by.id(this.testID.responseErrorUserInfoText)
     );
+
+    close = async () => {
+        await this.responseErrorCloseButton.tap();
+    };
 }
 
 const responseErrorOverlay = new ResponseErrorOverlay();

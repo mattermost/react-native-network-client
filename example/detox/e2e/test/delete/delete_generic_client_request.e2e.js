@@ -28,7 +28,12 @@ describe("Delete - Generic Client Request", () => {
     const testHeaders = { ...customHeaders };
     const testBody = { ...customBody };
 
-    beforeAll(async () => {
+    beforeEach(async () => {
+        await device.reloadReactNative();
+    });
+
+    it("should return a valid response", async () => {
+        // * Verify direct server response
         const apiResponse = await Request.apiDelete({
             headers: testHeaders,
             body: testBody,
@@ -43,11 +48,10 @@ describe("Delete - Generic Client Request", () => {
             testBody
         );
 
+        // # Select delete
         await GenericClientRequestScreen.open();
         await GenericClientRequestScreen.deleteButton.tap();
-    });
 
-    it("should return a valid response", async () => {
         // # Perform generic client request
         await performGenericClientRequest({
             testUrl: testServerUrl,

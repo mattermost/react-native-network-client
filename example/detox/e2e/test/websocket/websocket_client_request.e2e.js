@@ -13,12 +13,8 @@ import {
     secureWebSocketServerUrl,
     webSocketServerUrl,
 } from "@support/test_config";
-import {
-    ClientListScreen,
-    CreateWebSocketClientScreen,
-    WebSocketClientScreen,
-} from "@support/ui/screen";
-import { verifyWebSocketEvent } from "../helpers";
+import { WebSocketClientScreen } from "@support/ui/screen";
+import { createWebSocketClient, verifyWebSocketEvent } from "../helpers";
 
 describe("WebSocket Client Request", () => {
     const testName = "Simple WebSocket";
@@ -52,10 +48,16 @@ describe("WebSocket Client Request", () => {
 
     it("should be able to connect, send message, and disconnect - secure connection", async () => {
         // # Create secure WebSocket client
-        await CreateWebSocketClientScreen.open();
-        await createSecureWebSocketClient(
+        await createWebSocketClient(
             testSecureName,
-            testSecureWebSocketUrl
+            testSecureWebSocketUrl,
+            null,
+            null,
+            {
+                clientCertPassword,
+                secure: true,
+                secureWebSocketServerClientCertUrl,
+            }
         );
 
         // # Open client
@@ -113,31 +115,4 @@ async function connectSendMessageAndDisconnect(
 
     // # Open client list screen
     await WebSocketClientScreen.back();
-}
-
-async function createSecureWebSocketClient(
-    testSecureName,
-    testSecureWebSocketUrl
-) {
-    const {
-        createClient,
-        downloadP12,
-        setName,
-        setUrl,
-        toggleOnTrustSelfSignedServerCertificateCheckbox,
-    } = CreateWebSocketClientScreen;
-
-    // # Set all fields and create client
-    await setName(testSecureName);
-    await setUrl(testSecureWebSocketUrl);
-    await downloadP12(secureWebSocketServerClientCertUrl, clientCertPassword);
-    await toggleOnTrustSelfSignedServerCertificateCheckbox();
-    await createClient();
-
-    // * Verify created client
-    const { subtitle, title } = await ClientListScreen.getClientByName(
-        testSecureName
-    );
-    await expect(title).toHaveText(testSecureName);
-    await expect(subtitle).toHaveText(testSecureWebSocketUrl);
 }

@@ -1,11 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {
-    AddHeaders,
-    ResponseSuccessOverlay,
-    RetryPolicyConfiguration,
-} from "@support/ui/component";
+import { AddHeaders, RetryPolicyConfiguration } from "@support/ui/component";
 import { isAndroid, waitForAndScrollDown } from "@support/utils";
 
 class ApiClientRequestScreen {
@@ -25,20 +21,6 @@ class ApiClientRequestScreen {
     pathInput = element(by.id(this.testID.pathInput));
     timeoutIntervalInput = element(by.id(this.testID.timeoutIntervalInput));
     requestButton = element(by.text("Request"));
-
-    // convenience props
-    responseSuccessOverlay = ResponseSuccessOverlay.responseSuccessOverlay;
-    responseSuccessCloseButton =
-        ResponseSuccessOverlay.responseSuccessCloseButton;
-    responseSuccessCodeText = ResponseSuccessOverlay.responseSuccessCodeText;
-    responseSuccessDataText = ResponseSuccessOverlay.responseSuccessDataText;
-    responseSuccessHeadersText =
-        ResponseSuccessOverlay.responseSuccessHeadersText;
-    responseSuccessLastRequestedUrlText =
-        ResponseSuccessOverlay.responseSuccessLastRequestedUrlText;
-    responseSuccessOkText = ResponseSuccessOverlay.responseSuccessOkText;
-    responseSuccessRetriesExhaustedText =
-        ResponseSuccessOverlay.responseSuccessRetriesExhaustedText;
 
     retryPolicyConfiguration = new RetryPolicyConfiguration(
         this.testID.apiClientRequestScrollView
@@ -94,22 +76,23 @@ class ApiClientRequestScreen {
     setRetry = async (
         options = {
             retryPolicyType: "exponential",
-            retryLimit: "2",
-            exponentialBackoffBase: "2",
-            exponentialBackoffScale: "0.5",
-            retryInterval: "2000",
+            retryLimit: 2,
+            exponentialBackoffBase: 2,
+            exponentialBackoffScale: 0.5,
+            retryInterval: 2000,
         }
     ) => {
         await this.retryPolicyConfiguration.setRetry(options);
     };
 
     setTimeoutInterval = async (timeoutInterval) => {
+        const timeoutIntervalStr = timeoutInterval.toString();
         await waitForAndScrollDown(
             this.timeoutIntervalInput,
             this.testID.apiClientRequestScrollView
         );
         await this.timeoutIntervalInput.clearText();
-        await this.timeoutIntervalInput.replaceText(timeoutInterval);
+        await this.timeoutIntervalInput.replaceText(timeoutIntervalStr);
         await this.timeoutIntervalInput.tapReturnKey();
     };
 }

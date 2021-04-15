@@ -28,7 +28,12 @@ describe("Post - Generic Client Request", () => {
     const testHeaders = { ...customHeaders };
     const testBody = { ...customBody };
 
-    beforeAll(async () => {
+    beforeEach(async () => {
+        await device.reloadReactNative();
+    });
+
+    it("should return a valid response", async () => {
+        // * Verify direct server response
         const apiResponse = await Request.apiPost({
             headers: testHeaders,
             body: testBody,
@@ -43,11 +48,10 @@ describe("Post - Generic Client Request", () => {
             testBody
         );
 
+        // # Select post
         await GenericClientRequestScreen.open();
         await GenericClientRequestScreen.postButton.tap();
-    });
 
-    it("should return a valid response", async () => {
         // # Perform generic client request
         await performGenericClientRequest({
             testUrl: testServerUrl,

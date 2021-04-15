@@ -143,12 +143,13 @@ class CreateApiClientScreen {
     };
 
     setMaxConnections = async (maxConnections) => {
+        const maxConnectionsStr = maxConnections.toString();
         await waitForAndScrollDown(
             this.maxConnectionsInput,
             this.testID.createApiClientScrollView
         );
         await this.maxConnectionsInput.clearText();
-        await this.maxConnectionsInput.replaceText(maxConnections);
+        await this.maxConnectionsInput.replaceText(maxConnectionsStr);
         await this.maxConnectionsInput.tapReturnKey();
     };
 
@@ -163,25 +164,27 @@ class CreateApiClientScreen {
     };
 
     setRequestTimeoutInterval = async (requestTimeoutInterval) => {
+        const requestTimeoutIntervalStr = requestTimeoutInterval.toString();
         await waitForAndScrollDown(
             this.requestTimeoutIntervalInput,
             this.testID.createApiClientScrollView
         );
         await this.requestTimeoutIntervalInput.clearText();
         await this.requestTimeoutIntervalInput.replaceText(
-            requestTimeoutInterval
+            requestTimeoutIntervalStr
         );
         await this.requestTimeoutIntervalInput.tapReturnKey();
     };
 
     setResourceTimeoutInterval = async (resourceTimeoutInterval) => {
+        const resourceTimeoutIntervalStr = resourceTimeoutInterval.toString();
         await waitForAndScrollDown(
             this.resourceTimeoutIntervalInput,
             this.testID.createApiClientScrollView
         );
         await this.resourceTimeoutIntervalInput.clearText();
         await this.resourceTimeoutIntervalInput.replaceText(
-            resourceTimeoutInterval
+            resourceTimeoutIntervalStr
         );
         await this.resourceTimeoutIntervalInput.tapReturnKey();
     };
@@ -189,10 +192,10 @@ class CreateApiClientScreen {
     setRetry = async (
         options = {
             retryPolicyType: "exponential",
-            retryLimit: "2",
-            exponentialBackoffBase: "2",
-            exponentialBackoffScale: "0.5",
-            retryInterval: "2000",
+            retryLimit: 2,
+            exponentialBackoffBase: 2,
+            exponentialBackoffScale: 0.5,
+            retryInterval: 2000,
         }
     ) => {
         await this.retryPolicyConfiguration.setRetry(options);

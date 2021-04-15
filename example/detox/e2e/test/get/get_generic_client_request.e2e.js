@@ -26,7 +26,12 @@ describe("Get - Generic Client Request", () => {
     const testStatus = 200;
     const testHeaders = { ...customHeaders };
 
-    beforeAll(async () => {
+    beforeEach(async () => {
+        await device.reloadReactNative();
+    });
+
+    it("should return a valid response", async () => {
+        // * Verify direct server response
         const apiResponse = await Request.apiGet({ headers: testHeaders });
         await verifyApiResponse(
             apiResponse,
@@ -37,11 +42,10 @@ describe("Get - Generic Client Request", () => {
             testHeaders
         );
 
+        // # Select get
         await GenericClientRequestScreen.open();
         await GenericClientRequestScreen.getButton.tap();
-    });
 
-    it("should return a valid response", async () => {
         // # Perform generic client request
         await performGenericClientRequest({
             testUrl: testServerUrl,

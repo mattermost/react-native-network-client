@@ -97,12 +97,13 @@ class CreateWebSocketClientScreen {
     };
 
     setTimeoutInterval = async (timeoutInterval) => {
+        const timeoutIntervalStr = timeoutInterval.toString();
         await waitForAndScrollDown(
             this.timeoutIntervalInput,
             this.testID.createWebSocketClientScrollView
         );
         await this.timeoutIntervalInput.clearText();
-        await this.timeoutIntervalInput.replaceText(timeoutInterval);
+        await this.timeoutIntervalInput.replaceText(timeoutIntervalStr);
         await this.timeoutIntervalInput.tapReturnKey();
     };
 

@@ -4,7 +4,6 @@
 import {
     AddHeaders,
     MethodButtons,
-    ResponseSuccessOverlay,
     RetryPolicyConfiguration,
 } from "@support/ui/component";
 import { ClientListScreen } from "@support/ui/screen";
@@ -34,18 +33,6 @@ class GenericClientRequestScreen {
     patchButton = MethodButtons.patchButton;
     postButton = MethodButtons.postButton;
     putButton = MethodButtons.putButton;
-    responseSuccessOverlay = ResponseSuccessOverlay.responseSuccessOverlay;
-    responseSuccessCloseButton =
-        ResponseSuccessOverlay.responseSuccessCloseButton;
-    responseSuccessCodeText = ResponseSuccessOverlay.responseSuccessCodeText;
-    responseSuccessDataText = ResponseSuccessOverlay.responseSuccessDataText;
-    responseSuccessHeadersText =
-        ResponseSuccessOverlay.responseSuccessHeadersText;
-    responseSuccessLastRequestedUrlText =
-        ResponseSuccessOverlay.responseSuccessLastRequestedUrlText;
-    responseSuccessOkText = ResponseSuccessOverlay.responseSuccessOkText;
-    responseSuccessRetriesExhaustedText =
-        ResponseSuccessOverlay.responseSuccessRetriesExhaustedText;
 
     retryPolicyConfiguration = new RetryPolicyConfiguration(
         this.testID.genericClientRequestScrollView
@@ -98,22 +85,23 @@ class GenericClientRequestScreen {
     setRetry = async (
         options = {
             retryPolicyType: "exponential",
-            retryLimit: "2",
-            exponentialBackoffBase: "2",
-            exponentialBackoffScale: "0.5",
-            retryInterval: "2000",
+            retryLimit: 2,
+            exponentialBackoffBase: 2,
+            exponentialBackoffScale: 0.5,
+            retryInterval: 2000,
         }
     ) => {
         await this.retryPolicyConfiguration.setRetry(options);
     };
 
     setTimeoutInterval = async (timeoutInterval) => {
+        const timeoutIntervalStr = timeoutInterval.toString();
         await waitForAndScrollDown(
             this.timeoutIntervalInput,
             this.testID.genericClientRequestScrollView
         );
         await this.timeoutIntervalInput.clearText();
-        await this.timeoutIntervalInput.replaceText(timeoutInterval);
+        await this.timeoutIntervalInput.replaceText(timeoutIntervalStr);
         await this.timeoutIntervalInput.tapReturnKey();
     };
 
