@@ -82,7 +82,11 @@ describe("Patch - API Client Request", () => {
         await ApiClientScreen.selectPatch();
 
         // # Perform API client request
-        await performApiClientRequest({ testPath, testHeaders, testBody });
+        await performApiClientRequest({
+            body: testBody,
+            headers: testHeaders,
+            path: testPath,
+        });
 
         // * Verify response success overlay
         await verifyResponseSuccessOverlay(
@@ -124,7 +128,11 @@ describe("Patch - API Client Request", () => {
         await ApiClientScreen.selectPatch();
 
         // # Perform API client request
-        await performApiClientRequest({ testPath, testHeaders, testBody });
+        await performApiClientRequest({
+            body: testBody,
+            headers: testHeaders,
+            path: testPath,
+        });
 
         // * Verify response success overlay
         await verifyResponseSuccessOverlay(
@@ -155,10 +163,10 @@ describe("Patch - API Client Request", () => {
         const clientID = getRandomId();
         const testRetryPath = `${testPath}/retry/clientID/${clientID}/serverDelay/0/serverRetryLimit/5`;
         const beginTime = await performApiClientRequest({
-            testPath: testRetryPath,
-            testHeaders,
-            testBody,
-            testRetry,
+            body: testBody,
+            headers: testHeaders,
+            path: testRetryPath,
+            retry: testRetry,
         });
 
         // * Verify retry response
@@ -183,7 +191,6 @@ describe("Patch - API Client Request", () => {
         );
 
         // # Make another request
-        await ApiClientRequestScreen.responseSuccessCloseButton.tap();
         await ApiClientRequestScreen.makeRequest();
 
         // * Verify response success overlay
@@ -216,10 +223,10 @@ describe("Patch - API Client Request", () => {
         const clientID = getRandomId();
         const testRetryPath = `${testPath}/retry/clientID/${clientID}/serverDelay/0/serverRetryLimit/5`;
         const beginTime = await performApiClientRequest({
-            testPath: testRetryPath,
-            testHeaders,
-            testBody,
-            testRetry,
+            body: testBody,
+            headers: testHeaders,
+            path: testRetryPath,
+            retry: testRetry,
         });
 
         // * Verify retry response
@@ -245,7 +252,6 @@ describe("Patch - API Client Request", () => {
         );
 
         // # Make another request
-        await ApiClientRequestScreen.responseSuccessCloseButton.tap();
         await ApiClientRequestScreen.makeRequest();
 
         // * Verify response success overlay

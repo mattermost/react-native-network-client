@@ -40,10 +40,10 @@ class RetryPolicyConfiguration {
 
     setRetry = async ({
         retryPolicyType = "exponential",
-        retryLimit = "2",
-        exponentialBackoffBase = "2",
-        exponentialBackoffScale = "0.5",
-        retryInterval = "2000",
+        retryLimit = 2,
+        exponentialBackoffBase = 2,
+        exponentialBackoffScale = 0.5,
+        retryInterval = 2000,
     }) => {
         switch (retryPolicyType) {
             case "exponential":
@@ -64,9 +64,9 @@ class RetryPolicyConfiguration {
     };
 
     setExponentialRetry = async ({
-        retryLimit = "2",
-        exponentialBackoffBase = "2",
-        exponentialBackoffScale = "0.5",
+        retryLimit = 2,
+        exponentialBackoffBase = 2,
+        exponentialBackoffScale = 0.5,
     }) => {
         // # Toggle on exponential retry checkbox
         await this.toggleOnExponentialRetryCheckbox();
@@ -81,7 +81,7 @@ class RetryPolicyConfiguration {
         await this.setExponentialBackoffScale(exponentialBackoffScale);
     };
 
-    setLinearRetry = async ({ retryLimit = "2", retryInterval = "2000" }) => {
+    setLinearRetry = async ({ retryLimit = 2, retryInterval = 2000 }) => {
         if (isAndroid()) {
             await waitForAndScrollDown(
                 this.linearRetryCheckboxTrue,
@@ -101,82 +101,90 @@ class RetryPolicyConfiguration {
     };
 
     setExponentialBackoffBase = async (exponentialBackoffBase) => {
+        const exponentialBackoffBaseStr = exponentialBackoffBase.toString();
         const exponentialBackoffBaseInput = this.getExponentialBackoffBaseInput();
         await waitForAndScrollDown(
             exponentialBackoffBaseInput,
             this.testID.screenScrollView
         );
         await exponentialBackoffBaseInput.clearText();
-        await exponentialBackoffBaseInput.replaceText(exponentialBackoffBase);
+        await exponentialBackoffBaseInput.replaceText(
+            exponentialBackoffBaseStr
+        );
         await exponentialBackoffBaseInput.tapReturnKey();
 
         // * Verify input value
         if (isAndroid()) {
             await expect(exponentialBackoffBaseInput).toHaveText(
-                exponentialBackoffBase
+                exponentialBackoffBaseStr
             );
         } else {
             await expect(exponentialBackoffBaseInput).toHaveValue(
-                exponentialBackoffBase
+                exponentialBackoffBaseStr
             );
         }
     };
 
     setExponentialBackoffScale = async (exponentialBackoffScale) => {
+        const exponentialBackoffScaleStr = exponentialBackoffScale.toString();
         const exponentialBackoffScaleInput = this.getExponentialBackoffScaleInput();
         await waitForAndScrollDown(
             exponentialBackoffScaleInput,
             this.testID.screenScrollView
         );
         await exponentialBackoffScaleInput.clearText();
-        await exponentialBackoffScaleInput.replaceText(exponentialBackoffScale);
+        await exponentialBackoffScaleInput.replaceText(
+            exponentialBackoffScaleStr
+        );
         await exponentialBackoffScaleInput.tapReturnKey();
 
         // * Verify input value
         if (isAndroid()) {
             await expect(exponentialBackoffScaleInput).toHaveText(
-                exponentialBackoffScale
+                exponentialBackoffScaleStr
             );
         } else {
             await expect(exponentialBackoffScaleInput).toHaveValue(
-                exponentialBackoffScale
+                exponentialBackoffScaleStr
             );
         }
     };
 
     setRetryInterval = async (retryInterval) => {
+        const retryIntervalStr = retryInterval.toString();
         const retryIntervalInput = this.getRetryIntervalInput();
         await waitForAndScrollDown(
             retryIntervalInput,
             this.testID.screenScrollView
         );
         await retryIntervalInput.clearText();
-        await retryIntervalInput.replaceText(retryInterval);
+        await retryIntervalInput.replaceText(retryIntervalStr);
         await retryIntervalInput.tapReturnKey();
 
         // * Verify input value
         if (isAndroid()) {
-            await expect(retryIntervalInput).toHaveText(retryInterval);
+            await expect(retryIntervalInput).toHaveText(retryIntervalStr);
         } else {
-            await expect(retryIntervalInput).toHaveValue(retryInterval);
+            await expect(retryIntervalInput).toHaveValue(retryIntervalStr);
         }
     };
 
     setRetryLimit = async (retryLimit) => {
+        const retryLimitStr = retryLimit.toString();
         const retryLimitInput = this.getRetryLimitInput();
         await waitForAndScrollDown(
             retryLimitInput,
             this.testID.screenScrollView
         );
         await retryLimitInput.clearText();
-        await retryLimitInput.replaceText(retryLimit);
+        await retryLimitInput.replaceText(retryLimitStr);
         await retryLimitInput.tapReturnKey();
 
         // * Verify input value
         if (isAndroid()) {
-            await expect(retryLimitInput).toHaveText(retryLimit);
+            await expect(retryLimitInput).toHaveText(retryLimitStr);
         } else {
-            await expect(retryLimitInput).toHaveValue(retryLimit);
+            await expect(retryLimitInput).toHaveValue(retryLimitStr);
         }
     };
 
