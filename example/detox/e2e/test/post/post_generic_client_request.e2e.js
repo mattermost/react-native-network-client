@@ -54,9 +54,9 @@ describe("Post - Generic Client Request", () => {
 
         // # Perform generic client request
         await performGenericClientRequest({
-            testUrl: testServerUrl,
-            testHeaders,
-            testBody,
+            body: testBody,
+            headers: testHeaders,
+            url: testServerUrl,
         });
 
         // * Verify response success overlay

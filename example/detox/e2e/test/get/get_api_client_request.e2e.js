@@ -78,7 +78,7 @@ describe("Get - API Client Request", () => {
         await ApiClientScreen.selectGet();
 
         // # Perform API client request
-        await performApiClientRequest({ testPath, testHeaders });
+        await performApiClientRequest({ headers: testHeaders, path: testPath });
 
         // * Verify response success overlay
         await verifyResponseSuccessOverlay(
@@ -118,7 +118,7 @@ describe("Get - API Client Request", () => {
         await ApiClientScreen.selectGet();
 
         // # Perform API client request
-        await performApiClientRequest({ testPath, testHeaders });
+        await performApiClientRequest({ headers: testHeaders, path: testPath });
 
         // * Verify response success overlay
         await verifyResponseSuccessOverlay(
@@ -149,9 +149,9 @@ describe("Get - API Client Request", () => {
         const clientID = getRandomId();
         const testRetryPath = `${testPath}/retry/clientID/${clientID}/serverDelay/0/serverRetryLimit/5`;
         const beginTime = await performApiClientRequest({
-            testPath: testRetryPath,
-            testHeaders,
-            testRetry,
+            headers: testHeaders,
+            path: testRetryPath,
+            retry: testRetry,
         });
 
         // * Verify retry response
@@ -207,9 +207,9 @@ describe("Get - API Client Request", () => {
         const clientID = getRandomId();
         const testRetryPath = `${testPath}/retry/clientID/${clientID}/serverDelay/0/serverRetryLimit/5`;
         const beginTime = await performApiClientRequest({
-            testPath: testRetryPath,
-            testHeaders,
-            testRetry,
+            headers: testHeaders,
+            path: testRetryPath,
+            retry: testRetry,
         });
 
         // * Verify retry response

@@ -48,8 +48,8 @@ describe("Get - Generic Client Request", () => {
 
         // # Perform generic client request
         await performGenericClientRequest({
-            testUrl: testServerUrl,
-            testHeaders,
+            headers: testHeaders,
+            url: testServerUrl,
         });
 
         // * Verify response success overlay

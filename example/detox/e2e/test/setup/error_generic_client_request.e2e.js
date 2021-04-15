@@ -28,9 +28,9 @@ describe("Error - Generic Client Request", () => {
             ? "http://127.0.0.1"
             : "http://10.0.2.2";
         await performGenericClientRequest({
-            testUrl,
-            testTimeoutInterval: null,
-            testRetry: null,
+            retry: null,
+            timeoutInterval: null,
+            url: testUrl,
         });
 
         // * Verify response error overlay

@@ -33,13 +33,13 @@ describe("Create WebSocket Client", () => {
 
     it("should be able to create, alert for duplicate, and remove a WebSocket client", async () => {
         // # Create WebSocket client
-        await createWebSocketClient(
-            testName,
-            testUrl,
-            testHeaders,
-            testTimeoutInterval,
-            { secure: false }
-        );
+        await createWebSocketClient({
+            headers: testHeaders,
+            name: testName,
+            secure: false,
+            timeoutInterval: testTimeoutInterval,
+            url: testUrl,
+        });
 
         // # Alert for duplicate WebSocket client
         await alertForDuplicateWebSocketClient(testName, testUrl);
@@ -52,17 +52,15 @@ describe("Create WebSocket Client", () => {
         // # Create WebSocket client
         const testSecureName = `Secure ${testName}`;
         const testSecureUrl = secureWebSocketServerUrl;
-        await createWebSocketClient(
-            testSecureName,
-            testSecureUrl,
-            testHeaders,
-            testTimeoutInterval,
-            {
-                clientCertPassword,
-                secure: true,
-                secureWebSocketServerClientCertUrl,
-            }
-        );
+        await createWebSocketClient({
+            clientCertPassword,
+            headers: testHeaders,
+            name: testSecureName,
+            secure: true,
+            secureWebSocketServerClientCertUrl,
+            timeoutInterval: testTimeoutInterval,
+            url: testSecureUrl,
+        });
 
         // # Alert for duplicate WebSocket client
         await alertForDuplicateWebSocketClient(testSecureName, testSecureUrl);
@@ -76,7 +74,9 @@ async function alertForDuplicateWebSocketClient(testName, testUrl) {
     const { errorTitle, okButton } = Alert;
 
     // # Set an existing url and attempt to create client
-    await createWebSocketClient(testName, testUrl, null, null, {
+    await createWebSocketClient({
+        name: testName,
+        url: testUrl,
         verify: false,
     });
 

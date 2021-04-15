@@ -82,7 +82,11 @@ describe("Put - API Client Request", () => {
         await ApiClientScreen.selectPut();
 
         // # Perform API client request
-        await performApiClientRequest({ testPath, testHeaders, testBody });
+        await performApiClientRequest({
+            body: testBody,
+            headers: testHeaders,
+            path: testPath,
+        });
 
         // * Verify response success overlay
         await verifyResponseSuccessOverlay(
@@ -124,7 +128,11 @@ describe("Put - API Client Request", () => {
         await ApiClientScreen.selectPut();
 
         // # Perform API client request
-        await performApiClientRequest({ testPath, testHeaders, testBody });
+        await performApiClientRequest({
+            body: testBody,
+            headers: testHeaders,
+            path: testPath,
+        });
 
         // * Verify response success overlay
         await verifyResponseSuccessOverlay(
@@ -155,10 +163,10 @@ describe("Put - API Client Request", () => {
         const clientID = getRandomId();
         const testRetryPath = `${testPath}/retry/clientID/${clientID}/serverDelay/0/serverRetryLimit/5`;
         const beginTime = await performApiClientRequest({
-            testPath: testRetryPath,
-            testHeaders,
-            testBody,
-            testRetry,
+            body: testBody,
+            headers: testHeaders,
+            path: testRetryPath,
+            retry: testRetry,
         });
 
         // * Verify retry response
@@ -215,10 +223,10 @@ describe("Put - API Client Request", () => {
         const clientID = getRandomId();
         const testRetryPath = `${testPath}/retry/clientID/${clientID}/serverDelay/0/serverRetryLimit/5`;
         const beginTime = await performApiClientRequest({
-            testPath: testRetryPath,
-            testHeaders,
-            testBody,
-            testRetry,
+            body: testBody,
+            headers: testHeaders,
+            path: testRetryPath,
+            retry: testRetry,
         });
 
         // * Verify retry response

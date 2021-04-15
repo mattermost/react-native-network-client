@@ -26,15 +26,15 @@ describe("Error - API Client Request", () => {
         const testBaseUrl = process.env.IOS
             ? "http://127.0.0.1"
             : "http://10.0.2.2";
-        await createApiClient(testName, testBaseUrl);
+        await createApiClient({ baseUrl: testBaseUrl, name: testName });
         await ApiClientScreen.open(testName);
         await ApiClientScreen.selectGet();
 
         // # Perform API client request
         await performApiClientRequest({
-            testPath: "/",
-            testTimeoutInterval: null,
-            testRetry: null,
+            path: "/",
+            timeoutInterval: null,
+            retry: null,
         });
 
         // * Verify response error overlay

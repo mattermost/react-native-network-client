@@ -40,17 +40,17 @@ describe("Create API Client", () => {
 
     it("should be able to create, alert for duplicate, and remove an API client", async () => {
         // Create API client
-        await createApiClient(
-            testName,
-            testBaseUrl,
-            testHeaders,
-            testToken,
-            testRequestTimeoutInterval,
-            testResourceTimeoutInterval,
-            testMaxConnections,
-            testRetry,
-            { secure: false }
-        );
+        await createApiClient({
+            baseUrl: testBaseUrl,
+            headers: testHeaders,
+            maxConnections: testMaxConnections,
+            name: testName,
+            requestTimeoutInterval: testRequestTimeoutInterval,
+            resourceTimeoutInterval: testResourceTimeoutInterval,
+            retry: testRetry,
+            secure: false,
+            token: testToken,
+        });
 
         // Alert for duplicate API client
         await alertForDuplicateApiClient(testName, testBaseUrl);
@@ -66,17 +66,19 @@ describe("Create API Client", () => {
         // Create API client
         const testSecureName = `Secure ${testName}`;
         const testSecureBaseUrl = secureServerUrl;
-        await createApiClient(
-            testSecureName,
-            testSecureBaseUrl,
-            testHeaders,
-            testToken,
-            testRequestTimeoutInterval,
-            testResourceTimeoutInterval,
-            testMaxConnections,
-            testRetry,
-            { clientCertPassword, secure: true, secureServerClientCertUrl }
-        );
+        await createApiClient({
+            baseUrl: testSecureBaseUrl,
+            clientCertPassword,
+            headers: testHeaders,
+            maxConnections: testMaxConnections,
+            name: testSecureName,
+            requestTimeoutInterval: testRequestTimeoutInterval,
+            resourceTimeoutInterval: testResourceTimeoutInterval,
+            retry: testRetry,
+            secure: true,
+            secureServerClientCertUrl,
+            token: testToken,
+        });
 
         // Alert for duplicate API client
         await alertForDuplicateApiClient(testSecureName, testSecureBaseUrl);
@@ -90,17 +92,11 @@ async function alertForDuplicateApiClient(testName, testBaseUrl) {
     const { errorTitle, okButton } = Alert;
 
     // # Set an existing url and attempt to create client
-    await createApiClient(
-        testName,
-        testBaseUrl,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        { verify: false }
-    );
+    await createApiClient({
+        baseUrl: testBaseUrl,
+        name: testName,
+        verify: false,
+    });
 
     // * Verify error alert
     await expect(errorTitle).toBeVisible();

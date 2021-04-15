@@ -33,35 +33,35 @@ export const customBody = {
 export const retryPolicyTypes = ["exponential", "linear"];
 
 /**
- * Create API client.
- * @param {string} testName - client name
- * @param {string} testBaseUrl - base URL of requested server
- * @param {Object} testHeaders - request headers
- * @param {string} testToken - request authentication token
- * @param {number} testRequestTimeoutInterval - client request timeout interval
- * @param {number} testResourceTimeoutInterval - client resource timeout interval
- * @param {number} testMaxConnections - client max connections
- * @param {Object} testRetry - client retry configuration
+ * Create API client. 
+ * @param {string} options.baseUrl - base URL of requested server
  * @param {string} options.clientCertPassword - secure client certificate password
+ * @param {Object} options.headers - request headers
+ * @param {string} options.name - client name
+ * @param {number} options.maxConnections - client max connections
+ * @param {number} options.requestTimeoutInterval - client request timeout interval
+ * @param {number} options.resourceTimeoutInterval - client resource timeout interval
+ * @param {Object} options.retry - client retry configuration
  * @param {boolean} options.secure - if server is secure, true; otherwise, false
  * @param {string} options.secureServerClientCertUrl - secure server client certificate URL
  * @param {boolean} options.toggleOn - if true, checkboxes are toggled on
+ * @param {string} options.token - request authentication token
  * @param {boolean} options.verify - if true, client created is verified
  */
 export const createApiClient = async (
-    testName,
-    testBaseUrl,
-    testHeaders = null,
-    testToken = null,
-    testRequestTimeoutInterval = null,
-    testResourceTimeoutInterval = null,
-    testMaxConnections = null,
-    testRetry = null,
     {
+        baseUrl = null,
         clientCertPassword = null,
+        headers = null,
+        name = null,
+        maxConnections = null,
+        requestTimeoutInterval = null,
+        resourceTimeoutInterval = null,
+        retry = null,
         secure = false,
         secureServerClientCertUrl = null,
         toggleOn = false,
+        token = null,
         verify = true,
     } = {}
 ) => {
@@ -84,13 +84,17 @@ export const createApiClient = async (
     await CreateApiClientScreen.open();
 
     // # Set all fields
-    await setName(testName);
-    await setBaseUrl(testBaseUrl);
-    if (testHeaders) {
-        await setHeaders(testHeaders);
+    if (name) {
+        await setName(name);
     }
-    if (testToken) {
-        await setBearerAuthToken(testToken);
+    if (baseUrl) {
+        await setBaseUrl(baseUrl);
+    }
+    if (headers) {
+        await setHeaders(headers);
+    }
+    if (token) {
+        await setBearerAuthToken(token);
     }
     if (secure) {
         await CreateApiClientScreen.downloadP12(
@@ -98,14 +102,14 @@ export const createApiClient = async (
             clientCertPassword
         );
     }
-    if (testRequestTimeoutInterval) {
-        await setRequestTimeoutInterval(testRequestTimeoutInterval);
+    if (requestTimeoutInterval) {
+        await setRequestTimeoutInterval(requestTimeoutInterval);
     }
-    if (testResourceTimeoutInterval) {
-        await setResourceTimeoutInterval(testResourceTimeoutInterval);
+    if (resourceTimeoutInterval) {
+        await setResourceTimeoutInterval(resourceTimeoutInterval);
     }
-    if (testMaxConnections) {
-        await setMaxConnections(testMaxConnections);
+    if (maxConnections) {
+        await setMaxConnections(maxConnections);
     }
     if (toggleOn) {
         await toggleOnWaitsForConnectivityCheckbox();
@@ -114,8 +118,8 @@ export const createApiClient = async (
     if (secure) {
         await toggleOnTrustSelfSignedServerCertificateCheckbox();
     }
-    if (testRetry) {
-        await setRetry(testRetry);
+    if (retry) {
+        await setRetry(retry);
     }
 
     // # Create client
@@ -123,8 +127,8 @@ export const createApiClient = async (
 
     // * Verify created client
     if (verify) {
-        await ApiClientScreen.open(testName);
-        await verifyApiClient(testName, testBaseUrl, testHeaders);
+        await ApiClientScreen.open(name);
+        await verifyApiClient(name, baseUrl, headers);
 
         // # Open client list screen
         await ApiClientScreen.back();
@@ -133,26 +137,26 @@ export const createApiClient = async (
 
 /**
  * Create WebSocket client.
- * @param {string} testName - client name
- * @param {string} testUrl - URL of requested server
- * @param {Object} testHeaders - request headers
- * @param {number} testTimeoutInterval - client request timeout interval
  * @param {string} options.clientCertPassword - secure client certificate password
+ * @param {Object} options.headers - request headers
+ * @param {string} options.name - client name
  * @param {boolean} options.secure - if server is secure, true; otherwise, false
  * @param {string} options.secureServerClientCertUrl - secure server client certificate URL
+ * @param {number} options.timeoutInterval - client request timeout interval
  * @param {boolean} options.toggleOn - if true, checkboxes are toggled on
+ * @param {string} options.url - URL of requested server
  * @param {boolean} options.verify - if true, client created is verified
  */
 export const createWebSocketClient = async (
-    testName,
-    testUrl,
-    testHeaders = null,
-    testTimeoutInterval = null,
     {
         clientCertPassword = null,
+        headers = null,
+        name = null,
         secure = false,
         secureWebSocketServerClientCertUrl = null,
+        timeoutInterval = null,
         toggleOn = false,
+        url = null,
         verify = true,
     } = {}
 ) => {
@@ -170,10 +174,14 @@ export const createWebSocketClient = async (
     await CreateWebSocketClientScreen.open();
 
     // # Set all fields
-    await setName(testName);
-    await setUrl(testUrl);
-    if (testHeaders) {
-        await setHeaders(testHeaders);
+    if (name) {
+        await setName(name);
+    }
+    if (url) {
+        await setUrl(url);
+    }
+    if (headers) {
+        await setHeaders(headers);
     }
     if (secure) {
         await CreateWebSocketClientScreen.downloadP12(
@@ -181,8 +189,8 @@ export const createWebSocketClient = async (
             clientCertPassword
         );
     }
-    if (testTimeoutInterval) {
-        await setTimeoutInterval(testTimeoutInterval);
+    if (timeoutInterval) {
+        await setTimeoutInterval(timeoutInterval);
     }
     if (toggleOn) {
         await toggleOnEnableCompressionCheckbox();
@@ -197,34 +205,34 @@ export const createWebSocketClient = async (
     // * Verify created client
     if (verify) {
         const { subtitle, title } = await ClientListScreen.getClientByName(
-            testName
+            name
         );
-        await expect(title).toHaveText(testName);
-        await expect(subtitle).toHaveText(testUrl);
+        await expect(title).toHaveText(name);
+        await expect(subtitle).toHaveText(url);
     }
 };
 
 /**
  * Perform API client request.
- * @param {string} options.testPath - relative or absolute path
- * @param {Object} options.testHeaders - requeset headers
- * @param {Object} options.testBody - request body
- * @param {number} options.testTimeoutInterval - client timeout interval
- * @param {Object} options.testRetry - client retry
+ * @param {Object} options.body - request body
+ * @param {Object} options.headers - requeset headers
+ * @param {string} options.path - relative or absolute path
+ * @param {Object} options.retry - client retry
+ * @param {number} options.timeoutInterval - client timeout interval
  * @returns {number} beginTime - timestamp in millis before request is made
  */
 export const performApiClientRequest = async ({
-    testPath,
-    testHeaders = null,
-    testBody = null,
-    testTimeoutInterval = 60,
-    testRetry = {
+    body = null,
+    headers = null,
+    path = null,
+    retry = {
         retryPolicyType: getRandomItem(retryPolicyTypes),
         retryLimit: 3,
         exponentialBackoffBase: 4,
         exponentialBackoffScale: 5,
         retryInterval: 6,
     },
+    timeoutInterval = 60,
 }) => {
     const {
         makeRequest,
@@ -236,18 +244,20 @@ export const performApiClientRequest = async ({
     } = ApiClientRequestScreen;
 
     // # Set all fields
-    await setPath(testPath);
-    if (testHeaders) {
-        await setHeaders(testHeaders);
+    if (path) {
+        await setPath(path);
     }
-    if (testBody) {
-        await setBody(JSON.stringify(testBody));
+    if (headers) {
+        await setHeaders(headers);
     }
-    if (testTimeoutInterval) {
-        await setTimeoutInterval(testTimeoutInterval);
+    if (body) {
+        await setBody(JSON.stringify(body));
     }
-    if (testRetry) {
-        await setRetry(testRetry);
+    if (timeoutInterval) {
+        await setTimeoutInterval(timeoutInterval);
+    }
+    if (retry) {
+        await setRetry(retry);
     }
 
     // # Make request
@@ -258,25 +268,25 @@ export const performApiClientRequest = async ({
 
 /**
  * Perform generic client request.
- * @param {string} options.testUrl - URL of requested server
- * @param {Object} options.testHeaders - requeset headers
- * @param {Object} options.testBody - request body
- * @param {number} options.testTimeoutInterval - client timeout interval
- * @param {Object} options.testRetry - client retry
+ * @param {Object} options.body - request body
+ * @param {Object} options.headers - requeset headers
+ * @param {Object} options.retry - client retry
+ * @param {number} options.timeoutInterval - client timeout interval
+ * @param {string} options.url - URL of requested server
  * @returns {number} beginTime - timestamp in millis before request is made
  */
 export const performGenericClientRequest = async ({
-    testUrl,
-    testHeaders = null,
-    testBody = null,
-    testTimeoutInterval = 60,
-    testRetry = {
+    body = null,
+    headers = null,
+    retry = {
         retryPolicyType: getRandomItem(retryPolicyTypes),
         retryLimit: 3,
         exponentialBackoffBase: 4,
         exponentialBackoffScale: 5,
         retryInterval: 6,
     },
+    timeoutInterval = 60,
+    url = null,
 }) => {
     const {
         makeRequest,
@@ -288,18 +298,20 @@ export const performGenericClientRequest = async ({
     } = GenericClientRequestScreen;
 
     // # Set all fields
-    await setUrl(testUrl);
-    if (testHeaders) {
-        await setHeaders(testHeaders);
+    if (url) {
+        await setUrl(url);
     }
-    if (testBody) {
-        await setBody(JSON.stringify(testBody));
+    if (headers) {
+        await setHeaders(headers);
     }
-    if (testTimeoutInterval) {
-        await setTimeoutInterval(testTimeoutInterval);
+    if (body) {
+        await setBody(JSON.stringify(body));
     }
-    if (testRetry) {
-        await setRetry(testRetry);
+    if (timeoutInterval) {
+        await setTimeoutInterval(timeoutInterval);
+    }
+    if (retry) {
+        await setRetry(retry);
     }
 
     // # Make request
@@ -311,46 +323,46 @@ export const performGenericClientRequest = async ({
 /**
  * Verify API response.
  * @param {Object} apiResponse - response object
- * @param {string} testUrl - URL of requested server
- * @param {number} testStatus - expected response status code
- * @param {string} testHost - host header value of requested server
- * @param {string} testMethod - request method
- * @param {Object} testHeaders - request headers
- * @param {Object} testBody - request body
+ * @param {string} url - URL of requested server
+ * @param {number} status - expected response status code
+ * @param {string} host - host header value of requested server
+ * @param {string} method - request method
+ * @param {Object} headers - request headers
+ * @param {Object} body - request body
  */
 export const verifyApiResponse = async (
     apiResponse,
-    testUrl,
-    testStatus,
-    testHost,
-    testMethod,
-    testHeaders,
-    testBody = null
+    url,
+    status,
+    host,
+    method,
+    headers,
+    body = null
 ) => {
     const apiResponseDataRequest = await apiResponse.data.request;
 
     // * Verify request URL and response status
-    jestExpect(testUrl).toContain(apiResponseDataRequest.url);
-    jestExpect(apiResponse.status).toEqual(testStatus);
+    jestExpect(url).toContain(apiResponseDataRequest.url);
+    jestExpect(apiResponse.status).toEqual(status);
 
     // * Verify response headers contain server header
     jestExpect(apiResponse.headers["server"]).toBe("mockserver");
 
     // * Verify response body contains request host and request method
-    jestExpect(apiResponseDataRequest.headers["host"]).toBe(testHost);
-    jestExpect(apiResponseDataRequest.method).toBe(testMethod);
+    jestExpect(apiResponseDataRequest.headers["host"]).toBe(host);
+    jestExpect(apiResponseDataRequest.method).toBe(method);
 
     // * Verify response body contains request headers
-    for (const [k, v] of Object.entries(testHeaders)) {
+    for (const [k, v] of Object.entries(headers)) {
         jestExpect(apiResponseDataRequest.headers[k]).toBe(v);
     }
 
-    if (testBody) {
+    if (body) {
         // * Verify response body contains request body
         jestExpect(Object.keys(apiResponseDataRequest.body)).toHaveLength(
-            Object.keys(testBody).length
+            Object.keys(body).length
         );
-        for (const [k, v] of Object.entries(testBody)) {
+        for (const [k, v] of Object.entries(body)) {
             jestExpect(apiResponseDataRequest.body[k]).toBe(v);
         }
     }
@@ -358,24 +370,24 @@ export const verifyApiResponse = async (
 
 /**
  * Verify response success overlay.
- * @param {string} testUrl - URL of requested server
- * @param {number} testStatus - expected response status code
- * @param {string} testHost - host header value of requested server
- * @param {string} testMethod - request method
- * @param {Object} testHeaders - request headers
- * @param {Object} testBody - request body
+ * @param {string} url - URL of requested server
+ * @param {number} status - expected response status code
+ * @param {string} host - host header value of requested server
+ * @param {string} method - request method
+ * @param {Object} headers - request headers
+ * @param {Object} body - request body
  * @param {string} options.retriesExhausted - "null", "true", or "false"
  * @param {boolean} options.secure - if server is secure, true; otherwise, false
  * @param {string} options.server - server name
  * @returns {number} endTime - timestamp in millis after response is received
  */
 export const verifyResponseSuccessOverlay = async (
-    testUrl,
-    testStatus,
-    testHost,
-    testMethod,
-    testHeaders,
-    testBody = null,
+    url,
+    status,
+    host,
+    method,
+    headers,
+    body = null,
     { retriesExhausted = "null", secure = false, server = "mockserver" } = {}
 ) => {
     const {
@@ -392,10 +404,10 @@ export const verifyResponseSuccessOverlay = async (
         .toBeVisible()
         .withTimeout(timeouts.TEN_SEC);
     const endTime = Date.now();
-    await expect(responseSuccessLastRequestedUrlText).toHaveText(testUrl);
-    await expect(responseSuccessCodeText).toHaveText(testStatus.toString());
+    await expect(responseSuccessLastRequestedUrlText).toHaveText(url);
+    await expect(responseSuccessCodeText).toHaveText(status.toString());
     await expect(responseSuccessOkText).toHaveText(
-        testStatus === 200 ? "true" : "false"
+        status === 200 ? "true" : "false"
     );
     await expect(responseSuccessRetriesExhaustedText).toHaveText(
         retriesExhausted
@@ -416,26 +428,26 @@ export const verifyResponseSuccessOverlay = async (
         const responseDataRequest = JSON.parse(
             responseSuccessDataTextAttributes.text
         ).request;
-        if (testHost) {
-            jestExpect(responseDataRequest.headers["host"]).toBe(testHost);
+        if (host) {
+            jestExpect(responseDataRequest.headers["host"]).toBe(host);
         }
-        if (testMethod) {
-            jestExpect(responseDataRequest.method).toBe(testMethod);
+        if (method) {
+            jestExpect(responseDataRequest.method).toBe(method);
         }
 
         // * Verify response body contains request headers
-        if (testHeaders) {
-            for (const [k, v] of Object.entries(testHeaders)) {
+        if (headers) {
+            for (const [k, v] of Object.entries(headers)) {
                 jestExpect(responseDataRequest.headers[k]).toBe(v);
             }
         }
 
         // * Verify response body contains request body
-        if (testBody) {
+        if (body) {
             jestExpect(Object.keys(responseDataRequest.body)).toHaveLength(
-                Object.keys(testBody).length
+                Object.keys(body).length
             );
-            for (const [k, v] of Object.entries(testBody)) {
+            for (const [k, v] of Object.entries(body)) {
                 jestExpect(responseDataRequest.body[k]).toBe(v);
             }
         }
@@ -461,21 +473,18 @@ export const verifyResponseSuccessOverlay = async (
 
 /**
  * Verify response error overlay.
- * @param {number} testErrorCode - the client error code
- * @param {string} testErrorMessage - the client error message
+ * @param {number} errorCode - the client error code
+ * @param {string} errorMessage - the client error message
  */
-export const verifyResponseErrorOverlay = async (
-    testErrorCode,
-    testErrorMessage
-) => {
+export const verifyResponseErrorOverlay = async (errorCode, errorMessage) => {
     const {
         responseErrorCodeText,
         responseErrorMessageText,
     } = ResponseErrorOverlay;
 
     // * Verify response error code and message
-    await expect(responseErrorCodeText).toHaveText(testErrorCode.toString());
-    await expect(responseErrorMessageText).toHaveText(testErrorMessage);
+    await expect(responseErrorCodeText).toHaveText(errorCode.toString());
+    await expect(responseErrorMessageText).toHaveText(errorMessage);
 
     // # Close response error overlay
     await ResponseErrorOverlay.close();
@@ -483,23 +492,19 @@ export const verifyResponseErrorOverlay = async (
 
 /**
  * Verify API client.
- * @param {string} testName - client name
- * @param {string} testUrl - URL of requested server
- * @param {Object} testHeaders - request headers
+ * @param {string} name - client name
+ * @param {string} url - URL of requested server
+ * @param {Object} headers - request headers
  */
-export const verifyApiClient = async (
-    testName,
-    testUrl,
-    testHeaders = null
-) => {
+export const verifyApiClient = async (name, url, headers = null) => {
     const {
         baseUrlInput,
         getHeaderListItemAtIndex,
         nameInput,
     } = ApiClientScreen;
 
-    const headers = testHeaders ? testHeaders : {};
-    const ordered = Object.keys(headers)
+    const unordered = headers ? headers : {};
+    const ordered = Object.keys(unordered)
         .sort()
         .reduce((result, key) => {
             result[key] = headers[key];
@@ -507,8 +512,8 @@ export const verifyApiClient = async (
         }, {});
     const entries = Object.entries(ordered);
     if (isAndroid()) {
-        await expect(nameInput).toHaveText(testName);
-        await expect(baseUrlInput).toHaveText(testUrl);
+        await expect(nameInput).toHaveText(name);
+        await expect(baseUrlInput).toHaveText(url);
 
         for (const [index, [key, value]] of Object.entries(entries)) {
             const { keyInput, valueInput } = getHeaderListItemAtIndex(index);
@@ -516,8 +521,8 @@ export const verifyApiClient = async (
             await expect(valueInput).toHaveText(value);
         }
     } else {
-        await expect(nameInput).toHaveValue(testName);
-        await expect(baseUrlInput).toHaveValue(testUrl);
+        await expect(nameInput).toHaveValue(name);
+        await expect(baseUrlInput).toHaveValue(url);
 
         for (const [index, [key, value]] of Object.entries(entries)) {
             const { keyInput, valueInput } = getHeaderListItemAtIndex(index);

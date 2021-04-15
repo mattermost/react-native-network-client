@@ -48,17 +48,13 @@ describe("WebSocket Client Request", () => {
 
     it("should be able to connect, send message, and disconnect - secure connection", async () => {
         // # Create secure WebSocket client
-        await createWebSocketClient(
-            testSecureName,
-            testSecureWebSocketUrl,
-            null,
-            null,
-            {
-                clientCertPassword,
-                secure: true,
-                secureWebSocketServerClientCertUrl,
-            }
-        );
+        await createWebSocketClient({
+            clientCertPassword,
+            name: testSecureName,
+            secure: true,
+            secureWebSocketServerClientCertUrl,
+            url: testSecureWebSocketUrl,
+        });
 
         // # Open client
         await WebSocketClientScreen.open(testSecureName);
