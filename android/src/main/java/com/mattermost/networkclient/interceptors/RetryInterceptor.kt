@@ -16,13 +16,13 @@ class RetryInterceptor(private val baseUrl: String) : Interceptor {
         val config: RetryConfig;
 
         // Check for request options
-        if (SessionsObject.config[baseUrl]?.containsKey("retryRequest") == true) {
-            config = SessionsObject.config[baseUrl]!!["retryRequest"] as RetryConfig;
+        if (SessionsObject.requestConfig[baseUrl]?.containsKey("retryRequest") == true) {
+            config = SessionsObject.requestConfig[baseUrl]!!["retryRequest"] as RetryConfig;
             // Remove once set
-            SessionsObject.config[baseUrl]!!.remove("retryRequest");
-        } else if (SessionsObject.config[baseUrl]?.containsKey("retryClient") == true) {
+            SessionsObject.requestConfig[baseUrl]!!.remove("retryRequest");
+        } else if (SessionsObject.requestConfig[baseUrl]?.containsKey("retryClient") == true) {
             // Else check for client options
-            config = SessionsObject.config[baseUrl]!!["retryClient"] as RetryConfig
+            config = SessionsObject.requestConfig[baseUrl]!!["retryClient"] as RetryConfig
         } else {
             // Else use defaults
             config = SessionsObject.DefaultRetry
@@ -39,7 +39,9 @@ class RetryInterceptor(private val baseUrl: String) : Interceptor {
         val config = getRetryConfig()
 
         // Keep retrying as long as response is not successful and less than the retry limit
-        while (!response.isSuccessful && attempts <= config.retryLimit && config.retryStatusCodes.contains(response.code) && config.retryMethods.contains(request.method.toLowerCase())) {
+        while (!response.isSuccessful && attempts <= config.retryLimit
+                && config.retryStatusCodes.contains(response.code)
+                && config.retryMethods.contains(request.method.toLowerCase())) {
 
             // End the request
             runCatching { response.close() }
@@ -59,7 +61,7 @@ class RetryInterceptor(private val baseUrl: String) : Interceptor {
         }
 
         if (attempts >= config.retryLimit) {
-            SessionsObject.config[baseUrl]!!["retriesExhausted"] = true
+            SessionsObject.requestConfig[baseUrl]!!["retriesExhausted"] = true
         }
 
         return response;

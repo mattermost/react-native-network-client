@@ -8,6 +8,7 @@ import okhttp3.*
 import java.util.concurrent.TimeUnit
 import com.mattermost.networkclient.interceptors.*
 import com.mattermost.networkclient.interfaces.RetryConfig
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
@@ -28,11 +29,11 @@ fun Response.returnAsWriteableMap(baseUrl: String): WritableMap {
     map.putBoolean("ok", this.isSuccessful)
     map.putString("lastRequestedUrl", this.request.url.toString())
 
-    val retriesExhausted = SessionsObject.config[baseUrl]!!["retriesExhausted"]
+    val retriesExhausted = SessionsObject.requestConfig[baseUrl]!!["retriesExhausted"]
 
     if(retriesExhausted != null && retriesExhausted == true){
         map.putBoolean("retriesExhausted", true)
-        SessionsObject.config[baseUrl]!!.remove("retriesExhausted")
+        SessionsObject.requestConfig[baseUrl]!!.remove("retriesExhausted")
     }
     return map;
 }
@@ -42,18 +43,27 @@ fun Response.returnAsWriteableMap(baseUrl: String): WritableMap {
  *
  * @param options ReadableMap of options from the App
  */
-fun Request.Builder.parseOptions(options: ReadableMap?, session: OkHttpClient.Builder, baseUrl: String): Request.Builder {
+fun Request.Builder.applyClientOptions(baseUrl: String): Request.Builder{
+    // Headers
+    if(SessionsObject.requestConfig[baseUrl]!!.containsKey("clientHeaders")){
+        this.addHeadersAsReadableMap(SessionsObject.requestConfig[baseUrl]!!["clientHeaders"] as ReadableMap)
+    }
+
+    return this;
+}
+
+fun Request.Builder.applyRequestOptions(options: ReadableMap?, baseUrl: String): Request.Builder {
     // Need to always close the connection once finished
     this.header("Connection", "close")
 
     if (options == null) return this;
 
+    val session = SessionsObject.client[baseUrl]!!;
+
     // Timeout Interval per request
     if (options.hasKey("timeoutInterval")) {
         session.addInterceptor(TimeoutRequestInterceptor(options.getInt("timeoutInterval")))
     }
-
-    // Headers
     if (options.hasKey("headers")) {
         this.addHeadersAsReadableMap(options.getMap("headers")!!)
     }
@@ -61,7 +71,7 @@ fun Request.Builder.parseOptions(options: ReadableMap?, session: OkHttpClient.Bu
     if (options.hasKey("retryPolicyConfiguration")) {
         val retryPolicyConfiguration = options.getMap("retryPolicyConfiguration")!!;
 
-        SessionsObject.config[baseUrl]!!["retryRequest"] = object: RetryConfig {
+        SessionsObject.requestConfig[baseUrl]!!["retryRequest"] = object: RetryConfig {
             override val retryType = RetryTypes.values().find { r -> r.type == retryPolicyConfiguration.getString("type")} ?: SessionsObject.DefaultRetry.retryType
             override val retryLimit = retryPolicyConfiguration.getDouble("retryLimit")
             override val retryInterval = retryPolicyConfiguration.getDouble("retryInterval")
@@ -89,7 +99,7 @@ fun Request.Builder.parseOptions(options: ReadableMap?, session: OkHttpClient.Bu
  *
  * @params options ReadableMap of options from the App
  */
-fun OkHttpClient.Builder.parseOptions(options: ReadableMap?, request: Request.Builder?, baseUrl: String): OkHttpClient.Builder {
+fun OkHttpClient.Builder.applyClientOptions(options: ReadableMap?, baseUrl: String): OkHttpClient.Builder {
     if (options == null) return this;
 
     // Following Redirects
@@ -106,7 +116,7 @@ fun OkHttpClient.Builder.parseOptions(options: ReadableMap?, request: Request.Bu
     if (options.hasKey("retryPolicyConfiguration")) {
         val retryPolicyConfiguration = options.getMap("retryPolicyConfiguration")!!;
 
-        SessionsObject.config[baseUrl]!!["retryClient"] = object: RetryConfig {
+        SessionsObject.requestConfig[baseUrl]!!["retryClient"] = object: RetryConfig {
             override val retryType = RetryTypes.values().find { r -> r.type == retryPolicyConfiguration.getString("type")} ?: SessionsObject.DefaultRetry.retryType
             override val retryLimit = retryPolicyConfiguration.getDouble("retryLimit")
             override val retryInterval = retryPolicyConfiguration.getDouble("retryInterval")
@@ -127,7 +137,7 @@ fun OkHttpClient.Builder.parseOptions(options: ReadableMap?, request: Request.Bu
 
     // Headers
     if (options.hasKey("headers")) {
-        request?.addHeadersAsReadableMap(options.getMap("headers")!!)
+        SessionsObject.requestConfig[baseUrl]!!["clientHeaders"] = options.getMap("headers") as Any
     }
 
     // Session Configuration
@@ -232,6 +242,10 @@ fun String.trimSlashes(): String {
     return this.trim { c -> c == '/' }
 }
 
+fun String.toUrlString(): String {
+    return this.toHttpUrl().toString();
+}
+
 /**
  * Emit an event to the JS Application
  *
@@ -242,3 +256,5 @@ fun String.trimSlashes(): String {
 fun emitEvent(reactContext: ReactContext, eventName: String, params: Any) {
     reactContext.getJSModule(RCTDeviceEventEmitter::class.java).emit(eventName, params)
 }
+
+

@@ -106,7 +106,6 @@ const RetryPolicyConfiguration = (props: RetryPolicyConfigurationProps) => {
     }) => (
         <ListItem>
             <Input
-                key={props.code}
                 value={`${props.code}`}
                 onChangeText={(text) =>
                     props.setCode(props.index, parseInt(text))
