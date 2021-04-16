@@ -9,9 +9,17 @@ import okhttp3.WebSocket
 
 object SessionsObject {
     var client = mutableMapOf<String, OkHttpClient.Builder>()
-    var request = mutableMapOf<String, Request.Builder>()
     var call = mutableMapOf<String, Call>()
-    var config = mutableMapOf<String, HashMap<String, Any>>()
+
+    /**
+     * SessionsObject.requestConfig[url] = HashMap<String, Any>
+     *     HashMap<String, Any> =
+     *     <"clientHeaders", ReadableMap>,
+     *     <"retryRequest", RetryConfig>,
+     *     <"retryClient", RetryConfig>,
+     *     <"retriesExhausted", boolean>
+     */
+    var requestConfig = mutableMapOf<String, HashMap<String, Any>>()
     var socket = mutableMapOf<String, WebSocket>()
 
     // Default Retry Config

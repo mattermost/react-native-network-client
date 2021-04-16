@@ -4,7 +4,7 @@ import com.facebook.react.bridge.*
 import com.mattermost.networkclient.enums.WebSocketEvents
 import com.mattermost.networkclient.enums.WebSocketReadyState
 import com.mattermost.networkclient.events.WebSocketEvent
-import com.mattermost.networkclient.helpers.parseOptions
+import com.mattermost.networkclient.helpers.applyClientOptions
 import com.mattermost.networkclient.helpers.trimSlashes
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -13,7 +13,7 @@ import kotlin.collections.HashMap
 class WebSocketClientModule(private val reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
 
     private val clients = SessionsObject.client
-    private val requests = SessionsObject.request
+    private val configs = SessionsObject.requestConfig
     private val sockets = SessionsObject.socket
 
     override fun getName(): String {
@@ -27,11 +27,11 @@ class WebSocketClientModule(private val reactContext: ReactApplicationContext) :
 
         try {
             // Create the client and request builder
-            clients[url] = OkHttpClient().newBuilder();
-            requests[url] = Request.Builder().url(url);
+            clients[url] = OkHttpClient().newBuilder()
+            configs[url] = hashMapOf("baseUrl" to url);
 
             // Attach client options if they are passed in
-            clients[url]!!.parseOptions(options, requests[url], url);
+            clients[url]!!.applyClientOptions(options, url);
 
             // Return client for success
             promise.resolve(null)
@@ -51,7 +51,6 @@ class WebSocketClientModule(private val reactContext: ReactApplicationContext) :
         // Remove
         sockets.remove(url);
         clients.remove(url);
-        requests.remove(url);
 
         promise.resolve(null)
     }
@@ -62,7 +61,7 @@ class WebSocketClientModule(private val reactContext: ReactApplicationContext) :
         val url = baseUrl.trimSlashes();
 
         try {
-            sockets[url] = clients[url]!!.build().newWebSocket(requests[url]!!.build(), WebSocketEvent(reactContext, url))
+            sockets[url] = clients[url]!!.build().newWebSocket(Request.Builder().build(), WebSocketEvent(reactContext, url))
         } catch (err: Throwable) {
             promise.reject(err)
         }

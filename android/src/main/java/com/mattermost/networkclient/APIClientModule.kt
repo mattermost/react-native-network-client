@@ -13,9 +13,8 @@ import kotlin.collections.HashMap
 class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
 
     private val sessionsClient = SessionsObject.client
-    private val sessionsRequest = SessionsObject.request
     private val sessionsCall = SessionsObject.call
-    private val sessionsConfig = SessionsObject.config
+    private val sessionsConfig = SessionsObject.requestConfig
 
     override fun getName(): String {
         return "APIClient"
@@ -24,16 +23,15 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     @ReactMethod
     fun createClientFor(baseUrl: String, options: ReadableMap, promise: Promise) {
         // Don't trust user input...
-        val url = baseUrl.toHttpUrl().toString();
+        val url = baseUrl.toUrlString()
 
         try {
             // Create the client and request builder
             sessionsClient[url] = OkHttpClient().newBuilder();
-            sessionsRequest[url] = Request.Builder().url(url);
             sessionsConfig[url] = hashMapOf("baseUrl" to url);
 
             // Attach client options if they are passed in
-            sessionsClient[url]!!.parseOptions(options, sessionsRequest[url], url);
+            sessionsClient[url]!!.applyClientOptions(options, url);
 
             promise.resolve(null)
         } catch (err: Throwable) {
@@ -46,8 +44,17 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         // Don't trust user input...
         val url = baseUrl.toHttpUrl().toString();
 
+        val headers = SessionsObject.requestConfig[url]!!["clientHeaders"] as ReadableMap?
+        val map = Arguments.createMap();
+
+        if(headers != null){
+            for((k, v) in headers.toHashMap()){
+                map.putString(k, v as String)
+            }
+        }
+
         try {
-            promise.resolve(sessionsRequest[url]?.build()?.headers?.readableMap())
+            promise.resolve(map)
         } catch (error: Error) {
             promise.reject(error)
         }
@@ -59,7 +66,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         val url = baseUrl.toHttpUrl().toString();
 
         try {
-            sessionsRequest[url]?.addHeadersAsReadableMap(headers)
+            SessionsObject.requestConfig[url]!!["clientHeaders"] = headers
             promise.resolve(null);
         } catch (error: Error) {
             promise.reject(error)
@@ -72,10 +79,9 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         val url = baseUrl.toHttpUrl().toString();
 
         try {
-            sessionsRequest.remove(url);
             sessionsClient.remove(url);
             sessionsConfig.remove(url);
-            promise.resolve(sessionsRequest.keys);
+            promise.resolve(sessionsClient.keys);
         } catch (err: Throwable) {
             promise.reject(err)
         }
@@ -87,10 +93,17 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         val url = baseUrl.toHttpUrl().toString();
 
         try {
-            val request = sessionsRequest[url]!!.url(formUrlString(url, endpoint)).parseOptions(options, sessionsClient[url]!!, url).build();
-            sessionsClient[url]!!.build().newCall(request).execute().use { response ->
-                promise.resolve(response.returnAsWriteableMap(url))
-            }
+            val request = Request.Builder()
+                    .url(formUrlString(url, endpoint))
+                    .applyClientOptions(url)
+                    .applyRequestOptions(options, url)
+                    .build();
+            sessionsClient[url]!!
+                    .build()
+                    .newCall(request)
+                    .execute().use { response ->
+                        promise.resolve(response.returnAsWriteableMap(url))
+                    }
         } catch (e: IOException) {
             promise.reject(e)
         }
@@ -102,7 +115,14 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         val url = baseUrl.toHttpUrl().toString();
 
         try {
-            val request = sessionsRequest[url]!!.url(formUrlString(url, endpoint)).post(options.bodyToRequestBody()).parseOptions(options, sessionsClient[url]!!, url).build();
+//            val request = sessionsRequest[url]!!.url(formUrlString(url, endpoint)).post(options.bodyToRequestBody()).parseOptions(options, sessionsClient[url]!!, url).build();
+
+            val request = Request.Builder()
+                    .url(formUrlString(url, endpoint))
+                    .applyClientOptions(url)
+                    .applyRequestOptions(options, url)
+                    .post(options.getMap("body")!!.bodyToRequestBody())
+                    .build();
             sessionsClient[url]!!.build().newCall(request).execute().use { response ->
                 promise.resolve(response.returnAsWriteableMap(url))
             }
@@ -117,7 +137,12 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         val url = baseUrl.toHttpUrl().toString();
 
         try {
-            val request = sessionsRequest[url]!!.url(formUrlString(url, endpoint)).put(options.bodyToRequestBody()).parseOptions(options, sessionsClient[url]!!, url).build();
+            val request = Request.Builder()
+                    .url(formUrlString(url, endpoint))
+                    .applyClientOptions(url)
+                    .applyRequestOptions(options, url)
+                    .put(options.getMap("body")!!.bodyToRequestBody())
+                    .build();
             sessionsClient[url]!!.build().newCall(request).execute().use { response ->
                 promise.resolve(response.returnAsWriteableMap(url))
             }
@@ -132,7 +157,13 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         val url = baseUrl.toHttpUrl().toString();
 
         try {
-            val request = sessionsRequest[url]!!.url(formUrlString(url, endpoint)).patch(options.bodyToRequestBody()).parseOptions(options, sessionsClient[url]!!, url).build();
+            val request = Request.Builder()
+                    .url(formUrlString(url, endpoint))
+                    .applyClientOptions(url)
+                    .applyRequestOptions(options, url)
+                    .patch(options.getMap("body")!!.bodyToRequestBody())
+                    .build();
+
             sessionsClient[url]!!.build().newCall(request).execute().use { response ->
                 promise.resolve(response.returnAsWriteableMap(url))
             }
@@ -147,7 +178,12 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         val url = baseUrl.toHttpUrl().toString();
 
         try {
-            val request = sessionsRequest[url]!!.url(formUrlString(url, endpoint)).delete(options.bodyToRequestBody()).parseOptions(options, sessionsClient[url]!!, url).build();
+            val request = Request.Builder()
+                    .url(formUrlString(url, endpoint))
+                    .applyClientOptions(url)
+                    .applyRequestOptions(options, url)
+                    .delete(options.getMap("body")!!.bodyToRequestBody())
+                    .build();
             sessionsClient[url]!!.build().newCall(request).execute().use { response ->
                 promise.resolve(response.returnAsWriteableMap(url))
             }
@@ -194,17 +230,17 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
             // Create a Request
             var request = if (options?.hasKey("method") == true) {
                 when (options.getString("method")) {
-                    "PUT" -> sessionsRequest[url]!!.url(formUrlString(url, endpoint)).put(body)
-                    "PATCH" -> sessionsRequest[url]!!.url(formUrlString(url, endpoint)).patch(body)
+                    "PUT" -> Request.Builder().url(formUrlString(url, endpoint)).put(body)
+                    "PATCH" -> Request.Builder().url(formUrlString(url, endpoint)).patch(body)
                     // Default to "POST"
-                    else -> sessionsRequest[url]!!.url(formUrlString(url, endpoint)).post(body)
+                    else -> Request.Builder().url(formUrlString(url, endpoint)).post(body)
                 }
             } else {
-                sessionsRequest[url]!!.url(formUrlString(url, endpoint)).post(body)
+                Request.Builder().url(formUrlString(url, endpoint)).post(body)
             }
 
             // Parse options into the request / client
-            if (options != null) request = request.parseOptions(options, sessionsClient[url]!!, url)
+            if (options != null) request = request.applyClientOptions(url).applyRequestOptions(options, url)
 
             // Create a cancellable call
             sessionsCall[taskId] = sessionsClient[url]!!.build().newCall(request.build())
