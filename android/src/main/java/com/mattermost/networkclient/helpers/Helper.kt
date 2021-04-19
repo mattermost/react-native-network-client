@@ -8,6 +8,7 @@ import okhttp3.*
 import java.util.concurrent.TimeUnit
 import com.mattermost.networkclient.interceptors.*
 import com.mattermost.networkclient.interfaces.RetryConfig
+import com.mattermost.networkclient.interfaces.TimeoutConfig
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -61,9 +62,20 @@ fun Request.Builder.applyRequestOptions(options: ReadableMap?, baseUrl: String):
     val session = SessionsObject.client[baseUrl]!!;
 
     // Timeout Interval per request
+    val timeoutConfig: TimeoutConfig = SessionsObject.DefaultTimeout;
     if (options.hasKey("timeoutInterval")) {
-        session.addInterceptor(TimeoutRequestInterceptor(options.getInt("timeoutInterval")))
+        timeoutConfig.read = options.getDouble("timeoutInterval")
+        timeoutConfig.write = timeoutConfig.read
     }
+    if (options.hasKey("timeoutIntervalForRequest")) {
+        timeoutConfig.read = options.getDouble("timeoutIntervalForRequest")
+    }
+    if (options.hasKey("timeoutIntervalForResource")) {
+        timeoutConfig.write = options.getDouble("timeoutIntervalForResource")
+    }
+
+    SessionsObject.requestConfig[baseUrl]!!["requestTimeout"] = timeoutConfig
+
     if (options.hasKey("headers")) {
         this.addHeadersAsReadableMap(options.getMap("headers")!!)
     }
@@ -113,6 +125,9 @@ fun OkHttpClient.Builder.applyClientOptions(options: ReadableMap?, baseUrl: Stri
     this.retryOnConnectionFailure(false);
     this.addInterceptor(RetryInterceptor(baseUrl))
 
+    // Timeouts
+    this.addInterceptor(TimeoutRequestInterceptor(baseUrl))
+
     if (options.hasKey("retryPolicyConfiguration")) {
         val retryPolicyConfiguration = options.getMap("retryPolicyConfiguration")!!;
 
@@ -150,17 +165,19 @@ fun OkHttpClient.Builder.applyClientOptions(options: ReadableMap?, baseUrl: Stri
             this.followSslRedirects(followRedirects);
         }
 
+        val timeoutConfig: TimeoutConfig = SessionsObject.DefaultTimeout;
+        if (sessionConfig.hasKey("timeoutInterval")) {
+            timeoutConfig.read = sessionConfig.getDouble("timeoutInterval")
+            timeoutConfig.write = timeoutConfig.read
+        }
         if (sessionConfig.hasKey("timeoutIntervalForRequest")) {
-            this.callTimeout(sessionConfig.getInt("timeoutIntervalForRequest").toLong(), TimeUnit.SECONDS)
-            this.connectTimeout(sessionConfig.getInt("timeoutIntervalForRequest").toLong(), TimeUnit.SECONDS)
-            this.readTimeout(sessionConfig.getInt("timeoutIntervalForRequest").toLong(), TimeUnit.SECONDS)
+            timeoutConfig.read = sessionConfig.getDouble("timeoutIntervalForRequest")
+        }
+        if (sessionConfig.hasKey("timeoutIntervalForResource")) {
+            timeoutConfig.write = sessionConfig.getDouble("timeoutIntervalForResource")
         }
 
-        if (sessionConfig.hasKey("timeoutIntervalForResource")) {
-            this.callTimeout(sessionConfig.getInt("timeoutIntervalForResource").toLong(), TimeUnit.SECONDS)
-            this.connectTimeout(sessionConfig.getInt("timeoutIntervalForResource").toLong(), TimeUnit.SECONDS)
-            this.writeTimeout(sessionConfig.getInt("timeoutIntervalForResource").toLong(), TimeUnit.SECONDS)
-        }
+        SessionsObject.requestConfig[baseUrl]!!["clientTimeout"] = timeoutConfig
 
         if (sessionConfig.hasKey("httpMaximumConnectionsPerHost")) {
             val maxConnections = sessionConfig.getInt("httpMaximumConnectionsPerHost");
@@ -168,13 +185,6 @@ fun OkHttpClient.Builder.applyClientOptions(options: ReadableMap?, baseUrl: Stri
             dispatcher.maxRequests = maxConnections
             dispatcher.maxRequestsPerHost = maxConnections
             this.dispatcher(dispatcher);
-        }
-
-        // WS: Timeout
-        if (sessionConfig.hasKey("timeoutInterval")) {
-            this.connectTimeout(sessionConfig.getInt("timeoutInterval").toLong(), TimeUnit.SECONDS)
-            this.readTimeout(sessionConfig.getInt("timeoutInterval").toLong(), TimeUnit.SECONDS)
-            this.callTimeout(sessionConfig.getInt("timeoutInterval").toLong(), TimeUnit.SECONDS)
         }
 
         // WS: Compression
