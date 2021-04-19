@@ -23,7 +23,7 @@ class GenericClientModule(reactContext: ReactApplicationContext) : ReactContextB
     fun get(url: String, options: ReadableMap, promise: Promise) {
         val request = Request.Builder().url(url).applyClientOptions(url).applyRequestOptions(options, url).build();
         client.build().newCall(request).execute().use { response ->
-            promise.resolve(response.returnAsWriteableMap("generic"))
+            promise.resolve(response.returnAsWriteableMap())
         }
     }
 
@@ -31,7 +31,7 @@ class GenericClientModule(reactContext: ReactApplicationContext) : ReactContextB
     fun post(url: String, options: ReadableMap, promise: Promise) {
         val request = Request.Builder().url(url).post(options.bodyToRequestBody()).applyClientOptions(url).applyRequestOptions(options, url).build();
         client.build().newCall(request).execute().use { response ->
-            promise.resolve(response.returnAsWriteableMap("generic"))
+            promise.resolve(response.returnAsWriteableMap())
         }
     }
 
@@ -39,7 +39,7 @@ class GenericClientModule(reactContext: ReactApplicationContext) : ReactContextB
     fun put(url: String, options: ReadableMap, promise: Promise) {
         val request = Request.Builder().url(url).put(options.bodyToRequestBody()).applyClientOptions(url).applyRequestOptions(options, url).build();
         client.build().newCall(request).execute().use { response ->
-            promise.resolve(response.returnAsWriteableMap("generic"))
+            promise.resolve(response.returnAsWriteableMap())
         }
     }
 
@@ -47,7 +47,7 @@ class GenericClientModule(reactContext: ReactApplicationContext) : ReactContextB
     fun patch(url: String, options: ReadableMap, promise: Promise) {
         val request = Request.Builder().url(url).patch(options.bodyToRequestBody()).applyClientOptions(url).applyRequestOptions(options, url).build();
         client.build().newCall(request).execute().use { response ->
-            promise.resolve(response.returnAsWriteableMap("generic"))
+            promise.resolve(response.returnAsWriteableMap())
         }
     }
 
@@ -55,7 +55,7 @@ class GenericClientModule(reactContext: ReactApplicationContext) : ReactContextB
     fun delete(url: String, options: ReadableMap, promise: Promise) {
         val request = Request.Builder().url(url).delete(options.bodyToRequestBody()).applyClientOptions(url).applyRequestOptions(options, url).build();
         client.build().newCall(request).execute().use { response ->
-            promise.resolve(response.returnAsWriteableMap("generic"))
+            promise.resolve(response.returnAsWriteableMap())
         }
     }
 

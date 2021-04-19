@@ -122,7 +122,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
                     .build()
                     .newCall(request)
                     .execute().use { response ->
-                        promise.resolve(response.returnAsWriteableMap(url))
+                        promise.resolve(response.returnAsWriteableMap())
                     }
         } catch (e: IOException) {
             promise.reject(e)
@@ -146,7 +146,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
                     .post(options.getMap("body")!!.bodyToRequestBody())
                     .build();
             sessionsClient[url]!!.build().newCall(request).execute().use { response ->
-                promise.resolve(response.returnAsWriteableMap(url))
+                promise.resolve(response.returnAsWriteableMap())
             }
         } catch (e: IOException) {
             promise.reject(e)
@@ -170,7 +170,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
                     .put(options.getMap("body")!!.bodyToRequestBody())
                     .build();
             sessionsClient[url]!!.build().newCall(request).execute().use { response ->
-                promise.resolve(response.returnAsWriteableMap(url))
+                promise.resolve(response.returnAsWriteableMap())
             }
         } catch (e: IOException) {
             promise.reject(e)
@@ -195,7 +195,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
                     .build();
 
             sessionsClient[url]!!.build().newCall(request).execute().use { response ->
-                promise.resolve(response.returnAsWriteableMap(url))
+                promise.resolve(response.returnAsWriteableMap())
             }
         } catch (e: IOException) {
             promise.reject(e)
@@ -219,7 +219,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
                     .delete(options.getMap("body")!!.bodyToRequestBody())
                     .build();
             sessionsClient[url]!!.build().newCall(request).execute().use { response ->
-                promise.resolve(response.returnAsWriteableMap(url))
+                promise.resolve(response.returnAsWriteableMap())
             }
         } catch (e: IOException) {
             promise.reject(e)
@@ -285,7 +285,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
             // Execute the call!
             sessionsCall[taskId]!!.execute().use { response ->
-                promise.resolve(response.returnAsWriteableMap(url))
+                promise.resolve(response.returnAsWriteableMap())
             }
         } catch (e: IOException) {
             promise.reject(e)

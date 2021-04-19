@@ -25,7 +25,7 @@ var Response.retriesExhausted: Boolean
  *
  * @return WriteableMap for passing back to App
  */
-fun Response.returnAsWriteableMap(baseUrl: String): WritableMap {
+fun Response.returnAsWriteableMap(): WritableMap {
     val headers = Arguments.createMap();
     this.headers.forEach { k -> headers.putString(k.first, k.second) }
 
