@@ -6,6 +6,7 @@ import com.mattermost.networkclient.enums.WebSocketReadyState
 import com.mattermost.networkclient.events.WebSocketEvent
 import com.mattermost.networkclient.helpers.applyClientOptions
 import com.mattermost.networkclient.helpers.trimSlashes
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import kotlin.collections.HashMap
@@ -22,8 +23,12 @@ class WebSocketClientModule(private val reactContext: ReactApplicationContext) :
 
     @ReactMethod
     fun createClientFor(baseUrl: String, options: ReadableMap, promise: Promise) {
-        // Don't trust user input...
-        val url = baseUrl.trimSlashes();
+        var url: String
+        try {
+            url = baseUrl.toHttpUrl().toString()
+        } catch (err: IllegalArgumentException) {
+            return promise.reject(err)
+        }
 
         try {
             // Create the client and request builder
@@ -42,8 +47,12 @@ class WebSocketClientModule(private val reactContext: ReactApplicationContext) :
 
     @ReactMethod
     fun invalidateClientFor(baseUrl: String, promise: Promise) {
-        // Don't trust user input...
-        val url = baseUrl.trimSlashes();
+        var url: String
+        try {
+            url = baseUrl.toHttpUrl().toString()
+        } catch (err: IllegalArgumentException) {
+            return promise.reject(err)
+        }
 
         // Close the connection
         sockets[url]?.close(1000, null)
@@ -57,8 +66,12 @@ class WebSocketClientModule(private val reactContext: ReactApplicationContext) :
 
     @ReactMethod
     fun connectFor(baseUrl: String, promise: Promise) {
-        // Don't trust user input...
-        val url = baseUrl.trimSlashes();
+        var url: String
+        try {
+            url = baseUrl.toHttpUrl().toString()
+        } catch (err: IllegalArgumentException) {
+            return promise.reject(err)
+        }
 
         try {
             sockets[url] = clients[url]!!.build().newWebSocket(Request.Builder().build(), WebSocketEvent(reactContext, url))
@@ -69,8 +82,12 @@ class WebSocketClientModule(private val reactContext: ReactApplicationContext) :
 
     @ReactMethod
     fun disconnectFor(baseUrl: String, promise: Promise) {
-        // Don't trust user input...
-        val url = baseUrl.trimSlashes();
+        var url: String
+        try {
+            url = baseUrl.toHttpUrl().toString()
+        } catch (err: IllegalArgumentException) {
+            return promise.reject(err)
+        }
 
         try {
             sockets[url]!!.close(1000, null)
@@ -81,8 +98,12 @@ class WebSocketClientModule(private val reactContext: ReactApplicationContext) :
 
     @ReactMethod
     fun sendDataFor(baseUrl: String, data: String, promise: Promise) {
-        // Don't trust user input...
-        val url = baseUrl.trimSlashes();
+        var url: String
+        try {
+            url = baseUrl.toHttpUrl().toString()
+        } catch (err: IllegalArgumentException) {
+            return promise.reject(err)
+        }
 
         try {
             sockets[url]!!.send(data)
