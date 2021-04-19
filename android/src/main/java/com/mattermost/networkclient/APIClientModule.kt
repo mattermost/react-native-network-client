@@ -22,8 +22,12 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
     @ReactMethod
     fun createClientFor(baseUrl: String, options: ReadableMap, promise: Promise) {
-        // Don't trust user input...
-        val url = baseUrl.toUrlString()
+        var url: String
+        try {
+            url = baseUrl.toHttpUrl().toString()
+        } catch (err: IllegalArgumentException) {
+            return promise.reject(err)
+        }
 
         try {
             // Create the client and request builder
@@ -41,8 +45,12 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
     @ReactMethod
     fun getClientHeadersFor(baseUrl: String, promise: Promise) {
-        // Don't trust user input...
-        val url = baseUrl.toHttpUrl().toString();
+        var url: String
+        try {
+            url = baseUrl.toHttpUrl().toString()
+        } catch (err: IllegalArgumentException) {
+            return promise.reject(err)
+        }
 
         val headers = SessionsObject.requestConfig[url]!!["clientHeaders"] as ReadableMap?
         val map = Arguments.createMap();
@@ -62,8 +70,12 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
     @ReactMethod
     fun addClientHeadersFor(baseUrl: String, headers: ReadableMap, promise: Promise) {
-        // Don't trust user input...
-        val url = baseUrl.toHttpUrl().toString();
+        var url: String
+        try {
+            url = baseUrl.toHttpUrl().toString()
+        } catch (err: IllegalArgumentException) {
+            return promise.reject(err)
+        }
 
         try {
             SessionsObject.requestConfig[url]!!["clientHeaders"] = headers
@@ -75,8 +87,12 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
     @ReactMethod
     fun invalidateClientFor(baseUrl: String, promise: Promise) {
-        // Don't trust user input...
-        val url = baseUrl.toHttpUrl().toString();
+        var url: String
+        try {
+            url = baseUrl.toHttpUrl().toString()
+        } catch (err: IllegalArgumentException) {
+            return promise.reject(err)
+        }
 
         try {
             sessionsClient.remove(url);
@@ -89,8 +105,12 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
     @ReactMethod
     fun get(baseUrl: String, endpoint: String, options: ReadableMap, promise: Promise) {
-        // Don't trust user input...
-        val url = baseUrl.toHttpUrl().toString();
+        var url: String
+        try {
+            url = baseUrl.toHttpUrl().toString()
+        } catch (err: IllegalArgumentException) {
+            return promise.reject(err)
+        }
 
         try {
             val request = Request.Builder()
@@ -111,12 +131,14 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
     @ReactMethod
     fun post(baseUrl: String, endpoint: String, options: ReadableMap, promise: Promise) {
-        // Don't trust user input...
-        val url = baseUrl.toHttpUrl().toString();
+        var url: String
+        try {
+            url = baseUrl.toHttpUrl().toString()
+        } catch (err: IllegalArgumentException) {
+            return promise.reject(err)
+        }
 
         try {
-//            val request = sessionsRequest[url]!!.url(formUrlString(url, endpoint)).post(options.bodyToRequestBody()).parseOptions(options, sessionsClient[url]!!, url).build();
-
             val request = Request.Builder()
                     .url(formUrlString(url, endpoint))
                     .applyClientOptions(url)
@@ -133,8 +155,12 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
     @ReactMethod
     fun put(baseUrl: String, endpoint: String, options: ReadableMap, promise: Promise) {
-        // Don't trust user input...
-        val url = baseUrl.toHttpUrl().toString();
+        var url: String
+        try {
+            url = baseUrl.toHttpUrl().toString()
+        } catch (err: IllegalArgumentException) {
+            return promise.reject(err)
+        }
 
         try {
             val request = Request.Builder()
@@ -153,8 +179,12 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
     @ReactMethod
     fun patch(baseUrl: String, endpoint: String, options: ReadableMap, promise: Promise) {
-        // Don't trust user input...
-        val url = baseUrl.toHttpUrl().toString();
+        var url: String
+        try {
+            url = baseUrl.toHttpUrl().toString()
+        } catch (err: IllegalArgumentException) {
+            return promise.reject(err)
+        }
 
         try {
             val request = Request.Builder()
@@ -174,8 +204,12 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
     @ReactMethod
     fun delete(baseUrl: String, endpoint: String, options: ReadableMap, promise: Promise) {
-        // Don't trust user input...
-        val url = baseUrl.toHttpUrl().toString();
+        var url: String
+        try {
+            url = baseUrl.toHttpUrl().toString()
+        } catch (err: IllegalArgumentException) {
+            return promise.reject(err)
+        }
 
         try {
             val request = Request.Builder()
@@ -194,9 +228,13 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
     @ReactMethod
     fun upload(baseUrl: String, endpoint: String, file: String, taskId: String, options: ReadableMap?, promise: Promise) {
+        var url: String
+        try {
+            url = baseUrl.toHttpUrl().toString()
+        } catch (err: IllegalArgumentException) {
+            return promise.reject(err)
+        }
 
-        // Don't trust user input...
-        val url = baseUrl.toHttpUrl().toString();
         val body: RequestBody;
         val uri = Uri.parse(file);
 

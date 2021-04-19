@@ -5,12 +5,10 @@ import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEm
 import com.mattermost.networkclient.SessionsObject
 import com.mattermost.networkclient.enums.RetryTypes
 import okhttp3.*
-import java.util.concurrent.TimeUnit
 import com.mattermost.networkclient.interceptors.*
 import com.mattermost.networkclient.interfaces.RetryConfig
 import com.mattermost.networkclient.interfaces.TimeoutConfig
 import okhttp3.HttpUrl.Companion.toHttpUrl
-import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 
@@ -242,7 +240,7 @@ fun ReadableMap.bodyToRequestBody(): RequestBody {
  * @return url string
  */
 fun formUrlString(baseUrl: String, endpoint: String): String {
-    return baseUrl.toHttpUrlOrNull()!!.newBuilder().addPathSegments(endpoint.trim { c -> c == '/' }).build().toString()
+    return baseUrl.toHttpUrl().newBuilder().addPathSegments(endpoint.trim { c -> c == '/' }).build().toString()
 }
 
 /**
