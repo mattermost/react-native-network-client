@@ -17,11 +17,6 @@ import NumericInput from "./NumericInput";
 
 interface RetryPolicyConfigurationProps extends RetryPolicyConfiguration {
     policyType?: RetryTypes;
-    // retryLimit?: number;
-    // retryInterval?: number;
-    // exponentialBackoffBase?: number;
-    // exponentialBackoffScale?: number;
-    // statusCodes?: number[];
     onTypeSelected: (value?: RetryTypes) => void;
     setRetryLimit: (value: number) => void;
     setRetryInterval: (value: number) => void;

@@ -24,6 +24,8 @@ const RetryPolicyConfigurationSchema = z.object({
     retryInterval: z.number().optional(),
     exponentialBackoffBase: z.number().optional(),
     exponentialBackoffScale: z.number().optional(),
+    retryMethods: z.array(z.string()),
+    statusCodes: z.array(z.number()),
 });
 
 const RequestAdapterConfigurationSchema = z.object({
