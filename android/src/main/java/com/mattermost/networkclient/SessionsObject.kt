@@ -5,7 +5,6 @@ import com.mattermost.networkclient.interfaces.RetryConfig
 import com.mattermost.networkclient.interfaces.TimeoutConfig
 import okhttp3.Call
 import okhttp3.OkHttpClient
-import okhttp3.Request
 import okhttp3.WebSocket
 
 object SessionsObject {
