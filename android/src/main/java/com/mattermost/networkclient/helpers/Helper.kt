@@ -12,6 +12,14 @@ import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 
+var Response.retriesExhausted: Boolean
+    get() {
+        return retriesExhausted
+    }
+    set(value: Boolean) {
+        this.retriesExhausted = value
+    }
+
 /**
  * Parses the response data into the format expected by the App
  *
@@ -27,13 +35,10 @@ fun Response.returnAsWriteableMap(baseUrl: String): WritableMap {
     map.putInt("code", this.code)
     map.putBoolean("ok", this.isSuccessful)
     map.putString("lastRequestedUrl", this.request.url.toString())
-
-    val retriesExhausted = SessionsObject.requestConfig[baseUrl]!!["retriesExhausted"]
-
-    if(retriesExhausted != null && retriesExhausted == true){
-        map.putBoolean("retriesExhausted", true)
-        SessionsObject.requestConfig[baseUrl]!!.remove("retriesExhausted")
+    if (this.retriesExhausted != null) {
+        map.putBoolean("retriesExhausted", this.retriesExhausted as Boolean)
     }
+
     return map;
 }
 

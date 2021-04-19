@@ -2,6 +2,7 @@ package com.mattermost.networkclient.interceptors
 
 import com.mattermost.networkclient.SessionsObject
 import com.mattermost.networkclient.enums.RetryTypes
+import com.mattermost.networkclient.helpers.retriesExhausted
 import com.mattermost.networkclient.interfaces.RetryConfig
 import okhttp3.Interceptor
 import okhttp3.Response
@@ -61,7 +62,7 @@ class RetryInterceptor(private val baseUrl: String) : Interceptor {
         }
 
         if (attempts >= config.retryLimit) {
-            SessionsObject.requestConfig[baseUrl]!!["retriesExhausted"] = true
+            response.retriesExhausted = true
         }
 
         return response;
