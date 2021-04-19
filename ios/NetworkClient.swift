@@ -135,27 +135,42 @@ extension NetworkClient {
 
     func getRequestRetriers(from options: JSON) -> [RequestRetrier] {
         var retriers = [RequestRetrier]()
-        
-        var retryStatusCodes = LinearRetryPolicy.defaultRetryableHTTPStatusCodes
 
         let configuration = options["retryPolicyConfiguration"]
         
-        if let statusCodesArray = configuration["statusCodes"].array as? Array<Int> {
-            retryStatusCodes = Set(statusCodesArray.map{ Int($0) })
+        var retryableHTTPMethods = RetryPolicy.defaultRetryableHTTPMethods
+        if let methodsArray = configuration["retryMethods"].array {
+            retryableHTTPMethods = Set(methodsArray.map{ (method) -> HTTPMethod in
+                return HTTPMethod(rawValue: method.stringValue)
+            })
+        }
+        
+        var retryableHTTPStatusCodes = RetryPolicy.defaultRetryableHTTPStatusCodes
+        if let statusCodesArray = configuration["statusCodes"].array {
+            retryableHTTPStatusCodes = Set(statusCodesArray.map{ (statusCode) -> Int in
+                return Int(statusCode.intValue)
+            })
         }
         
         if configuration["type"].string == RETRY_TYPES["LINEAR_RETRY"] {
             let retryLimit = configuration["retryLimit"].uInt ?? LinearRetryPolicy.defaultRetryLimit
             let retryInterval = configuration["retryInterval"].uInt ?? LinearRetryPolicy.defaultRetryInterval
 
-            let retryPolicy = LinearRetryPolicy(retryLimit: retryLimit, retryInterval: retryInterval, retryableHTTPStatusCodes: retryStatusCodes)
+            let retryPolicy = LinearRetryPolicy(retryLimit: retryLimit,
+                                                retryInterval: retryInterval,
+                                                retryableHTTPMethods: retryableHTTPMethods,
+                                                retryableHTTPStatusCodes: retryableHTTPStatusCodes)
             retriers.append(retryPolicy)
         } else if configuration["type"].string == RETRY_TYPES["EXPONENTIAL_RETRY"] {
             let retryLimit = configuration["retryLimit"].uInt ?? ExponentialRetryPolicy.defaultRetryLimit
             let exponentialBackoffBase = configuration["exponentialBackoffBase"].uInt ?? ExponentialRetryPolicy.defaultExponentialBackoffBase
             let exponentialBackoffScale = configuration["exponentialBackoffScale"].double ?? ExponentialRetryPolicy.defaultExponentialBackoffScale
 
-            let retryPolicy = ExponentialRetryPolicy(retryLimit: retryLimit, exponentialBackoffBase: exponentialBackoffBase, exponentialBackoffScale: exponentialBackoffScale, retryableHTTPStatusCodes: retryStatusCodes)
+            let retryPolicy = ExponentialRetryPolicy(retryLimit: retryLimit,
+                                                     exponentialBackoffBase: exponentialBackoffBase,
+                                                     exponentialBackoffScale: exponentialBackoffScale,
+                                                     retryableHTTPMethods: retryableHTTPMethods,
+                                                     retryableHTTPStatusCodes: retryableHTTPStatusCodes)
             retriers.append(retryPolicy)
         }
 
