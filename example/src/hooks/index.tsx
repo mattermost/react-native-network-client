@@ -110,7 +110,7 @@ export const useRetryPolicyConfiguration = (): UseRetryPolicyConfigurationRespon
         retryPolicyConfiguration,
         setRetryPolicyConfiguration,
     ] = useState<RetryPolicyConfiguration>({
-        type: RetryTypes.LINEAR_RETRY,
+        type: undefined,
         retryLimit: 2,
         retryInterval: 2000,
         exponentialBackoffBase: 2,

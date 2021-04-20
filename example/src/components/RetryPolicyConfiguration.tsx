@@ -3,15 +3,8 @@
 
 import React, { useEffect, useState } from "react";
 import { View } from "react-native";
-import {
-    Button,
-    ButtonGroup,
-    CheckBox,
-    Input,
-    ListItem,
-} from "react-native-elements";
+import { ButtonGroup, CheckBox, Input } from "react-native-elements";
 import { Constants } from "@mattermost/react-native-network-client";
-import Icon from "react-native-vector-icons/Ionicons";
 
 import NumericInput from "./NumericInput";
 
@@ -27,11 +20,23 @@ interface RetryPolicyConfigurationProps extends RetryPolicyConfiguration {
 }
 
 const RetryPolicyConfiguration = (props: RetryPolicyConfigurationProps) => {
+    const [statusCodesText, setStatusCodesText] = useState(
+        props.statusCodes?.join(",") || ""
+    );
+
     const onLinearPress = () =>
-        onCheckBoxPress(Constants.RETRY_TYPES.LINEAR_RETRY);
+        onCheckBoxPress(
+            props.policyType === Constants.RETRY_TYPES.LINEAR_RETRY
+                ? undefined
+                : Constants.RETRY_TYPES.LINEAR_RETRY
+        );
     const onExponentialPress = () =>
-        onCheckBoxPress(Constants.RETRY_TYPES.EXPONENTIAL_RETRY);
-    const onCheckBoxPress = (policyType: RetryTypes) => {
+        onCheckBoxPress(
+            props.policyType === Constants.RETRY_TYPES.EXPONENTIAL_RETRY
+                ? undefined
+                : Constants.RETRY_TYPES.EXPONENTIAL_RETRY
+        );
+    const onCheckBoxPress = (policyType?: RetryTypes) => {
         props.onTypeSelected(policyType);
     };
     const linearRetryChecked =
@@ -52,7 +57,7 @@ const RetryPolicyConfiguration = (props: RetryPolicyConfigurationProps) => {
         props.setRetryMethods(selectedMethods);
     }, [selectedMethodsIndex]);
 
-    const rightIcon = (
+    const PolicyTypeCheckbox = () => (
         <View style={{ flex: 1, flexDirection: "row" }}>
             <CheckBox
                 title={`Linear [${linearRetryChecked}]`}
@@ -85,81 +90,19 @@ const RetryPolicyConfiguration = (props: RetryPolicyConfigurationProps) => {
         </View>
     );
 
-    const addRetryStatusCode = () => {
-        props.setStatusCodes([...props.statusCodes!, 418]);
-    };
+    const updateStatusCodes = () => {
+        const statusCodes = statusCodesText
+            .split(",")
+            .map((code) => {
+                return parseInt(code.trim());
+            })
+            .filter((code) => !isNaN(code));
 
-    const setCode = (index: number, code: number) => {
-        props.statusCodes![index] = code;
-        props.setStatusCodes(props.statusCodes!);
+        props.setStatusCodes(statusCodes);
     };
-
-    const RetryStatusCodeInput = (props: {
-        code: number;
-        index: number;
-        setCode: (index: number, code: number) => void;
-    }) => (
-        <ListItem>
-            <Input
-                value={`${props.code}`}
-                onChangeText={(text) =>
-                    props.setCode(props.index, parseInt(text))
-                }
-                keyboardType="numeric"
-                placeholder="418"
-            />
-        </ListItem>
-    );
 
     return (
         <>
-            <Input
-                placeholder="Retry Status Codes"
-                disabled={true}
-                style={{ fontWeight: "bold", fontSize: 17, opacity: 1 }}
-                containerStyle={{ height: 50 }}
-                inputContainerStyle={{
-                    borderColor: "rgba(255,255,255,0)",
-                }}
-                rightIcon={
-                    <Button
-                        type="clear"
-                        icon={<Icon name="add-circle" size={24} />}
-                        onPress={addRetryStatusCode}
-                        testID="add_empty_header.button"
-                    />
-                }
-            />
-
-            <View style={{ paddingHorizontal: 10 }}>
-                {props.statusCodes?.map((code, index) => (
-                    <RetryStatusCodeInput
-                        key={`retry-code-${index}`}
-                        code={code}
-                        index={index}
-                        setCode={setCode}
-                    />
-                ))}
-            </View>
-
-            <Input
-                placeholder="Retry Methods"
-                disabled={true}
-                style={{ fontWeight: "bold", fontSize: 17, opacity: 1 }}
-                containerStyle={{ height: 50 }}
-                inputContainerStyle={{
-                    borderColor: "rgba(255,255,255,0)",
-                }}
-            />
-
-            <ButtonGroup
-                selectedIndexes={selectedMethodsIndex}
-                // @ts-ignore
-                onPress={setSelectedMethodsIndex}
-                buttons={buttonMethods}
-                selectMultiple
-            />
-
             <Input
                 placeholder="Retry Policy"
                 disabled={true}
@@ -168,17 +111,20 @@ const RetryPolicyConfiguration = (props: RetryPolicyConfigurationProps) => {
                 inputContainerStyle={{
                     borderColor: "rgba(255,255,255,0)",
                 }}
-                rightIcon={rightIcon}
                 labelStyle={{ flex: 12, flexWrap: "wrap", height: 100 }}
             />
 
-            <NumericInput
-                title="Retry limit"
-                value={props.retryLimit}
-                onChange={props.setRetryLimit}
-                minValue={0}
-                testID="retry_policy_configuration.retry_limit.input"
-            />
+            <PolicyTypeCheckbox />
+
+            {props.policyType && (
+                <NumericInput
+                    title="Retry limit"
+                    value={props.retryLimit}
+                    onChange={props.setRetryLimit}
+                    minValue={0}
+                    testID="retry_policy_configuration.retry_limit.input"
+                />
+            )}
 
             {props.policyType === Constants.RETRY_TYPES.LINEAR_RETRY && (
                 <NumericInput
@@ -206,6 +152,44 @@ const RetryPolicyConfiguration = (props: RetryPolicyConfigurationProps) => {
                         valueType="real"
                         step={0.1}
                         testID="retry_policy_configuration.exponential_backoff_scale.input"
+                    />
+                </>
+            )}
+
+            {props.policyType && (
+                <>
+                    <Input
+                        placeholder="Retry Status Codes"
+                        disabled={true}
+                        style={{ fontWeight: "bold", fontSize: 17, opacity: 1 }}
+                        containerStyle={{ height: 50 }}
+                        inputContainerStyle={{
+                            borderColor: "rgba(255,255,255,0)",
+                        }}
+                    />
+
+                    <Input
+                        value={statusCodesText}
+                        onChangeText={setStatusCodesText}
+                        onBlur={updateStatusCodes}
+                    />
+
+                    <Input
+                        placeholder="Retry Methods"
+                        disabled={true}
+                        style={{ fontWeight: "bold", fontSize: 17, opacity: 1 }}
+                        containerStyle={{ height: 50 }}
+                        inputContainerStyle={{
+                            borderColor: "rgba(255,255,255,0)",
+                        }}
+                    />
+
+                    <ButtonGroup
+                        selectedIndexes={selectedMethodsIndex}
+                        // @ts-ignore
+                        onPress={setSelectedMethodsIndex}
+                        buttons={buttonMethods}
+                        selectMultiple
                     />
                 </>
             )}
