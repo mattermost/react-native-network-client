@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		4914851325B20EB200DBD8FF /* Session+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4914851225B20EB200DBD8FF /* Session+Extensions.swift */; };
 		4914851625B20EEF00DBD8FF /* URL+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4914851525B20EEF00DBD8FF /* URL+Extensions.swift */; };
+		4981CFAC262F363000958EE8 /* RuntimeRetryPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4981CFAB262F363000958EE8 /* RuntimeRetryPolicy.swift */; };
+		4981D06C262F77EB00958EE8 /* Request+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4981D06B262F77EB00958EE8 /* Request+Extensions.swift */; };
 		4983339425B68CFF00C9CB2B /* WebSocketClient.m in Sources */ = {isa = PBXBuildFile; fileRef = 4983339325B68CFF00C9CB2B /* WebSocketClient.m */; };
 		4983339725B68D0C00C9CB2B /* WebSocketClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4983339625B68D0B00C9CB2B /* WebSocketClient.swift */; };
 		4991797E255A0D0600C32F78 /* GenericClient.m in Sources */ = {isa = PBXBuildFile; fileRef = 4991797D255A0D0600C32F78 /* GenericClient.m */; };
@@ -42,6 +44,8 @@
 		134814201AA4EA6300B7C361 /* libNetworkClient.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libNetworkClient.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		4914851225B20EB200DBD8FF /* Session+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Session+Extensions.swift"; sourceTree = "<group>"; };
 		4914851525B20EEF00DBD8FF /* URL+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "URL+Extensions.swift"; sourceTree = "<group>"; };
+		4981CFAB262F363000958EE8 /* RuntimeRetryPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RuntimeRetryPolicy.swift; sourceTree = "<group>"; };
+		4981D06B262F77EB00958EE8 /* Request+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Request+Extensions.swift"; sourceTree = "<group>"; };
 		4983339325B68CFF00C9CB2B /* WebSocketClient.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = WebSocketClient.m; sourceTree = "<group>"; };
 		4983339625B68D0B00C9CB2B /* WebSocketClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebSocketClient.swift; sourceTree = "<group>"; };
 		4991797D255A0D0600C32F78 /* GenericClient.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = GenericClient.m; sourceTree = "<group>"; };
@@ -82,6 +86,8 @@
 		58B511D21A9E6C8500147676 = {
 			isa = PBXGroup;
 			children = (
+				4981D06B262F77EB00958EE8 /* Request+Extensions.swift */,
+				4981CFAB262F363000958EE8 /* RuntimeRetryPolicy.swift */,
 				49AC517C2605372D009CABD5 /* StringProtocol+Extensions.swift */,
 				49E7C48225E46BFF000B941D /* Keychain.swift */,
 				4914851525B20EEF00DBD8FF /* URL+Extensions.swift */,
@@ -168,8 +174,10 @@
 				49917982255A0D8900C32F78 /* GenericClient.swift in Sources */,
 				49EBD8172575CF6500C7C102 /* NetworkClient.swift in Sources */,
 				49EBDB3625781FA200C7C102 /* BearerAuthenticationAdapter.swift in Sources */,
+				4981D06C262F77EB00958EE8 /* Request+Extensions.swift in Sources */,
 				49EE97C025F9A0B000DDF63F /* ExponentialRetryPolicy.swift in Sources */,
 				4991797E255A0D0600C32F78 /* GenericClient.m in Sources */,
+				4981CFAC262F363000958EE8 /* RuntimeRetryPolicy.swift in Sources */,
 				53A730F6250AA8E40058A8B4 /* SessionManager.swift in Sources */,
 				4914851325B20EB200DBD8FF /* Session+Extensions.swift in Sources */,
 				49D5A781261E6C990004BB3A /* SessionManager+Extensions.swift in Sources */,

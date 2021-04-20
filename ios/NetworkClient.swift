@@ -34,11 +34,9 @@ protocol NetworkClient {
     func rejectMalformed(url: String,
                          withRejecter reject: @escaping RCTPromiseRejectBlock) -> Void
     
-    func getInterceptor(from options: JSON) -> Interceptor?
+    func getSessionInterceptor(from options: JSON) -> Interceptor?
 
-    func getRequestAdapters(from options: JSON) -> [RequestAdapter]
-
-    func getRequestRetriers(from options: JSON) -> [RequestRetrier]
+    func getRetryPolicy(from options: JSON) -> RetryPolicy?
 
     func getHTTPHeaders(from options: JSON) -> HTTPHeaders?
 
@@ -60,9 +58,10 @@ extension NetworkClient {
         let encoder: ParameterEncoder = parameters != nil ? JSONParameterEncoder.default : URLEncodedFormParameterEncoder.default
         let headers = getHTTPHeaders(from: options)
         let requestModifer = getRequestModifier(from: options)
-        let interceptor = getInterceptor(from: options)
+        let retryPolicy = getRetryPolicy(from: options)
 
-        session.request(url, method: method, parameters: parameters, encoder: encoder, headers: headers, interceptor: interceptor, requestModifier: requestModifer)
+        let request = session.request(url, method: method, parameters: parameters, encoder: encoder, headers: headers, requestModifier: requestModifer)
+            .setRetryPolicy(retryPolicy)
             .validate()
             .responseJSON { json in
                 self.handleResponse(for: session, withUrl: url, withData: json)
@@ -114,76 +113,60 @@ extension NetworkClient {
         reject("\(error.code)", message, error)
     }
 
-    func getInterceptor(from options: JSON) -> Interceptor? {
-        let adapters = getRequestAdapters(from: options)
-        let retriers = getRequestRetriers(from: options)
+    func getSessionInterceptor(from options: JSON) -> Interceptor? {
+        let retriers = [RuntimeRetrier()]
 
-        if (!adapters.isEmpty && !retriers.isEmpty) {
-            return Interceptor(adapters: adapters, retriers: retriers)
-        }
-        if (!adapters.isEmpty) {
-            return Interceptor(adapters: adapters)
-        }
-        if (!retriers.isEmpty) {
-            return Interceptor(retriers: retriers)
-        }
-        
-        return nil
-    }
-
-    func getRequestAdapters(from options: JSON) -> [RequestAdapter] {
         var adapters = [RequestAdapter]()
-
-        let configuration = options["requestAdapterConfiguration"]
-        if let _ = configuration["bearerAuthTokenResponseHeader"].string {
+        if let _ = options["requestAdapterConfiguration"]["bearerAuthTokenResponseHeader"].string {
             adapters.append(BearerAuthenticationAdapter())
         }
-        
-        return adapters
+
+        if (adapters.isEmpty) {
+            return Interceptor(retriers: retriers)
+        }
+    
+        return Interceptor(adapters: adapters, retriers: retriers)
     }
-
-    func getRequestRetriers(from options: JSON) -> [RequestRetrier] {
-        var retriers = [RequestRetrier]()
-
+    
+    func getRetryPolicy(from options: JSON) -> RetryPolicy? {
         let configuration = options["retryPolicyConfiguration"]
+        if configuration != JSON.null {
+            var retryableHTTPMethods = RetryPolicy.defaultRetryableHTTPMethods
+            if let methodsArray = configuration["retryMethods"].array {
+                retryableHTTPMethods = Set(methodsArray.map { (method) -> HTTPMethod in
+                    return HTTPMethod(rawValue: method.stringValue.uppercased())
+                })
+            }
         
-        var retryableHTTPMethods = RetryPolicy.defaultRetryableHTTPMethods
-        if let methodsArray = configuration["retryMethods"].array {
-            retryableHTTPMethods = Set(methodsArray.map{ (method) -> HTTPMethod in
-                return HTTPMethod(rawValue: method.stringValue)
-            })
-        }
+            var retryableHTTPStatusCodes = RetryPolicy.defaultRetryableHTTPStatusCodes
+            if let statusCodesArray = configuration["statusCodes"].array {
+                retryableHTTPStatusCodes = Set(statusCodesArray.map { (statusCode) -> Int in
+                    return Int(statusCode.intValue)
+                })
+            }
         
-        var retryableHTTPStatusCodes = RetryPolicy.defaultRetryableHTTPStatusCodes
-        if let statusCodesArray = configuration["statusCodes"].array {
-            retryableHTTPStatusCodes = Set(statusCodesArray.map{ (statusCode) -> Int in
-                return Int(statusCode.intValue)
-            })
-        }
-        
-        if configuration["type"].string == RETRY_TYPES["LINEAR_RETRY"] {
-            let retryLimit = configuration["retryLimit"].uInt ?? LinearRetryPolicy.defaultRetryLimit
-            let retryInterval = configuration["retryInterval"].uInt ?? LinearRetryPolicy.defaultRetryInterval
+            if configuration["type"].string == RETRY_TYPES["LINEAR_RETRY"] {
+                let retryLimit = configuration["retryLimit"].uInt ?? LinearRetryPolicy.defaultRetryLimit
+                let retryInterval = configuration["retryInterval"].uInt ?? LinearRetryPolicy.defaultRetryInterval
 
-            let retryPolicy = LinearRetryPolicy(retryLimit: retryLimit,
-                                                retryInterval: retryInterval,
-                                                retryableHTTPMethods: retryableHTTPMethods,
-                                                retryableHTTPStatusCodes: retryableHTTPStatusCodes)
-            retriers.append(retryPolicy)
-        } else if configuration["type"].string == RETRY_TYPES["EXPONENTIAL_RETRY"] {
-            let retryLimit = configuration["retryLimit"].uInt ?? ExponentialRetryPolicy.defaultRetryLimit
-            let exponentialBackoffBase = configuration["exponentialBackoffBase"].uInt ?? ExponentialRetryPolicy.defaultExponentialBackoffBase
-            let exponentialBackoffScale = configuration["exponentialBackoffScale"].double ?? ExponentialRetryPolicy.defaultExponentialBackoffScale
+                return LinearRetryPolicy(retryLimit: retryLimit,
+                                         retryInterval: retryInterval,
+                                         retryableHTTPMethods: retryableHTTPMethods,
+                                         retryableHTTPStatusCodes: retryableHTTPStatusCodes)
+            } else if configuration["type"].string == RETRY_TYPES["EXPONENTIAL_RETRY"] {
+                let retryLimit = configuration["retryLimit"].uInt ?? ExponentialRetryPolicy.defaultRetryLimit
+                let exponentialBackoffBase = configuration["exponentialBackoffBase"].uInt ?? ExponentialRetryPolicy.defaultExponentialBackoffBase
+                let exponentialBackoffScale = configuration["exponentialBackoffScale"].double ?? ExponentialRetryPolicy.defaultExponentialBackoffScale
 
-            let retryPolicy = ExponentialRetryPolicy(retryLimit: retryLimit,
-                                                     exponentialBackoffBase: exponentialBackoffBase,
-                                                     exponentialBackoffScale: exponentialBackoffScale,
-                                                     retryableHTTPMethods: retryableHTTPMethods,
-                                                     retryableHTTPStatusCodes: retryableHTTPStatusCodes)
-            retriers.append(retryPolicy)
+                return ExponentialRetryPolicy(retryLimit: retryLimit,
+                                              exponentialBackoffBase: exponentialBackoffBase,
+                                              exponentialBackoffScale: exponentialBackoffScale,
+                                              retryableHTTPMethods: retryableHTTPMethods,
+                                              retryableHTTPStatusCodes: retryableHTTPStatusCodes)
+            }
         }
 
-        return retriers
+        return nil
     }
 
     func getHTTPHeaders(from options: JSON) -> HTTPHeaders? {

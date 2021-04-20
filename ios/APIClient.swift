@@ -118,8 +118,9 @@ class APIClient: RCTEventEmitter, NetworkClient {
         let options = JSON(options)
         if options != JSON.null {
             let configuration = getURLSessionConfiguration(from: options)
+            let interceptor = getSessionInterceptor(from: options)
             let redirectHandler = getRedirectHandler(from: options)
-            let interceptor = getInterceptor(from: options)
+            let retryPolicy = getRetryPolicy(from: options)
             let cancelRequestsOnUnauthorized = options["sessionConfiguration"]["cancelRequestsOnUnauthorized"].boolValue
             let bearerAuthTokenResponseHeader = options["requestAdapterConfiguration"]["bearerAuthTokenResponseHeader"].string
             let clientP12Configuration = options["clientP12Configuration"].dictionaryObject as? [String:String]
@@ -132,6 +133,7 @@ class APIClient: RCTEventEmitter, NetworkClient {
                                                      withConfiguration: configuration,
                                                      withInterceptor: interceptor,
                                                      withRedirectHandler: redirectHandler,
+                                                     withRetryPolicy: retryPolicy,
                                                      withCancelRequestsOnUnauthorized: cancelRequestsOnUnauthorized,
                                                      withBearerAuthTokenResponseHeader: bearerAuthTokenResponseHeader,
                                                      withClientP12Configuration: clientP12Configuration,
@@ -266,8 +268,8 @@ class APIClient: RCTEventEmitter, NetworkClient {
     
     func multipartUpload(_ fileUrl: URL, to url: URL, forSession session: Session, withFileSize fileSize: Double, withTaskId taskId: String, withOptions options: JSON, withResolver resolve: @escaping RCTPromiseResolveBlock, withRejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
         let headers = getHTTPHeaders(from: options)
-        let interceptor = getInterceptor(from: options)
         let requestModifer = getRequestModifier(from: options)
+        let retryPolicy = getRetryPolicy(from: options)
 
         let multipartConfig = options["multipart"].dictionaryValue
         let fileKey = multipartConfig["fileKey"]?.string ?? "files"
@@ -283,15 +285,17 @@ class APIClient: RCTEventEmitter, NetworkClient {
                 method = .post
         }
 
-        let request = session.upload(multipartFormData: { multipartFormData in
+        let multipartFormData = { multipartFormData in
             multipartFormData.append(fileUrl, withName: fileKey)
             if let data = data {
                for (key, value) in data {
                    multipartFormData.append(value.data(using: .utf8)!, withName: key)
                }
             }
-        },
-        to: url, method: method, headers: headers, interceptor: interceptor, requestModifier: requestModifer)
+        }
+
+        let request = session.upload(multipartFormData: multipartFormData, to: url, method: method, headers: headers, requestModifier: requestModifer)
+            .setRetryPolicy(retryPolicy)
             .uploadProgress { progress in
                 if (self.hasListeners) {
                     self.sendEvent(withName: API_CLIENT_EVENTS["UPLOAD_PROGRESS"], body: ["taskId": taskId, "fractionCompleted": progress.fractionCompleted])
@@ -341,8 +345,8 @@ class APIClient: RCTEventEmitter, NetworkClient {
     
     func streamUpload(_ fileUrl: URL, to url: URL, forSession session: Session, withFileSize fileSize: Double, withTaskId taskId: String, withOptions options: JSON, withResolver resolve: @escaping RCTPromiseResolveBlock, withRejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
         let headers = getHTTPHeaders(from: options)
-        let interceptor = getInterceptor(from: options)
         let requestModifer = getRequestModifier(from: options)
+        let retryPolicy = getRetryPolicy(from: options)
         
         var method: HTTPMethod
         switch options["method"].string?.uppercased() {
@@ -361,7 +365,8 @@ class APIClient: RCTEventEmitter, NetworkClient {
             initialFractionCompleted = Double(skipBytes) / fileSize
         }
 
-        let request = session.upload(stream, to: url, method: method, headers: headers, interceptor: interceptor, requestModifier: requestModifer)
+        let request = session.upload(stream, to: url, method: method, headers: headers, requestModifier: requestModifer)
+            .setRetryPolicy(retryPolicy)
             .uploadProgress { progress in
                 if (self.hasListeners) {
                     let fractionCompleted = initialFractionCompleted + (Double(progress.completedUnitCount) / fileSize)

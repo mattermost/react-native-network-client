@@ -24,13 +24,14 @@ public class SessionManager: NSObject {
     func createSession(for baseUrl:URL,
                        withRootQueue rootQueue: DispatchQueue,
                        withDelegate delegate: SessionDelegate,
-                       withConfiguration configuration:URLSessionConfiguration = URLSessionConfiguration.af.default,
-                       withInterceptor interceptor:Interceptor? = nil,
-                       withRedirectHandler redirectHandler:RedirectHandler? = nil,
-                       withCancelRequestsOnUnauthorized cancelRequestsOnUnauthorized:Bool = false,
-                       withBearerAuthTokenResponseHeader bearerAuthTokenResponseHeader:String? = nil,
-                       withClientP12Configuration clientP12Configuration:[String:String]? = nil,
-                       withTrustSelfSignedServerCertificate trustSelfSignedServerCertificate:Bool = false) -> Void {
+                       withConfiguration configuration: URLSessionConfiguration = URLSessionConfiguration.af.default,
+                       withInterceptor interceptor: Interceptor? = nil,
+                       withRedirectHandler redirectHandler: RedirectHandler? = nil,
+                       withRetryPolicy retryPolicy: RetryPolicy? = nil,
+                       withCancelRequestsOnUnauthorized cancelRequestsOnUnauthorized: Bool = false,
+                       withBearerAuthTokenResponseHeader bearerAuthTokenResponseHeader: String? = nil,
+                       withClientP12Configuration clientP12Configuration: [String:String]? = nil,
+                       withTrustSelfSignedServerCertificate trustSelfSignedServerCertificate: Bool = false) -> Void {
         var session = getSession(for: baseUrl)
         if (session != nil) {
             return
@@ -38,6 +39,7 @@ public class SessionManager: NSObject {
 
         session = Session(configuration: configuration, delegate: delegate, rootQueue: rootQueue, interceptor: interceptor, redirectHandler: redirectHandler)
         session?.baseUrl = baseUrl
+        session?.retryPolicy = retryPolicy
         session?.cancelRequestsOnUnauthorized = cancelRequestsOnUnauthorized
         session?.bearerAuthTokenResponseHeader = bearerAuthTokenResponseHeader
         session?.trustSelfSignedServerCertificate = trustSelfSignedServerCertificate
@@ -56,7 +58,7 @@ public class SessionManager: NSObject {
         sessions[baseUrl] = session
     }
 
-    func getSessionHeaders(for baseUrl:URL) -> [AnyHashable : Any] {
+    func getSessionHeaders(for baseUrl: URL) -> [AnyHashable:Any] {
         guard let session = getSession(for: baseUrl), let headers = session.sessionConfiguration.httpAdditionalHeaders else {
             return [:]
         }
@@ -64,7 +66,7 @@ public class SessionManager: NSObject {
         return headers
     }
 
-    func addSessionHeaders(for baseUrl:URL, additionalHeaders:Dictionary<String, String>) -> Void {
+    func addSessionHeaders(for baseUrl: URL, additionalHeaders: Dictionary<String, String>) -> Void {
         guard let previousSession = getSession(for: baseUrl) else {
             return
         }
@@ -89,11 +91,11 @@ public class SessionManager: NSObject {
                       withTrustSelfSignedServerCertificate: previousSession.trustSelfSignedServerCertificate)
     }
     
-    func getSession(for baseUrl:URL) -> Session? {
+    func getSession(for baseUrl: URL) -> Session? {
         return sessions[baseUrl]
     }
     
-    func getSession(for urlSession:URLSession) -> Session? {
+    func getSession(for urlSession: URLSession) -> Session? {
         guard let session = Array(sessions.values).first(where: {$0.session == urlSession}) else {
             return nil
         }
@@ -101,7 +103,7 @@ public class SessionManager: NSObject {
         return session
     }
     
-    func getSession(for request:URLRequest) -> Session? {
+    func getSession(for request: URLRequest) -> Session? {
         if let requestUrl = request.url {
             if let session = getSession(for: requestUrl) {
                 return session
@@ -133,7 +135,7 @@ public class SessionManager: NSObject {
         return nil
     }
     
-    func invalidateSession(for baseUrl:URL, withReset reset:Bool = false) -> Void {
+    func invalidateSession(for baseUrl: URL, withReset reset: Bool = false) -> Void {
         guard let session = getSession(for: baseUrl) else {
             return
         }
