@@ -1,21 +1,21 @@
-package com.mattermost.networkclient.events
+package com.mattermost.networkclient
 
-import android.util.Log
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReactContext
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter
 import com.mattermost.networkclient.enums.WebSocketEvents
 import com.mattermost.networkclient.enums.WebSocketReadyState
+import okhttp3.HttpUrl
 import okhttp3.Response
 import okhttp3.WebSocket
 import okhttp3.WebSocketListener
 
-class WebSocketEvent(private var reactContext: ReactContext, private var url: String) : WebSocketListener() {
+class WebSocketEventListener(private var reactContext: ReactContext, private var url: HttpUrl) : WebSocketListener() {
 
     override fun onOpen(webSocket: WebSocket, response: Response) {
         val data = Arguments.createMap();
-        data.putString("url", url)
+        data.putString("url", url.toString())
         data.putString("message", response.message);
         emitEvent(WebSocketEvents.OPEN_EVENT, data)
         sendReadyState(WebSocketReadyState.OPEN)
@@ -23,21 +23,21 @@ class WebSocketEvent(private var reactContext: ReactContext, private var url: St
 
     override fun onMessage(webSocket: WebSocket, text: String) {
         val data = Arguments.createMap();
-        data.putString("url", url)
+        data.putString("url", url.toString())
         data.putString("message", text);
         emitEvent(WebSocketEvents.MESSAGE_EVENT, data)
     }
 
     override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
         val data = Arguments.createMap();
-        data.putString("url", url)
+        data.putString("url", url.toString())
         data.putString("message", response?.message);
         emitEvent(WebSocketEvents.ERROR_EVENT, data)
     }
 
     override fun onClosing(webSocket: WebSocket, code: Int, reason: String) {
         val data = Arguments.createMap();
-        data.putString("url", url)
+        data.putString("url", url.toString())
         data.putString("message", reason);
         emitEvent(WebSocketEvents.CLOSING_EVENT, data)
         sendReadyState(WebSocketReadyState.CLOSING)
@@ -45,7 +45,7 @@ class WebSocketEvent(private var reactContext: ReactContext, private var url: St
 
     override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
         val data = Arguments.createMap();
-        data.putString("url", url)
+        data.putString("url", url.toString())
         data.putString("message", reason);
         emitEvent(WebSocketEvents.CLOSE_EVENT, data)
         sendReadyState(WebSocketReadyState.CLOSED)
@@ -53,7 +53,7 @@ class WebSocketEvent(private var reactContext: ReactContext, private var url: St
 
     private fun sendReadyState(readyState: WebSocketReadyState) {
         val data = Arguments.createMap();
-        data.putString("url", url)
+        data.putString("url", url.toString())
         data.putInt("readyState", readyState.ordinal)
         emitEvent(WebSocketEvents.READY_STATE_EVENT, data)
     }

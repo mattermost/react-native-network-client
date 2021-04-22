@@ -1,20 +1,20 @@
 package com.mattermost.networkclient
 
-import android.net.Uri
-import com.facebook.react.bridge.*
-import okhttp3.*
-import okio.*
 import com.mattermost.networkclient.enums.APIClientEvents
 import com.mattermost.networkclient.enums.RetryTypes
-import com.mattermost.networkclient.helpers.*
+import com.facebook.react.bridge.*
+import okhttp3.*
 import okhttp3.HttpUrl.Companion.toHttpUrl
+import android.net.Uri
+import com.mattermost.networkclient.helpers.ProgressListener
+import com.mattermost.networkclient.helpers.UploadFileRequestBody
+import java.io.IOException
+import java.lang.Exception
 import kotlin.collections.HashMap
 
 class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
-
-    private val sessionsClient = SessionsObject.client
-    private val sessionsCall = SessionsObject.call
-    private val sessionsConfig = SessionsObject.requestConfig
+    private val clients = mutableMapOf<HttpUrl, NetworkClient>()
+    private val calls = mutableMapOf<String, Call>()
 
     override fun getName(): String {
         return "APIClient"
@@ -22,21 +22,15 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
     @ReactMethod
     fun createClientFor(baseUrl: String, options: ReadableMap, promise: Promise) {
-        var url: String
+        var url: HttpUrl
         try {
-            url = baseUrl.toHttpUrl().toString()
+            url = baseUrl.toHttpUrl()
         } catch (err: IllegalArgumentException) {
             return promise.reject(err)
         }
 
         try {
-            // Create the client and request builder
-            sessionsClient[url] = OkHttpClient().newBuilder();
-            sessionsConfig[url] = hashMapOf("baseUrl" to url);
-
-            // Attach client options if they are passed in
-            sessionsClient[url]!!.applyClientOptions(options, url);
-
+            clients[url] = NetworkClient(url, options)
             promise.resolve(null)
         } catch (err: Throwable) {
             promise.reject(err)
@@ -45,20 +39,17 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
     @ReactMethod
     fun getClientHeadersFor(baseUrl: String, promise: Promise) {
-        var url: String
+        var url: HttpUrl
         try {
-            url = baseUrl.toHttpUrl().toString()
+            url = baseUrl.toHttpUrl()
         } catch (err: IllegalArgumentException) {
             return promise.reject(err)
         }
 
-        val headers = SessionsObject.requestConfig[url]!!["clientHeaders"] as ReadableMap?
-        val map = Arguments.createMap();
-
-        if(headers != null){
-            for((k, v) in headers.toHashMap()){
-                map.putString(k, v as String)
-            }
+        val map = Arguments.createMap()
+        val headers = clients[url]!!.clientHeaders
+        for((k, v) in headers.toHashMap()){
+            map.putString(k, v as String)
         }
 
         try {
@@ -70,15 +61,15 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
     @ReactMethod
     fun addClientHeadersFor(baseUrl: String, headers: ReadableMap, promise: Promise) {
-        var url: String
+        var url: HttpUrl
         try {
-            url = baseUrl.toHttpUrl().toString()
+            url = baseUrl.toHttpUrl()
         } catch (err: IllegalArgumentException) {
             return promise.reject(err)
         }
 
         try {
-            SessionsObject.requestConfig[url]!!["clientHeaders"] = headers
+            clients[url]!!.addHeaders(headers)
             promise.resolve(null);
         } catch (error: Error) {
             promise.reject(error)
@@ -87,17 +78,16 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
     @ReactMethod
     fun invalidateClientFor(baseUrl: String, promise: Promise) {
-        var url: String
+        var url: HttpUrl
         try {
-            url = baseUrl.toHttpUrl().toString()
+            url = baseUrl.toHttpUrl()
         } catch (err: IllegalArgumentException) {
             return promise.reject(err)
         }
 
         try {
-            sessionsClient.remove(url);
-            sessionsConfig.remove(url);
-            promise.resolve(sessionsClient.keys);
+            clients.remove(url);
+            promise.resolve(clients.keys);
         } catch (err: Throwable) {
             promise.reject(err)
         }
@@ -105,187 +95,48 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
     @ReactMethod
     fun get(baseUrl: String, endpoint: String, options: ReadableMap, promise: Promise) {
-        var url: String
-        try {
-            url = baseUrl.toHttpUrl().toString()
-        } catch (err: IllegalArgumentException) {
-            return promise.reject(err)
-        }
-
-        try {
-            val request = Request.Builder()
-                    .url(formUrlString(url, endpoint))
-                    .applyClientOptions(url)
-                    .applyRequestOptions(options, url)
-                    .build();
-            sessionsClient[url]!!
-                    .build()
-                    .newCall(request)
-                    .execute().use { response ->
-                        promise.resolve(response.returnAsWriteableMap(url))
-                    }
-        } catch (e: IOException) {
-            promise.reject(e)
-        }
+        request("GET", baseUrl, endpoint, options, promise)
     }
 
     @ReactMethod
     fun post(baseUrl: String, endpoint: String, options: ReadableMap, promise: Promise) {
-        var url: String
-        try {
-            url = baseUrl.toHttpUrl().toString()
-        } catch (err: IllegalArgumentException) {
-            return promise.reject(err)
-        }
-
-        try {
-            val request = Request.Builder()
-                    .url(formUrlString(url, endpoint))
-                    .applyClientOptions(url)
-                    .applyRequestOptions(options, url)
-                    .post(options.getMap("body")!!.bodyToRequestBody())
-                    .build();
-            sessionsClient[url]!!.build().newCall(request).execute().use { response ->
-                promise.resolve(response.returnAsWriteableMap(url))
-            }
-        } catch (e: IOException) {
-            promise.reject(e)
-        }
+        request("POST", baseUrl, endpoint, options, promise)
     }
 
     @ReactMethod
     fun put(baseUrl: String, endpoint: String, options: ReadableMap, promise: Promise) {
-        var url: String
-        try {
-            url = baseUrl.toHttpUrl().toString()
-        } catch (err: IllegalArgumentException) {
-            return promise.reject(err)
-        }
-
-        try {
-            val request = Request.Builder()
-                    .url(formUrlString(url, endpoint))
-                    .applyClientOptions(url)
-                    .applyRequestOptions(options, url)
-                    .put(options.getMap("body")!!.bodyToRequestBody())
-                    .build();
-            sessionsClient[url]!!.build().newCall(request).execute().use { response ->
-                promise.resolve(response.returnAsWriteableMap(url))
-            }
-        } catch (e: IOException) {
-            promise.reject(e)
-        }
+        request("PUT", baseUrl, endpoint, options, promise)
     }
 
     @ReactMethod
     fun patch(baseUrl: String, endpoint: String, options: ReadableMap, promise: Promise) {
-        var url: String
-        try {
-            url = baseUrl.toHttpUrl().toString()
-        } catch (err: IllegalArgumentException) {
-            return promise.reject(err)
-        }
-
-        try {
-            val request = Request.Builder()
-                    .url(formUrlString(url, endpoint))
-                    .applyClientOptions(url)
-                    .applyRequestOptions(options, url)
-                    .patch(options.getMap("body")!!.bodyToRequestBody())
-                    .build();
-
-            sessionsClient[url]!!.build().newCall(request).execute().use { response ->
-                promise.resolve(response.returnAsWriteableMap(url))
-            }
-        } catch (e: IOException) {
-            promise.reject(e)
-        }
+        request("PATCH", baseUrl, endpoint, options, promise)
     }
 
     @ReactMethod
     fun delete(baseUrl: String, endpoint: String, options: ReadableMap, promise: Promise) {
-        var url: String
-        try {
-            url = baseUrl.toHttpUrl().toString()
-        } catch (err: IllegalArgumentException) {
-            return promise.reject(err)
-        }
-
-        try {
-            val request = Request.Builder()
-                    .url(formUrlString(url, endpoint))
-                    .applyClientOptions(url)
-                    .applyRequestOptions(options, url)
-                    .delete(options.getMap("body")!!.bodyToRequestBody())
-                    .build();
-            sessionsClient[url]!!.build().newCall(request).execute().use { response ->
-                promise.resolve(response.returnAsWriteableMap(url))
-            }
-        } catch (e: IOException) {
-            promise.reject(e)
-        }
+        request("DELETE", baseUrl, endpoint, options, promise)
     }
 
     @ReactMethod
     fun upload(baseUrl: String, endpoint: String, file: String, taskId: String, options: ReadableMap?, promise: Promise) {
-        var url: String
+        var url: HttpUrl
         try {
-            url = baseUrl.toHttpUrl().toString()
+            url = baseUrl.toHttpUrl()
         } catch (err: IllegalArgumentException) {
             return promise.reject(err)
         }
 
-        val body: RequestBody;
-        val uri = Uri.parse(file);
+        val fileUri = Uri.parse(file);
+        val skipBytes = options?.getInt("skipBytes")?.toLong() ?: 0
+        val fileBody = UploadFileRequestBody(reactApplicationContext, fileUri, skipBytes, ProgressListener(reactApplicationContext, taskId))
 
-        // check for multi-parts options
-        if (options != null && options.hasKey("multipart")) {
-            val multipartOptions = options.getMap("multipart")!!
-
-            val multipartBody = MultipartBody.Builder();
-            multipartBody.setType(MultipartBody.FORM)
-
-            if (multipartOptions.hasKey("fileKey") && multipartOptions.getString("fileKey") != "") {
-                multipartBody.addFormDataPart(multipartOptions.getString("fileKey")!!, uri.lastPathSegment, UploadFileRequestBody(reactApplicationContext, uri, 0, ProgressListener(reactApplicationContext, taskId)))
-            } else {
-                multipartBody.addFormDataPart("files", uri.lastPathSegment, UploadFileRequestBody(reactApplicationContext, uri, 0, ProgressListener(reactApplicationContext, taskId)))
-            }
-
-            if (multipartOptions.hasKey("data")) {
-                val multipartData = multipartOptions.getMap("data")!!.toHashMap();
-                for ((k, v) in multipartData) {
-                    multipartBody.addFormDataPart(k, v as String);
-                }
-            }
-
-            body = multipartBody.build()
-        } else {
-            val skipBytes = if (options != null && options.hasKey("skipBytes")) options.getInt("skipBytes").toLong() else 0;
-            body = UploadFileRequestBody(reactApplicationContext, Uri.parse(file), skipBytes, ProgressListener(reactApplicationContext, taskId))
-        }
+        val uploadCall = clients[url]!!.buildUploadCall(endpoint, fileUri, fileBody, options)
+        calls[taskId] = uploadCall
 
         try {
-            // Create a Request
-            var request = if (options?.hasKey("method") == true) {
-                when (options.getString("method")) {
-                    "PUT" -> Request.Builder().url(formUrlString(url, endpoint)).put(body)
-                    "PATCH" -> Request.Builder().url(formUrlString(url, endpoint)).patch(body)
-                    // Default to "POST"
-                    else -> Request.Builder().url(formUrlString(url, endpoint)).post(body)
-                }
-            } else {
-                Request.Builder().url(formUrlString(url, endpoint)).post(body)
-            }
-
-            // Parse options into the request / client
-            if (options != null) request = request.applyClientOptions(url).applyRequestOptions(options, url)
-
-            // Create a cancellable call
-            sessionsCall[taskId] = sessionsClient[url]!!.build().newCall(request.build())
-
-            // Execute the call!
-            sessionsCall[taskId]!!.execute().use { response ->
-                promise.resolve(response.returnAsWriteableMap(url))
+            uploadCall.execute().use { response ->
+                promise.resolve(response.returnAsWriteableMap())
             }
         } catch (e: IOException) {
             promise.reject(e)
@@ -295,7 +146,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     @ReactMethod
     fun cancelRequest(taskId: String, promise: Promise) {
         try {
-            sessionsCall[taskId]!!.cancel()
+            calls[taskId]!!.cancel()
             promise.resolve(null)
         } catch (e: IOException) {
             promise.reject(e)
@@ -317,5 +168,18 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         constants["RETRY_TYPES"] = retryTypes
 
         return constants
+    }
+
+    private fun request(method: String, baseUrl: String, endpoint: String, options: ReadableMap, promise: Promise) {
+        try {
+            val url = baseUrl.toHttpUrl()
+            val client = clients[url]!!
+            client.request(method, endpoint, options).use { response ->
+                promise.resolve(response.returnAsWriteableMap())
+                client.cleanUpAfter(response)
+            }
+        } catch (err: Exception) {
+            return promise.reject(err)
+        }
     }
 }
