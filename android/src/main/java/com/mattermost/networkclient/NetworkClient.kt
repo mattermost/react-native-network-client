@@ -37,8 +37,8 @@ class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: R
 
     init {
         setClientHeaders(options)
-        clientRetryInterceptor = createRetryInterceptor(options)
-        clientTimeoutInterceptor = createClientTimeoutInterceptor(options)
+        setClientRetryInterceptor(options)
+        setClientTimeoutInterceptor(options)
 
         builder.retryOnConnectionFailure(false);
         builder.addInterceptor(RuntimeInterceptor(this, "retry"))
@@ -176,6 +176,27 @@ class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: R
         }
     }
 
+    private fun setClientRetryInterceptor(options: ReadableMap?) {
+        clientRetryInterceptor = createRetryInterceptor(options)
+    }
+
+    private fun setClientTimeoutInterceptor(options: ReadableMap?) {
+        var readTimeout = TimeoutInterceptor.defaultReadTimeout
+        var writeTimeout = TimeoutInterceptor.defaultWriteTimeout
+
+        if (options != null && options.hasKey("sessionConfiguration")) {
+            val config = options.getMap("sessionConfiguration")!!
+            if (config.hasKey("timeoutIntervalForRequest")) {
+                readTimeout = config.getDouble("timeoutIntervalForRequest")!!.toInt()
+            }
+            if (config.hasKey("timeoutIntervalForRequest")) {
+                writeTimeout = config.getDouble("timeoutIntervalForResource")!!.toInt()
+            }
+        }
+
+        clientTimeoutInterceptor = TimeoutInterceptor(readTimeout, writeTimeout)
+    }
+
     private fun createRetryInterceptor(options: ReadableMap?): Interceptor? {
         if (options == null || !options.hasKey("retryPolicyConfiguration"))
             return null
@@ -226,23 +247,6 @@ class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: R
         }
 
         return retryInterceptor
-    }
-
-    private fun createClientTimeoutInterceptor(options: ReadableMap?): TimeoutInterceptor {
-        var readTimeout = TimeoutInterceptor.defaultReadTimeout
-        var writeTimeout = TimeoutInterceptor.defaultWriteTimeout
-
-        if (options != null && options.hasKey("sessionConfiguration")) {
-            val config = options.getMap("sessionConfiguration")!!
-            if (config.hasKey("timeoutIntervalForRequest")) {
-                readTimeout = config.getDouble("timeoutIntervalForRequest")!!.toInt()
-            }
-            if (config.hasKey("timeoutIntervalForRequest")) {
-                writeTimeout = config.getDouble("timeoutIntervalForResource")!!.toInt()
-            }
-        }
-
-        return TimeoutInterceptor(readTimeout, writeTimeout)
     }
 
     private fun createRequestTimeoutInterceptor(options: ReadableMap?): TimeoutInterceptor? {
