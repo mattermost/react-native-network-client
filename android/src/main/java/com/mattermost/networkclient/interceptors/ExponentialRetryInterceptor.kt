@@ -5,13 +5,18 @@ import kotlin.math.pow
 
 class ExponentialRetryInterceptor(
         override val retryLimit: Double,
-        private val exponentialBackOffBase: Double,
-        private val exponentialBackOffScale: Double,
         override val retryStatusCodes: Set<Int>,
-        override val retryMethods: Set<String>
+        override val retryMethods: Set<String>,
+        private val exponentialBackoffBase: Double = 2.0,
+        private val exponentialBackoffScale: Double = 0.5,
 ) : RetryInterceptor {
 
+    companion object {
+        const val defaultExponentialBackoffBase = 2.0
+        const val defaultExponentialBackoffScale = 0.5
+    }
+
     override fun getWaitInterval(attempts: Int): Long {
-        return (exponentialBackOffBase.pow(attempts) * exponentialBackOffScale).toLong()
+        return (exponentialBackoffBase.pow(attempts) * exponentialBackoffScale).toLong()
     }
 }

@@ -10,13 +10,13 @@ import okhttp3.*
 import android.net.Uri
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.WritableMap
+import com.mattermost.networkclient.interfaces.RetryInterceptor
 import kotlin.reflect.KProperty
 
-class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: ReadableMap?) {
-
-    var okHttpClient: OkHttpClient
+class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: ReadableMap? = null) {
+    private var okHttpClient: OkHttpClient
     var webSocket: WebSocket? = null
-    var clientHeaders: WritableMap = options?.getMap("headers") as? WritableMap ?: Arguments.createMap()
+    var clientHeaders: WritableMap = Arguments.createMap()
     var clientRetryInterceptor: Interceptor? = null
     var clientTimeoutInterceptor: TimeoutInterceptor
     val requestRetryInterceptors: HashMap<Request, Interceptor> = hashMapOf()
@@ -36,8 +36,9 @@ class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: R
     }
 
     init {
+        setClientHeaders(options)
         clientRetryInterceptor = createRetryInterceptor(options)
-        clientTimeoutInterceptor = createClientTimeoutInterceptor()
+        clientTimeoutInterceptor = createClientTimeoutInterceptor(options)
 
         builder.retryOnConnectionFailure(false);
         builder.addInterceptor(RuntimeInterceptor(this, "retry"))
@@ -47,7 +48,7 @@ class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: R
         okHttpClient = builder.build()
     }
 
-    fun addHeaders(additionalHeaders: ReadableMap?) {
+    fun addClientHeaders(additionalHeaders: ReadableMap?) {
         if (additionalHeaders != null) {
             for ((k, v) in additionalHeaders.toHashMap()) {
                 clientHeaders.putString(k, v as String)
@@ -56,11 +57,19 @@ class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: R
     }
 
     fun request(method: String, endpoint: String, options: ReadableMap?): Response {
-        val requestHeaders = options?.getMap("headers")
-        val requestBody = options?.getMap("body")?.bodyToRequestBody()
+        var requestHeaders: ReadableMap? = null
+        var requestBody: RequestBody? = null
+
+        if (options != null) {
+            if (options.hasKey("headers")) {
+                requestHeaders = options.getMap("headers")
+            }
+            if (options.hasKey("body")) {
+                requestBody = options.getMap("body")?.bodyToRequestBody()
+            }
+        }
 
         val request = buildRequest(method, endpoint, requestHeaders, requestBody)
-
 
         val timeoutInterceptor = createRequestTimeoutInterceptor(options)
         if (timeoutInterceptor != null) {
@@ -83,15 +92,31 @@ class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: R
     }
 
     fun buildUploadCall(endpoint: String, fileUri: Uri, fileBody: RequestBody, options: ReadableMap?): Call {
-        val multipartOptions = options?.getMap("multipart")
+        var method = "POST"
+        var requestHeaders: ReadableMap? = null
+        var multipartOptions: ReadableMap? = null
+
+        if (options != null) {
+            if (options.hasKey("method")) {
+                method = options.getString("method")!!
+            }
+
+            if (options.hasKey("headers")) {
+                requestHeaders = options.getMap("headers")
+            }
+
+            if (options.hasKey("multipart")) {
+                multipartOptions = options.getMap("multipart")
+            }
+        }
+
+
         val requestBody = if (multipartOptions != null) {
             buildMultipartBody(fileUri, fileBody, multipartOptions)
         } else {
             fileBody
         }
 
-        val method = options?.getString("method") ?: "POST"
-        val requestHeaders = options?.getMap("headers")
         val request = buildRequest(method, endpoint, requestHeaders, requestBody)
 
         return okHttpClient.newCall(request)
@@ -108,7 +133,6 @@ class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: R
                 .url(composeEndpointUrl(endpoint))
                 .applyHeaders(clientHeaders)
                 .applyHeaders(headers)
-                .header("Connection", "close")
                 .method(method, body)
                 .build();
     }
@@ -117,15 +141,11 @@ class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: R
         val multipartBody = MultipartBody.Builder();
         multipartBody.setType(MultipartBody.FORM)
 
-        var name = multipartOptions.getString("fileKey")
-        if (name == null || name.isBlank()) {
-            name = "files"
+        var name = "files"
+        if (multipartOptions.hasKey("fileKey")) {
+            name = multipartOptions.getString("fileKey")!!
         }
-        if (multipartOptions.hasKey("fileKey") && multipartOptions.getString("fileKey") != "") {
-            multipartBody.addFormDataPart(name, uri.lastPathSegment, fileBody)
-        } else {
-            multipartBody.addFormDataPart(name, uri.lastPathSegment, fileBody)
-        }
+        multipartBody.addFormDataPart(name, uri.lastPathSegment, fileBody)
 
         if (multipartOptions.hasKey("data")) {
             val multipartData = multipartOptions.getMap("data")!!.toHashMap();
@@ -149,48 +169,84 @@ class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: R
                 .toString()
     }
 
+    private fun setClientHeaders(options: ReadableMap?) {
+        if (options != null && options.hasKey(("headers"))) {
+            addClientHeaders(options.getMap("headers"))
+        }
+    }
+
     private fun createRetryInterceptor(options: ReadableMap?): Interceptor? {
-        val retryConfig = options?.getMap("retryPolicyConfiguration")
+        if (options == null || !options.hasKey("retryPolicyConfiguration"))
+            return null
+
+        val retryConfig = options.getMap("retryPolicyConfiguration")
                 ?: return null
+
+        if (!retryConfig.hasKey("type"))
+            return null
 
         val retryType = RetryTypes.values().find { r -> r.type == retryConfig.getString("type") }
                 ?: return null
 
-        val retryLimit = retryConfig.getDouble("retryLimit")
+        var retryLimit = RetryInterceptor.defaultRetryLimit
+        if (retryConfig.hasKey("retryLimit")) {
+            retryLimit = retryConfig.getDouble("retryLimit")!!
+        }
 
-        var retryMethods = setOf("get", "patch", "post", "put", "delete")
-        if (retryConfig.hasKey("retryMethods") && retryConfig.getArray("retryMethods") != null) {
+        var retryMethods = RetryInterceptor.defaultRetryMethods
+        if (retryConfig.hasKey("retryMethods")) {
             retryMethods = (retryConfig.getArray("retryMethods")!!.toArrayList() as ArrayList<String>).toSet()
         }
 
-        var retryStatusCodes = setOf(408, 500, 502, 503, 504)
-        if (retryConfig.hasKey("statusCodes") && retryConfig.getArray("statusCodes") != null) {
+        var retryStatusCodes = RetryInterceptor.defaultRetryStatusCodes
+        if (retryConfig.hasKey("statusCodes")) {
             retryStatusCodes = (retryConfig.getArray("statusCodes")!!.toArrayList() as ArrayList<Double>).map { code -> code.toInt() }.toSet()
         }
 
         var retryInterceptor: Interceptor? = null
         if (retryType == RetryTypes.LINEAR_RETRY) {
-            val retryInterval = retryConfig.getDouble("retryInterval")
-            retryInterceptor = LinearRetryInterceptor(retryLimit, retryInterval, retryStatusCodes, retryMethods)
+            var retryInterval = LinearRetryInterceptor.defaultRetryInterval
+            if (retryConfig.hasKey("retryInterval")) {
+                retryInterval = retryConfig.getDouble("retryInterval")!!
+            }
+
+            retryInterceptor = LinearRetryInterceptor(retryLimit, retryStatusCodes, retryMethods, retryInterval)
         } else if (retryType == RetryTypes.EXPONENTIAL_RETRY) {
-            val exponentialBackOffBase = retryConfig.getDouble("exponentialBackoffBase")
-            val exponentialBackOffScale = retryConfig.getDouble("exponentialBackoffScale")
-            retryInterceptor = ExponentialRetryInterceptor(retryLimit, exponentialBackOffBase, exponentialBackOffScale, retryStatusCodes, retryMethods)
+            var exponentialBackoffBase = ExponentialRetryInterceptor.defaultExponentialBackoffBase
+            if (retryConfig.hasKey("exponentialBackoffBase")) {
+                exponentialBackoffBase = retryConfig.getDouble("exponentialBackoffBase")!!
+            }
+            var exponentialBackoffScale = ExponentialRetryInterceptor.defaultExponentialBackoffScale
+            if (retryConfig.hasKey("exponentialBackoffScale")) {
+                exponentialBackoffScale = retryConfig.getDouble("exponentialBackoffScale")!!
+            }
+
+            retryInterceptor = ExponentialRetryInterceptor(retryLimit, retryStatusCodes, retryMethods, exponentialBackoffBase, exponentialBackoffScale)
         }
 
         return retryInterceptor
     }
 
-    private fun createClientTimeoutInterceptor(): TimeoutInterceptor {
-        var readTimeout = options?.getDouble("timeoutIntervalForRequest") ?: 300.0
-        var writeTimeout = options?.getDouble("timeoutIntervalForResource") ?: 300.0
+    private fun createClientTimeoutInterceptor(options: ReadableMap?): TimeoutInterceptor {
+        var readTimeout = TimeoutInterceptor.defaultReadTimeout
+        var writeTimeout = TimeoutInterceptor.defaultWriteTimeout
 
-        return TimeoutInterceptor(readTimeout.toInt(), writeTimeout.toInt())
+        if (options != null && options.hasKey("sessionConfiguration")) {
+            val config = options.getMap("sessionConfiguration")!!
+            if (config.hasKey("timeoutIntervalForRequest")) {
+                readTimeout = config.getDouble("timeoutIntervalForRequest")!!.toInt()
+            }
+            if (config.hasKey("timeoutIntervalForRequest")) {
+                writeTimeout = config.getDouble("timeoutIntervalForResource")!!.toInt()
+            }
+        }
+
+        return TimeoutInterceptor(readTimeout, writeTimeout)
     }
 
     private fun createRequestTimeoutInterceptor(options: ReadableMap?): TimeoutInterceptor? {
-        val timeoutInterval = options?.getDouble("timeoutInterval")
-        if (timeoutInterval != null) {
+        if (options != null && options.hasKey("timeoutInterval")) {
+            val timeoutInterval = options.getDouble("timeoutInterval")
             return TimeoutInterceptor(timeoutInterval.toInt(), timeoutInterval.toInt())
         }
 
@@ -198,28 +254,25 @@ class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: R
     }
 
     private fun applyBuilderOptions() {
-        if (options != null) {
-            if (options.hasKey("sessionConfiguration")) {
-                val config = options.getMap("sessionConfiguration")!!;
+        if (options != null && options.hasKey("sessionConfiguration")) {
+            val config = options.getMap("sessionConfiguration")!!
 
-                if (config.hasKey("followRedirects")) {
-                    val followRedirects = config.getBoolean("followRedirects")
-                    builder.followRedirects(followRedirects);
-                    builder.followSslRedirects(followRedirects);
-                }
+            if (config.hasKey("followRedirects")) {
+                val followRedirects = config.getBoolean("followRedirects")
+                builder.followRedirects(followRedirects);
+                builder.followSslRedirects(followRedirects);
+            }
 
-                if (config.hasKey("httpMaximumConnectionsPerHost")) {
-                    val maxConnections = config.getInt("httpMaximumConnectionsPerHost");
-                    val dispatcher = Dispatcher()
-                    dispatcher.maxRequests = maxConnections
-                    dispatcher.maxRequestsPerHost = maxConnections
-                    builder.dispatcher(dispatcher);
-                }
+            if (config.hasKey("httpMaximumConnectionsPerHost")) {
+                val maxConnections = config.getInt("httpMaximumConnectionsPerHost");
+                val dispatcher = Dispatcher()
+                dispatcher.maxRequests = maxConnections
+                dispatcher.maxRequestsPerHost = maxConnections
+                builder.dispatcher(dispatcher);
+            }
 
-                // WS: Compression
-                if (config.hasKey("enableCompression")) {
-                    builder.minWebSocketMessageToCompress(0);
-                }
+            if (config.hasKey("enableCompression")) {
+                builder.minWebSocketMessageToCompress(0);
             }
         }
     }

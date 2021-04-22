@@ -8,8 +8,14 @@ import java.util.concurrent.TimeUnit
 
 interface RetryInterceptor : Interceptor {
     val retryLimit: Double
-    val retryStatusCodes: Set<Int>
     val retryMethods: Set<String>
+    val retryStatusCodes: Set<Int>
+
+    companion object {
+        const val defaultRetryLimit = 2.0
+        val defaultRetryStatusCodes = setOf(408, 500, 502, 503, 504)
+        val defaultRetryMethods = setOf("get", "patch", "post", "put", "delete")
+    }
 
     fun getWaitInterval(attempts: Int): Long
 

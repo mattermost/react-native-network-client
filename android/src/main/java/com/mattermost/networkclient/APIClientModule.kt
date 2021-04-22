@@ -6,6 +6,7 @@ import com.facebook.react.bridge.*
 import okhttp3.*
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import android.net.Uri
+import android.util.Log
 import com.mattermost.networkclient.helpers.ProgressListener
 import com.mattermost.networkclient.helpers.UploadFileRequestBody
 import java.io.IOException
@@ -25,15 +26,15 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         var url: HttpUrl
         try {
             url = baseUrl.toHttpUrl()
-        } catch (err: IllegalArgumentException) {
-            return promise.reject(err)
+        } catch (error: IllegalArgumentException) {
+            return promise.reject(error)
         }
 
         try {
             clients[url] = NetworkClient(url, options)
             promise.resolve(null)
-        } catch (err: Throwable) {
-            promise.reject(err)
+        } catch (error: Exception) {
+            promise.reject(error)
         }
     }
 
@@ -42,8 +43,8 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         var url: HttpUrl
         try {
             url = baseUrl.toHttpUrl()
-        } catch (err: IllegalArgumentException) {
-            return promise.reject(err)
+        } catch (error: IllegalArgumentException) {
+            return promise.reject(error)
         }
 
         val map = Arguments.createMap()
@@ -54,7 +55,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
         try {
             promise.resolve(map)
-        } catch (error: Error) {
+        } catch (error: Exception) {
             promise.reject(error)
         }
     }
@@ -64,14 +65,14 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         var url: HttpUrl
         try {
             url = baseUrl.toHttpUrl()
-        } catch (err: IllegalArgumentException) {
-            return promise.reject(err)
+        } catch (error: IllegalArgumentException) {
+            return promise.reject(error)
         }
 
         try {
-            clients[url]!!.addHeaders(headers)
+            clients[url]!!.addClientHeaders(headers)
             promise.resolve(null);
-        } catch (error: Error) {
+        } catch (error: Exception) {
             promise.reject(error)
         }
     }
@@ -81,15 +82,15 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         var url: HttpUrl
         try {
             url = baseUrl.toHttpUrl()
-        } catch (err: IllegalArgumentException) {
-            return promise.reject(err)
+        } catch (error: IllegalArgumentException) {
+            return promise.reject(error)
         }
 
         try {
             clients.remove(url);
             promise.resolve(clients.keys);
-        } catch (err: Throwable) {
-            promise.reject(err)
+        } catch (error: Exception) {
+            promise.reject(error)
         }
     }
 
@@ -123,8 +124,8 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         var url: HttpUrl
         try {
             url = baseUrl.toHttpUrl()
-        } catch (err: IllegalArgumentException) {
-            return promise.reject(err)
+        } catch (error: IllegalArgumentException) {
+            return promise.reject(error)
         }
 
         val fileUri = Uri.parse(file);
@@ -138,8 +139,8 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
             uploadCall.execute().use { response ->
                 promise.resolve(response.returnAsWriteableMap())
             }
-        } catch (e: IOException) {
-            promise.reject(e)
+        } catch (error: Exception) {
+            promise.reject(error)
         }
     }
 
@@ -148,8 +149,8 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         try {
             calls[taskId]!!.cancel()
             promise.resolve(null)
-        } catch (e: IOException) {
-            promise.reject(e)
+        } catch (error: Exception) {
+            promise.reject(error)
         }
     }
 
@@ -157,12 +158,10 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     override fun getConstants(): Map<String, Any> {
         val constants: MutableMap<String, Any> = HashMap<String, Any>()
 
-        // APIClient Events
         val events = HashMap<String, String>()
         APIClientEvents.values().forEach { enum -> events[enum.name] = enum.event }
         constants["EVENTS"] = events
 
-        // Retry Types
         val retryTypes = HashMap<String, String>()
         RetryTypes.values().forEach { enum -> retryTypes[enum.name] = enum.type }
         constants["RETRY_TYPES"] = retryTypes
@@ -178,8 +177,8 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
                 promise.resolve(response.returnAsWriteableMap())
                 client.cleanUpAfter(response)
             }
-        } catch (err: Exception) {
-            return promise.reject(err)
+        } catch (error: Exception) {
+            return promise.reject(error)
         }
     }
 }

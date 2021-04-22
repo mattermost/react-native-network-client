@@ -21,9 +21,17 @@ class RuntimeInterceptor(private val client: NetworkClient, private val type: St
 
     private fun getRuntimeInterceptor(request: Request): Interceptor? {
         if (type == "retry") {
-            return client.requestRetryInterceptors[request] ?: client.clientRetryInterceptor
+            if (client.requestRetryInterceptors.containsKey(request)) {
+                return client.requestRetryInterceptors[request]
+            }
+
+            return client.clientRetryInterceptor
         } else if (type == "timeout") {
-            return client.requestTimeoutInterceptors[request] ?: client.clientTimeoutInterceptor
+            if (client.requestTimeoutInterceptors.containsKey(request)) {
+                return client.requestTimeoutInterceptors[request]
+            }
+
+            return client.clientTimeoutInterceptor
         }
 
         return null

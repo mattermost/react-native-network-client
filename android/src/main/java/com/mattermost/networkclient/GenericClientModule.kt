@@ -3,7 +3,7 @@ package com.mattermost.networkclient
 import com.facebook.react.bridge.*
 
 class GenericClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
-    private var client = NetworkClient(null, null);
+    private var client = NetworkClient();
 
     override fun getName(): String {
         return "GenericClient"

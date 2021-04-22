@@ -6,20 +6,25 @@ import okhttp3.Response
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 
-class TimeoutInterceptor(private val readTimeout: Int, private val writeTimeout: Int) : Interceptor {
+class TimeoutInterceptor(
+        private val readTimeout: Int,
+        private val writeTimeout: Int
+) : Interceptor {
+    companion object {
+        const val defaultReadTimeout = 30000
+        const val defaultWriteTimeout = 30000
+    }
+
     @Throws(IOException::class)
     override fun intercept(chain: Interceptor.Chain): Response {
         val request = chain.request();
 
-        // Test:
-        // Request 1 with timeout interceptor logs here
-        // Request 2 without timeout interceptor does not log here
-        Log.d("=================", "In timeout interceptor")
-        return chain
+        val newChain = chain
                 .withConnectTimeout(readTimeout, TimeUnit.MILLISECONDS)
                 .withReadTimeout(readTimeout, TimeUnit.MILLISECONDS)
                 .withWriteTimeout(writeTimeout, TimeUnit.MILLISECONDS)
-                .proceed(request)
+
+        return newChain.proceed(request)
     }
 
 }
