@@ -61,8 +61,8 @@ const buildDefaultApiClientConfiguration = (
         followRedirects: true,
         allowsCellularAccess: true,
         waitsForConnectivity: false,
-        timeoutIntervalForRequest: 30,
-        timeoutIntervalForResource: 30,
+        timeoutIntervalForRequest: 30000,
+        timeoutIntervalForResource: 30000,
         httpMaximumConnectionsPerHost: 10,
         cancelRequestsOnUnauthorized: true,
     };
@@ -128,7 +128,7 @@ const createAPIClient = async (
             isMattermostClient,
         };
     } catch (e) {
-        console.log(e.message);
+        console.log("Error creating API Client", e);
         return null;
     }
 };

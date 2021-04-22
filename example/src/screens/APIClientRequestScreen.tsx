@@ -21,7 +21,7 @@ const APIClientRequestScreen = ({ route }: APIClientRequestScreenProps) => {
     const [endpoint, setEndpoint] = useState(
         method === METHODS.POST ? "/api/v4/users/login" : "/api/v4/users/me"
     );
-    const [timeoutInterval, setTimeoutInterval] = useState(30);
+    const [timeoutInterval, setTimeoutInterval] = useState(30000);
     const [body, setBody] = useState(
         '{"login_id":"user-1","password":"password"}'
     );
@@ -116,10 +116,11 @@ const APIClientRequestScreen = ({ route }: APIClientRequestScreenProps) => {
                     />
                 )}
                 <NumericInput
-                    title="Timeout Interval"
+                    title="Timeout Interval (ms)"
                     value={timeoutInterval}
                     onChange={setTimeoutInterval}
                     minValue={0}
+                    step={5000}
                     testID="api_client_request.timeout_interval.input"
                 />
                 <RetryPolicyConfiguration
