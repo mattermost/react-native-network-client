@@ -36,9 +36,9 @@ fun Response.returnAsWriteableMap(): WritableMap {
 }
 
 /**
- * Parses options passed in over the bridge for individual requests
+ * Parses headers passed in over the bridge for individual requests
  *
- * @param options ReadableMap of options from the App
+ * @param headers ReadableMap of headers from the App
  */
 fun Request.Builder.applyHeaders(headers: ReadableMap?): Request.Builder {
     if (headers != null){
