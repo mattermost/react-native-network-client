@@ -24,14 +24,14 @@ class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: R
     private val builder: OkHttpClient.Builder = OkHttpClient().newBuilder()
 
     companion object RequestRetriesExhausted {
-        private val retriesExhausted: HashMap<Response, Boolean?> = hashMapOf()
+        private val requestRetriesExhausted: HashMap<Response, Boolean?> = hashMapOf()
 
         operator fun getValue(response: Response, property: KProperty<*>): Boolean? {
-            return retriesExhausted[response]
+            return requestRetriesExhausted[response]
         }
 
         operator fun setValue(response: Response, property: KProperty<*>, value: Boolean?) {
-            retriesExhausted[response] = value
+            requestRetriesExhausted[response] = value
         }
     }
 
@@ -87,6 +87,7 @@ class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: R
     }
 
     fun cleanUpAfter(response: Response) {
+        requestRetriesExhausted.remove(response.request)
         requestRetryInterceptors.remove(response.request)
         requestTimeoutInterceptors.remove(response.request)
     }
