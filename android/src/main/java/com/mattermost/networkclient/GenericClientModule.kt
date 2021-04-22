@@ -1,6 +1,7 @@
 package com.mattermost.networkclient
 
 import com.facebook.react.bridge.*
+import java.lang.Exception
 
 class GenericClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
     private var client = NetworkClient();
@@ -11,37 +12,37 @@ class GenericClientModule(reactContext: ReactApplicationContext) : ReactContextB
 
     @ReactMethod
     fun get(url: String, options: ReadableMap, promise: Promise) {
-        client.request("get", url, options).use { response ->
-            promise.resolve(response.returnAsWriteableMap())
-        }
+        request("GET", url, options, promise)
     }
 
     @ReactMethod
     fun post(url: String, options: ReadableMap, promise: Promise) {
-        client.request("post", url, options).use { response ->
-            promise.resolve(response.returnAsWriteableMap())
-        }
+        request("POST", url, options, promise)
     }
 
     @ReactMethod
     fun put(url: String, options: ReadableMap, promise: Promise) {
-        client.request("put", url, options).use { response ->
-            promise.resolve(response.returnAsWriteableMap())
-        }
+        request("PUT", url, options, promise)
     }
 
     @ReactMethod
     fun patch(url: String, options: ReadableMap, promise: Promise) {
-        client.request("patch", url, options).use { response ->
-            promise.resolve(response.returnAsWriteableMap())
-        }
+        request("PATCH", url, options, promise)
     }
 
     @ReactMethod
     fun delete(url: String, options: ReadableMap, promise: Promise) {
-        client.request("delete", url, options).use { response ->
-            promise.resolve(response.returnAsWriteableMap())
-        }
+        request("DELETE", url, options, promise)
     }
 
+    private fun request(method: String, url: String, options: ReadableMap, promise: Promise) {
+        try {
+            client.request(method, url, options).use { response ->
+                promise.resolve(response.returnAsWriteableMap())
+                client.cleanUpAfter(response)
+            }
+        } catch (error: Exception) {
+            return promise.reject(error)
+        }
+    }
 }
