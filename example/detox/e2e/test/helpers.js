@@ -228,7 +228,7 @@ export const performApiClientRequest = async ({
         exponentialBackoffScale: 5,
         retryInterval: 6,
     },
-    timeoutInterval = 60,
+    timeoutInterval = 10000,
 }) => {
     const {
         makeRequest,
@@ -281,7 +281,7 @@ export const performGenericClientRequest = async ({
         exponentialBackoffScale: 5,
         retryInterval: 6,
     },
-    timeoutInterval = 60,
+    timeoutInterval = 10000,
     url = null,
 }) => {
     const {
@@ -557,7 +557,7 @@ export const verifyLinearRetryTimeDiff = (
     retryLimit,
     retryInterval
 ) => {
-    const actualTimeDiff = Math.floor((endTime - beginTime) / 1000);
+    const actualTimeDiff = Math.floor((endTime - beginTime - 1000) / 1000);
     const expectedTimeDiff = Math.floor((retryLimit * retryInterval) / 1000);
     jestExpect(actualTimeDiff).toBeCloseTo(expectedTimeDiff);
 };
@@ -577,18 +577,18 @@ export const verifyExponentialRetryTimeDiff = (
     exponentialBackoffBase,
     exponentialBackoffScale
 ) => {
-    const actualTimeDiff = Math.floor((endTime - beginTime) / 1000);
+    const actualTimeDiff = Math.round((endTime - beginTime - 2000) / 1000);
     let expectedTimeDiff = 0;
     if (isIos()) {
         // This is a workaround calculation to closely match actual results in iOS
-        expectedTimeDiff = Math.floor(
+        expectedTimeDiff = Math.round(
             exponentialBackoffBase * exponentialBackoffScale
         );
     } else {
         // This is the expected calculated delay for exponential retry, however,
         // the iOS app is not producing the same results
         for (let retryCount = 1; retryCount <= retryLimit; retryCount++) {
-            expectedTimeDiff += Math.floor(
+            expectedTimeDiff += Math.round(
                 Math.pow(exponentialBackoffBase, retryCount) *
                     exponentialBackoffScale
             );
