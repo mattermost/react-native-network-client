@@ -123,12 +123,14 @@ export default function CreateAPIClientScreen({
                 <Input
                     label="Name"
                     onChangeText={setName}
+                    autoCorrect={false}
                     testID="create_api_client.name.input"
                 />
                 <Input
                     label="Base URL"
                     onChangeText={setBaseUrl}
                     autoCapitalize="none"
+                    autoCorrect={false}
                     testID="create_api_client.base_url.input"
                 />
 
