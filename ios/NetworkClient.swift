@@ -60,8 +60,7 @@ extension NetworkClient {
         let requestModifer = getRequestModifier(from: options)
         let retryPolicy = getRetryPolicy(from: options)
 
-        let request = session.request(url, method: method, parameters: parameters, encoder: encoder, headers: headers, requestModifier: requestModifer)
-            .setRetryPolicy(retryPolicy)
+        session.request(url, method: method, parameters: parameters, encoder: encoder, headers: headers, requestModifier: requestModifer)
             .validate()
             .responseJSON { json in
                 self.handleResponse(for: session, withUrl: url, withData: json)
@@ -182,9 +181,12 @@ extension NetworkClient {
     }
     
     func getRequestModifier(from options: JSON) -> Session.RequestModifier? {
-        if let timeoutInterval = options["timeoutInterval"].double {
-            return { $0.timeoutInterval = timeoutInterval / 1000 }
+        return {
+            $0.retryPolicy = getRetryPolicy(from: options)
+
+            if let timeoutInterval = options["timeoutInterval"].double {
+                $0.timeoutInterval = timeoutInterval / 1000
+            }
         }
-        return nil
     }
 }
