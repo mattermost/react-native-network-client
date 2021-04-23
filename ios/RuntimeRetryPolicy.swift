@@ -17,7 +17,7 @@ open class RuntimeRetrier: RequestInterceptor {
                     for session: Session,
                     dueTo error: Error,
                     completion: @escaping (RetryResult) -> Void) {
-        if let retryPolicy = request.retryPolicy ?? session.retryPolicy {
+        if let retryPolicy = request.request?.retryPolicy ?? session.retryPolicy {
             retryPolicy.retry(request,
                               for: session,
                               dueTo: error,
