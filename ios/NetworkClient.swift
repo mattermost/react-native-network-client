@@ -31,12 +31,16 @@ protocol NetworkClient {
                         withUrl url: URL,
                         withData data: AFDataResponse<Any>) -> Void
     
+    func resolveOrRejectJSONResponse(_ json: AFDataResponse<Any>,
+                                     withResolver resolve: @escaping RCTPromiseResolveBlock,
+                                     withRejecter reject: @escaping RCTPromiseRejectBlock)
+    
     func rejectMalformed(url: String,
                          withRejecter reject: @escaping RCTPromiseRejectBlock) -> Void
     
     func getSessionInterceptor(from options: JSON) -> Interceptor?
 
-    func getRetryPolicy(from options: JSON) -> RetryPolicy?
+    func getRetryPolicy(from options: JSON, forRequest request: URLRequest?) -> RetryPolicy?
 
     func getHTTPHeaders(from options: JSON) -> HTTPHeaders?
 
@@ -58,53 +62,60 @@ extension NetworkClient {
         let encoder: ParameterEncoder = parameters != nil ? JSONParameterEncoder.default : URLEncodedFormParameterEncoder.default
         let headers = getHTTPHeaders(from: options)
         let requestModifer = getRequestModifier(from: options)
-        let retryPolicy = getRetryPolicy(from: options)
 
         session.request(url, method: method, parameters: parameters, encoder: encoder, headers: headers, requestModifier: requestModifer)
             .validate()
             .responseJSON { json in
                 self.handleResponse(for: session, withUrl: url, withData: json)
-
-                switch (json.result) {
-                case .success:
-                    var ok = false
-                    if let statusCode = json.response?.statusCode {
-                        ok = (200 ... 299).contains(statusCode)
-                    }
-
-                    resolve([
-                        "ok": ok,
-                        "headers": json.response?.allHeaderFields,
-                        "data": json.value,
-                        "code": json.response?.statusCode,
-                        "lastRequestedUrl": json.response?.url?.absoluteString
-                    ])
-                case .failure(let error):
-                    var responseCode = error.responseCode
-                    var retriesExhausted = false
-                    if error.isRequestRetryError, let underlyingError = error.underlyingError {
-                        responseCode = underlyingError.asAFError?.responseCode
-                        retriesExhausted = true
-                    }
-                    
-                    if responseCode != nil {
-                        resolve([
-                            "ok": false,
-                            "headers": json.response?.allHeaderFields,
-                            "data": json.value,
-                            "code": responseCode,
-                            "lastRequestedUrl": json.response?.url?.absoluteString,
-                            "retriesExhausted": retriesExhausted
-                        ])
-                        return
-                    }
-
-                    reject("\(error._code)", error.localizedDescription, error)
-                }
+                self.resolveOrRejectJSONResponse(json, withResolver: resolve, withRejecter: reject)
         }
     }
     
     func handleResponse(for session: Session, withUrl url: URL, withData data: AFDataResponse<Any>) -> Void {}
+    
+    func resolveOrRejectJSONResponse(_ json: AFDataResponse<Any>,
+                                     withResolver resolve: @escaping RCTPromiseResolveBlock,
+                                     withRejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+
+        json.request?.removeRetryPolicy()
+        
+        switch (json.result) {
+        case .success:
+            var ok = false
+            if let statusCode = json.response?.statusCode {
+                ok = (200 ... 299).contains(statusCode)
+            }
+
+            resolve([
+                "ok": ok,
+                "headers": json.response?.allHeaderFields,
+                "data": json.value,
+                "code": json.response?.statusCode,
+                "lastRequestedUrl": json.response?.url?.absoluteString
+            ])
+        case .failure(let error):
+            var responseCode = error.responseCode
+            var retriesExhausted = false
+            if error.isRequestRetryError, let underlyingError = error.underlyingError {
+                responseCode = underlyingError.asAFError?.responseCode
+                retriesExhausted = true
+            }
+            
+            if responseCode != nil {
+                resolve([
+                    "ok": false,
+                    "headers": json.response?.allHeaderFields,
+                    "data": json.value,
+                    "code": responseCode,
+                    "lastRequestedUrl": json.response?.url?.absoluteString,
+                    "retriesExhausted": retriesExhausted
+                ])
+                return
+            }
+
+            reject("\(error._code)", error.localizedDescription, error)
+        }
+    }
     
     func rejectMalformed(url: String, withRejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
         let message = "Malformed URL: \(url)"
@@ -127,11 +138,13 @@ extension NetworkClient {
         return Interceptor(adapters: adapters, retriers: retriers)
     }
     
-    func getRetryPolicy(from options: JSON) -> RetryPolicy? {
+    func getRetryPolicy(from options: JSON, forRequest request: URLRequest? = nil) -> RetryPolicy? {
         let configuration = options["retryPolicyConfiguration"]
         if configuration != JSON.null {
             var retryableHTTPMethods = RetryPolicy.defaultRetryableHTTPMethods
-            if let methodsArray = configuration["retryMethods"].array {
+            if let request = request {
+                retryableHTTPMethods = [request.method!]
+            } else if let methodsArray = configuration["retryMethods"].array {
                 retryableHTTPMethods = Set(methodsArray.map { (method) -> HTTPMethod in
                     return HTTPMethod(rawValue: method.stringValue.uppercased())
                 })
@@ -182,7 +195,7 @@ extension NetworkClient {
     
     func getRequestModifier(from options: JSON) -> Session.RequestModifier? {
         return {
-            $0.retryPolicy = getRetryPolicy(from: options)
+            $0.retryPolicy = getRetryPolicy(from: options, forRequest: $0)
 
             if let timeoutInterval = options["timeoutInterval"].double {
                 $0.timeoutInterval = timeoutInterval / 1000

@@ -60,14 +60,6 @@ class APIClientSessionDelegate: SessionDelegate {
 
         completionHandler(disposition, credential)
     }
-    
-    override open func urlSession(_ urlSession: URLSession,
-                                  task: URLSessionTask,
-                                  didCompleteWithError: Error?) {
-        task.currentRequest?.removeRetryPolicy()
-
-        super.urlSession(urlSession, task: task, didCompleteWithError: didCompleteWithError)
-    }
 }
 
 @objc(APIClient)
@@ -306,42 +298,7 @@ class APIClient: RCTEventEmitter, NetworkClient {
                 }
             }
             .responseJSON { json in
-                switch (json.result) {
-                case .success:
-                    var ok = false
-                    if let statusCode = json.response?.statusCode {
-                        ok = (200 ... 299).contains(statusCode)
-                    }
-
-                    resolve([
-                        "ok": ok,
-                        "headers": json.response?.allHeaderFields,
-                        "data": json.value,
-                        "code": json.response?.statusCode,
-                        "lastRequestedUrl": json.response?.url?.absoluteString
-                    ])
-                case .failure(let error):
-                    var responseCode = error.responseCode
-                    var retriesExhausted = false
-                    if error.isRequestRetryError, let underlyingError = error.underlyingError {
-                        responseCode = underlyingError.asAFError?.responseCode
-                        retriesExhausted = true
-                    }
-                    
-                    if responseCode != nil {
-                        resolve([
-                            "ok": false,
-                            "headers": json.response?.allHeaderFields,
-                            "data": json.value,
-                            "code": responseCode,
-                            "lastRequestedUrl": json.response?.url?.absoluteString,
-                            "retriesExhausted": retriesExhausted
-                        ])
-                        return
-                    }
-
-                    reject("\(error._code)", error.localizedDescription, error)
-                }
+                self.resolveOrRejectJSONResponse(json, withResolver: resolve, withRejecter: reject)
             }
 
         self.requestsTable.setObject(request, forKey: taskId as NSString)
@@ -376,42 +333,7 @@ class APIClient: RCTEventEmitter, NetworkClient {
                 }
             }
             .responseJSON { json in
-                switch (json.result) {
-                case .success:
-                    var ok = false
-                    if let statusCode = json.response?.statusCode {
-                        ok = (200 ... 299).contains(statusCode)
-                    }
-
-                    resolve([
-                        "ok": ok,
-                        "headers": json.response?.allHeaderFields,
-                        "data": json.value,
-                        "code": json.response?.statusCode,
-                        "lastRequestedUrl": json.response?.url?.absoluteString
-                    ])
-                case .failure(let error):
-                    var responseCode = error.responseCode
-                    var retriesExhausted = false
-                    if error.isRequestRetryError, let underlyingError = error.underlyingError {
-                        responseCode = underlyingError.asAFError?.responseCode
-                        retriesExhausted = true
-                    }
-                    
-                    if responseCode != nil {
-                        resolve([
-                            "ok": false,
-                            "headers": json.response?.allHeaderFields,
-                            "data": json.value,
-                            "code": responseCode,
-                            "lastRequestedUrl": json.response?.url?.absoluteString,
-                            "retriesExhausted": retriesExhausted
-                        ])
-                        return
-                    }
-
-                    reject("\(error._code)", error.localizedDescription, error)
-                }
+                self.resolveOrRejectJSONResponse(json, withResolver: resolve, withRejecter: reject)
             }
 
         self.requestsTable.setObject(request, forKey: taskId as NSString)

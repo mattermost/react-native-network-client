@@ -16,7 +16,7 @@ interface RetryPolicyConfigurationProps extends RetryPolicyConfiguration {
     setExponentialBackoffBase: (value: number) => void;
     setExponentialBackoffScale: (value: number) => void;
     setStatusCodes: (value: number[]) => void;
-    setRetryMethods: (value: string[]) => void;
+    setRetryMethods?: (value: string[]) => void;
 }
 
 const RetryPolicyConfiguration = (props: RetryPolicyConfigurationProps) => {
@@ -50,12 +50,14 @@ const RetryPolicyConfiguration = (props: RetryPolicyConfigurationProps) => {
         1,
     ]);
 
-    useEffect(() => {
-        const selectedMethods = selectedMethodsIndex.map(
-            (index) => buttonMethods[index]
-        );
-        props.setRetryMethods(selectedMethods);
-    }, [selectedMethodsIndex]);
+    if (props.setRetryMethods !== undefined) {
+        useEffect(() => {
+            const selectedMethods = selectedMethodsIndex.map(
+                (index) => buttonMethods[index]
+            );
+            props.setRetryMethods!(selectedMethods);
+        }, [selectedMethodsIndex]);
+    }
 
     const PolicyTypeCheckbox = () => (
         <View style={{ flex: 1, flexDirection: "row" }}>
@@ -174,23 +176,31 @@ const RetryPolicyConfiguration = (props: RetryPolicyConfigurationProps) => {
                         onBlur={updateStatusCodes}
                     />
 
-                    <Input
-                        placeholder="Retry Methods"
-                        disabled={true}
-                        style={{ fontWeight: "bold", fontSize: 17, opacity: 1 }}
-                        containerStyle={{ height: 50 }}
-                        inputContainerStyle={{
-                            borderColor: "rgba(255,255,255,0)",
-                        }}
-                    />
+                    {props.setRetryMethods && (
+                        <>
+                            <Input
+                                placeholder="Retry Methods"
+                                disabled={true}
+                                style={{
+                                    fontWeight: "bold",
+                                    fontSize: 17,
+                                    opacity: 1,
+                                }}
+                                containerStyle={{ height: 50 }}
+                                inputContainerStyle={{
+                                    borderColor: "rgba(255,255,255,0)",
+                                }}
+                            />
 
-                    <ButtonGroup
-                        selectedIndexes={selectedMethodsIndex}
-                        // @ts-ignore
-                        onPress={setSelectedMethodsIndex}
-                        buttons={buttonMethods}
-                        selectMultiple
-                    />
+                            <ButtonGroup
+                                selectedIndexes={selectedMethodsIndex}
+                                // @ts-ignore
+                                onPress={setSelectedMethodsIndex}
+                                buttons={buttonMethods}
+                                selectMultiple
+                            />
+                        </>
+                    )}
                 </>
             )}
         </>

@@ -19,7 +19,9 @@ const APIClientRequestScreen = ({ route }: APIClientRequestScreenProps) => {
         method,
     } = route.params;
     const [endpoint, setEndpoint] = useState(
-        method === METHODS.POST ? "/api/v4/users/login" : "/api/v4/users/me"
+        method === METHODS.POST
+            ? "/api/v4/users/login"
+            : "/delete/retry/clientID/3ccdd8/serverDelay/0/serverRetryLimit/5"
     );
     const [timeoutInterval, setTimeoutInterval] = useState(30000);
     const [body, setBody] = useState(
@@ -38,7 +40,6 @@ const APIClientRequestScreen = ({ route }: APIClientRequestScreenProps) => {
         setExponentialBackoffBase,
         setExponentialBackoffScale,
         setStatusCodes,
-        setRetryMethods,
     ] = useRetryPolicyConfiguration();
 
     const makeRequest = async () => {
@@ -140,8 +141,6 @@ const APIClientRequestScreen = ({ route }: APIClientRequestScreenProps) => {
                     setExponentialBackoffScale={setExponentialBackoffScale}
                     statusCodes={retryPolicyConfiguration.statusCodes}
                     setStatusCodes={setStatusCodes}
-                    retryMethods={retryPolicyConfiguration.retryMethods}
-                    setRetryMethods={setRetryMethods}
                 />
                 <ResponseSuccessOverlay
                     response={response}

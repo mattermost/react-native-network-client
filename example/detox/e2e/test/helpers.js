@@ -228,7 +228,7 @@ export const performApiClientRequest = async ({
         exponentialBackoffScale: 5,
         retryInterval: 6,
     },
-    timeoutInterval = 60000,
+    timeoutInterval = 60,
 }) => {
     const {
         makeRequest,
@@ -281,7 +281,7 @@ export const performGenericClientRequest = async ({
         exponentialBackoffScale: 5,
         retryInterval: 6,
     },
-    timeoutInterval = 60000,
+    timeoutInterval = 60,
     url = null,
 }) => {
     const {

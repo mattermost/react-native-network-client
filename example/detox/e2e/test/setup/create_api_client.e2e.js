@@ -31,7 +31,7 @@ describe("Create API Client", () => {
         retryLimit: getRandomInt(5) + 1,
         exponentialBackoffBase: getRandomInt(5) + 2,
         exponentialBackoffScale: getRandomInt(5) + 3,
-        retryInterval: getRandomInt(5) + 4,
+        retryInterval: (getRandomInt(5) + 4) * 1000,
     };
 
     beforeEach(async () => {
