@@ -18,7 +18,7 @@ class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: R
     var webSocket: WebSocket? = null
     var clientHeaders: WritableMap = Arguments.createMap()
     var clientRetryInterceptor: Interceptor? = null
-    var clientTimeoutInterceptor: TimeoutInterceptor
+    lateinit var clientTimeoutInterceptor: TimeoutInterceptor
     val requestRetryInterceptors: HashMap<Request, Interceptor> = hashMapOf()
     val requestTimeoutInterceptors: HashMap<Request, TimeoutInterceptor> = hashMapOf()
     private val builder: OkHttpClient.Builder = OkHttpClient().newBuilder()
