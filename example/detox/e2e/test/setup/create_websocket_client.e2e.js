@@ -25,7 +25,7 @@ describe("Create WebSocket Client", () => {
     const testUrl = `wss://example-${randomText}-ws.com`;
     const testName = `Example ${randomText} WebSocket`;
     const testHeaders = { ...customHeaders };
-    const testTimeoutInterval = getRandomInt(60);
+    const testTimeoutInterval = getRandomInt(60) * 1000;
 
     beforeEach(async () => {
         await device.reloadReactNative();

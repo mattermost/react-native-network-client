@@ -474,11 +474,11 @@ class APIClient: RCTEventEmitter, NetworkClient {
         }
 
         if sessionOptions["timeoutIntervalForRequest"].exists() {
-            config.timeoutIntervalForRequest = sessionOptions["timeoutIntervalForRequest"].doubleValue
+            config.timeoutIntervalForRequest = sessionOptions["timeoutIntervalForRequest"].doubleValue / 1000
         }
 
         if sessionOptions["timeoutIntervalForResource"].exists() {
-            config.timeoutIntervalForResource = sessionOptions["timeoutIntervalForResource"].doubleValue
+            config.timeoutIntervalForResource = sessionOptions["timeoutIntervalForResource"].doubleValue / 1000
         }
 
         if sessionOptions["httpMaximumConnectionsPerHost"].exists() {

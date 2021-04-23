@@ -3,19 +3,12 @@ package com.mattermost.networkclient
 import com.facebook.react.bridge.*
 import com.mattermost.networkclient.enums.WebSocketEvents
 import com.mattermost.networkclient.enums.WebSocketReadyState
-import com.mattermost.networkclient.events.WebSocketEvent
-import com.mattermost.networkclient.helpers.applyClientOptions
-import com.mattermost.networkclient.helpers.trimSlashes
+import okhttp3.*
 import okhttp3.HttpUrl.Companion.toHttpUrl
-import okhttp3.OkHttpClient
-import okhttp3.Request
 import kotlin.collections.HashMap
 
 class WebSocketClientModule(private val reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
-
-    private val clients = SessionsObject.client
-    private val configs = SessionsObject.requestConfig
-    private val sockets = SessionsObject.socket
+    private val clients = mutableMapOf<HttpUrl, NetworkClient>()
 
     override fun getName(): String {
         return "WebSocketClient"
@@ -23,22 +16,17 @@ class WebSocketClientModule(private val reactContext: ReactApplicationContext) :
 
     @ReactMethod
     fun createClientFor(baseUrl: String, options: ReadableMap, promise: Promise) {
-        var url: String
+        var url: HttpUrl
         try {
-            url = baseUrl.toHttpUrl().toString()
+            url = baseUrl.toHttpUrl()
         } catch (err: IllegalArgumentException) {
             return promise.reject(err)
         }
 
+
         try {
-            // Create the client and request builder
-            clients[url] = OkHttpClient().newBuilder()
-            configs[url] = hashMapOf("baseUrl" to url);
+            clients[url] = NetworkClient(url, options)
 
-            // Attach client options if they are passed in
-            clients[url]!!.applyClientOptions(options, url);
-
-            // Return client for success
             promise.resolve(null)
         } catch (err: Throwable) {
             promise.reject(err)
@@ -47,18 +35,15 @@ class WebSocketClientModule(private val reactContext: ReactApplicationContext) :
 
     @ReactMethod
     fun invalidateClientFor(baseUrl: String, promise: Promise) {
-        var url: String
+        var url: HttpUrl
         try {
-            url = baseUrl.toHttpUrl().toString()
+            url = baseUrl.toHttpUrl()
         } catch (err: IllegalArgumentException) {
             return promise.reject(err)
         }
 
-        // Close the connection
-        sockets[url]?.close(1000, null)
 
-        // Remove
-        sockets.remove(url);
+        clients[url]!!.webSocket?.close(1000, null)
         clients.remove(url);
 
         promise.resolve(null)
@@ -66,15 +51,17 @@ class WebSocketClientModule(private val reactContext: ReactApplicationContext) :
 
     @ReactMethod
     fun connectFor(baseUrl: String, promise: Promise) {
-        var url: String
+        var url: HttpUrl
         try {
-            url = baseUrl.toHttpUrl().toString()
+            url = baseUrl.toHttpUrl()
         } catch (err: IllegalArgumentException) {
             return promise.reject(err)
         }
 
+
+        val listener = WebSocketEventListener(reactContext, url)
         try {
-            sockets[url] = clients[url]!!.build().newWebSocket(Request.Builder().build(), WebSocketEvent(reactContext, url))
+            clients[url]!!.createWebSocket(listener)
         } catch (err: Throwable) {
             promise.reject(err)
         }
@@ -82,15 +69,16 @@ class WebSocketClientModule(private val reactContext: ReactApplicationContext) :
 
     @ReactMethod
     fun disconnectFor(baseUrl: String, promise: Promise) {
-        var url: String
+        var url: HttpUrl
         try {
-            url = baseUrl.toHttpUrl().toString()
+            url = baseUrl.toHttpUrl()
         } catch (err: IllegalArgumentException) {
             return promise.reject(err)
         }
 
+
         try {
-            sockets[url]!!.close(1000, null)
+            clients[url]!!.webSocket!!.close(1000, null)
         } catch (err: Throwable) {
             promise.reject(err)
         }
@@ -98,15 +86,16 @@ class WebSocketClientModule(private val reactContext: ReactApplicationContext) :
 
     @ReactMethod
     fun sendDataFor(baseUrl: String, data: String, promise: Promise) {
-        var url: String
+        var url: HttpUrl
         try {
-            url = baseUrl.toHttpUrl().toString()
+            url = baseUrl.toHttpUrl()
         } catch (err: IllegalArgumentException) {
             return promise.reject(err)
         }
 
+
         try {
-            sockets[url]!!.send(data)
+            clients[url]!!.webSocket!!.send(data)
         } catch (err: Throwable) {
             promise.reject(err)
         }

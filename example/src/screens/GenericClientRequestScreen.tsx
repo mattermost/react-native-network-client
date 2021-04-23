@@ -19,7 +19,7 @@ const GenericClientRequestScreen = ({
 
     const [url, setUrl] = useState("");
     const [selectedMethodIndex, setSelectedMethodIndex] = useState(0);
-    const [timeoutInterval, setTimeoutInterval] = useState(30);
+    const [timeoutInterval, setTimeoutInterval] = useState(30000);
     const [body, setBody] = useState('{"login_id":"","password":""}');
     const [requestHeaders, setRequestHeaders] = useState<Header[]>([]);
     const [response, setResponse] = useState<ClientResponse>();
@@ -121,10 +121,11 @@ const GenericClientRequestScreen = ({
                     />
                 )}
                 <NumericInput
-                    title="Timeout Interval"
+                    title="Timeout Interval (ms)"
                     value={timeoutInterval}
                     onChange={setTimeoutInterval}
                     minValue={0}
+                    step={5000}
                     testID="generic_client_request.timeout_interval.input"
                 />
                 <RetryPolicyConfiguration

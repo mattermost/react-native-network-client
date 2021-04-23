@@ -1,65 +1,48 @@
 package com.mattermost.networkclient
 
-import android.util.Log
 import com.facebook.react.bridge.*
-import com.mattermost.networkclient.helpers.*
-import com.mattermost.networkclient.interceptors.RetryInterceptor
-import okhttp3.OkHttpClient
-import okhttp3.Request
-
+import java.lang.Exception
 
 class GenericClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
-    private var client = OkHttpClient().newBuilder();
+    private var client = NetworkClient();
 
     override fun getName(): String {
         return "GenericClient"
     }
 
-    init {
-        client.addInterceptor(RetryInterceptor("generic"))
-        SessionsObject.client["generic"] = client;
-        SessionsObject.requestConfig["generic"] = HashMap();
-    }
-
     @ReactMethod
     fun get(url: String, options: ReadableMap, promise: Promise) {
-        val request = Request.Builder().url(url).applyRequestOptions(options, "generic").build()
-        client.build().newCall(request).execute().use { response ->
-            Log.d("MIGUEL", response.toString())
-            promise.resolve(response.returnAsWriteableMap("generic"))
-        }
+        request("GET", url, options, promise)
     }
 
     @ReactMethod
     fun post(url: String, options: ReadableMap, promise: Promise) {
-        val request = Request.Builder().url(url).post(options.bodyToRequestBody()).applyRequestOptions(options, "generic").build()
-        client.build().newCall(request).execute().use { response ->
-            promise.resolve(response.returnAsWriteableMap("generic"))
-        }
+        request("POST", url, options, promise)
     }
 
     @ReactMethod
     fun put(url: String, options: ReadableMap, promise: Promise) {
-        val request = Request.Builder().url(url).put(options.bodyToRequestBody()).applyRequestOptions(options, "generic").build()
-        client.build().newCall(request).execute().use { response ->
-            promise.resolve(response.returnAsWriteableMap("generic"))
-        }
+        request("PUT", url, options, promise)
     }
 
     @ReactMethod
     fun patch(url: String, options: ReadableMap, promise: Promise) {
-        val request = Request.Builder().url(url).patch(options.bodyToRequestBody()).applyRequestOptions(options, "generic").build()
-        client.build().newCall(request).execute().use { response ->
-            promise.resolve(response.returnAsWriteableMap("generic"))
-        }
+        request("PATCH", url, options, promise)
     }
 
     @ReactMethod
     fun delete(url: String, options: ReadableMap, promise: Promise) {
-        val request = Request.Builder().url(url).delete(options.bodyToRequestBody()).applyRequestOptions(options, "generic").build()
-        client.build().newCall(request).execute().use { response ->
-            promise.resolve(response.returnAsWriteableMap("generic"))
-        }
+        request("DELETE", url, options, promise)
     }
 
+    private fun request(method: String, url: String, options: ReadableMap, promise: Promise) {
+        try {
+            client.request(method, url, options).use { response ->
+                promise.resolve(response.returnAsWriteableMap())
+                client.cleanUpAfter(response)
+            }
+        } catch (error: Exception) {
+            return promise.reject(error)
+        }
+    }
 }

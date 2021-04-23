@@ -185,7 +185,7 @@ extension NetworkClient {
             $0.retryPolicy = getRetryPolicy(from: options)
 
             if let timeoutInterval = options["timeoutInterval"].double {
-                $0.timeoutInterval = timeoutInterval
+                $0.timeoutInterval = timeoutInterval / 1000
             }
         }
     }
