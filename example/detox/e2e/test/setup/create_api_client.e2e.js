@@ -23,8 +23,8 @@ describe("Create API Client", () => {
     const testName = `Example ${randomText} API`;
     const testHeaders = { ...customHeaders };
     const testToken = getRandomId(10);
-    const testRequestTimeoutInterval = getRandomInt(60);
-    const testResourceTimeoutInterval = getRandomInt(60);
+    const testRequestTimeoutInterval = getRandomInt(60) * 1000;
+    const testResourceTimeoutInterval = getRandomInt(60) * 1000;
     const testMaxConnections = getRandomInt(10);
     const testRetry = {
         retryPolicyType: getRandomItem(retryPolicyTypes),

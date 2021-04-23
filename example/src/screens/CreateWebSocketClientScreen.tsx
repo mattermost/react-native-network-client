@@ -35,7 +35,7 @@ export default function CreateWebSocketClientScreen({
         configuration,
         setConfiguration,
     ] = useState<WebSocketClientConfiguration>({
-        timeoutInterval: 5,
+        timeoutInterval: 5000,
         enableCompression: false,
         trustSelfSignedServerCertificate: false,
     });
@@ -141,10 +141,11 @@ export default function CreateWebSocketClientScreen({
                 />
 
                 <NumericInput
-                    title="Timeout Interval"
+                    title="Timeout Interval (ms)"
                     value={configuration.timeoutInterval}
                     onChange={setTimeoutInterval}
                     minValue={0}
+                    step={5000}
                     testID="create_websocket_client.timeout_interval.input"
                 />
 

@@ -123,12 +123,14 @@ export default function CreateAPIClientScreen({
                 <Input
                     label="Name"
                     onChangeText={setName}
+                    autoCorrect={false}
                     testID="create_api_client.name.input"
                 />
                 <Input
                     label="Base URL"
                     onChangeText={setBaseUrl}
                     autoCapitalize="none"
+                    autoCorrect={false}
                     testID="create_api_client.base_url.input"
                 />
 
@@ -151,18 +153,20 @@ export default function CreateAPIClientScreen({
                 />
 
                 <NumericInput
-                    title="Request Timeout Interval"
+                    title="Request Timeout Interval (ms)"
                     value={sessionConfiguration.timeoutIntervalForRequest}
                     onChange={setTimeoutIntervalForRequest}
                     minValue={0}
+                    step={5000}
                     testID="create_api_client.request_timeout_interval.input"
                 />
 
                 <NumericInput
-                    title="Resource Timeout Interval"
+                    title="Resource Timeout Interval (ms)"
                     value={sessionConfiguration.timeoutIntervalForResource}
                     onChange={setTimeoutIntervalForResource}
                     minValue={0}
+                    step={5000}
                     testID="create_api_client.resource_timeout_interval.input"
                 />
 

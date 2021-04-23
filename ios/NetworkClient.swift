@@ -183,7 +183,7 @@ extension NetworkClient {
     
     func getRequestModifier(from options: JSON) -> Session.RequestModifier? {
         if let timeoutInterval = options["timeoutInterval"].double {
-            return { $0.timeoutInterval = timeoutInterval }
+            return { $0.timeoutInterval = timeoutInterval / 1000 }
         }
         return nil
     }

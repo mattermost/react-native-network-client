@@ -33,7 +33,7 @@ export const customBody = {
 export const retryPolicyTypes = ["exponential", "linear"];
 
 /**
- * Create API client. 
+ * Create API client.
  * @param {string} options.baseUrl - base URL of requested server
  * @param {string} options.clientCertPassword - secure client certificate password
  * @param {Object} options.headers - request headers
@@ -48,23 +48,21 @@ export const retryPolicyTypes = ["exponential", "linear"];
  * @param {string} options.token - request authentication token
  * @param {boolean} options.verify - if true, client created is verified
  */
-export const createApiClient = async (
-    {
-        baseUrl = null,
-        clientCertPassword = null,
-        headers = null,
-        name = null,
-        maxConnections = null,
-        requestTimeoutInterval = null,
-        resourceTimeoutInterval = null,
-        retry = null,
-        secure = false,
-        secureServerClientCertUrl = null,
-        toggleOn = false,
-        token = null,
-        verify = true,
-    } = {}
-) => {
+export const createApiClient = async ({
+    baseUrl = null,
+    clientCertPassword = null,
+    headers = null,
+    name = null,
+    maxConnections = null,
+    requestTimeoutInterval = null,
+    resourceTimeoutInterval = null,
+    retry = null,
+    secure = false,
+    secureServerClientCertUrl = null,
+    toggleOn = false,
+    token = null,
+    verify = true,
+} = {}) => {
     const {
         createClient,
         setBaseUrl,
@@ -147,19 +145,17 @@ export const createApiClient = async (
  * @param {string} options.url - URL of requested server
  * @param {boolean} options.verify - if true, client created is verified
  */
-export const createWebSocketClient = async (
-    {
-        clientCertPassword = null,
-        headers = null,
-        name = null,
-        secure = false,
-        secureWebSocketServerClientCertUrl = null,
-        timeoutInterval = null,
-        toggleOn = false,
-        url = null,
-        verify = true,
-    } = {}
-) => {
+export const createWebSocketClient = async ({
+    clientCertPassword = null,
+    headers = null,
+    name = null,
+    secure = false,
+    secureWebSocketServerClientCertUrl = null,
+    timeoutInterval = null,
+    toggleOn = false,
+    url = null,
+    verify = true,
+} = {}) => {
     const {
         createClient,
         setHeaders,
@@ -232,7 +228,7 @@ export const performApiClientRequest = async ({
         exponentialBackoffScale: 5,
         retryInterval: 6,
     },
-    timeoutInterval = 60,
+    timeoutInterval = 60000,
 }) => {
     const {
         makeRequest,
@@ -285,7 +281,7 @@ export const performGenericClientRequest = async ({
         exponentialBackoffScale: 5,
         retryInterval: 6,
     },
-    timeoutInterval = 60,
+    timeoutInterval = 60000,
     url = null,
 }) => {
     const {
