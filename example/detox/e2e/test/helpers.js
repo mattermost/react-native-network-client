@@ -559,7 +559,8 @@ export const verifyLinearRetryTimeDiff = (
 ) => {
     const actualTimeDiff = Math.floor((endTime - beginTime - 1000) / 1000);
     const expectedTimeDiff = Math.floor((retryLimit * retryInterval) / 1000);
-    jestExpect(actualTimeDiff).toBeCloseTo(expectedTimeDiff);
+    const diff = Math.abs(actualTimeDiff - expectedTimeDiff) / expectedTimeDiff;
+    jestExpect(diff).toBeLessThanOrEqual(1);
 };
 
 /**
@@ -594,5 +595,6 @@ export const verifyExponentialRetryTimeDiff = (
             );
         }
     }
-    jestExpect(actualTimeDiff).toBeCloseTo(expectedTimeDiff);
+    const diff = Math.abs(actualTimeDiff - expectedTimeDiff) / expectedTimeDiff;
+    jestExpect(diff).toBeLessThanOrEqual(1);
 };
