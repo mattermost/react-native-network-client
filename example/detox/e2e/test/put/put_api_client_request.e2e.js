@@ -21,7 +21,7 @@ import {
     ApiClientRequestScreen,
     ApiClientScreen,
 } from "@support/ui/screen";
-import { getHost, getRandomId } from "@support/utils";
+import { getHost, getRandomId, isAndroid } from "@support/utils";
 import {
     customBody,
     customHeaders,
@@ -101,6 +101,11 @@ describe("Put - API Client Request", () => {
     });
 
     it("should return a valid response - secure connection", async () => {
+        // # Do not run against Android due to file attachment limitation
+        if (isAndroid()) {
+            return;
+        }
+
         // * Verify direct server response
         const apiResponse = await Request.apiPut({
             headers: testHeaders,
