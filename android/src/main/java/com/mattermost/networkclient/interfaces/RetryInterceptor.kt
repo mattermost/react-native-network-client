@@ -36,7 +36,7 @@ interface RetryInterceptor : Interceptor {
             response = chain.proceed(request)
         }
 
-        if (attempts >= retryLimit) {
+        if (!response.isSuccessful && attempts >= retryLimit) {
             response.retriesExhausted = true
         }
 
