@@ -82,16 +82,8 @@ class RetryPolicyConfiguration {
     };
 
     setLinearRetry = async ({ retryLimit = 2, retryInterval = 2000 }) => {
-        if (isAndroid()) {
-            await waitForAndScrollDown(
-                this.linearRetryCheckboxTrue,
-                this.testID.screenScrollView
-            );
-            await expect(this.linearRetryCheckboxTrue).toBeVisible();
-        } else {
-            // # Toggle on linear retry checkbox
-            await this.toggleOnLinearRetryCheckbox();
-        }
+        // # Toggle on linear retry checkbox
+        await this.toggleOnLinearRetryCheckbox();
 
         // # Set retry limit
         await this.setRetryLimit(retryLimit);
