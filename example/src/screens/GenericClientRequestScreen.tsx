@@ -158,13 +158,13 @@ const GenericClientRequestScreen = ({
                     visible={responseErrorVisible}
                     setVisible={setResponseErrorVisible}
                 />
-                <Button
-                    title="Request"
-                    onPress={makeRequest}
-                    disabled={!url.length}
-                    style={{ paddingHorizontal: 10 }}
-                />
             </ScrollView>
+            <Button
+                title="Request"
+                onPress={makeRequest}
+                disabled={!url.length}
+                style={{ paddingHorizontal: 10 }}
+            />
         </SafeAreaView>
     );
 };

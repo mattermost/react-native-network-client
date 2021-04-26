@@ -42,10 +42,6 @@ class ApiClientRequestScreen {
     };
 
     makeRequest = async () => {
-        await waitForAndScrollDown(
-            this.requestButton,
-            this.testID.apiClientRequestScrollView
-        );
         await this.requestButton.tap();
     };
 
