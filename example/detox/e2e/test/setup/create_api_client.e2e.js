@@ -14,7 +14,12 @@ import {
 } from "@support/test_config";
 import { Alert } from "@support/ui/component";
 import { ClientListScreen, CreateApiClientScreen } from "@support/ui/screen";
-import { getRandomId, getRandomInt, getRandomItem } from "@support/utils";
+import {
+    getRandomId,
+    getRandomInt,
+    getRandomItem,
+    isAndroid,
+} from "@support/utils";
 import { createApiClient, customHeaders, retryPolicyTypes } from "../helpers";
 
 describe("Create API Client", () => {
@@ -60,6 +65,11 @@ describe("Create API Client", () => {
     });
 
     it("should be able to create, alert for duplicate, and remove an API client - secure connection", async () => {
+        // # Do not run against Android due to file attachment limitation
+        if (isAndroid()) {
+            return;
+        }
+
         // # Remove dupe preset
         await removeApiClient("Secure Mockserver API");
 
