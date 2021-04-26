@@ -166,7 +166,7 @@ const APIClientRequestScreen = ({ route }: APIClientRequestScreenProps) => {
                 title="Request"
                 onPress={makeRequest}
                 disabled={!endpoint.length}
-                style={{ marginHorizontal: 10 }}
+                containerStyle={{ padding: 5 }}
             />
         </SafeAreaView>
     );

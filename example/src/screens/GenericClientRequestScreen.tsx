@@ -93,8 +93,15 @@ const GenericClientRequestScreen = ({
     };
 
     return (
-        <SafeAreaView>
-            <ScrollView testID="generic_client_request.scroll_view">
+        <SafeAreaView style={{ flex: 1 }}>
+            <ScrollView
+                style={{
+                    backgroundColor: "#fff",
+                    borderRadius: 5,
+                    margin: 10,
+                }}
+                testID="generic_client_request.scroll_view"
+            >
                 <ButtonGroup
                     onPress={setSelectedMethodIndex}
                     selectedIndex={selectedMethodIndex}
@@ -163,7 +170,7 @@ const GenericClientRequestScreen = ({
                 title="Request"
                 onPress={makeRequest}
                 disabled={!url.length}
-                style={{ paddingHorizontal: 10 }}
+                containerStyle={{ padding: 5 }}
             />
         </SafeAreaView>
     );

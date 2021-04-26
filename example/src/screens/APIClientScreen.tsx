@@ -75,7 +75,7 @@ export default function APIClientScreen({
                         key={`button-${title}`}
                         title={title}
                         onPress={onPress}
-                        style={{ paddingHorizontal: 10, paddingVertical: 5 }}
+                        containerStyle={{ margin: 5 }}
                     />
                 ))}
             </>
@@ -84,10 +84,12 @@ export default function APIClientScreen({
 
     useEffect(() => {
         client.getHeaders().then((clientHeaders) => {
-            const ordered = Object.keys(clientHeaders).sort().reduce((result: Record<string, string>, key) => {
-                result[key] = clientHeaders[key];
-                return result;
-            }, {});
+            const ordered = Object.keys(clientHeaders)
+                .sort()
+                .reduce((result: Record<string, string>, key) => {
+                    result[key] = clientHeaders[key];
+                    return result;
+                }, {});
             const orderedHeaders = Object.entries(
                 ordered
             ).map(([key, value]) => ({ key, value }));
