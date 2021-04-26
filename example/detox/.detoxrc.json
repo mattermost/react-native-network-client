@@ -12,7 +12,7 @@
       "android.emu.debug": {
         "type": "android.emulator",
         "binaryPath": "../android/app/build/outputs/apk/debug/app-debug.apk",
-        "build": "cd .. && ./node_modules/.bin/jetify && cd android && ./gradlew assembleDebug assembleAndroidTest -DtestBuildType=debug && cd ../detox",
+        "build": "cd .. && ./node_modules/.bin/jetify && cd android && ./gradlew clean assembleDebug assembleAndroidTest -DtestBuildType=debug && cd ../detox",
         "device": {
           "avdName": "detox_emu_api_30"
         }
