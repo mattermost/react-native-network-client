@@ -95,8 +95,17 @@ const APIClientRequestScreen = ({ route }: APIClientRequestScreenProps) => {
     };
 
     return (
-        <SafeAreaView>
-            <ScrollView testID="api_client_request.scroll_view">
+        <SafeAreaView style={{ flex: 1 }}>
+            <ScrollView
+                style={{
+                    backgroundColor: "#fff",
+                    borderRadius: 5,
+                    margin: 10,
+                }}
+                testID="api_client_request.scroll_view"
+                persistentScrollbar={true}
+                showsVerticalScrollIndicator={true}
+            >
                 <Input
                     label={`${method}\n\n${client.baseUrl}`}
                     placeholder="/api/v4/system/ping"
@@ -152,13 +161,13 @@ const APIClientRequestScreen = ({ route }: APIClientRequestScreenProps) => {
                     visible={responseErrorVisible}
                     setVisible={setResponseErrorVisible}
                 />
-                <Button
-                    title="Request"
-                    onPress={makeRequest}
-                    disabled={!endpoint.length}
-                    style={{ paddingHorizontal: 10 }}
-                />
             </ScrollView>
+            <Button
+                title="Request"
+                onPress={makeRequest}
+                disabled={!endpoint.length}
+                style={{ marginHorizontal: 10 }}
+            />
         </SafeAreaView>
     );
 };
