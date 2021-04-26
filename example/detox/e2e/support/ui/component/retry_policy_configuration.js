@@ -164,6 +164,8 @@ class RetryPolicyConfiguration {
     setRetryLimit = async (retryLimit) => {
         const retryLimitStr = retryLimit.toString();
         const retryLimitInput = this.getRetryLimitInput();
+
+        await element(by.id(this.testID.screenScrollView)).scrollTo("bottom");
         await waitForAndScrollDown(
             retryLimitInput,
             this.testID.screenScrollView
