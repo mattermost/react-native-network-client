@@ -76,7 +76,7 @@ class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: R
             requestTimeoutInterceptors[request] = timeoutInterceptor
         }
 
-        val retryInterceptor = createRetryInterceptor(options)
+        val retryInterceptor = createRetryInterceptor(options, request)
         if (retryInterceptor != null) {
             requestRetryInterceptors[request] = retryInterceptor
         }
@@ -134,7 +134,7 @@ class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: R
                 .url(composeEndpointUrl(endpoint))
                 .applyHeaders(clientHeaders)
                 .applyHeaders(headers)
-                .method(method, body)
+                .method(method.toUpperCase(), body)
                 .build();
     }
 
@@ -197,7 +197,7 @@ class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: R
         clientTimeoutInterceptor = TimeoutInterceptor(readTimeout, writeTimeout)
     }
 
-    private fun createRetryInterceptor(options: ReadableMap?): Interceptor? {
+    private fun createRetryInterceptor(options: ReadableMap?, request: Request? = null): Interceptor? {
         if (options == null || !options.hasKey("retryPolicyConfiguration"))
             return null
 
@@ -216,8 +216,13 @@ class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: R
         }
 
         var retryMethods = RetryInterceptor.defaultRetryMethods
-        if (retryConfig.hasKey("retryMethods")) {
-            retryMethods = (retryConfig.getArray("retryMethods")!!.toArrayList() as ArrayList<String>).toSet()
+        if (request != null) {
+            retryMethods = setOf(request.method.toUpperCase())
+        } else if (retryConfig.hasKey("retryMethods")) {
+            retryMethods = retryConfig.getArray("retryMethods")!!
+                    .toArrayList()
+                    .map { (it as String).toUpperCase() }
+                    .toSet()
         }
 
         var retryStatusCodes = RetryInterceptor.defaultRetryStatusCodes

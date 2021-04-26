@@ -14,7 +14,7 @@ interface RetryInterceptor : Interceptor {
     companion object {
         const val defaultRetryLimit = 2.0
         val defaultRetryStatusCodes = setOf(408, 500, 502, 503, 504)
-        val defaultRetryMethods = setOf("get", "patch", "post", "put", "delete")
+        val defaultRetryMethods = setOf("GET", "PATCH", "POST", "PUT", "DELETE")
     }
 
     fun getWaitInterval(attempts: Int): Long
@@ -28,7 +28,7 @@ interface RetryInterceptor : Interceptor {
         while (!response.isSuccessful
                 && attempts <= retryLimit
                 && retryStatusCodes.contains(response.code)
-                && retryMethods.contains(request.method.toLowerCase())) {
+                && retryMethods.contains(request.method.toUpperCase())) {
             runCatching { response.close() }
             TimeUnit.MILLISECONDS.sleep(getWaitInterval(attempts))
             attempts++;
