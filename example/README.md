@@ -13,12 +13,12 @@ brew install applesimutils
 6. Click **Done** to save the changes.
 
 ### Android local setup
-1. Create the emulator using **Android Studio > Configure > AVD Manager > Create Virtual Device > Phone** and:
-  - Select `Pixel 4 XL` and hit **Next** button.
-  - Select **Recommended > API Level 30** and hit **Next** button.
-  - Keep the default AVD name `Pixel 4 XL API 30` and hit **Finish** button.
-
-Note: Android testing requires an emulator named `Pixel_4_XL_API_30`. The AVD name `Pixel 4 XL API 30` corresponds to the actual emulator name `Pixel_4_XL_API_30`.
+1. Install the latest Android SDK.
+```
+sdkmanager "system-images;android-30;google_apis;x86"
+sdkmanager --licenses
+```
+2. Create the emulator using `npm run e2e:android-create-emulator` from the `/detox` folder. Android testing requires an emulator named `detox_emu_api_30` and the script helps to create it automatically.
 
 ### How to install the example application
 1. Clean install node modules for the example application.
