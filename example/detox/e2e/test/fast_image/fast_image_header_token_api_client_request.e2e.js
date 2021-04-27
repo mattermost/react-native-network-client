@@ -10,7 +10,6 @@
 import { fastImageServerUrl } from "@support/test_config";
 import { ApiClientFastImageScreen, ApiClientScreen } from "@support/ui/screen";
 import { verifyApiClient } from "../helpers";
-import { wait } from "../../support/utils";
 
 describe("Fast Image Header Token - API Client Request", () => {
     const testBaseUrl = fastImageServerUrl;

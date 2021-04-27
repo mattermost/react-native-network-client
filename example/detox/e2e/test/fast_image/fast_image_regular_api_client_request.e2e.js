@@ -28,11 +28,7 @@ describe("Fast Image Regular - API Client Request", () => {
     const testSecureBaseUrl = secureFastImageServerUrl;
     const testSecureImageUrl = `${testSecureBaseUrl}/api/files/fast-image.jpg`;
     const testSecureName = "Secure Fast Image Server API";
-    const {
-        fastImage,
-        imageNotSupportedIcon,
-        setImageUrl,
-    } = ApiClientFastImageScreen;
+    const { imageNotSupportedIcon, setImageUrl } = ApiClientFastImageScreen;
 
     beforeEach(async () => {
         await device.reloadReactNative();
@@ -45,14 +41,14 @@ describe("Fast Image Regular - API Client Request", () => {
         await ApiClientScreen.selectFastImage();
 
         // * Verify image not supported is displayed
-        await setImageUrl("");
+        await setImageUrl(testBaseUrl);
         await expect(imageNotSupportedIcon).toBeVisible();
 
         // # Set image url
         await setImageUrl(testImageUrl);
 
-        // * Verify fast image is displayed
-        await expect(fastImage).toBeVisible();
+        // * Verify image not supported is not displayed
+        await expect(imageNotSupportedIcon).not.toBeVisible();
     });
 
     it("should display fast image - regular request - secure connection", async () => {
@@ -72,13 +68,13 @@ describe("Fast Image Regular - API Client Request", () => {
         await ApiClientScreen.selectFastImage();
 
         // * Verify image not supported is displayed
-        await setImageUrl("");
+        await setImageUrl(testSecureBaseUrl);
         await expect(imageNotSupportedIcon).toBeVisible();
 
         // # Set image url
         await setImageUrl(testSecureImageUrl);
 
-        // * Verify fast image is displayed
-        await expect(fastImage).toBeVisible();
+        // * Verify image not supported is not displayed
+        await expect(imageNotSupportedIcon).not.toBeVisible();
     });
 });
