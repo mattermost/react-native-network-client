@@ -10,16 +10,13 @@
 import { fastImageServerUrl } from "@support/test_config";
 import { ApiClientFastImageScreen, ApiClientScreen } from "@support/ui/screen";
 import { verifyApiClient } from "../helpers";
+import { wait } from "../../support/utils";
 
 describe("Fast Image Header Token - API Client Request", () => {
     const testBaseUrl = fastImageServerUrl;
     const testImageUrl = `${testBaseUrl}/protected/api/files/fast-image.jpg`;
     const testName = "Fast Image Server API";
-    const {
-        fastImage,
-        imageNotSupportedIcon,
-        setImageUrl,
-    } = ApiClientFastImageScreen;
+    const { imageNotSupportedIcon, setImageUrl } = ApiClientFastImageScreen;
 
     beforeAll(async () => {
         await ApiClientScreen.open(testName);
@@ -29,25 +26,19 @@ describe("Fast Image Header Token - API Client Request", () => {
 
     it("should display fast image - with header token on protected request", async () => {
         // * Verify image not supported is displayed
-        await setImageUrl("");
+        await setImageUrl(testBaseUrl);
         await expect(imageNotSupportedIcon).toBeVisible();
 
         // # Set image url
         await setImageUrl(`${testImageUrl}?tokenSource=headers`);
 
-        // * Verify fast image is displayed
-        await expect(fastImage).toBeVisible();
-    });
-
-    it("should not display fast image - no header token on protected request", async () => {
-        // * Verify image not supported is displayed
-        await setImageUrl("");
-        await expect(imageNotSupportedIcon).toBeVisible();
+        // * Verify image not supported is not displayed
+        await expect(imageNotSupportedIcon).not.toBeVisible();
 
         // # Set image url
         await setImageUrl(`${testImageUrl}?tokenSource=none`);
 
-        // * Verify image not supported is displayed
+        // * Verify image not supported is again displayed
         await expect(imageNotSupportedIcon).toBeVisible();
     });
 });
