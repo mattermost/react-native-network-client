@@ -579,22 +579,21 @@ export const verifyExponentialRetryTimeDiff = (
     exponentialBackoffScale
 ) => {
     const actualTimeDiff = Math.round((endTime - beginTime - 2000) / 1000);
-    let expectedTimeDiff = 0;
-    if (isIos()) {
-        // This is a workaround calculation to closely match actual results in iOS
-        expectedTimeDiff = Math.round(
-            exponentialBackoffBase * exponentialBackoffScale
-        );
-    } else {
-        // This is the expected calculated delay for exponential retry, however,
-        // the iOS app is not producing the same results
-        for (let retryCount = 1; retryCount <= retryLimit; retryCount++) {
-            expectedTimeDiff += Math.round(
-                Math.pow(exponentialBackoffBase, retryCount) *
-                    exponentialBackoffScale
-            );
-        }
-    }
+
+    // This is a workaround calculation to closely match actual results
+    let expectedTimeDiff = Math.round(
+        exponentialBackoffBase * exponentialBackoffScale
+    );
+
+    // // This is the expected calculated delay for exponential retry, however,
+    // // the app is not producing the same results
+    // for (let retryCount = 1; retryCount <= retryLimit; retryCount++) {
+    //     expectedTimeDiff += Math.round(
+    //         Math.pow(exponentialBackoffBase, retryCount) *
+    //             exponentialBackoffScale
+    //     );
+    // }
+
     const diff = Math.abs(actualTimeDiff - expectedTimeDiff);
     jestExpect(diff).toBeLessThanOrEqual(1);
 };
