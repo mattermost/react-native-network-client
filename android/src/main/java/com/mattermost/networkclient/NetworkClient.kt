@@ -86,6 +86,15 @@ class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: R
                 .execute()
     }
 
+    fun adaptRCTRequest(request: Request): Call {
+        val newRequest = request
+                .newBuilder()
+                .applyHeaders(clientHeaders)
+                .build();
+
+        return okHttpClient.newCall(newRequest)
+    }
+
     fun cleanUpAfter(response: Response) {
         requestRetriesExhausted.remove(response.request)
         requestRetryInterceptors.remove(response.request)

@@ -8,10 +8,12 @@ import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;
 import com.facebook.react.ReactInstanceManager;
 import com.facebook.soloader.SoLoader;
+import com.facebook.react.modules.network.OkHttpClientProvider;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
 import com.mattermost.networkclient.NetworkClientPackage;
+import com.mattermost.networkclient.RCTOkHttpClientFactory;
 
 public class MainApplication extends Application implements ReactApplication {
 
@@ -49,6 +51,8 @@ public class MainApplication extends Application implements ReactApplication {
     super.onCreate();
     SoLoader.init(this, /* native exopackage */ false);
     initializeFlipper(this, getReactNativeHost().getReactInstanceManager()); // Remove this line if you don't want Flipper enabled
+
+    OkHttpClientProvider.setOkHttpClientFactory(new RCTOkHttpClientFactory());
   }
 
   /**

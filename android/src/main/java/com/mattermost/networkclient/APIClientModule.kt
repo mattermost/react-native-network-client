@@ -6,19 +6,34 @@ import com.facebook.react.bridge.*
 import okhttp3.*
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import android.net.Uri
-import android.util.Log
 import com.mattermost.networkclient.helpers.ProgressListener
 import com.mattermost.networkclient.helpers.UploadFileRequestBody
-import java.io.IOException
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import java.lang.Exception
 import kotlin.collections.HashMap
 
 class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
-    private val clients = mutableMapOf<HttpUrl, NetworkClient>()
-    private val calls = mutableMapOf<String, Call>()
-
     override fun getName(): String {
         return "APIClient"
+    }
+
+    companion object {
+        private val clients = mutableMapOf<HttpUrl, NetworkClient>()
+        private val calls = mutableMapOf<String, Call>()
+
+        fun getClientForRequest(request: Request): NetworkClient? {
+            var urlParts = request.url.toString().split("/")
+            while (urlParts.isNotEmpty()) {
+                val url = urlParts.joinToString (separator = "/") { it }.toHttpUrlOrNull()
+                if (url !== null && clients.containsKey(url)) {
+                    return clients[url]!!
+                }
+
+                urlParts = urlParts.dropLast(1)
+            }
+
+            return null
+        }
     }
 
     @ReactMethod
