@@ -50,17 +50,3 @@ fun Request.Builder.applyHeaders(headers: ReadableMap?): Request.Builder {
 
     return this;
 }
-
-/**
- * Transforms the "body" for a POST/PATCH/PUT/DELETE request to a Request Body
- *
- * @return RequestBody
- */
-fun ReadableMap.bodyToRequestBody(): RequestBody {
-    if (!this.hasKey("body")) return "".toRequestBody()
-    return if (this.getType("body") === ReadableType.Map) {
-        JSONObject(this.getMap("body")!!.toHashMap()).toString().toRequestBody()
-    } else {
-        this.getString("body")!!.toRequestBody()
-    }
-}

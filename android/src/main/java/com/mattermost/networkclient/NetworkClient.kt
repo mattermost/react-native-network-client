@@ -1,16 +1,18 @@
 package com.mattermost.networkclient
 
-import com.facebook.react.bridge.ReadableMap
 import com.mattermost.networkclient.enums.RetryTypes
+import com.mattermost.networkclient.interfaces.RetryInterceptor
 import com.mattermost.networkclient.interceptors.LinearRetryInterceptor
 import com.mattermost.networkclient.interceptors.ExponentialRetryInterceptor
 import com.mattermost.networkclient.interceptors.TimeoutInterceptor
 import com.mattermost.networkclient.interceptors.RuntimeInterceptor
-import okhttp3.*
-import android.net.Uri
+import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.WritableMap
-import com.mattermost.networkclient.interfaces.RetryInterceptor
+import okhttp3.*
+import okhttp3.RequestBody.Companion.toRequestBody
+import android.net.Uri
+import org.json.JSONObject
 import kotlin.reflect.KProperty
 
 class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: ReadableMap? = null) {
@@ -65,7 +67,8 @@ class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: R
                 requestHeaders = options.getMap("headers")
             }
             if (options.hasKey("body")) {
-                requestBody = options.getMap("body")?.bodyToRequestBody()
+                val jsonBody = JSONObject(options.getMap("body")!!.toHashMap())
+                requestBody = jsonBody.toString().toRequestBody()
             }
         }
 
