@@ -52,6 +52,9 @@ public class MainApplication extends Application implements ReactApplication {
     SoLoader.init(this, /* native exopackage */ false);
     initializeFlipper(this, getReactNativeHost().getReactInstanceManager()); // Remove this line if you don't want Flipper enabled
 
+    // Tells React Native to use our RCTOkHttpClientFactory which builds an OKHttpClient
+    // with a cookie jar defined in APIClientModule and an interceptor to intercept all
+    // requests that originate from React Native's OKHttpClient
     OkHttpClientProvider.setOkHttpClientFactory(new RCTOkHttpClientFactory());
   }
 

@@ -2,13 +2,9 @@ package com.mattermost.networkclient
 
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReadableMap
-import com.facebook.react.bridge.ReadableType
 import com.facebook.react.bridge.WritableMap
 import okhttp3.Request
-import okhttp3.RequestBody
-import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
-import org.json.JSONObject
 
 var Response.retriesExhausted: Boolean? by NetworkClient.RequestRetriesExhausted
 

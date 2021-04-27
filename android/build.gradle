@@ -127,5 +127,5 @@ dependencies {
   // noinspection GradleDynamicVersion
   api 'com.facebook.react:react-native:+'
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-  implementation "com.squareup.okhttp3:okhttp:4.9.0"
+  implementation "com.squareup.okhttp3:okhttp:4.9.1"
 }
