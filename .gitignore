@@ -61,4 +61,5 @@ lib/
 
 # E2E testing
 example/detox/artifacts
+example/detox/detox_pixel_4_xl_api_30
 example/upload
