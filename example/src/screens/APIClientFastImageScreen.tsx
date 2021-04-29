@@ -47,16 +47,18 @@ const APIClientFastImageScreen = ({ route }: APIClientFastImageScreenProps) => {
                         testID="api_client_fast_image.image_not_supported.icon"
                     />
                 )}
-                <FastImage
-                    source={{ uri: imageUrl }}
-                    onLoadStart={onLoadStart}
-                    onLoadEnd={onLoadEnd}
-                    onLoad={onLoad}
-                    onError={onError}
-                    resizeMode={FastImage.resizeMode.contain}
-                    style={{ height: 400, width: 400 }}
-                    testID="api_client_fast_image.fast_image"
-                />
+                <View style={{ flex: 1 }}>
+                    <FastImage
+                        source={{ uri: imageUrl }}
+                        onLoadStart={onLoadStart}
+                        onLoadEnd={onLoadEnd}
+                        onLoad={onLoad}
+                        onError={onError}
+                        resizeMode={FastImage.resizeMode.contain}
+                        style={{ height: 400, width: 400 }}
+                        testID="api_client_fast_image.fast_image"
+                    />
+                </View>
             </View>
         </SafeAreaView>
     );

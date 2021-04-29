@@ -2,23 +2,50 @@ package com.mattermost.networkclient
 
 import com.mattermost.networkclient.enums.APIClientEvents
 import com.mattermost.networkclient.enums.RetryTypes
-import com.facebook.react.bridge.*
-import okhttp3.*
-import okhttp3.HttpUrl.Companion.toHttpUrl
-import android.net.Uri
-import android.util.Log
 import com.mattermost.networkclient.helpers.ProgressListener
 import com.mattermost.networkclient.helpers.UploadFileRequestBody
-import java.io.IOException
+import com.facebook.react.bridge.*
+import com.facebook.react.modules.network.ForwardingCookieHandler
+import com.facebook.react.modules.network.ReactCookieJarContainer
+import okhttp3.*
+import okhttp3.HttpUrl.Companion.toHttpUrl
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
+import android.net.Uri
 import java.lang.Exception
 import kotlin.collections.HashMap
 
 class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
-    private val clients = mutableMapOf<HttpUrl, NetworkClient>()
-    private val calls = mutableMapOf<String, Call>()
-
     override fun getName(): String {
         return "APIClient"
+    }
+
+    companion object {
+        private val clients = mutableMapOf<HttpUrl, NetworkClient>()
+        private val calls = mutableMapOf<String, Call>()
+        val cookieJar = ReactCookieJarContainer()
+
+        fun getClientForRequest(request: Request): NetworkClient? {
+            var urlParts = request.url.toString().split("/")
+            while (urlParts.isNotEmpty()) {
+                val url = urlParts.joinToString (separator = "/") { it }.toHttpUrlOrNull()
+                if (url !== null && clients.containsKey(url)) {
+                    return clients[url]!!
+                }
+
+                urlParts = urlParts.dropLast(1)
+            }
+
+            return null
+        }
+
+        fun setCookieJar(reactContext: ReactApplicationContext) {
+            val cookieHandler = ForwardingCookieHandler(reactContext);
+            cookieJar.setCookieJar(JavaNetCookieJar(cookieHandler))
+        }
+    }
+
+    init {
+        setCookieJar(reactContext)
     }
 
     @ReactMethod
@@ -31,7 +58,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         }
 
         try {
-            clients[url] = NetworkClient(url, options)
+            clients[url] = NetworkClient(url, options, cookieJar)
             promise.resolve(null)
         } catch (error: Exception) {
             promise.reject(error)
@@ -87,6 +114,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         }
 
         try {
+            clients[url]!!.invalidate()
             clients.remove(url);
             promise.resolve(clients.keys);
         } catch (error: Exception) {

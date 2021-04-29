@@ -1,20 +1,24 @@
 package com.mattermost.networkclient
 
-import com.facebook.react.bridge.ReadableMap
 import com.mattermost.networkclient.enums.RetryTypes
-import com.mattermost.networkclient.interceptors.LinearRetryInterceptor
 import com.mattermost.networkclient.interceptors.ExponentialRetryInterceptor
-import com.mattermost.networkclient.interceptors.TimeoutInterceptor
+import com.mattermost.networkclient.interceptors.LinearRetryInterceptor
 import com.mattermost.networkclient.interceptors.RuntimeInterceptor
-import okhttp3.*
-import android.net.Uri
-import com.facebook.react.bridge.Arguments
-import com.facebook.react.bridge.WritableMap
+import com.mattermost.networkclient.interceptors.TimeoutInterceptor
 import com.mattermost.networkclient.interfaces.RetryInterceptor
+import com.facebook.react.bridge.Arguments
+import com.facebook.react.bridge.ReadableMap
+import com.facebook.react.bridge.WritableMap
+import okhttp3.*
+import okhttp3.RequestBody.Companion.toRequestBody
+import android.net.Uri
+import android.webkit.CookieManager
+import org.json.JSONObject
 import kotlin.reflect.KProperty
 
-class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: ReadableMap? = null) {
-    private var okHttpClient: OkHttpClient
+
+class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: ReadableMap? = null, cookieJar: CookieJar? = null) {
+    var okHttpClient: OkHttpClient
     var webSocket: WebSocket? = null
     var clientHeaders: WritableMap = Arguments.createMap()
     var clientRetryInterceptor: Interceptor? = null
@@ -43,6 +47,9 @@ class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: R
         builder.retryOnConnectionFailure(false);
         builder.addInterceptor(RuntimeInterceptor(this, "retry"))
         builder.addInterceptor(RuntimeInterceptor(this, "timeout"))
+        if (cookieJar != null) {
+            builder.cookieJar(cookieJar)
+        }
         applyBuilderOptions()
 
         okHttpClient = builder.build()
@@ -65,7 +72,8 @@ class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: R
                 requestHeaders = options.getMap("headers")
             }
             if (options.hasKey("body")) {
-                requestBody = options.getMap("body")?.bodyToRequestBody()
+                val jsonBody = JSONObject(options.getMap("body")!!.toHashMap())
+                requestBody = jsonBody.toString().toRequestBody()
             }
         }
 
@@ -84,6 +92,15 @@ class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: R
         return okHttpClient
                 .newCall(request)
                 .execute()
+    }
+
+    fun adaptRCTRequest(request: Request): Call {
+        val newRequest = request
+                .newBuilder()
+                .applyHeaders(clientHeaders)
+                .build();
+
+        return okHttpClient.newCall(newRequest)
     }
 
     fun cleanUpAfter(response: Response) {
@@ -127,6 +144,11 @@ class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: R
         val request = Request.Builder().build()
 
         webSocket = okHttpClient.newWebSocket(request, listener)
+    }
+
+    fun invalidate() {
+        cancelAllRequests()
+        clearCookies()
     }
 
     private fun buildRequest(method: String, endpoint: String, headers: ReadableMap?, body: RequestBody?): Request {
@@ -284,6 +306,24 @@ class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: R
             if (config.hasKey("enableCompression")) {
                 builder.minWebSocketMessageToCompress(0);
             }
+        }
+    }
+
+    private fun cancelAllRequests() {
+        okHttpClient.dispatcher.cancelAll()
+    }
+
+    private fun clearCookies() {
+        if (baseUrl == null)
+            return
+
+        val domain = baseUrl.toString()
+        val cookieManager = CookieManager.getInstance()
+        val cookieString = cookieManager.getCookie(domain)
+        val cookies = cookieString.split(";").toTypedArray()
+        for (i in cookies.indices) {
+            val cookieParts = cookies[i].split("=").toTypedArray()
+            cookieManager.setCookie(domain, cookieParts[0].trim { it <= ' ' } + "=;")
         }
     }
 }

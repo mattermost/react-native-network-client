@@ -2,13 +2,9 @@ package com.mattermost.networkclient
 
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReadableMap
-import com.facebook.react.bridge.ReadableType
 import com.facebook.react.bridge.WritableMap
 import okhttp3.Request
-import okhttp3.RequestBody
-import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
-import org.json.JSONObject
 
 var Response.retriesExhausted: Boolean? by NetworkClient.RequestRetriesExhausted
 
@@ -49,18 +45,4 @@ fun Request.Builder.applyHeaders(headers: ReadableMap?): Request.Builder {
     }
 
     return this;
-}
-
-/**
- * Transforms the "body" for a POST/PATCH/PUT/DELETE request to a Request Body
- *
- * @return RequestBody
- */
-fun ReadableMap.bodyToRequestBody(): RequestBody {
-    if (!this.hasKey("body")) return "".toRequestBody()
-    return if (this.getType("body") === ReadableType.Map) {
-        JSONObject(this.getMap("body")!!.toHashMap()).toString().toRequestBody()
-    } else {
-        this.getString("body")!!.toRequestBody()
-    }
 }
