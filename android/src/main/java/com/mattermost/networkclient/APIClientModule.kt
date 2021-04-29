@@ -137,6 +137,23 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     }
 
     @ReactMethod
+    fun importClientP12For(baseUrl: String, path: String, password: String, promise: Promise) {
+        var url: HttpUrl
+        try {
+            url = baseUrl.toHttpUrl()
+        } catch (error: IllegalArgumentException) {
+            return promise.reject(error)
+        }
+
+        try {
+            clients[url]!!.importClientP12(path, password)
+            promise.resolve(null)
+        } catch (error: Exception) {
+            promise.reject(error)
+        }
+    }
+
+    @ReactMethod
     fun invalidateClientFor(baseUrl: String, promise: Promise) {
         var url: HttpUrl
         try {

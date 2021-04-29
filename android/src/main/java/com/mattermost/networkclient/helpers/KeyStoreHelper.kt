@@ -3,7 +3,9 @@ package com.mattermost.networkclient.helpers
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.util.Base64
+import java.io.FileInputStream
 import java.security.KeyStore
+import java.security.cert.Certificate
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
@@ -50,6 +52,29 @@ object KeyStoreHelper {
         cipher.init(Cipher.DECRYPT_MODE, getSecretKey()!!, spec)
 
         return cipher.doFinal(Base64.decode(encryptedData, Base64.DEFAULT)).toString(Charsets.UTF_8).trim()
+    }
+
+    fun importCertificatesFromP12(p12FilePath: String, password: String, keyStoreAlias: String) {
+        try {
+            val p12 = KeyStore.getInstance("pkcs12")
+            p12.load(FileInputStream(p12FilePath), password.toCharArray())
+            val aliases = p12.aliases()
+            while (aliases.hasMoreElements()) {
+                val alias = aliases.nextElement()
+                val certificate = p12.getCertificate(alias)
+                keyStore.setCertificateEntry(keyStoreAlias, certificate)
+            }
+        } catch (e: Exception) {
+            throw e
+        }
+    }
+
+    fun getCertificate(alias: String): Certificate? {
+        if (keyStore.containsAlias(alias)) {
+            return keyStore.getCertificate(alias)
+        }
+
+        return null
     }
 
     private fun setAndLoadKeyStore() {

@@ -3,14 +3,17 @@ package com.mattermost.networkclient
 import com.mattermost.networkclient.enums.RetryTypes
 import com.mattermost.networkclient.interfaces.RetryInterceptor
 import com.mattermost.networkclient.interceptors.*
+import com.mattermost.networkclient.helpers.KeyStoreHelper
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableMap
 import okhttp3.*
 import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.tls.HandshakeCertificates
 import org.json.JSONObject
 import android.net.Uri
 import android.webkit.CookieManager
+import java.security.cert.X509Certificate
 import kotlin.reflect.KProperty
 
 
@@ -40,7 +43,19 @@ class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: R
         setClientHeaders(options)
         setClientRetryInterceptor(options)
         setClientTimeoutInterceptor(options)
-        addBearerTokenInterceptor(options)
+
+        val bearerTokenInterceptor = getBearerTokenInterceptor(options)
+        if (bearerTokenInterceptor != null) {
+            builder.addInterceptor(bearerTokenInterceptor)
+        }
+
+        val handshakeCertificates = getHandshakeCertificates(options)
+        if (handshakeCertificates != null) {
+            builder.sslSocketFactory(
+                    handshakeCertificates.sslSocketFactory(),
+                    handshakeCertificates.trustManager
+            )
+        }
 
         builder.retryOnConnectionFailure(false);
         builder.addInterceptor(RuntimeInterceptor(this, "retry"))
@@ -58,6 +73,18 @@ class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: R
             for ((k, v) in additionalHeaders.toHashMap()) {
                 clientHeaders.putString(k, v as String)
             }
+        }
+    }
+
+    fun importClientP12(p12FilePath: String, password: String) {
+        val handshakeCertificates = getHandshakeCertificates(p12FilePath, password)
+        if (handshakeCertificates != null) {
+            okHttpClient = okHttpClient.newBuilder()
+                    .sslSocketFactory(
+                        handshakeCertificates.sslSocketFactory(),
+                        handshakeCertificates.trustManager
+                    )
+                    .build()
         }
     }
 
@@ -197,14 +224,48 @@ class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: R
         }
     }
 
-    private fun addBearerTokenInterceptor(options: ReadableMap?) {
+    private fun getBearerTokenInterceptor(options: ReadableMap?): BearerTokenInterceptor? {
         if (options != null && options.hasKey("requestAdapterConfiguration")) {
             val requestAdapterConfiguration = options.getMap("requestAdapterConfiguration")!!;
             if (requestAdapterConfiguration.hasKey("bearerAuthTokenResponseHeader")) {
                 val bearerAuthTokenResponseHeader = requestAdapterConfiguration.getString("bearerAuthTokenResponseHeader")!!
-                builder.addInterceptor(BearerTokenInterceptor(baseUrl.toString(), bearerAuthTokenResponseHeader))
+                return BearerTokenInterceptor(baseUrl.toString(), bearerAuthTokenResponseHeader)
             }
         }
+
+        return null
+    }
+
+    private fun getHandshakeCertificates(options: ReadableMap?): HandshakeCertificates? {
+        if (options != null && options.hasKey("clientP12Configuration")) {
+            val clientP12Configuration = options.getMap("clientP12Configuration")!!
+            val path = clientP12Configuration.getString("path")!!
+            val password = if (clientP12Configuration.hasKey("password")) {
+                clientP12Configuration.getString("password")!!
+            } else {
+                ""
+            }
+
+            return getHandshakeCertificates(path, password)
+        }
+
+        return null
+    }
+
+    private fun getHandshakeCertificates(p12Path: String, password: String): HandshakeCertificates? {
+        val alias = baseUrl.toString()
+        try {
+            KeyStoreHelper.importCertificatesFromP12(p12Path, password, alias)
+        } catch (e: Exception) {
+            // TODO: alert user of problem
+            return null
+        }
+
+        val certificate = KeyStoreHelper.getCertificate(alias) as X509Certificate
+        return HandshakeCertificates.Builder()
+                .addPlatformTrustedCertificates()
+                .addTrustedCertificate(certificate)
+                .build()
     }
 
     private fun setClientRetryInterceptor(options: ReadableMap?) {
