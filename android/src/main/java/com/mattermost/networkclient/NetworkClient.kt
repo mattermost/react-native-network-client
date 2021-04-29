@@ -23,7 +23,6 @@ class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: R
     val requestRetryInterceptors: HashMap<Request, Interceptor> = hashMapOf()
     val requestTimeoutInterceptors: HashMap<Request, TimeoutInterceptor> = hashMapOf()
     private val builder: OkHttpClient.Builder = OkHttpClient().newBuilder()
-    private val tokenKey = baseUrl.toString().plus("token")
 
     companion object RequestRetriesExhausted {
         private val requestRetriesExhausted: HashMap<Response, Boolean?> = hashMapOf()
