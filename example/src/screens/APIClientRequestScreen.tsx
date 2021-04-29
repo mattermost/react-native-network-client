@@ -19,9 +19,7 @@ const APIClientRequestScreen = ({ route }: APIClientRequestScreenProps) => {
         method,
     } = route.params;
     const [endpoint, setEndpoint] = useState(
-        method === METHODS.POST
-            ? "/api/v4/users/login"
-            : "/delete/retry/clientID/3ccdd8/serverDelay/0/serverRetryLimit/5"
+        method === METHODS.POST ? "/api/v4/users/login" : "/api/v4/users/me"
     );
     const [timeoutInterval, setTimeoutInterval] = useState(30000);
     const [body, setBody] = useState(
