@@ -61,8 +61,12 @@ object KeyStoreHelper {
             val aliases = p12.aliases()
             while (aliases.hasMoreElements()) {
                 val alias = aliases.nextElement()
-                val certificate = p12.getCertificate(alias)
-                keyStore.setCertificateEntry(keyStoreAlias, certificate)
+                if (p12.isCertificateEntry(alias)) {
+                    val certificate = p12.getCertificate(alias)
+                    keyStore.setCertificateEntry(keyStoreAlias, certificate)
+
+                    break
+                }
             }
         } catch (e: Exception) {
             throw e
