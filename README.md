@@ -4,6 +4,9 @@ Configurable network clients for React Native. Uses Alamofire for iOS and OkHttp
 
 ## Installation
 
+TODO: Update installation instructions once package is published.
+If installing this locally, you will also need to update your applications Podfile to use our fork of Starscream. See the [example app's Podfile](https://github.com/mattermost/react-native-network-client/blob/master/example/ios/Podfile#L27).
+
 ```sh
 
 ```
