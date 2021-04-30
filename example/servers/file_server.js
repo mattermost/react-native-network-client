@@ -50,7 +50,7 @@ const getTokenBySource = (req) => {
     let token;
     switch (tokenSource) {
         case "headers":
-            token = req.headers.authorization.split(" ")[1];
+            token = req.headers.authorization?.split(" ")[1];
             console.log(`Get token from headers: ${token}`);
             break;
         case "query":

@@ -17,7 +17,7 @@ import {
     ClientListScreen,
     CreateWebSocketClientScreen,
 } from "@support/ui/screen";
-import { getRandomId, getRandomInt } from "@support/utils";
+import { getRandomId, getRandomInt, isAndroid } from "@support/utils";
 import { createWebSocketClient, customHeaders } from "../helpers";
 
 describe("Create WebSocket Client", () => {
@@ -25,7 +25,7 @@ describe("Create WebSocket Client", () => {
     const testUrl = `wss://example-${randomText}-ws.com`;
     const testName = `Example ${randomText} WebSocket`;
     const testHeaders = { ...customHeaders };
-    const testTimeoutInterval = getRandomInt(60);
+    const testTimeoutInterval = getRandomInt(60) * 1000;
 
     beforeEach(async () => {
         await device.reloadReactNative();
@@ -49,6 +49,11 @@ describe("Create WebSocket Client", () => {
     });
 
     it("should be able to create, alert for duplicate, and remove a WebSocket client - secure connection", async () => {
+        // # Do not run against Android due to file attachment limitation
+        if (isAndroid()) {
+            return;
+        }
+
         // # Create WebSocket client
         const testSecureName = `Secure ${testName}`;
         const testSecureUrl = secureWebSocketServerUrl;

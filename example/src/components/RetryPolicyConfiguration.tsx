@@ -1,44 +1,65 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { View } from "react-native";
-import { CheckBox, Input } from "react-native-elements";
+import { ButtonGroup, CheckBox, Input } from "react-native-elements";
 import { Constants } from "@mattermost/react-native-network-client";
 
 import NumericInput from "./NumericInput";
 
 interface RetryPolicyConfigurationProps extends RetryPolicyConfiguration {
     policyType?: RetryTypes;
-    retryLimit?: number;
-    retryInterval?: number;
-    exponentialBackoffBase?: number;
-    exponentialBackoffScale?: number;
     onTypeSelected: (value?: RetryTypes) => void;
     setRetryLimit: (value: number) => void;
     setRetryInterval: (value: number) => void;
     setExponentialBackoffBase: (value: number) => void;
     setExponentialBackoffScale: (value: number) => void;
+    setStatusCodes: (value: number[]) => void;
+    setRetryMethods?: (value: string[]) => void;
 }
 
 const RetryPolicyConfiguration = (props: RetryPolicyConfigurationProps) => {
+    const [statusCodesText, setStatusCodesText] = useState(
+        props.statusCodes?.join(",") || ""
+    );
+
     const onLinearPress = () =>
-        onCheckBoxPress(Constants.RETRY_TYPES.LINEAR_RETRY);
+        onCheckBoxPress(
+            props.policyType === Constants.RETRY_TYPES.LINEAR_RETRY
+                ? undefined
+                : Constants.RETRY_TYPES.LINEAR_RETRY
+        );
     const onExponentialPress = () =>
-        onCheckBoxPress(Constants.RETRY_TYPES.EXPONENTIAL_RETRY);
-    const onCheckBoxPress = (policyType: RetryTypes) => {
-        if (policyType === props.policyType) {
-            props.onTypeSelected(undefined);
-        } else {
-            props.onTypeSelected(policyType);
-        }
+        onCheckBoxPress(
+            props.policyType === Constants.RETRY_TYPES.EXPONENTIAL_RETRY
+                ? undefined
+                : Constants.RETRY_TYPES.EXPONENTIAL_RETRY
+        );
+    const onCheckBoxPress = (policyType?: RetryTypes) => {
+        props.onTypeSelected(policyType);
     };
     const linearRetryChecked =
         props.policyType === Constants.RETRY_TYPES.LINEAR_RETRY;
     const exponentialRetryChecked =
         props.policyType === Constants.RETRY_TYPES.EXPONENTIAL_RETRY;
 
-    const rightIcon = (
+    const buttonMethods = ["get", "post", "put", "patch", "delete"];
+    const [selectedMethodsIndex, setSelectedMethodsIndex] = useState<number[]>([
+        0,
+        1,
+    ]);
+
+    if (props.setRetryMethods !== undefined) {
+        useEffect(() => {
+            const selectedMethods = selectedMethodsIndex.map(
+                (index) => buttonMethods[index]
+            );
+            props.setRetryMethods!(selectedMethods);
+        }, [selectedMethodsIndex]);
+    }
+
+    const PolicyTypeCheckbox = () => (
         <View style={{ flex: 1, flexDirection: "row" }}>
             <CheckBox
                 title={`Linear [${linearRetryChecked}]`}
@@ -71,6 +92,17 @@ const RetryPolicyConfiguration = (props: RetryPolicyConfigurationProps) => {
         </View>
     );
 
+    const updateStatusCodes = () => {
+        const statusCodes = statusCodesText
+            .split(",")
+            .map((code) => {
+                return parseInt(code.trim());
+            })
+            .filter((code) => !isNaN(code));
+
+        props.setStatusCodes(statusCodes);
+    };
+
     return (
         <>
             <Input
@@ -81,9 +113,11 @@ const RetryPolicyConfiguration = (props: RetryPolicyConfigurationProps) => {
                 inputContainerStyle={{
                     borderColor: "rgba(255,255,255,0)",
                 }}
-                rightIcon={rightIcon}
                 labelStyle={{ flex: 12, flexWrap: "wrap", height: 100 }}
             />
+
+            <PolicyTypeCheckbox />
+
             {props.policyType && (
                 <NumericInput
                     title="Retry limit"
@@ -93,6 +127,7 @@ const RetryPolicyConfiguration = (props: RetryPolicyConfigurationProps) => {
                     testID="retry_policy_configuration.retry_limit.input"
                 />
             )}
+
             {props.policyType === Constants.RETRY_TYPES.LINEAR_RETRY && (
                 <NumericInput
                     title="Retry interval"
@@ -120,6 +155,52 @@ const RetryPolicyConfiguration = (props: RetryPolicyConfigurationProps) => {
                         step={0.1}
                         testID="retry_policy_configuration.exponential_backoff_scale.input"
                     />
+                </>
+            )}
+
+            {props.policyType && (
+                <>
+                    <Input
+                        placeholder="Retry Status Codes"
+                        disabled={true}
+                        style={{ fontWeight: "bold", fontSize: 17, opacity: 1 }}
+                        containerStyle={{ height: 50 }}
+                        inputContainerStyle={{
+                            borderColor: "rgba(255,255,255,0)",
+                        }}
+                    />
+
+                    <Input
+                        value={statusCodesText}
+                        onChangeText={setStatusCodesText}
+                        onBlur={updateStatusCodes}
+                    />
+
+                    {props.setRetryMethods && (
+                        <>
+                            <Input
+                                placeholder="Retry Methods"
+                                disabled={true}
+                                style={{
+                                    fontWeight: "bold",
+                                    fontSize: 17,
+                                    opacity: 1,
+                                }}
+                                containerStyle={{ height: 50 }}
+                                inputContainerStyle={{
+                                    borderColor: "rgba(255,255,255,0)",
+                                }}
+                            />
+
+                            <ButtonGroup
+                                selectedIndexes={selectedMethodsIndex}
+                                // @ts-ignore
+                                onPress={setSelectedMethodsIndex}
+                                buttons={buttonMethods}
+                                selectMultiple
+                            />
+                        </>
+                    )}
                 </>
             )}
         </>

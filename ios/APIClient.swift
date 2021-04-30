@@ -118,8 +118,9 @@ class APIClient: RCTEventEmitter, NetworkClient {
         let options = JSON(options)
         if options != JSON.null {
             let configuration = getURLSessionConfiguration(from: options)
+            let interceptor = getSessionInterceptor(from: options)
             let redirectHandler = getRedirectHandler(from: options)
-            let interceptor = getInterceptor(from: options)
+            let retryPolicy = getRetryPolicy(from: options)
             let cancelRequestsOnUnauthorized = options["sessionConfiguration"]["cancelRequestsOnUnauthorized"].boolValue
             let bearerAuthTokenResponseHeader = options["requestAdapterConfiguration"]["bearerAuthTokenResponseHeader"].string
             let clientP12Configuration = options["clientP12Configuration"].dictionaryObject as? [String:String]
@@ -132,6 +133,7 @@ class APIClient: RCTEventEmitter, NetworkClient {
                                                      withConfiguration: configuration,
                                                      withInterceptor: interceptor,
                                                      withRedirectHandler: redirectHandler,
+                                                     withRetryPolicy: retryPolicy,
                                                      withCancelRequestsOnUnauthorized: cancelRequestsOnUnauthorized,
                                                      withBearerAuthTokenResponseHeader: bearerAuthTokenResponseHeader,
                                                      withClientP12Configuration: clientP12Configuration,
@@ -266,7 +268,6 @@ class APIClient: RCTEventEmitter, NetworkClient {
     
     func multipartUpload(_ fileUrl: URL, to url: URL, forSession session: Session, withFileSize fileSize: Double, withTaskId taskId: String, withOptions options: JSON, withResolver resolve: @escaping RCTPromiseResolveBlock, withRejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
         let headers = getHTTPHeaders(from: options)
-        let interceptor = getInterceptor(from: options)
         let requestModifer = getRequestModifier(from: options)
 
         let multipartConfig = options["multipart"].dictionaryValue
@@ -290,50 +291,14 @@ class APIClient: RCTEventEmitter, NetworkClient {
                    multipartFormData.append(value.data(using: .utf8)!, withName: key)
                }
             }
-        },
-        to: url, method: method, headers: headers, interceptor: interceptor, requestModifier: requestModifer)
+        }, to: url, method: method, headers: headers, requestModifier: requestModifer)
             .uploadProgress { progress in
                 if (self.hasListeners) {
                     self.sendEvent(withName: API_CLIENT_EVENTS["UPLOAD_PROGRESS"], body: ["taskId": taskId, "fractionCompleted": progress.fractionCompleted])
                 }
             }
             .responseJSON { json in
-                switch (json.result) {
-                case .success:
-                    var ok = false
-                    if let statusCode = json.response?.statusCode {
-                        ok = (200 ... 299).contains(statusCode)
-                    }
-
-                    resolve([
-                        "ok": ok,
-                        "headers": json.response?.allHeaderFields,
-                        "data": json.value,
-                        "code": json.response?.statusCode,
-                        "lastRequestedUrl": json.response?.url?.absoluteString
-                    ])
-                case .failure(let error):
-                    var responseCode = error.responseCode
-                    var retriesExhausted = false
-                    if error.isRequestRetryError, let underlyingError = error.underlyingError {
-                        responseCode = underlyingError.asAFError?.responseCode
-                        retriesExhausted = true
-                    }
-                    
-                    if responseCode != nil {
-                        resolve([
-                            "ok": false,
-                            "headers": json.response?.allHeaderFields,
-                            "data": json.value,
-                            "code": responseCode,
-                            "lastRequestedUrl": json.response?.url?.absoluteString,
-                            "retriesExhausted": retriesExhausted
-                        ])
-                        return
-                    }
-
-                    reject("\(error._code)", error.localizedDescription, error)
-                }
+                self.resolveOrRejectJSONResponse(json, withResolver: resolve, withRejecter: reject)
             }
 
         self.requestsTable.setObject(request, forKey: taskId as NSString)
@@ -341,7 +306,6 @@ class APIClient: RCTEventEmitter, NetworkClient {
     
     func streamUpload(_ fileUrl: URL, to url: URL, forSession session: Session, withFileSize fileSize: Double, withTaskId taskId: String, withOptions options: JSON, withResolver resolve: @escaping RCTPromiseResolveBlock, withRejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
         let headers = getHTTPHeaders(from: options)
-        let interceptor = getInterceptor(from: options)
         let requestModifer = getRequestModifier(from: options)
         
         var method: HTTPMethod
@@ -361,7 +325,7 @@ class APIClient: RCTEventEmitter, NetworkClient {
             initialFractionCompleted = Double(skipBytes) / fileSize
         }
 
-        let request = session.upload(stream, to: url, method: method, headers: headers, interceptor: interceptor, requestModifier: requestModifer)
+        let request = session.upload(stream, to: url, method: method, headers: headers, requestModifier: requestModifer)
             .uploadProgress { progress in
                 if (self.hasListeners) {
                     let fractionCompleted = initialFractionCompleted + (Double(progress.completedUnitCount) / fileSize)
@@ -369,42 +333,7 @@ class APIClient: RCTEventEmitter, NetworkClient {
                 }
             }
             .responseJSON { json in
-                switch (json.result) {
-                case .success:
-                    var ok = false
-                    if let statusCode = json.response?.statusCode {
-                        ok = (200 ... 299).contains(statusCode)
-                    }
-
-                    resolve([
-                        "ok": ok,
-                        "headers": json.response?.allHeaderFields,
-                        "data": json.value,
-                        "code": json.response?.statusCode,
-                        "lastRequestedUrl": json.response?.url?.absoluteString
-                    ])
-                case .failure(let error):
-                    var responseCode = error.responseCode
-                    var retriesExhausted = false
-                    if error.isRequestRetryError, let underlyingError = error.underlyingError {
-                        responseCode = underlyingError.asAFError?.responseCode
-                        retriesExhausted = true
-                    }
-                    
-                    if responseCode != nil {
-                        resolve([
-                            "ok": false,
-                            "headers": json.response?.allHeaderFields,
-                            "data": json.value,
-                            "code": responseCode,
-                            "lastRequestedUrl": json.response?.url?.absoluteString,
-                            "retriesExhausted": retriesExhausted
-                        ])
-                        return
-                    }
-
-                    reject("\(error._code)", error.localizedDescription, error)
-                }
+                self.resolveOrRejectJSONResponse(json, withResolver: resolve, withRejecter: reject)
             }
 
         self.requestsTable.setObject(request, forKey: taskId as NSString)
@@ -467,11 +396,11 @@ class APIClient: RCTEventEmitter, NetworkClient {
         }
 
         if sessionOptions["timeoutIntervalForRequest"].exists() {
-            config.timeoutIntervalForRequest = sessionOptions["timeoutIntervalForRequest"].doubleValue
+            config.timeoutIntervalForRequest = sessionOptions["timeoutIntervalForRequest"].doubleValue / 1000
         }
 
         if sessionOptions["timeoutIntervalForResource"].exists() {
-            config.timeoutIntervalForResource = sessionOptions["timeoutIntervalForResource"].doubleValue
+            config.timeoutIntervalForResource = sessionOptions["timeoutIntervalForResource"].doubleValue / 1000
         }
 
         if sessionOptions["httpMaximumConnectionsPerHost"].exists() {

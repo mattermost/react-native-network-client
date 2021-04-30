@@ -1,16 +1,10 @@
 package com.mattermost.networkclient
 
 import com.facebook.react.bridge.*
-import com.mattermost.networkclient.helpers.bodyToRequestBody
-import com.mattermost.networkclient.helpers.parseOptions
-import com.mattermost.networkclient.helpers.promiseResolution
-import okhttp3.OkHttpClient
-import okhttp3.Request
-
+import java.lang.Exception
 
 class GenericClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
-
-    var client = OkHttpClient().newBuilder();
+    private var client = NetworkClient();
 
     override fun getName(): String {
         return "GenericClient"
@@ -18,42 +12,37 @@ class GenericClientModule(reactContext: ReactApplicationContext) : ReactContextB
 
     @ReactMethod
     fun get(url: String, options: ReadableMap, promise: Promise) {
-        val request = Request.Builder().url(url).parseOptions(options, client).build();
-        client.build().newCall(request).execute().use { response ->
-            response.promiseResolution(promise)
-        }
+        request("GET", url, options, promise)
     }
 
     @ReactMethod
     fun post(url: String, options: ReadableMap, promise: Promise) {
-        val request = Request.Builder().url(url).post(options.bodyToRequestBody()).parseOptions(options, client).build();
-        client.build().newCall(request).execute().use { response ->
-            response.promiseResolution(promise)
-        }
+        request("POST", url, options, promise)
     }
 
     @ReactMethod
     fun put(url: String, options: ReadableMap, promise: Promise) {
-        val request = Request.Builder().url(url).put(options.bodyToRequestBody()).parseOptions(options, client).build();
-        client.build().newCall(request).execute().use { response ->
-            response.promiseResolution(promise)
-        }
+        request("PUT", url, options, promise)
     }
 
     @ReactMethod
     fun patch(url: String, options: ReadableMap, promise: Promise) {
-        val request = Request.Builder().url(url).patch(options.bodyToRequestBody()).parseOptions(options, client).build();
-        client.build().newCall(request).execute().use { response ->
-            response.promiseResolution(promise)
-        }
+        request("PATCH", url, options, promise)
     }
 
     @ReactMethod
     fun delete(url: String, options: ReadableMap, promise: Promise) {
-        val request = Request.Builder().url(url).delete(options.bodyToRequestBody()).parseOptions(options, client).build();
-        client.build().newCall(request).execute().use { response ->
-            response.promiseResolution(promise)
-        }
+        request("DELETE", url, options, promise)
     }
 
+    private fun request(method: String, url: String, options: ReadableMap, promise: Promise) {
+        try {
+            client.request(method, url, options).use { response ->
+                promise.resolve(response.returnAsWriteableMap())
+                client.cleanUpAfter(response)
+            }
+        } catch (error: Exception) {
+            return promise.reject(error)
+        }
+    }
 }

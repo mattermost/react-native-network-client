@@ -14,7 +14,12 @@ import {
 } from "@support/test_config";
 import { Alert } from "@support/ui/component";
 import { ClientListScreen, CreateApiClientScreen } from "@support/ui/screen";
-import { getRandomId, getRandomInt, getRandomItem } from "@support/utils";
+import {
+    getRandomId,
+    getRandomInt,
+    getRandomItem,
+    isAndroid,
+} from "@support/utils";
 import { createApiClient, customHeaders, retryPolicyTypes } from "../helpers";
 
 describe("Create API Client", () => {
@@ -23,15 +28,15 @@ describe("Create API Client", () => {
     const testName = `Example ${randomText} API`;
     const testHeaders = { ...customHeaders };
     const testToken = getRandomId(10);
-    const testRequestTimeoutInterval = getRandomInt(60);
-    const testResourceTimeoutInterval = getRandomInt(60);
+    const testRequestTimeoutInterval = getRandomInt(60) * 1000;
+    const testResourceTimeoutInterval = getRandomInt(60) * 1000;
     const testMaxConnections = getRandomInt(10);
     const testRetry = {
         retryPolicyType: getRandomItem(retryPolicyTypes),
         retryLimit: getRandomInt(5) + 1,
         exponentialBackoffBase: getRandomInt(5) + 2,
         exponentialBackoffScale: getRandomInt(5) + 3,
-        retryInterval: getRandomInt(5) + 4,
+        retryInterval: (getRandomInt(5) + 4) * 1000,
     };
 
     beforeEach(async () => {
@@ -60,6 +65,11 @@ describe("Create API Client", () => {
     });
 
     it("should be able to create, alert for duplicate, and remove an API client - secure connection", async () => {
+        // # Do not run against Android due to file attachment limitation
+        if (isAndroid()) {
+            return;
+        }
+
         // # Remove dupe preset
         await removeApiClient("Secure Mockserver API");
 

@@ -95,7 +95,15 @@ For both API client and WebSocket client, the following error codes apply:
 
 ## Method Swizzling
 
-There may be cases where network requests are made by another dependency of your app, for example, [react-native-fast-image](https://github.com/DylanVann/react-native-fast-image), and you'll want those requests to adopt the configuration of your `react-native-network-client` created client. While there might be a cleaner solution to this, we've opted for method swizzling for our own use case at Mattermost. You can find an example of how to do this in `example/ios/SDWebImageDownloaderOperation+Swizzle.m`. The specific swizzle code to write will depend on your dependency and on the dependency version as well since method implementations change.
+There may be cases where network requests are made by another dependency of your app, for example, [react-native-fast-image](https://github.com/DylanVann/react-native-fast-image), and you'll want those requests to adopt the configuration of your `react-native-network-client` created client. While there might be a cleaner solution to this, we've opted for method swizzling in IOS for our own use case at Mattermost. You can find an example of how to do this in [example/ios/SDWebImageDownloaderOperation+Swizzle.m](https://github.com/mattermost/react-native-network-client/blob/master/example/ios/SDWebImageDownloaderOperation%2BSwizzle.m). The specific swizzle code to write will depend on your dependency and on the dependency version as well since method implementations change. For Android, we provide the interceptor [android/src/main/java/com/mattermost/networkclient/interceptors/RCTClientRequestInterceptor.kt](https://github.com/mattermost/react-native-network-client/blob/master/android/src/main/java/com/mattermost/networkclient/interceptors/RCTClientRequestInterceptor.kt) that adapts the request if an APIClient is found for the request. To make this interceptor active you need to do two things:
+
+1. Add `OkHttpClientProvider.setOkHttpClientFactory(new RCTOkHttpClientFactory());` to your `MainApplication`'s `onCreate` function (see [example/android/app/src/main/java/com/example/reactnativenetworkclient/MainApplication.java](https://github.com/mattermost/react-native-network-client/blob/master/example/android/app/src/main/java/com/example/reactnativenetworkclient/MainApplication.java#L58)).
+2. Ensure that all dependencies use the same version of okhttp3 by adding the following to the dependencies block of your application's `android/app/build.gradle` file (see [example/android/app/build.gradle](https://github.com/mattermost/react-native-network-client/blob/master/example/android/app/build.gradle##L213-L214)):
+
+```
+implementation "com.squareup.okhttp3:okhttp:4.9.1"
+implementation "com.squareup.okhttp3:okhttp-urlconnection:4.9.1"
+```
 
 ## Contributing
 

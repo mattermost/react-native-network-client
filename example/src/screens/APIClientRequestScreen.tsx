@@ -21,7 +21,7 @@ const APIClientRequestScreen = ({ route }: APIClientRequestScreenProps) => {
     const [endpoint, setEndpoint] = useState(
         method === METHODS.POST ? "/api/v4/users/login" : "/api/v4/users/me"
     );
-    const [timeoutInterval, setTimeoutInterval] = useState(30);
+    const [timeoutInterval, setTimeoutInterval] = useState(30000);
     const [body, setBody] = useState(
         '{"login_id":"user-1","password":"password"}'
     );
@@ -37,6 +37,7 @@ const APIClientRequestScreen = ({ route }: APIClientRequestScreenProps) => {
         setRetryInterval,
         setExponentialBackoffBase,
         setExponentialBackoffScale,
+        setStatusCodes,
     ] = useRetryPolicyConfiguration();
 
     const makeRequest = async () => {
@@ -92,8 +93,17 @@ const APIClientRequestScreen = ({ route }: APIClientRequestScreenProps) => {
     };
 
     return (
-        <SafeAreaView>
-            <ScrollView testID="api_client_request.scroll_view">
+        <SafeAreaView style={{ flex: 1 }}>
+            <ScrollView
+                style={{
+                    backgroundColor: "#fff",
+                    borderRadius: 5,
+                    margin: 10,
+                }}
+                testID="api_client_request.scroll_view"
+                persistentScrollbar={true}
+                showsVerticalScrollIndicator={true}
+            >
                 <Input
                     label={`${method}\n\n${client.baseUrl}`}
                     placeholder="/api/v4/system/ping"
@@ -114,10 +124,11 @@ const APIClientRequestScreen = ({ route }: APIClientRequestScreenProps) => {
                     />
                 )}
                 <NumericInput
-                    title="Timeout Interval"
+                    title="Timeout Interval (ms)"
                     value={timeoutInterval}
                     onChange={setTimeoutInterval}
                     minValue={0}
+                    step={5000}
                     testID="api_client_request.timeout_interval.input"
                 />
                 <RetryPolicyConfiguration
@@ -135,6 +146,8 @@ const APIClientRequestScreen = ({ route }: APIClientRequestScreenProps) => {
                         retryPolicyConfiguration.exponentialBackoffScale
                     }
                     setExponentialBackoffScale={setExponentialBackoffScale}
+                    statusCodes={retryPolicyConfiguration.statusCodes}
+                    setStatusCodes={setStatusCodes}
                 />
                 <ResponseSuccessOverlay
                     response={response}
@@ -146,13 +159,13 @@ const APIClientRequestScreen = ({ route }: APIClientRequestScreenProps) => {
                     visible={responseErrorVisible}
                     setVisible={setResponseErrorVisible}
                 />
-                <Button
-                    title="Request"
-                    onPress={makeRequest}
-                    disabled={!endpoint.length}
-                    style={{ paddingHorizontal: 10 }}
-                />
             </ScrollView>
+            <Button
+                title="Request"
+                onPress={makeRequest}
+                disabled={!endpoint.length}
+                containerStyle={{ padding: 5 }}
+            />
         </SafeAreaView>
     );
 };

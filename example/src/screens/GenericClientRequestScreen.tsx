@@ -19,7 +19,7 @@ const GenericClientRequestScreen = ({
 
     const [url, setUrl] = useState("");
     const [selectedMethodIndex, setSelectedMethodIndex] = useState(0);
-    const [timeoutInterval, setTimeoutInterval] = useState(30);
+    const [timeoutInterval, setTimeoutInterval] = useState(30000);
     const [body, setBody] = useState('{"login_id":"","password":""}');
     const [requestHeaders, setRequestHeaders] = useState<Header[]>([]);
     const [response, setResponse] = useState<ClientResponse>();
@@ -33,6 +33,8 @@ const GenericClientRequestScreen = ({
         setRetryInterval,
         setExponentialBackoffBase,
         setExponentialBackoffScale,
+        setStatusCodes,
+        setRetryMethods,
     ] = useRetryPolicyConfiguration();
 
     const methods = Object.keys(METHODS);
@@ -91,8 +93,15 @@ const GenericClientRequestScreen = ({
     };
 
     return (
-        <SafeAreaView>
-            <ScrollView testID="generic_client_request.scroll_view">
+        <SafeAreaView style={{ flex: 1 }}>
+            <ScrollView
+                style={{
+                    backgroundColor: "#fff",
+                    borderRadius: 5,
+                    margin: 10,
+                }}
+                testID="generic_client_request.scroll_view"
+            >
                 <ButtonGroup
                     onPress={setSelectedMethodIndex}
                     selectedIndex={selectedMethodIndex}
@@ -119,10 +128,11 @@ const GenericClientRequestScreen = ({
                     />
                 )}
                 <NumericInput
-                    title="Timeout Interval"
+                    title="Timeout Interval (ms)"
                     value={timeoutInterval}
                     onChange={setTimeoutInterval}
                     minValue={0}
+                    step={5000}
                     testID="generic_client_request.timeout_interval.input"
                 />
                 <RetryPolicyConfiguration
@@ -140,6 +150,10 @@ const GenericClientRequestScreen = ({
                         retryPolicyConfiguration.exponentialBackoffScale
                     }
                     setExponentialBackoffScale={setExponentialBackoffScale}
+                    statusCodes={retryPolicyConfiguration.statusCodes}
+                    setStatusCodes={setStatusCodes}
+                    retryMethods={retryPolicyConfiguration.retryMethods}
+                    setRetryMethods={setRetryMethods}
                 />
                 <ResponseSuccessOverlay
                     response={response}
@@ -151,13 +165,13 @@ const GenericClientRequestScreen = ({
                     visible={responseErrorVisible}
                     setVisible={setResponseErrorVisible}
                 />
-                <Button
-                    title="Request"
-                    onPress={makeRequest}
-                    disabled={!url.length}
-                    style={{ paddingHorizontal: 10 }}
-                />
             </ScrollView>
+            <Button
+                title="Request"
+                onPress={makeRequest}
+                disabled={!url.length}
+                containerStyle={{ padding: 5 }}
+            />
         </SafeAreaView>
     );
 };

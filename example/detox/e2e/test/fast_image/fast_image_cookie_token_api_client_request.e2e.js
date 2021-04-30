@@ -16,11 +16,7 @@ describe("Fast Image Cookie Token - API Client Request", () => {
     const testLoginUrl = `${testBaseUrl}/login/123`;
     const testImageUrl = `${testBaseUrl}/protected/api/files/fast-image.jpg`;
     const testName = "Fast Image Server API";
-    const {
-        fastImage,
-        imageNotSupportedIcon,
-        setImageUrl,
-    } = ApiClientFastImageScreen;
+    const { imageNotSupportedIcon, setImageUrl } = ApiClientFastImageScreen;
 
     beforeAll(async () => {
         await ApiClientScreen.open(testName);
@@ -37,18 +33,12 @@ describe("Fast Image Cookie Token - API Client Request", () => {
         await setImageUrl(`${testImageUrl}?tokenSource=cookies`);
 
         // * Verify fast image is displayed
-        await expect(fastImage).toBeVisible();
-    });
-
-    it("should not display fast image - no cookie token on protected request", async () => {
-        // * Verify image not supported is displayed
-        await setImageUrl("");
-        await expect(imageNotSupportedIcon).toBeVisible();
+        await expect(imageNotSupportedIcon).not.toBeVisible();
 
         // # Set image url
         await setImageUrl(`${testImageUrl}?tokenSource=none`);
 
-        // * Verify image not supported is displayed
+        // * Verify image not supported is again displayed
         await expect(imageNotSupportedIcon).toBeVisible();
     });
 });

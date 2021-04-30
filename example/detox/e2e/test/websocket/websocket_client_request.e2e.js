@@ -14,6 +14,7 @@ import {
     webSocketServerUrl,
 } from "@support/test_config";
 import { WebSocketClientScreen } from "@support/ui/screen";
+import { isAndroid } from "@support/utils";
 import { createWebSocketClient, verifyWebSocketEvent } from "../helpers";
 
 describe("WebSocket Client Request", () => {
@@ -47,6 +48,11 @@ describe("WebSocket Client Request", () => {
     });
 
     it("should be able to connect, send message, and disconnect - secure connection", async () => {
+        // # Do not run against Android due to file attachment limitation
+        if (isAndroid()) {
+            return;
+        }
+
         // # Create secure WebSocket client
         await createWebSocketClient({
             clientCertPassword,

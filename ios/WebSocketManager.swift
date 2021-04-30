@@ -41,7 +41,7 @@ class WebSocketManager: NSObject {
             }
             
             if let timeoutInterval = options["timeoutInterval"].double {
-                request.timeoutInterval = timeoutInterval
+                request.timeoutInterval = timeoutInterval / 1000
             }
             
             if let clientP12Configuration = options["clientP12Configuration"].dictionaryObject as? [String:String] {

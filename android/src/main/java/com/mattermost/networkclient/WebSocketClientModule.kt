@@ -3,34 +3,30 @@ package com.mattermost.networkclient
 import com.facebook.react.bridge.*
 import com.mattermost.networkclient.enums.WebSocketEvents
 import com.mattermost.networkclient.enums.WebSocketReadyState
-import com.mattermost.networkclient.events.WebSocketEvent
-import com.mattermost.networkclient.helpers.parseOptions
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.WebSocket
+import okhttp3.*
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import kotlin.collections.HashMap
 
 class WebSocketClientModule(private val reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
-
-    var clients = mutableMapOf<String, OkHttpClient.Builder>()
-    var sockets = mutableMapOf<String, WebSocket>()
-    var requests = mutableMapOf<String, Request.Builder>()
+    private val clients = mutableMapOf<HttpUrl, NetworkClient>()
 
     override fun getName(): String {
         return "WebSocketClient"
     }
 
     @ReactMethod
-    fun createClientFor(url: String, options: ReadableMap, promise: Promise) {
+    fun createClientFor(baseUrl: String, options: ReadableMap, promise: Promise) {
+        var url: HttpUrl
         try {
-            // Create the client and request builder
-            clients[url] = OkHttpClient().newBuilder();
-            requests[url] = Request.Builder().url(url);
+            url = baseUrl.toHttpUrl()
+        } catch (err: IllegalArgumentException) {
+            return promise.reject(err)
+        }
 
-            // Attach client options if they are passed in
-            clients[url]!!.parseOptions(options, requests[url]);
 
-            // Return stringified client for success
+        try {
+            clients[url] = NetworkClient(url, options)
+
             promise.resolve(null)
         } catch (err: Throwable) {
             promise.reject(err)
@@ -38,40 +34,68 @@ class WebSocketClientModule(private val reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
-    fun invalidateClientFor(url: String, promise: Promise) {
-        // Close the connection
-        sockets[url]?.close(1000, null)
+    fun invalidateClientFor(baseUrl: String, promise: Promise) {
+        var url: HttpUrl
+        try {
+            url = baseUrl.toHttpUrl()
+        } catch (err: IllegalArgumentException) {
+            return promise.reject(err)
+        }
 
-        // Remove
-        sockets.remove(url);
+
+        clients[url]!!.webSocket?.close(1000, null)
         clients.remove(url);
-        requests.remove(url);
 
         promise.resolve(null)
     }
 
     @ReactMethod
-    fun connectFor(url: String, promise: Promise) {
+    fun connectFor(baseUrl: String, promise: Promise) {
+        var url: HttpUrl
         try {
-            sockets[url] = clients[url]!!.build().newWebSocket(requests[url]!!.build(), WebSocketEvent(reactContext, url))
+            url = baseUrl.toHttpUrl()
+        } catch (err: IllegalArgumentException) {
+            return promise.reject(err)
+        }
+
+
+        val listener = WebSocketEventListener(reactContext, url)
+        try {
+            clients[url]!!.createWebSocket(listener)
         } catch (err: Throwable) {
             promise.reject(err)
         }
     }
 
     @ReactMethod
-    fun disconnectFor(url: String, promise: Promise) {
+    fun disconnectFor(baseUrl: String, promise: Promise) {
+        var url: HttpUrl
         try {
-            sockets[url]!!.close(1000, null)
+            url = baseUrl.toHttpUrl()
+        } catch (err: IllegalArgumentException) {
+            return promise.reject(err)
+        }
+
+
+        try {
+            clients[url]!!.webSocket!!.close(1000, null)
         } catch (err: Throwable) {
             promise.reject(err)
         }
     }
 
     @ReactMethod
-    fun sendDataFor(url: String, data: String, promise: Promise) {
+    fun sendDataFor(baseUrl: String, data: String, promise: Promise) {
+        var url: HttpUrl
         try {
-            sockets[url]!!.send(data)
+            url = baseUrl.toHttpUrl()
+        } catch (err: IllegalArgumentException) {
+            return promise.reject(err)
+        }
+
+
+        try {
+            clients[url]!!.webSocket!!.send(data)
         } catch (err: Throwable) {
             promise.reject(err)
         }

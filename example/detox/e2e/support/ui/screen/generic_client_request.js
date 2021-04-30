@@ -61,10 +61,6 @@ class GenericClientRequestScreen {
     };
 
     makeRequest = async () => {
-        await waitForAndScrollDown(
-            this.requestButton,
-            this.testID.genericClientRequestScrollView
-        );
         await this.requestButton.tap();
     };
 
