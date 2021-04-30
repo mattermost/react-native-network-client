@@ -1,19 +1,16 @@
 package com.mattermost.networkclient
 
 import com.mattermost.networkclient.enums.RetryTypes
-import com.mattermost.networkclient.interceptors.ExponentialRetryInterceptor
-import com.mattermost.networkclient.interceptors.LinearRetryInterceptor
-import com.mattermost.networkclient.interceptors.RuntimeInterceptor
-import com.mattermost.networkclient.interceptors.TimeoutInterceptor
 import com.mattermost.networkclient.interfaces.RetryInterceptor
+import com.mattermost.networkclient.interceptors.*
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableMap
 import okhttp3.*
 import okhttp3.RequestBody.Companion.toRequestBody
+import org.json.JSONObject
 import android.net.Uri
 import android.webkit.CookieManager
-import org.json.JSONObject
 import kotlin.reflect.KProperty
 
 
@@ -43,6 +40,7 @@ class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: R
         setClientHeaders(options)
         setClientRetryInterceptor(options)
         setClientTimeoutInterceptor(options)
+        addBearerTokenInterceptor(options)
 
         builder.retryOnConnectionFailure(false);
         builder.addInterceptor(RuntimeInterceptor(this, "retry"))
@@ -149,6 +147,7 @@ class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: R
     fun invalidate() {
         cancelAllRequests()
         clearCookies()
+        APIClientModule.deleteToken(baseUrl.toString())
     }
 
     private fun buildRequest(method: String, endpoint: String, headers: ReadableMap?, body: RequestBody?): Request {
@@ -195,6 +194,16 @@ class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: R
     private fun setClientHeaders(options: ReadableMap?) {
         if (options != null && options.hasKey(("headers"))) {
             addClientHeaders(options.getMap("headers"))
+        }
+    }
+
+    private fun addBearerTokenInterceptor(options: ReadableMap?) {
+        if (options != null && options.hasKey("requestAdapterConfiguration")) {
+            val requestAdapterConfiguration = options.getMap("requestAdapterConfiguration")!!;
+            if (requestAdapterConfiguration.hasKey("bearerAuthTokenResponseHeader")) {
+                val bearerAuthTokenResponseHeader = requestAdapterConfiguration.getString("bearerAuthTokenResponseHeader")!!
+                builder.addInterceptor(BearerTokenInterceptor(baseUrl.toString(), bearerAuthTokenResponseHeader))
+            }
         }
     }
 
@@ -323,7 +332,7 @@ class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: R
         val cookies = cookieString.split(";").toTypedArray()
         for (i in cookies.indices) {
             val cookieParts = cookies[i].split("=").toTypedArray()
-            cookieManager.setCookie(domain, cookieParts[0].trim { it <= ' ' } + "=;")
+            cookieManager.setCookie(domain, cookieParts[0].trim { it <= ' ' } + "=; Expires=Thurs, 1 Jan 1970 12:00:00 GMT")
         }
     }
 }
