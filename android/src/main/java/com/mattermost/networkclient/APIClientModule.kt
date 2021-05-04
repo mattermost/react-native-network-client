@@ -23,6 +23,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     }
 
     companion object {
+        lateinit var context: ReactApplicationContext
         private val clients = mutableMapOf<HttpUrl, NetworkClient>()
         private val calls = mutableMapOf<String, Call>()
         private lateinit var sharedPreferences: SharedPreferences
@@ -43,15 +44,15 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
             return null
         }
 
-        fun storeToken(value: String, baseUrl: String) {
+        fun storeValue(value: String, alias: String) {
             val encryptedValue = KeyStoreHelper.encryptData(value)
             sharedPreferences.edit()
-                .putString(baseUrl, encryptedValue)
+                .putString(alias, encryptedValue)
                 .apply()
         }
 
-        fun retrieveToken(baseUrl: String): String? {
-            val encryptedData = sharedPreferences.getString(baseUrl, null)
+        fun retrieveValue(alias: String): String? {
+            val encryptedData = sharedPreferences.getString(alias, null)
             if (encryptedData != null) {
                 return KeyStoreHelper.decryptData(encryptedData)
             }
@@ -59,10 +60,14 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
             return null
         }
 
-        fun deleteToken(baseUrl: String) {
+        fun deleteValue(alias: String) {
             sharedPreferences.edit()
-                    .remove(baseUrl)
+                    .remove(alias)
                     .apply()
+        }
+
+        private fun setCtx(reactContext: ReactApplicationContext) {
+            context = reactContext
         }
 
         private fun setSharedPreferences(reactContext: ReactApplicationContext) {
@@ -76,6 +81,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     }
 
     init {
+        setCtx(reactContext)
         setSharedPreferences(reactContext)
         setCookieJar(reactContext)
     }
@@ -146,7 +152,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         }
 
         try {
-            clients[url]!!.importClientP12(path, password)
+            clients[url]!!.importClientP12AndRebuildClient(path, password)
             promise.resolve(null)
         } catch (error: Exception) {
             promise.reject(error)

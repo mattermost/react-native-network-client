@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, { useState } from "react";
-import { View } from "react-native";
+import { Platform, View } from "react-native";
 import { Button, ButtonGroup, Input, Text } from "react-native-elements";
 import DocumentPicker from "react-native-document-picker";
 import { check, request, PERMISSIONS, RESULTS } from "react-native-permissions";
@@ -21,16 +21,22 @@ const P12Inputs = (props: P12InputsProps) => {
     const [url, setUrl] = useState("");
 
     const hasPhotoLibraryPermissions = async () => {
-        let result = await check(PERMISSIONS.IOS.PHOTO_LIBRARY);
+        const permission =
+            Platform.OS === "ios"
+                ? PERMISSIONS.IOS.PHOTO_LIBRARY
+                : PERMISSIONS.ANDROID.READ_EXTERNAL_STORAGE;
+        let result = await check(permission);
         if (result === RESULTS.GRANTED || result === RESULTS.LIMITED) {
             return true;
         } else if (
             result !== RESULTS.BLOCKED &&
             result !== RESULTS.UNAVAILABLE
         ) {
-            await request(PERMISSIONS.IOS.PHOTO_LIBRARY);
+            await request(permission);
             hasPhotoLibraryPermissions();
         }
+
+        console.log(result);
 
         return false;
     };
@@ -73,7 +79,7 @@ const P12Inputs = (props: P12InputsProps) => {
 
     const rightIcon = (
         <View style={{ width: 250 }}>
-            {props.path ? (
+            {Boolean(props.path) ? (
                 <View style={{ flexDirection: "column", height: 50 }}>
                     <View style={{ flexDirection: "row" }}>
                         <View style={{ flex: 1 }}>
@@ -100,34 +106,52 @@ const P12Inputs = (props: P12InputsProps) => {
                     />
                 </View>
             ) : (
-                <View style={{ flexDirection: "column", height: 50 }}>
-                    <Input
-                        placeholder="Download URL"
-                        onChangeText={setUrl}
-                        autoCapitalize="none"
-                        testID="p12_inputs.download_url.input"
-                    />
-                    <ButtonGroup
-                        buttons={buttons.map((button) => button.title)}
-                        onPress={onButtonPress}
-                    />
-                </View>
+                <Input
+                    placeholder="Download URL"
+                    onChangeText={setUrl}
+                    autoCapitalize="none"
+                    testID="p12_inputs.download_url.input"
+                />
             )}
         </View>
     );
 
     return (
-        <Input
-            placeholder={props.title}
-            disabled={true}
-            style={{ fontWeight: "bold", fontSize: 17, opacity: 1 }}
-            containerStyle={{ flex: 1, paddingBottom: 40 }}
-            inputContainerStyle={{
-                borderColor: "rgba(255,255,255,0)",
-            }}
-            rightIcon={rightIcon}
-            labelStyle={{ flex: 12, flexWrap: "wrap", height: 100 }}
-        />
+        <>
+            <Input
+                placeholder={props.title}
+                disabled={true}
+                style={{
+                    fontWeight: "bold",
+                    fontSize: 17,
+                    opacity: 1,
+                }}
+                inputContainerStyle={{
+                    borderColor: "rgba(255,255,255,0)",
+                }}
+                rightIcon={rightIcon}
+                labelStyle={{ flex: 12, flexWrap: "wrap" }}
+            />
+            {Boolean(!props.path) ? (
+                <View
+                    style={{
+                        flex: 1,
+                        alignItems: "flex-end",
+                        marginTop: -30,
+                        paddingRight: 4,
+                        paddingBottom: 10,
+                    }}
+                >
+                    <ButtonGroup
+                        containerStyle={{ width: 200 }}
+                        buttons={buttons.map((button) => button.title)}
+                        onPress={onButtonPress}
+                    />
+                </View>
+            ) : (
+                <View style={{ height: 20 }} />
+            )}
+        </>
     );
 };
 
