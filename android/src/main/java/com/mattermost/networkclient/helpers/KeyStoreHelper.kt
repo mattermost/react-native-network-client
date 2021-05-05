@@ -4,7 +4,6 @@ import android.content.Context
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.util.Base64
-import android.util.Log
 import com.mattermost.networkclient.APIClientModule
 import okhttp3.tls.HeldCertificate
 import java.io.FileInputStream
@@ -66,26 +65,21 @@ object KeyStoreHelper {
     }
 
     fun importClientCertificateFromP12(p12FilePath: String, password: String, p12Alias: String) {
-        try {
-            val p12Store = KeyStore.getInstance("PKCS12").apply {
-                load(FileInputStream(p12FilePath), password.toCharArray())
-            }
-            val aliases = p12Store.aliases()
-            while (aliases.hasMoreElements()) {
-                val alias = aliases.nextElement()
-                if (p12Store.isKeyEntry(alias)) {
-                    val key = p12Store.getKey(alias, password.toCharArray())
-                    val certificate = p12Store.getCertificate(alias)
-                    val intermediates = p12Store.getCertificateChain(alias)
+        val p12Store = KeyStore.getInstance("PKCS12").apply {
+            load(FileInputStream(p12FilePath), password.toCharArray())
+        }
+        val aliases = p12Store.aliases()
+        while (aliases.hasMoreElements()) {
+            val alias = aliases.nextElement()
+            if (p12Store.isKeyEntry(alias)) {
+                val key = p12Store.getKey(alias, password.toCharArray())
+                val certificate = p12Store.getCertificate(alias)
+                val intermediates = p12Store.getCertificateChain(alias)
 
-                    storeP12Contents(key, certificate, intermediates, password, p12Alias)
+                storeP12Contents(key, certificate, intermediates, password, p12Alias)
 
-                    break
-                }
+                break
             }
-        } catch (e: Exception) {
-            Log.d("MIGUEL EXCEPTION", "IMPORTING")
-            throw e
         }
     }
 
@@ -110,8 +104,6 @@ object KeyStoreHelper {
                         .toTypedArray()
 
                 return Pair(heldCertificate, intermediates)
-            } else {
-                Log.d("MIGUEL NO CERTIFICATES", keyAlias)
             }
         }
 
