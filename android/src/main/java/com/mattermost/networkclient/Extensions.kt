@@ -50,6 +50,13 @@ fun Request.Builder.applyHeaders(headers: ReadableMap?): Request.Builder {
 }
 
 /**
+ * Trims trailing slashes in the string
+ */
+fun String.trimTrailingSlashes(): String {
+    return trimEnd { c -> c == '/' }
+}
+
+/**
  * Computes the MD5 of a string
  */
 fun String.md5(): String {

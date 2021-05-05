@@ -6,6 +6,7 @@ import android.webkit.CookieManager
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableMap
+import com.mattermost.networkclient.enums.APIClientEvents
 import com.mattermost.networkclient.enums.RetryTypes
 import com.mattermost.networkclient.helpers.DocumentHelper
 import com.mattermost.networkclient.helpers.KeyStoreHelper
@@ -29,7 +30,8 @@ class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: R
     private var trustSelfSignedServerCertificate = false
     private val builder: OkHttpClient.Builder = OkHttpClient().newBuilder()
 
-    private val BASE_URL_MD5 = baseUrl.toString().md5()
+    private val BASE_URL_STRING = baseUrl.toString().trimTrailingSlashes()
+    private val BASE_URL_MD5 = BASE_URL_STRING.md5()
     private val TOKEN_ALIAS = "$BASE_URL_MD5-TOKEN"
     private val P12_ALIAS = "$BASE_URL_MD5-P12"
 
@@ -84,6 +86,7 @@ class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: R
 
     fun importClientP12AndRebuildClient(p12FilePath: String, password: String) {
         importClientP12(p12FilePath, password)
+
         val handshakeCertificates = buildHandshakeCertificates()
         if (handshakeCertificates != null) {
             okHttpClient = okHttpClient.newBuilder()
@@ -264,7 +267,14 @@ class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: R
                 ""
             }
 
-            importClientP12(path, password)
+            try {
+                importClientP12(path, password)
+            } catch (error: Exception) {
+                val params = Arguments.createMap()
+                params.putString("serverUrl", BASE_URL_STRING)
+                params.putString("errorDescription", error.localizedMessage)
+                APIClientModule.sendJSEvent(APIClientEvents.CLIENT_ERROR.event, params)
+            }
         }
 
         return buildHandshakeCertificates()
@@ -294,13 +304,9 @@ class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: R
     }
 
     private fun importClientP12(p12FilePath: String, password: String) {
-        try {
-            val contentUri = Uri.parse(p12FilePath)
-            val realPath = DocumentHelper.getRealPath(contentUri)
-            KeyStoreHelper.importClientCertificateFromP12(realPath, password, P12_ALIAS)
-        } catch (e: Exception) {
-            // TODO: alert user of problem
-        }
+        val contentUri = Uri.parse(p12FilePath)
+        val realPath = DocumentHelper.getRealPath(contentUri)
+        KeyStoreHelper.importClientCertificateFromP12(realPath, password, P12_ALIAS)
     }
 
     private fun setClientRetryInterceptor(options: ReadableMap?) {

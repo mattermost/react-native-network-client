@@ -1,21 +1,24 @@
 package com.mattermost.networkclient
 
-import com.mattermost.networkclient.enums.APIClientEvents
-import com.mattermost.networkclient.enums.RetryTypes
-import com.mattermost.networkclient.helpers.ProgressListener
-import com.mattermost.networkclient.helpers.UploadFileRequestBody
-import com.mattermost.networkclient.helpers.KeyStoreHelper
+import android.content.Context
+import android.content.SharedPreferences
+import android.net.Uri
 import com.facebook.react.bridge.*
+import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter
 import com.facebook.react.modules.network.ForwardingCookieHandler
 import com.facebook.react.modules.network.ReactCookieJarContainer
-import okhttp3.*
+import com.mattermost.networkclient.enums.APIClientEvents
+import com.mattermost.networkclient.enums.RetryTypes
+import com.mattermost.networkclient.helpers.KeyStoreHelper
+import com.mattermost.networkclient.helpers.ProgressListener
+import com.mattermost.networkclient.helpers.UploadFileRequestBody
+import okhttp3.Call
+import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
-import android.content.SharedPreferences
-import android.content.Context
-import android.net.Uri
-import java.lang.Exception
-import kotlin.collections.HashMap
+import okhttp3.JavaNetCookieJar
+import okhttp3.Request
+
 
 class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
     override fun getName(): String {
@@ -33,7 +36,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         fun getClientForRequest(request: Request): NetworkClient? {
             var urlParts = request.url.toString().split("/")
             while (urlParts.isNotEmpty()) {
-                val url = urlParts.joinToString (separator = "/") { it }.toHttpUrlOrNull()
+                val url = urlParts.joinToString(separator = "/") { it }.toHttpUrlOrNull()
                 if (url !== null && clients.containsKey(url)) {
                     return clients[url]!!
                 }
@@ -64,6 +67,11 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
             sharedPreferences.edit()
                     .remove(alias)
                     .apply()
+        }
+
+        fun sendJSEvent(eventName: String, params: WritableMap?) {
+            context.getJSModule(RCTDeviceEventEmitter::class.java)
+                    .emit(eventName, params)
         }
 
         private fun setCtx(reactContext: ReactApplicationContext) {
