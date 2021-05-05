@@ -30,9 +30,9 @@ class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: R
     private val builder: OkHttpClient.Builder = OkHttpClient().newBuilder()
 
     private val BASE_URL_STRING = baseUrl.toString().trimTrailingSlashes()
-    private val BASE_URL_MD5 = BASE_URL_STRING.md5()
-    private val TOKEN_ALIAS = "$BASE_URL_MD5-TOKEN"
-    private val P12_ALIAS = "$BASE_URL_MD5-P12"
+    private val BASE_URL_HASH = BASE_URL_STRING.sha256()
+    private val TOKEN_ALIAS = "$BASE_URL_HASH-TOKEN"
+    private val P12_ALIAS = "$BASE_URL_HASH-P12"
 
     companion object RequestRetriesExhausted {
         private val requestRetriesExhausted: HashMap<Response, Boolean?> = hashMapOf()

@@ -57,11 +57,11 @@ fun String.trimTrailingSlashes(): String {
 }
 
 /**
- * Computes the MD5 of a string
+ * Computes the SHA-256 hash of a string
  */
-fun String.md5(): String {
-    val md = MessageDigest.getInstance("MD5")
-    return BigInteger(1, md.digest(toByteArray()))
-            .toString(16)
-            .padStart(32, '0')
+fun String.sha256(): String {
+    return MessageDigest
+            .getInstance("SHA-256")
+            .digest(toByteArray())
+            .fold("", { str, it -> str + "%02x".format(it) })
 }
