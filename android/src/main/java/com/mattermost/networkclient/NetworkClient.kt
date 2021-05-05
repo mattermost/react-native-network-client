@@ -1,7 +1,6 @@
 package com.mattermost.networkclient
 
 import android.net.Uri
-import android.util.Log
 import android.webkit.CookieManager
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReadableMap
