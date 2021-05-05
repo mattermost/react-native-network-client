@@ -303,6 +303,8 @@ class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: R
     }
 
     private fun importClientP12(p12FilePath: String, password: String) {
+        // KeyStoreHelper.importClientCertificateFromP12 can throw an exception
+        // and we leave it up to the caller of `importClientP12` to handle it.
         val contentUri = Uri.parse(p12FilePath)
         val realPath = DocumentHelper.getRealPath(contentUri)
         KeyStoreHelper.importClientCertificateFromP12(realPath, password, P12_ALIAS)
