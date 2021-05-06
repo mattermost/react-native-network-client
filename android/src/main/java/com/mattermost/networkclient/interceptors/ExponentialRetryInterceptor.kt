@@ -17,6 +17,7 @@ open class ExponentialRetryInterceptor(
     }
 
     override fun getWaitInterval(attempts: Int): Long {
-        return (exponentialBackoffBase.pow(attempts) * exponentialBackoffScale * 1000).toLong()
+        val waitSeconds = exponentialBackoffBase.pow(attempts) * exponentialBackoffScale
+        return (waitSeconds * 1000).toLong()
     }
 }
