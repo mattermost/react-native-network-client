@@ -224,7 +224,7 @@ export const performApiClientRequest = async ({
     retry = {
         retryPolicyType: getRandomItem(retryPolicyTypes),
         retryLimit: 1,
-        exponentialBackoffBase: 1,
+        exponentialBackoffBase: 2,
         exponentialBackoffScale: 1,
         retryInterval: 1,
     },
@@ -277,7 +277,7 @@ export const performGenericClientRequest = async ({
     retry = {
         retryPolicyType: getRandomItem(retryPolicyTypes),
         retryLimit: 1,
-        exponentialBackoffBase: 1,
+        exponentialBackoffBase: 2,
         exponentialBackoffScale: 1,
         retryInterval: 1,
     },
