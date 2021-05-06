@@ -3,7 +3,7 @@ package com.mattermost.networkclient.interceptors
 import com.mattermost.networkclient.interfaces.RetryInterceptor
 import kotlin.math.pow
 
-class ExponentialRetryInterceptor(
+open class ExponentialRetryInterceptor(
         override val retryLimit: Double,
         override val retryStatusCodes: Set<Int>,
         override val retryMethods: Set<String>,
@@ -17,6 +17,6 @@ class ExponentialRetryInterceptor(
     }
 
     override fun getWaitInterval(attempts: Int): Long {
-        return (exponentialBackoffBase.pow(attempts) * exponentialBackoffScale).toLong()
+        return (exponentialBackoffBase.pow(attempts) * exponentialBackoffScale * 1000).toLong()
     }
 }
