@@ -9,6 +9,7 @@ import com.mattermost.networkclient.enums.APIClientEvents
 import com.mattermost.networkclient.enums.RetryTypes
 import com.mattermost.networkclient.helpers.DocumentHelper
 import com.mattermost.networkclient.helpers.KeyStoreHelper
+import com.mattermost.networkclient.helpers.UploadFileRequestBody
 import com.mattermost.networkclient.interceptors.*
 import com.mattermost.networkclient.interfaces.RetryInterceptor
 import okhttp3.*
@@ -143,10 +144,11 @@ class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: R
         requestTimeoutInterceptors.remove(response.request)
     }
 
-    fun buildUploadCall(endpoint: String, fileUri: Uri, fileBody: RequestBody, options: ReadableMap?): Call {
+    fun buildUploadCall(endpoint: String, filePath: String, taskId: String, options: ReadableMap?): Call {
         var method = "POST"
         var requestHeaders: ReadableMap? = null
         var multipartOptions: ReadableMap? = null
+        var skipBytes: Long = 0
 
         if (options != null) {
             if (options.hasKey("method")) {
@@ -160,7 +162,14 @@ class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: R
             if (options.hasKey("multipart")) {
                 multipartOptions = options.getMap("multipart")
             }
+
+            if (options.hasKey("skipBytes")) {
+                skipBytes = options.getInt("skipBytes").toLong()
+            }
         }
+
+        val fileUri = Uri.parse(filePath)
+        val fileBody = UploadFileRequestBody(fileUri, skipBytes, taskId)
 
 
         val requestBody = if (multipartOptions != null) {

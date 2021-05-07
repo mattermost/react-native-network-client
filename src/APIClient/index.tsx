@@ -11,6 +11,7 @@ import isURL from "validator/es/lib/isURL";
 import {
     validateAPIClientConfiguration,
     validateRequestOptions,
+    validateUploadRequestOptions,
 } from "../schemas";
 
 const { APIClient: NativeAPIClient } = NativeModules;
@@ -124,7 +125,7 @@ class APIClient implements APIClientInterface {
         fileUrl: string,
         options?: UploadRequestOptions
     ): ProgressPromise<ClientResponse> => {
-        validateRequestOptions(options);
+        validateUploadRequestOptions(options);
         const taskId = generateUploadTaskId();
         const promise: ProgressPromise<ClientResponse> = new Promise(
             (resolve, reject) => {
