@@ -5,6 +5,8 @@ import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableMap
 import okhttp3.Request
 import okhttp3.Response
+import java.math.BigInteger
+import java.security.MessageDigest
 
 var Response.retriesExhausted: Boolean? by NetworkClient.RequestRetriesExhausted
 
@@ -45,4 +47,21 @@ fun Request.Builder.applyHeaders(headers: ReadableMap?): Request.Builder {
     }
 
     return this;
+}
+
+/**
+ * Trims trailing slashes in the string
+ */
+fun String.trimTrailingSlashes(): String {
+    return trimEnd { c -> c == '/' }
+}
+
+/**
+ * Computes the SHA-256 hash of a string
+ */
+fun String.sha256(): String {
+    return MessageDigest
+            .getInstance("SHA-256")
+            .digest(toByteArray())
+            .fold("", { str, it -> str + "%02x".format(it) })
 }

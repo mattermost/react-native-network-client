@@ -44,7 +44,7 @@ class APIClient implements APIClientInterface {
     onClientErrorSubscription?: EmitterSubscription;
 
     constructor(baseUrl: string, config: APIClientConfiguration = {}) {
-        this.baseUrl = baseUrl;
+        this.baseUrl = removeTrailingSlashes(baseUrl);
         this.config = Object.assign({}, DEFAULT_API_CLIENT_CONFIG, config);
         validateAPIClientConfiguration(config);
     }
@@ -195,6 +195,10 @@ const isValidBaseURL = (baseUrl: string) => {
         require_valid_protocol: true,
         require_host: true,
     });
+};
+
+const removeTrailingSlashes = (baseUrl: string) => {
+    return baseUrl.replace(/\/+$/, "");
 };
 
 export { getOrCreateAPIClient };

@@ -1,21 +1,24 @@
 package com.mattermost.networkclient
 
-import com.mattermost.networkclient.enums.APIClientEvents
-import com.mattermost.networkclient.enums.RetryTypes
-import com.mattermost.networkclient.helpers.ProgressListener
-import com.mattermost.networkclient.helpers.UploadFileRequestBody
-import com.mattermost.networkclient.helpers.KeyStoreHelper
+import android.content.Context
+import android.content.SharedPreferences
+import android.net.Uri
 import com.facebook.react.bridge.*
+import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter
 import com.facebook.react.modules.network.ForwardingCookieHandler
 import com.facebook.react.modules.network.ReactCookieJarContainer
-import okhttp3.*
+import com.mattermost.networkclient.enums.APIClientEvents
+import com.mattermost.networkclient.enums.RetryTypes
+import com.mattermost.networkclient.helpers.KeyStoreHelper
+import com.mattermost.networkclient.helpers.ProgressListener
+import com.mattermost.networkclient.helpers.UploadFileRequestBody
+import okhttp3.Call
+import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
-import android.content.SharedPreferences
-import android.content.Context
-import android.net.Uri
-import java.lang.Exception
-import kotlin.collections.HashMap
+import okhttp3.JavaNetCookieJar
+import okhttp3.Request
+
 
 class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
     override fun getName(): String {
@@ -23,6 +26,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     }
 
     companion object {
+        lateinit var context: ReactApplicationContext
         private val clients = mutableMapOf<HttpUrl, NetworkClient>()
         private val calls = mutableMapOf<String, Call>()
         private lateinit var sharedPreferences: SharedPreferences
@@ -32,7 +36,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         fun getClientForRequest(request: Request): NetworkClient? {
             var urlParts = request.url.toString().split("/")
             while (urlParts.isNotEmpty()) {
-                val url = urlParts.joinToString (separator = "/") { it }.toHttpUrlOrNull()
+                val url = urlParts.joinToString(separator = "/") { it }.toHttpUrlOrNull()
                 if (url !== null && clients.containsKey(url)) {
                     return clients[url]!!
                 }
@@ -43,15 +47,15 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
             return null
         }
 
-        fun storeToken(value: String, baseUrl: String) {
+        fun storeValue(value: String, alias: String) {
             val encryptedValue = KeyStoreHelper.encryptData(value)
             sharedPreferences.edit()
-                .putString(baseUrl, encryptedValue)
+                .putString(alias, encryptedValue)
                 .apply()
         }
 
-        fun retrieveToken(baseUrl: String): String? {
-            val encryptedData = sharedPreferences.getString(baseUrl, null)
+        fun retrieveValue(alias: String): String? {
+            val encryptedData = sharedPreferences.getString(alias, null)
             if (encryptedData != null) {
                 return KeyStoreHelper.decryptData(encryptedData)
             }
@@ -59,10 +63,19 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
             return null
         }
 
-        fun deleteToken(baseUrl: String) {
+        fun deleteValue(alias: String) {
             sharedPreferences.edit()
-                    .remove(baseUrl)
+                    .remove(alias)
                     .apply()
+        }
+
+        fun sendJSEvent(eventName: String, params: WritableMap?) {
+            context.getJSModule(RCTDeviceEventEmitter::class.java)
+                    .emit(eventName, params)
+        }
+
+        private fun setCtx(reactContext: ReactApplicationContext) {
+            context = reactContext
         }
 
         private fun setSharedPreferences(reactContext: ReactApplicationContext) {
@@ -76,6 +89,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     }
 
     init {
+        setCtx(reactContext)
         setSharedPreferences(reactContext)
         setCookieJar(reactContext)
     }
@@ -131,6 +145,23 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         try {
             clients[url]!!.addClientHeaders(headers)
             promise.resolve(null);
+        } catch (error: Exception) {
+            promise.reject(error)
+        }
+    }
+
+    @ReactMethod
+    fun importClientP12For(baseUrl: String, path: String, password: String, promise: Promise) {
+        var url: HttpUrl
+        try {
+            url = baseUrl.toHttpUrl()
+        } catch (error: IllegalArgumentException) {
+            return promise.reject(error)
+        }
+
+        try {
+            clients[url]!!.importClientP12AndRebuildClient(path, password)
+            promise.resolve(null)
         } catch (error: Exception) {
             promise.reject(error)
         }

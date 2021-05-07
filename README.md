@@ -30,6 +30,10 @@ const { client: wsClient, created } = await getOrCreateWebSocketClient(
 );
 ```
 
+## Self-signed server certificate
+
+To allow usage of self-signed server certificates you can pass in `sessionConfiguration.trustSelfSignedServerCertificate = true` in the options when creating an APIClient. It is recommended **not** to do this in production code as not only will the certificate be trusted, but the hostname will not be verified against your APIClient `baseUrl`'s hostname. This can open you up to man-in-the-middle attacks.
+
 ## Errors
 
 There are two cases where errors will be returned by the native code. The first is via rejected promises and the second is via events.

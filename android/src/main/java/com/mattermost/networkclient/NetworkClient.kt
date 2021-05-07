@@ -1,16 +1,20 @@
 package com.mattermost.networkclient
 
-import com.mattermost.networkclient.enums.RetryTypes
-import com.mattermost.networkclient.interfaces.RetryInterceptor
-import com.mattermost.networkclient.interceptors.*
+import android.net.Uri
+import android.webkit.CookieManager
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableMap
+import com.mattermost.networkclient.enums.APIClientEvents
+import com.mattermost.networkclient.enums.RetryTypes
+import com.mattermost.networkclient.helpers.DocumentHelper
+import com.mattermost.networkclient.helpers.KeyStoreHelper
+import com.mattermost.networkclient.interceptors.*
+import com.mattermost.networkclient.interfaces.RetryInterceptor
 import okhttp3.*
 import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.tls.HandshakeCertificates
 import org.json.JSONObject
-import android.net.Uri
-import android.webkit.CookieManager
 import kotlin.reflect.KProperty
 
 
@@ -22,7 +26,13 @@ class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: R
     lateinit var clientTimeoutInterceptor: TimeoutInterceptor
     val requestRetryInterceptors: HashMap<Request, Interceptor> = hashMapOf()
     val requestTimeoutInterceptors: HashMap<Request, TimeoutInterceptor> = hashMapOf()
+    private var trustSelfSignedServerCertificate = false
     private val builder: OkHttpClient.Builder = OkHttpClient().newBuilder()
+
+    private val BASE_URL_STRING = baseUrl.toString().trimTrailingSlashes()
+    private val BASE_URL_HASH = BASE_URL_STRING.sha256()
+    private val TOKEN_ALIAS = "$BASE_URL_HASH-TOKEN"
+    private val P12_ALIAS = "$BASE_URL_HASH-P12"
 
     companion object RequestRetriesExhausted {
         private val requestRetriesExhausted: HashMap<Response, Boolean?> = hashMapOf()
@@ -40,7 +50,19 @@ class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: R
         setClientHeaders(options)
         setClientRetryInterceptor(options)
         setClientTimeoutInterceptor(options)
-        addBearerTokenInterceptor(options)
+
+        val bearerTokenInterceptor = getBearerTokenInterceptor(options)
+        if (bearerTokenInterceptor != null) {
+            builder.addInterceptor(bearerTokenInterceptor)
+        }
+
+        val handshakeCertificates = buildHandshakeCertificates(options)
+        if (handshakeCertificates != null) {
+            builder.sslSocketFactory(
+                    handshakeCertificates.sslSocketFactory(),
+                    handshakeCertificates.trustManager
+            )
+        }
 
         builder.retryOnConnectionFailure(false);
         builder.addInterceptor(RuntimeInterceptor(this, "retry"))
@@ -58,6 +80,20 @@ class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: R
             for ((k, v) in additionalHeaders.toHashMap()) {
                 clientHeaders.putString(k, v as String)
             }
+        }
+    }
+
+    fun importClientP12AndRebuildClient(p12FilePath: String, password: String) {
+        importClientP12(p12FilePath, password)
+
+        val handshakeCertificates = buildHandshakeCertificates()
+        if (handshakeCertificates != null) {
+            okHttpClient = okHttpClient.newBuilder()
+                    .sslSocketFactory(
+                            handshakeCertificates.sslSocketFactory(),
+                            handshakeCertificates.trustManager
+                    )
+                    .build()
         }
     }
 
@@ -147,7 +183,9 @@ class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: R
     fun invalidate() {
         cancelAllRequests()
         clearCookies()
-        APIClientModule.deleteToken(baseUrl.toString())
+        APIClientModule.deleteValue(TOKEN_ALIAS)
+        APIClientModule.deleteValue(P12_ALIAS)
+        KeyStoreHelper.deleteClientCertificates(P12_ALIAS)
     }
 
     private fun buildRequest(method: String, endpoint: String, headers: ReadableMap?, body: RequestBody?): Request {
@@ -197,14 +235,84 @@ class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: R
         }
     }
 
-    private fun addBearerTokenInterceptor(options: ReadableMap?) {
+    private fun getBearerTokenInterceptor(options: ReadableMap?): BearerTokenInterceptor? {
         if (options != null && options.hasKey("requestAdapterConfiguration")) {
             val requestAdapterConfiguration = options.getMap("requestAdapterConfiguration")!!;
             if (requestAdapterConfiguration.hasKey("bearerAuthTokenResponseHeader")) {
                 val bearerAuthTokenResponseHeader = requestAdapterConfiguration.getString("bearerAuthTokenResponseHeader")!!
-                builder.addInterceptor(BearerTokenInterceptor(baseUrl.toString(), bearerAuthTokenResponseHeader))
+                return BearerTokenInterceptor(TOKEN_ALIAS, bearerAuthTokenResponseHeader)
             }
         }
+
+        return null
+    }
+
+    private fun buildHandshakeCertificates(options: ReadableMap?): HandshakeCertificates? {
+        if (options != null && options.hasKey("sessionConfiguration")) {
+            val sessionConfiguration = options.getMap("sessionConfiguration")!!
+            if (sessionConfiguration.hasKey("trustSelfSignedServerCertificate") &&
+                    sessionConfiguration.getBoolean("trustSelfSignedServerCertificate")) {
+                trustSelfSignedServerCertificate = true
+                builder.hostnameVerifier { _, _ -> true }
+            }
+        }
+
+        if (options != null && options.hasKey("clientP12Configuration")) {
+            val clientP12Configuration = options.getMap("clientP12Configuration")!!
+            val path = clientP12Configuration.getString("path")!!
+            val password = if (clientP12Configuration.hasKey("password")) {
+                clientP12Configuration.getString("password")!!
+            } else {
+                ""
+            }
+
+            try {
+                importClientP12(path, password)
+            } catch (error: Exception) {
+                val params = Arguments.createMap()
+                params.putString("serverUrl", BASE_URL_STRING)
+                params.putString("errorDescription", error.localizedMessage)
+                APIClientModule.sendJSEvent(APIClientEvents.CLIENT_ERROR.event, params)
+            }
+        }
+
+        return buildHandshakeCertificates()
+    }
+
+    private fun buildHandshakeCertificates(): HandshakeCertificates? {
+        if (baseUrl == null)
+            return null
+
+        val (heldCertificate, intermediates) = KeyStoreHelper.getClientCertificates(P12_ALIAS)
+
+        if (!trustSelfSignedServerCertificate && heldCertificate == null)
+            return null
+
+        val builder = HandshakeCertificates.Builder()
+                .addPlatformTrustedCertificates()
+
+        if (trustSelfSignedServerCertificate) {
+            builder.addInsecureHost(baseUrl!!.host)
+        }
+
+        if (heldCertificate != null) {
+            builder.heldCertificate(heldCertificate, *intermediates!!)
+        }
+
+        return builder.build()
+    }
+
+    /**
+     * Gets the real path to the p12 file uses KeyStoreHelper to import
+     * the key and certificates.
+     *
+     * @throws Exception from KeyStoreHelper.importClientCertificateFromP12
+     * which we leave to the caller of this function to handle.
+     */
+    private fun importClientP12(p12FilePath: String, password: String) {
+        val contentUri = Uri.parse(p12FilePath)
+        val realPath = DocumentHelper.getRealPath(contentUri)
+        KeyStoreHelper.importClientCertificateFromP12(realPath, password, P12_ALIAS)
     }
 
     private fun setClientRetryInterceptor(options: ReadableMap?) {
