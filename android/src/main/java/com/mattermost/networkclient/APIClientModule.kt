@@ -16,7 +16,6 @@ import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.JavaNetCookieJar
 import okhttp3.Request
 
-
 class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
     override fun getName(): String {
         return "APIClient"
@@ -66,9 +65,9 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
                     .apply()
         }
 
-        fun sendJSEvent(eventName: String, params: WritableMap?) {
+        fun sendJSEvent(eventName: String, data: WritableMap?) {
             context.getJSModule(RCTDeviceEventEmitter::class.java)
-                    .emit(eventName, params)
+                    .emit(eventName, data)
         }
 
         private fun setCtx(reactContext: ReactApplicationContext) {

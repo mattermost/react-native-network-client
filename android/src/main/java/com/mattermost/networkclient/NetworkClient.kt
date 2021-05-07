@@ -16,6 +16,7 @@ import okhttp3.*
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.tls.HandshakeCertificates
 import org.json.JSONObject
+import java.net.URI
 import kotlin.reflect.KProperty
 
 
@@ -46,6 +47,8 @@ class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: R
             requestRetriesExhausted[response] = value
         }
     }
+
+    constructor(options: ReadableMap? = null) : this(null, options) {}
 
     init {
         setClientHeaders(options)
@@ -183,8 +186,12 @@ class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: R
         return okHttpClient.newCall(request)
     }
 
-    fun createWebSocket(listener: WebSocketEventListener) {
-        val request = Request.Builder().build()
+    fun createWebSocket(uri: URI) {
+        var request = Request.Builder()
+                .url(uri.toString())
+                .applyHeaders(clientHeaders)
+                .build()
+        val listener = WebSocketEventListener(uri)
 
         webSocket = okHttpClient.newWebSocket(request, listener)
     }
@@ -278,10 +285,10 @@ class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: R
             try {
                 importClientP12(path, password)
             } catch (error: Exception) {
-                val params = Arguments.createMap()
-                params.putString("serverUrl", BASE_URL_STRING)
-                params.putString("errorDescription", error.localizedMessage)
-                APIClientModule.sendJSEvent(APIClientEvents.CLIENT_ERROR.event, params)
+                val data = Arguments.createMap()
+                data.putString("serverUrl", BASE_URL_STRING)
+                data.putString("errorDescription", error.localizedMessage)
+                APIClientModule.sendJSEvent(APIClientEvents.CLIENT_ERROR.event, data)
             }
         }
 

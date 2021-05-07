@@ -1,13 +1,16 @@
 package com.mattermost.networkclient
 
-import com.facebook.react.bridge.*
+import com.facebook.react.bridge.Arguments
+import com.facebook.react.bridge.ReadableMap
+import com.facebook.react.bridge.WritableArray
+import com.facebook.react.bridge.WritableMap
+import okhttp3.Headers
 import okhttp3.Request
 import okhttp3.Response
 import org.json.JSONArray
 import org.json.JSONObject
 import java.lang.Exception
 import java.security.MessageDigest
-
 
 var Response.retriesExhausted: Boolean? by NetworkClient.RequestRetriesExhausted
 
@@ -59,6 +62,16 @@ fun Request.Builder.applyHeaders(headers: ReadableMap?): Request.Builder {
 }
 
 /**
+ * Parses Headers into a WritableMap
+ */
+fun Headers.toWritableMap(): WritableMap {
+    val writableMap = Arguments.createMap();
+    forEach { k -> writableMap.putString(k.first, k.second) }
+
+    return writableMap
+}
+
+/**
  * Trims trailing slashes in the string
  */
 fun String.trimTrailingSlashes(): String {
@@ -78,8 +91,8 @@ fun String.sha256(): String {
 /**
  * Converts a JSONObject to a WritableMap
  */
-private fun JSONObject.toWritableMap(): WritableMap {
-    val map: WritableMap = WritableNativeMap()
+fun JSONObject.toWritableMap(): WritableMap {
+    val map = Arguments.createMap()
     val iterator = keys()
     while (iterator.hasNext()) {
         val key = iterator.next()
@@ -107,8 +120,8 @@ private fun JSONObject.toWritableMap(): WritableMap {
 /**
  * Converts a JSONArray to a WritableArray
  */
-private fun JSONArray.toWritableArray(): WritableArray {
-    val array: WritableArray = WritableNativeArray()
+fun JSONArray.toWritableArray(): WritableArray {
+    val array = Arguments.createArray()
     for (i in 0 until length()) {
         val value = this[i]
         if (value is JSONObject) {

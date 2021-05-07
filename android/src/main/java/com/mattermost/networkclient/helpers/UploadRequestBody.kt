@@ -2,7 +2,6 @@ package com.mattermost.networkclient.helpers
 
 import android.net.Uri
 import com.mattermost.networkclient.APIClientModule
-
 import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody
