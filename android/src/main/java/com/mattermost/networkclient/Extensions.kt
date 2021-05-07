@@ -105,7 +105,7 @@ private fun JSONObject.toWritableMap(): WritableMap {
 }
 
 /**
- * Converts a JSONObject to a WritableArray
+ * Converts a JSONArray to a WritableArray
  */
 private fun JSONArray.toWritableArray(): WritableArray {
     val array: WritableArray = WritableNativeArray()
