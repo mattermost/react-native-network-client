@@ -38,7 +38,7 @@ class GenericClientModule(reactContext: ReactApplicationContext) : ReactContextB
     private fun request(method: String, url: String, options: ReadableMap, promise: Promise) {
         try {
             client.request(method, url, options).use { response ->
-                promise.resolve(response.returnAsWriteableMap())
+                promise.resolve(response.toWritableMap())
                 client.cleanUpAfter(response)
             }
         } catch (error: Exception) {

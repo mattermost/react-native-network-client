@@ -2,7 +2,6 @@ package com.mattermost.networkclient
 
 import android.content.Context
 import android.content.SharedPreferences
-import android.net.Uri
 import com.facebook.react.bridge.*
 import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter
 import com.facebook.react.modules.network.ForwardingCookieHandler
@@ -10,8 +9,6 @@ import com.facebook.react.modules.network.ReactCookieJarContainer
 import com.mattermost.networkclient.enums.APIClientEvents
 import com.mattermost.networkclient.enums.RetryTypes
 import com.mattermost.networkclient.helpers.KeyStoreHelper
-import com.mattermost.networkclient.helpers.ProgressListener
-import com.mattermost.networkclient.helpers.UploadFileRequestBody
 import okhttp3.Call
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
@@ -211,7 +208,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     }
 
     @ReactMethod
-    fun upload(baseUrl: String, endpoint: String, file: String, taskId: String, options: ReadableMap?, promise: Promise) {
+    fun upload(baseUrl: String, endpoint: String, filePath: String, taskId: String, options: ReadableMap?, promise: Promise) {
         var url: HttpUrl
         try {
             url = baseUrl.toHttpUrl()
@@ -219,16 +216,12 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
             return promise.reject(error)
         }
 
-        val fileUri = Uri.parse(file);
-        val skipBytes = options?.getInt("skipBytes")?.toLong() ?: 0
-        val fileBody = UploadFileRequestBody(reactApplicationContext, fileUri, skipBytes, ProgressListener(reactApplicationContext, taskId))
-
-        val uploadCall = clients[url]!!.buildUploadCall(endpoint, fileUri, fileBody, options)
+        val uploadCall = clients[url]!!.buildUploadCall(endpoint, filePath, taskId, options)
         calls[taskId] = uploadCall
 
         try {
             uploadCall.execute().use { response ->
-                promise.resolve(response.returnAsWriteableMap())
+                promise.resolve(response.toWritableMap())
             }
         } catch (error: Exception) {
             promise.reject(error)
@@ -265,7 +258,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
             val url = baseUrl.toHttpUrl()
             val client = clients[url]!!
             client.request(method, endpoint, options).use { response ->
-                promise.resolve(response.returnAsWriteableMap())
+                promise.resolve(response.toWritableMap())
                 client.cleanUpAfter(response)
             }
         } catch (error: Exception) {

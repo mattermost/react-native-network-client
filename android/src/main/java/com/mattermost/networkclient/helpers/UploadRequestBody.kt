@@ -1,7 +1,7 @@
 package com.mattermost.networkclient.helpers
 
 import android.net.Uri
-import com.facebook.react.bridge.ReactContext
+import com.mattermost.networkclient.APIClientModule
 
 import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -10,18 +10,17 @@ import okhttp3.internal.closeQuietly
 import okio.*
 import java.io.IOException
 
-
-class UploadFileRequestBody(private val reactContext: ReactContext, private val uri: Uri, private val skipBytes: Long, private val listener: ProgressListener) : RequestBody() {
-
-    private val stream = reactContext.contentResolver.openInputStream(uri)!!
-    private val total: Double = stream.available().toDouble();
+class UploadFileRequestBody(private val uri: Uri, private val skipBytes: Long, private val taskId: String) : RequestBody() {
+    private val stream = APIClientModule.context.contentResolver.openInputStream(uri)!!
+    private val total = stream.available().toDouble();
+    private val progressListener = ProgressListener(taskId)
 
     override fun contentLength(): Long {
         return total.toLong();
     }
 
     override fun contentType(): MediaType? {
-        return reactContext.contentResolver.getType(uri)!!.toMediaTypeOrNull();
+        return APIClientModule.context.contentResolver.getType(uri)!!.toMediaTypeOrNull();
     }
 
     @Throws(IOException::class)
@@ -39,7 +38,7 @@ class UploadFileRequestBody(private val reactContext: ReactContext, private val 
             while (source.read(sink.buffer, 65536L).also { read = it } != -1L) {
                 sink.flush()
                 totalRead += read
-                listener.update(totalRead.toDouble(), total)
+                progressListener.update(totalRead.toDouble(), total)
             }
         } catch (e: IOException) {
             // Allow upstream to handle
