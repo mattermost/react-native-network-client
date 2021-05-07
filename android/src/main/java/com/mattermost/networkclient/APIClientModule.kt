@@ -116,14 +116,8 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
             return promise.reject(error)
         }
 
-        val map = Arguments.createMap()
-        val headers = clients[url]!!.clientHeaders
-        for((k, v) in headers.toHashMap()){
-            map.putString(k, v as String)
-        }
-
         try {
-            promise.resolve(map)
+            promise.resolve(clients[url]!!.clientHeaders)
         } catch (error: Exception) {
             promise.reject(error)
         }
