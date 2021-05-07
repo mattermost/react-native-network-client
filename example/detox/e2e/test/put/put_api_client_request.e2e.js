@@ -217,7 +217,7 @@ describe("Put - API Client Request", () => {
 
         // # Perform API client request
         const retryLimit = 2;
-        const exponentialBackoffBase = 6;
+        const exponentialBackoffBase = 2;
         const exponentialBackoffScale = 0.5;
         const testRetry = {
             retryPolicyType: "exponential",

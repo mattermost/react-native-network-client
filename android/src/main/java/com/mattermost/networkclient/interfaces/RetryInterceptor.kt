@@ -19,6 +19,10 @@ interface RetryInterceptor : Interceptor {
 
     fun getWaitInterval(attempts: Int): Long
 
+    fun waitForMilliseconds(waitInterval: Long) {
+        TimeUnit.MILLISECONDS.sleep(waitInterval)
+    }
+
     @Throws(IOException::class)
     override fun intercept(chain: Interceptor.Chain): Response {
         val request = chain.request()
@@ -30,7 +34,7 @@ interface RetryInterceptor : Interceptor {
                 && retryStatusCodes.contains(response.code)
                 && retryMethods.contains(request.method.toUpperCase())) {
             runCatching { response.close() }
-            TimeUnit.MILLISECONDS.sleep(getWaitInterval(attempts))
+            waitForMilliseconds(getWaitInterval(attempts))
             attempts++;
 
             response = chain.proceed(request)
