@@ -86,7 +86,7 @@ public class DocumentHelper {
         return null;
     }
 
-    public static String getPathFromSavingTempFile(Context context, final Uri uri) {
+    private static String getPathFromSavingTempFile(Context context, final Uri uri) {
         File tmpFile;
         String fileName = null;
 
@@ -133,7 +133,7 @@ public class DocumentHelper {
         return tmpFile.getAbsolutePath();
     }
 
-    public static String getDataColumn(Context context, Uri uri, String selection,
+    private static String getDataColumn(Context context, Uri uri, String selection,
                                        String[] selectionArgs) {
         Cursor cursor = null;
         final String column = "_data";
@@ -156,23 +156,23 @@ public class DocumentHelper {
     }
 
 
-    public static boolean isExternalStorageDocument(Uri uri) {
+    private static boolean isExternalStorageDocument(Uri uri) {
         return "com.android.externalstorage.documents".equals(uri.getAuthority());
     }
 
-    public static boolean isDownloadsDocument(Uri uri) {
+    private static boolean isDownloadsDocument(Uri uri) {
         return "com.android.providers.downloads.documents".equals(uri.getAuthority());
     }
 
-    public static boolean isMediaDocument(Uri uri) {
+    private static boolean isMediaDocument(Uri uri) {
         return "com.android.providers.media.documents".equals(uri.getAuthority());
     }
 
-    public static boolean isGooglePhotosUri(Uri uri) {
+    private static boolean isGooglePhotosUri(Uri uri) {
         return "com.google.android.apps.photos.content".equals(uri.getAuthority());
     }
 
-    public static String getExtension(String uri) {
+    private static String getExtension(String uri) {
         if (uri == null) {
             return null;
         }
@@ -186,7 +186,7 @@ public class DocumentHelper {
         }
     }
 
-    public static String getMimeType(File file) {
+    private static String getMimeType(File file) {
 
         String extension = getExtension(file.getName());
 
@@ -196,7 +196,7 @@ public class DocumentHelper {
         return "application/octet-stream";
     }
 
-    public static String getMimeType(String filePath) {
+    private static String getMimeType(String filePath) {
         File file = new File(filePath);
         return getMimeType(file);
     }
