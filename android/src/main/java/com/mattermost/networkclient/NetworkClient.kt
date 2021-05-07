@@ -302,9 +302,14 @@ class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: R
         return builder.build()
     }
 
+    /**
+     * Gets the real path to the p12 file uses KeyStoreHelper to import
+     * the key and certificates.
+     *
+     * @throws Exception from KeyStoreHelper.importClientCertificateFromP12
+     * which we leave to the caller of this function to handle.
+     */
     private fun importClientP12(p12FilePath: String, password: String) {
-        // KeyStoreHelper.importClientCertificateFromP12 can throw an exception
-        // and we leave it up to the caller of `importClientP12` to handle it.
         val contentUri = Uri.parse(p12FilePath)
         val realPath = DocumentHelper.getRealPath(contentUri)
         KeyStoreHelper.importClientCertificateFromP12(realPath, password, P12_ALIAS)
