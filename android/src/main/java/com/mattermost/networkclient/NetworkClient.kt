@@ -48,30 +48,11 @@ class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: R
     }
 
     init {
-        setClientHeaders(options)
-        setClientRetryInterceptor(options)
-        setClientTimeoutInterceptor(options)
-
-        val bearerTokenInterceptor = getBearerTokenInterceptor(options)
-        if (bearerTokenInterceptor != null) {
-            builder.addInterceptor(bearerTokenInterceptor)
+        if (baseUrl == null) {
+            applyGenericClientBuilderConfiguration()
+        } else {
+            applyClientBuilderConfiguration(options, cookieJar)
         }
-
-        val handshakeCertificates = buildHandshakeCertificates(options)
-        if (handshakeCertificates != null) {
-            builder.sslSocketFactory(
-                    handshakeCertificates.sslSocketFactory(),
-                    handshakeCertificates.trustManager
-            )
-        }
-
-        builder.retryOnConnectionFailure(false);
-        builder.addInterceptor(RuntimeInterceptor(this, "retry"))
-        builder.addInterceptor(RuntimeInterceptor(this, "timeout"))
-        if (cookieJar != null) {
-            builder.cookieJar(cookieJar)
-        }
-        applyBuilderOptions()
 
         okHttpClient = builder.build()
     }
@@ -195,6 +176,56 @@ class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: R
         APIClientModule.deleteValue(TOKEN_ALIAS)
         APIClientModule.deleteValue(P12_ALIAS)
         KeyStoreHelper.deleteClientCertificates(P12_ALIAS)
+    }
+
+    private fun applyGenericClientBuilderConfiguration() {
+        builder.followRedirects(true);
+        builder.followSslRedirects(true);
+    }
+
+    private fun applyClientBuilderConfiguration(options: ReadableMap?, cookieJar: CookieJar?) {
+        setClientHeaders(options)
+        setClientRetryInterceptor(options)
+        setClientTimeoutInterceptor(options)
+
+        builder.followRedirects(false);
+        builder.followSslRedirects(false);
+        builder.retryOnConnectionFailure(false);
+        builder.addInterceptor(RuntimeInterceptor(this, "retry"))
+        builder.addInterceptor(RuntimeInterceptor(this, "timeout"))
+
+        val bearerTokenInterceptor = getBearerTokenInterceptor(options)
+        if (bearerTokenInterceptor != null) {
+            builder.addInterceptor(bearerTokenInterceptor)
+        }
+
+        val handshakeCertificates = buildHandshakeCertificates(options)
+        if (handshakeCertificates != null) {
+            builder.sslSocketFactory(
+                    handshakeCertificates.sslSocketFactory(),
+                    handshakeCertificates.trustManager
+            )
+        }
+
+        if (cookieJar != null) {
+            builder.cookieJar(cookieJar)
+        }
+
+        if (options != null && options.hasKey("sessionConfiguration")) {
+            val config = options.getMap("sessionConfiguration")!!
+
+            if (config.hasKey("httpMaximumConnectionsPerHost")) {
+                val maxConnections = config.getInt("httpMaximumConnectionsPerHost");
+                val dispatcher = Dispatcher()
+                dispatcher.maxRequests = maxConnections
+                dispatcher.maxRequestsPerHost = maxConnections
+                builder.dispatcher(dispatcher);
+            }
+
+            if (config.hasKey("enableCompression")) {
+                builder.minWebSocketMessageToCompress(0);
+            }
+        }
     }
 
     private fun buildRequest(method: String, endpoint: String, headers: ReadableMap?, body: RequestBody?): Request {
@@ -409,30 +440,6 @@ class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: R
         }
 
         return null
-    }
-
-    private fun applyBuilderOptions() {
-        if (options != null && options.hasKey("sessionConfiguration")) {
-            val config = options.getMap("sessionConfiguration")!!
-
-            if (config.hasKey("followRedirects")) {
-                val followRedirects = config.getBoolean("followRedirects")
-                builder.followRedirects(followRedirects);
-                builder.followSslRedirects(followRedirects);
-            }
-
-            if (config.hasKey("httpMaximumConnectionsPerHost")) {
-                val maxConnections = config.getInt("httpMaximumConnectionsPerHost");
-                val dispatcher = Dispatcher()
-                dispatcher.maxRequests = maxConnections
-                dispatcher.maxRequestsPerHost = maxConnections
-                builder.dispatcher(dispatcher);
-            }
-
-            if (config.hasKey("enableCompression")) {
-                builder.minWebSocketMessageToCompress(0);
-            }
-        }
     }
 
     private fun cancelAllRequests() {
