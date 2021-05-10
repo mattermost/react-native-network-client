@@ -54,13 +54,6 @@ class CreateApiClientScreen {
     cancelRequestsOn401CheckboxTrue = element(
         by.text("Cancel Requests On 401? [true]")
     );
-    followRedirectsCheckboxFalse = element(
-        by.text("Follow Redirects? [false]")
-    );
-    followRedirectsCheckboxTrue = element(by.text("Follow Redirects? [true]"));
-    trustSelfSignedServerCertificateCheckboxFalse = element(
-        by.text("Trust Self-Signed Server Certificate? [false]")
-    );
     trustSelfSignedServerCertificateCheckboxTrue = element(
         by.text("Trust Self-Signed Server Certificate? [true]")
     );
@@ -253,24 +246,6 @@ class CreateApiClientScreen {
         );
         await this.cancelRequestsOn401CheckboxFalse.tap();
         await expect(this.cancelRequestsOn401CheckboxTrue).toBeVisible();
-    };
-
-    toggleOffFollowRedirectsCheckbox = async () => {
-        await waitForAndScrollDown(
-            this.followRedirectsCheckboxTrue,
-            this.testID.createApiClientScrollView
-        );
-        await this.followRedirectsCheckboxTrue.tap();
-        await expect(this.followRedirectsCheckboxFalse).toBeVisible();
-    };
-
-    toggleOnFollowRedirectsCheckbox = async () => {
-        await waitForAndScrollDown(
-            this.followRedirectsCheckboxFalse,
-            this.testID.createApiClientScrollView
-        );
-        await this.followRedirectsCheckboxFalse.tap();
-        await expect(this.followRedirectsCheckboxTrue).toBeVisible();
     };
 
     toggleOffTrustSelfSignedServerCertificateCheckbox = async () => {

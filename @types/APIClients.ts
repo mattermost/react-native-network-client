@@ -87,7 +87,6 @@ type ClientP12Configuration = {
 };
 
 type SessionConfiguration = {
-    followRedirects?: boolean;
     allowsCellularAccess?: boolean;
     waitsForConnectivity?: boolean;
     timeoutIntervalForRequest?: number;

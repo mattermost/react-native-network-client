@@ -9,7 +9,6 @@ type UseSessionConfigurationResponse = [
     () => void,
     () => void,
     () => void,
-    () => void,
     (timeoutIntervalForRequest: number) => void,
     (timeoutIntervalForResource: number) => void,
     (httpMaximumConnectionsPerHost: number) => void
@@ -20,7 +19,6 @@ export const useSessionConfiguration = (): UseSessionConfigurationResponse => {
         sessionConfiguration,
         setSessionConfiguration,
     ] = useState<SessionConfiguration>({
-        followRedirects: true,
         allowsCellularAccess: true,
         waitsForConnectivity: false,
         timeoutIntervalForRequest: 30000,
@@ -30,11 +28,6 @@ export const useSessionConfiguration = (): UseSessionConfigurationResponse => {
         trustSelfSignedServerCertificate: false,
     });
 
-    const toggleFollowRedirects = () =>
-        setSessionConfiguration({
-            ...sessionConfiguration,
-            followRedirects: !sessionConfiguration.followRedirects,
-        });
     const toggleAllowsCellularAccess = () =>
         setSessionConfiguration({
             ...sessionConfiguration,
@@ -77,7 +70,6 @@ export const useSessionConfiguration = (): UseSessionConfigurationResponse => {
 
     return [
         sessionConfiguration,
-        toggleFollowRedirects,
         toggleAllowsCellularAccess,
         toggleWaitsForConnectivity,
         toggleCancelRequestsOnUnauthorized,
