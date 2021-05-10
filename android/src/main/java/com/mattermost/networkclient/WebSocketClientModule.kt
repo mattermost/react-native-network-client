@@ -4,6 +4,8 @@ import com.facebook.react.bridge.*
 import com.facebook.react.modules.core.DeviceEventManagerModule
 import com.mattermost.networkclient.enums.WebSocketEvents
 import com.mattermost.networkclient.enums.WebSocketReadyState
+import okhttp3.HttpUrl
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import java.net.URI
 import kotlin.collections.HashMap
 
@@ -40,8 +42,17 @@ class WebSocketClientModule(private val reactContext: ReactApplicationContext) :
             return promise.reject(error)
         }
 
+        val httpScheme = if (uri.scheme == "wss") "https" else "http"
+        val httpUri = URI(httpScheme, uri.authority, uri.path, uri.query, uri.fragment)
+        var httpUrl: HttpUrl
         try {
-            clients[uri] = NetworkClient(options)
+            httpUrl = httpUri.toString().toHttpUrl()
+        } catch (error: IllegalArgumentException) {
+            return promise.reject(error)
+        }
+
+        try {
+            clients[uri] = NetworkClient(httpUrl, options)
             promise.resolve(null)
         } catch (error: Exception) {
             promise.reject(error)

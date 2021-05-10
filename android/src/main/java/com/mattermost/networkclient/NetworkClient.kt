@@ -48,8 +48,6 @@ class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: R
         }
     }
 
-    constructor(options: ReadableMap? = null) : this(null, options) {}
-
     init {
         setClientHeaders(options)
         setClientRetryInterceptor(options)
