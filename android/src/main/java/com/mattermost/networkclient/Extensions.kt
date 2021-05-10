@@ -1,6 +1,7 @@
 package com.mattermost.networkclient
 
 import com.facebook.react.bridge.*
+import okhttp3.Headers
 import okhttp3.Request
 import okhttp3.Response
 import org.json.JSONArray
@@ -17,11 +18,8 @@ var Response.retriesExhausted: Boolean? by NetworkClient.RequestRetriesExhausted
  * @return WriteableMap for passing back to App
  */
 fun Response.toWritableMap(): WritableMap {
-    val headersMap = Arguments.createMap();
-    headers.forEach { k -> headersMap.putString(k.first, k.second) }
-
     val map = Arguments.createMap()
-    map.putMap("headers", headersMap)
+    map.putMap("headers", headers.toWritableMap())
     map.putInt("code", code)
     map.putBoolean("ok", isSuccessful)
     map.putString("lastRequestedUrl", request.url.toString())
@@ -56,6 +54,20 @@ fun Request.Builder.applyHeaders(headers: ReadableMap?): Request.Builder {
     }
 
     return this;
+}
+
+/**
+ * Parses Headers into a WritableMap
+ */
+fun Headers.toWritableMap(): WritableMap {
+    val writableMap = Arguments.createMap()
+    var i = 0
+    while (i < size) {
+        writableMap.putString(name(i), value(i))
+        i++
+    }
+
+    return writableMap
 }
 
 /**
