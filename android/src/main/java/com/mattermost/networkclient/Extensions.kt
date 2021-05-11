@@ -13,6 +13,27 @@ import java.security.MessageDigest
 var Response.retriesExhausted: Boolean? by NetworkClient.RequestRetriesExhausted
 
 /**
+ * Composes an array of redirect URLs from all prior responses
+ *
+ * @return WritableArray of HttpUrl strings
+ */
+fun Response.getRedirectUrls(): WritableArray? {
+    if (priorResponse == null)
+        return null
+
+    val redirectUrls = Arguments.createArray()
+    redirectUrls.pushString(request.url.toString())
+
+    var originalResponse = priorResponse
+    while (originalResponse != null) {
+        redirectUrls.pushString(originalResponse.request.url.toString())
+        originalResponse = originalResponse.priorResponse
+    }
+
+    return redirectUrls
+}
+
+/**
  * Parses the response data into the format expected by the App
  *
  * @return WriteableMap for passing back to App
@@ -22,7 +43,6 @@ fun Response.toWritableMap(): WritableMap {
     map.putMap("headers", headers.toWritableMap())
     map.putInt("code", code)
     map.putBoolean("ok", isSuccessful)
-    map.putString("lastRequestedUrl", request.url.toString())
 
     if (body !== null) {
         try {
@@ -33,11 +53,16 @@ fun Response.toWritableMap(): WritableMap {
         }
     }
 
-    if (this.retriesExhausted != null) {
-        map.putBoolean("retriesExhausted", this.retriesExhausted!!)
+    if (retriesExhausted != null) {
+        map.putBoolean("retriesExhausted", retriesExhausted!!)
     }
 
-    return map;
+    val redirectUrls = getRedirectUrls()
+    if (redirectUrls != null) {
+        map.putArray("redirectUrls", redirectUrls)
+    }
+
+    return map
 }
 
 /**
@@ -48,12 +73,12 @@ fun Response.toWritableMap(): WritableMap {
 fun Request.Builder.applyHeaders(headers: ReadableMap?): Request.Builder {
     if (headers != null){
         for ((k, v) in headers.toHashMap()) {
-            this.removeHeader(k);
-            this.addHeader(k, v as String);
+            this.removeHeader(k)
+            this.addHeader(k, v as String)
         }
     }
 
-    return this;
+    return this
 }
 
 /**

@@ -114,7 +114,7 @@ class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: R
         val newRequest = request
                 .newBuilder()
                 .applyHeaders(clientHeaders)
-                .build();
+                .build()
 
         return okHttpClient.newCall(newRequest)
     }
@@ -179,8 +179,8 @@ class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: R
     }
 
     private fun applyGenericClientBuilderConfiguration() {
-        builder.followRedirects(true);
-        builder.followSslRedirects(true);
+        builder.followRedirects(true)
+        builder.followSslRedirects(true)
     }
 
     private fun applyClientBuilderConfiguration(options: ReadableMap?, cookieJar: CookieJar?) {
@@ -188,9 +188,9 @@ class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: R
         setClientRetryInterceptor(options)
         setClientTimeoutInterceptor(options)
 
-        builder.followRedirects(false);
-        builder.followSslRedirects(false);
-        builder.retryOnConnectionFailure(false);
+        builder.followRedirects(false)
+        builder.followSslRedirects(false)
+        builder.retryOnConnectionFailure(false)
         builder.addInterceptor(RuntimeInterceptor(this, "retry"))
         builder.addInterceptor(RuntimeInterceptor(this, "timeout"))
 
@@ -215,15 +215,15 @@ class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: R
             val config = options.getMap("sessionConfiguration")!!
 
             if (config.hasKey("httpMaximumConnectionsPerHost")) {
-                val maxConnections = config.getInt("httpMaximumConnectionsPerHost");
+                val maxConnections = config.getInt("httpMaximumConnectionsPerHost")
                 val dispatcher = Dispatcher()
                 dispatcher.maxRequests = maxConnections
                 dispatcher.maxRequestsPerHost = maxConnections
-                builder.dispatcher(dispatcher);
+                builder.dispatcher(dispatcher)
             }
 
             if (config.hasKey("enableCompression")) {
-                builder.minWebSocketMessageToCompress(0);
+                builder.minWebSocketMessageToCompress(0)
             }
         }
     }
@@ -234,11 +234,11 @@ class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: R
                 .applyHeaders(clientHeaders)
                 .applyHeaders(headers)
                 .method(method.toUpperCase(), body)
-                .build();
+                .build()
     }
 
     private fun buildMultipartBody(uri: Uri, fileBody: RequestBody, multipartOptions: ReadableMap): RequestBody {
-        val multipartBody = MultipartBody.Builder();
+        val multipartBody = MultipartBody.Builder()
         multipartBody.setType(MultipartBody.FORM)
 
         var name = "files"
@@ -248,9 +248,9 @@ class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: R
         multipartBody.addFormDataPart(name, uri.lastPathSegment, fileBody)
 
         if (multipartOptions.hasKey("data")) {
-            val multipartData = multipartOptions.getMap("data")!!.toHashMap();
+            val multipartData = multipartOptions.getMap("data")!!.toHashMap()
             for ((k, v) in multipartData) {
-                multipartBody.addFormDataPart(k, v as String);
+                multipartBody.addFormDataPart(k, v as String)
             }
         }
 
@@ -277,7 +277,7 @@ class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: R
 
     private fun getBearerTokenInterceptor(options: ReadableMap?): BearerTokenInterceptor? {
         if (options != null && options.hasKey("requestAdapterConfiguration")) {
-            val requestAdapterConfiguration = options.getMap("requestAdapterConfiguration")!!;
+            val requestAdapterConfiguration = options.getMap("requestAdapterConfiguration")!!
             if (requestAdapterConfiguration.hasKey("bearerAuthTokenResponseHeader")) {
                 val bearerAuthTokenResponseHeader = requestAdapterConfiguration.getString("bearerAuthTokenResponseHeader")!!
                 return BearerTokenInterceptor(TOKEN_ALIAS, bearerAuthTokenResponseHeader)
