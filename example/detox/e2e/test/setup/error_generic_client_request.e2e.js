@@ -8,6 +8,7 @@
 // *******************************************************************
 
 import { GenericClientRequestScreen } from "@support/ui/screen";
+import { isAndroid } from "@support/utils";
 import {
     performGenericClientRequest,
     verifyResponseErrorOverlay,
@@ -19,6 +20,11 @@ describe("Error - Generic Client Request", () => {
     });
 
     it("should return an error response when server is unreachable", async () => {
+        // # Do not run against Android due to difference in error response
+        if (isAndroid()) {
+            return;
+        }
+        
         // # Select method
         await GenericClientRequestScreen.open();
         await GenericClientRequestScreen.getButton.tap();
