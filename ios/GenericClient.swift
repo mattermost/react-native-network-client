@@ -12,7 +12,7 @@ import SwiftyJSON
 
 @objc(GenericClient)
 class GenericClient: NSObject, NetworkClient {
-    var session = AF
+    var session = Session(redirectHandler: Redirector(behavior: .follow))
 
     @objc(get:withOptions:withResolver:withRejecter:)
     func get(url: String, options: Dictionary<String, Any>, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
