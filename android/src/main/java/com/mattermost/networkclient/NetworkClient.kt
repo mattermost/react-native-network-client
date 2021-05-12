@@ -262,31 +262,39 @@ class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: R
     }
 
     private fun buildHandshakeCertificates(options: ReadableMap?): HandshakeCertificates? {
-        if (options != null && options.hasKey("sessionConfiguration")) {
-            val sessionConfiguration = options.getMap("sessionConfiguration")!!
-            if (sessionConfiguration.hasKey("trustSelfSignedServerCertificate") &&
-                    sessionConfiguration.getBoolean("trustSelfSignedServerCertificate")) {
+        if (options != null) {
+            // `trustSelfSignedServerCertificate` can be in `options.sessionConfiguration` for
+            // an APIClient or just in `options` for a WebSocketClient
+            if (options.hasKey("sessionConfiguration")) {
+                val sessionConfiguration = options.getMap("sessionConfiguration")!!
+                if (sessionConfiguration.hasKey("trustSelfSignedServerCertificate") &&
+                        sessionConfiguration.getBoolean("trustSelfSignedServerCertificate")) {
+                    trustSelfSignedServerCertificate = true
+                    builder.hostnameVerifier { _, _ -> true }
+                }
+            } else if (options.hasKey("trustSelfSignedServerCertificate") &&
+                    options.getBoolean("trustSelfSignedServerCertificate")) {
                 trustSelfSignedServerCertificate = true
                 builder.hostnameVerifier { _, _ -> true }
             }
-        }
 
-        if (options != null && options.hasKey("clientP12Configuration")) {
-            val clientP12Configuration = options.getMap("clientP12Configuration")!!
-            val path = clientP12Configuration.getString("path")!!
-            val password = if (clientP12Configuration.hasKey("password")) {
-                clientP12Configuration.getString("password")!!
-            } else {
-                ""
-            }
+            if (options.hasKey("clientP12Configuration")) {
+                val clientP12Configuration = options.getMap("clientP12Configuration")!!
+                val path = clientP12Configuration.getString("path")!!
+                val password = if (clientP12Configuration.hasKey("password")) {
+                    clientP12Configuration.getString("password")!!
+                } else {
+                    ""
+                }
 
-            try {
-                importClientP12(path, password)
-            } catch (error: Exception) {
-                val data = Arguments.createMap()
-                data.putString("serverUrl", BASE_URL_STRING)
-                data.putString("errorDescription", error.localizedMessage)
-                APIClientModule.sendJSEvent(APIClientEvents.CLIENT_ERROR.event, data)
+                try {
+                    importClientP12(path, password)
+                } catch (error: Exception) {
+                    val data = Arguments.createMap()
+                    data.putString("serverUrl", BASE_URL_STRING)
+                    data.putString("errorDescription", error.localizedMessage)
+                    APIClientModule.sendJSEvent(APIClientEvents.CLIENT_ERROR.event, data)
+                }
             }
         }
 
