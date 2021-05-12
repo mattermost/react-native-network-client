@@ -390,17 +390,17 @@ export const verifyResponseSuccessOverlay = async (
         responseSuccessCodeText,
         responseSuccessDataText,
         responseSuccessHeadersText,
-        responseSuccessLastRequestedUrlText,
+        responseSuccessRedirectUrlsText,
         responseSuccessOkText,
         responseSuccessRetriesExhaustedText,
     } = ResponseSuccessOverlay;
 
     // * Verify request URL, response code, response status, and retries exhausted
-    await waitFor(responseSuccessLastRequestedUrlText)
+    await waitFor(responseSuccessRedirectUrlsText)
         .toBeVisible()
         .withTimeout(timeouts.TEN_SEC);
     const endTime = Date.now();
-    await expect(responseSuccessLastRequestedUrlText).toHaveText(url);
+    await expect(responseSuccessRedirectUrlsText).toHaveText(url);
     await expect(responseSuccessCodeText).toHaveText(status.toString());
     await expect(responseSuccessOkText).toHaveText(
         status === 200 ? "true" : "false"

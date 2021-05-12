@@ -32,6 +32,7 @@ protocol NetworkClient {
                         withData data: AFDataResponse<Any>) -> Void
     
     func resolveOrRejectJSONResponse(_ json: AFDataResponse<Any>,
+                                     for request: Request?,
                                      withResolver resolve: @escaping RCTPromiseResolveBlock,
                                      withRejecter reject: @escaping RCTPromiseRejectBlock)
     
@@ -45,6 +46,8 @@ protocol NetworkClient {
     func getHTTPHeaders(from options: JSON) -> HTTPHeaders?
 
     func getRequestModifier(from options: JSON) -> Session.RequestModifier?
+    
+    func getRedirectUrls(for request: Request) -> [String]?
 }
 
 extension NetworkClient {
@@ -63,17 +66,19 @@ extension NetworkClient {
         let headers = getHTTPHeaders(from: options)
         let requestModifer = getRequestModifier(from: options)
 
-        session.request(url, method: method, parameters: parameters, encoder: encoder, headers: headers, requestModifier: requestModifer)
-            .validate()
+        let request = session.request(url, method: method, parameters: parameters, encoder: encoder, headers: headers, requestModifier: requestModifer)
+            
+        request.validate()
             .responseJSON { json in
                 self.handleResponse(for: session, withUrl: url, withData: json)
-                self.resolveOrRejectJSONResponse(json, withResolver: resolve, withRejecter: reject)
+                self.resolveOrRejectJSONResponse(json, for: request, withResolver: resolve, withRejecter: reject)
         }
     }
     
     func handleResponse(for session: Session, withUrl url: URL, withData data: AFDataResponse<Any>) -> Void {}
     
     func resolveOrRejectJSONResponse(_ json: AFDataResponse<Any>,
+                                     for request: Request? = nil,
                                      withResolver resolve: @escaping RCTPromiseResolveBlock,
                                      withRejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
 
@@ -86,13 +91,17 @@ extension NetworkClient {
                 ok = (200 ... 299).contains(statusCode)
             }
 
-            resolve([
+            var response = [
                 "ok": ok,
                 "headers": json.response?.allHeaderFields,
                 "data": json.value,
                 "code": json.response?.statusCode,
-                "lastRequestedUrl": json.response?.url?.absoluteString
-            ])
+            ]
+            if let redirectUrls = getRedirectUrls(for: request!) {
+                response["redirectUrls"] = redirectUrls
+            }
+            
+            resolve(response)
         case .failure(let error):
             var responseCode = error.responseCode
             var retriesExhausted = false
@@ -101,15 +110,19 @@ extension NetworkClient {
                 retriesExhausted = true
             }
             
+            var response = [
+                "ok": false,
+                "headers": json.response?.allHeaderFields,
+                "data": json.value,
+                "code": responseCode,
+                "retriesExhausted": retriesExhausted
+            ]
+            if let redirectUrls = getRedirectUrls(for: request!) {
+                response["redirectUrls"] = redirectUrls
+            }
+            
             if responseCode != nil {
-                resolve([
-                    "ok": false,
-                    "headers": json.response?.allHeaderFields,
-                    "data": json.value,
-                    "code": responseCode,
-                    "lastRequestedUrl": json.response?.url?.absoluteString,
-                    "retriesExhausted": retriesExhausted
-                ])
+                resolve(response)
                 return
             }
 
@@ -201,5 +214,20 @@ extension NetworkClient {
                 $0.timeoutInterval = timeoutInterval / 1000
             }
         }
+    }
+    
+    func getRedirectUrls(for request: Request) -> [String]? {
+        var redirectUrls: [String] = []
+        
+        request.allMetrics.forEach { metric in
+            metric.transactionMetrics.forEach { transactionMetric in
+                let url = transactionMetric.request.url!.absoluteString
+                if !redirectUrls.contains(url) {
+                    redirectUrls.append(url)
+                }
+            }
+        }
+        
+        return redirectUrls.count > 1 ? redirectUrls : nil
     }
 }

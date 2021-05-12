@@ -27,9 +27,9 @@ const ResponseSuccessOverlay = ({
         >
             <>
                 <Button title="Close" onPress={hide} />
-                <Text h4>URL</Text>
-                <Text testID="response_success_overlay.success.last_requested_url.text">
-                    {response?.lastRequestedUrl}
+                <Text h4>OK</Text>
+                <Text testID="response_success_overlay.success.ok.text">
+                    {response?.ok.toString()}
                 </Text>
                 <Divider />
                 <Text h4>Code</Text>
@@ -37,11 +37,15 @@ const ResponseSuccessOverlay = ({
                     {response?.code}
                 </Text>
                 <Divider />
-                <Text h4>OK</Text>
-                <Text testID="response_success_overlay.success.ok.text">
-                    {response?.ok.toString()}
-                </Text>
-                <Divider />
+                {Boolean(response?.redirectUrls?.length) && (
+                    <>
+                        <Text h4>Redirect URLs</Text>
+                        <Text testID="response_success_overlay.success.redirect_urls.text">
+                            {response!.redirectUrls!.join(", ")}
+                        </Text>
+                        <Divider />
+                    </>
+                )}
                 <Text h4>Retries Exhausted?</Text>
                 <Text testID="response_success_overlay.success.retries_exhausted.text">
                     {response?.hasOwnProperty("retriesExhausted")
