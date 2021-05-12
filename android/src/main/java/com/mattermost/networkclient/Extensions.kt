@@ -21,14 +21,16 @@ fun Response.getRedirectUrls(): WritableArray? {
     if (priorResponse == null)
         return null
 
-    val redirectUrls = Arguments.createArray()
-    redirectUrls.pushString(request.url.toString())
+    val list = mutableListOf(request.url.toString())
 
-    var originalResponse = priorResponse
+    var originalResponse: Response? = priorResponse
     while (originalResponse != null) {
-        redirectUrls.pushString(originalResponse.request.url.toString())
+        list.add(0, originalResponse.request.url.toString())
         originalResponse = originalResponse.priorResponse
     }
+
+    val redirectUrls = Arguments.createArray()
+    list.forEach { redirectUrls.pushString(it) }
 
     return redirectUrls
 }
