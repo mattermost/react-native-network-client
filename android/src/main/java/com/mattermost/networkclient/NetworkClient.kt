@@ -22,6 +22,7 @@ import kotlin.reflect.KProperty
 
 class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: ReadableMap? = null, cookieJar: CookieJar? = null) {
     var okHttpClient: OkHttpClient
+    var webSocketUri: URI? = null
     var webSocket: WebSocket? = null
     var clientHeaders: WritableMap = Arguments.createMap()
     var clientRetryInterceptor: Interceptor? = null
@@ -46,6 +47,10 @@ class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: R
         operator fun setValue(response: Response, property: KProperty<*>, value: Boolean?) {
             requestRetriesExhausted[response] = value
         }
+    }
+
+    constructor(webSocketUri: URI, baseUrl: HttpUrl, options: ReadableMap? = null) : this(baseUrl, options) {
+        this.webSocketUri = webSocketUri
     }
 
     init {
@@ -184,12 +189,12 @@ class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: R
         return okHttpClient.newCall(request)
     }
 
-    fun createWebSocket(uri: URI) {
+    fun createWebSocket() {
         var request = Request.Builder()
-                .url(uri.toString())
+                .url(webSocketUri.toString())
                 .applyHeaders(clientHeaders)
                 .build()
-        val listener = WebSocketEventListener(uri)
+        val listener = WebSocketEventListener(webSocketUri!!)
 
         webSocket = okHttpClient.newWebSocket(request, listener)
     }
