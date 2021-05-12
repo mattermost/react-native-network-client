@@ -25,7 +25,7 @@ describe("Error - API Client Request", () => {
         if (isAndroid()) {
             return;
         }
-        
+
         // # Create API client and select method
         const testName = `Example ${getRandomId(10)} API`;
         const testBaseUrl = process.env.IOS

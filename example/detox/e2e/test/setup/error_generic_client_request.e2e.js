@@ -24,7 +24,7 @@ describe("Error - Generic Client Request", () => {
         if (isAndroid()) {
             return;
         }
-        
+
         // # Select method
         await GenericClientRequestScreen.open();
         await GenericClientRequestScreen.getButton.tap();
