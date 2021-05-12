@@ -58,7 +58,6 @@ const buildDefaultApiClientConfiguration = (
     }
 ): APIClientConfiguration => {
     const sessionConfiguration = {
-        followRedirects: true,
         allowsCellularAccess: true,
         waitsForConnectivity: false,
         timeoutIntervalForRequest: 30000,

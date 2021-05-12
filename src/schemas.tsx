@@ -8,7 +8,6 @@ const { APIClient: NativeAPIClient } = NativeModules;
 const { RETRY_TYPES } = NativeAPIClient.getConstants();
 
 const SessionConfigurationSchema = z.object({
-    followRedirects: z.boolean().optional(),
     allowsCellularAccess: z.boolean().optional(),
     waitsForConnectivity: z.boolean().optional(),
     timeoutIntervalForRequest: z.number().optional(),

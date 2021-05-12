@@ -119,7 +119,7 @@ class APIClient: RCTEventEmitter, NetworkClient {
         if options != JSON.null {
             let configuration = getURLSessionConfiguration(from: options)
             let interceptor = getSessionInterceptor(from: options)
-            let redirectHandler = getRedirectHandler(from: options)
+            let redirectHandler = Redirector(behavior: .doNotFollow)
             let retryPolicy = getRetryPolicy(from: options)
             let cancelRequestsOnUnauthorized = options["sessionConfiguration"]["cancelRequestsOnUnauthorized"].boolValue
             let bearerAuthTokenResponseHeader = options["requestAdapterConfiguration"]["bearerAuthTokenResponseHeader"].string
@@ -414,14 +414,6 @@ class APIClient: RCTEventEmitter, NetworkClient {
         }
 
         return config
-    }
-
-    func getRedirectHandler(from options: JSON) -> RedirectHandler? {
-        if options["followRedirects"].exists() {
-            return Redirector(behavior: options["followRedirects"].boolValue ? .follow : .doNotFollow)
-        }
-
-        return nil
     }
     
     func rejectInvalidSession(for baseUrl: URL, withRejecter reject: @escaping RCTPromiseRejectBlock) -> Void {

@@ -35,7 +35,6 @@ export default function CreateAPIClientScreen({
 
     const [
         sessionConfiguration,
-        toggleFollowRedirects,
         toggleAllowsCellularAccess,
         toggleWaitsForConnectivity,
         toggleCancelRequestsOnUnauthorized,
@@ -203,17 +202,6 @@ export default function CreateAPIClientScreen({
                     title={`Alert on client error? [${alertOnClientError}]`}
                     checked={alertOnClientError}
                     onPress={toggleAlertOnClientError}
-                    iconType="ionicon"
-                    checkedIcon="ios-checkmark-circle"
-                    uncheckedIcon="ios-checkmark-circle"
-                    iconRight
-                    textStyle={styles.checkboxText}
-                />
-
-                <CheckBox
-                    title={`Follow Redirects? [${sessionConfiguration.followRedirects}]`}
-                    checked={sessionConfiguration.followRedirects as boolean}
-                    onPress={toggleFollowRedirects}
                     iconType="ionicon"
                     checkedIcon="ios-checkmark-circle"
                     uncheckedIcon="ios-checkmark-circle"

@@ -8,8 +8,8 @@ class ResponseSuccessOverlay {
         responseSuccessDataText: "response_success_overlay.success.data.text",
         responseSuccessHeadersText:
             "response_success_overlay.success.headers.text",
-        responseSuccessLastRequestedUrlText:
-            "response_success_overlay.success.last_requested_url.text",
+        responseSuccessRedirectUrlsText:
+            "response_success_overlay.success.redirect_urls.text",
         responseSuccessOkText: "response_success_overlay.success.ok.text",
         responseSuccessRetriesExhaustedText:
             "response_success_overlay.success.retries_exhausted.text",
@@ -26,8 +26,8 @@ class ResponseSuccessOverlay {
     responseSuccessHeadersText = element(
         by.id(this.testID.responseSuccessHeadersText)
     );
-    responseSuccessLastRequestedUrlText = element(
-        by.id(this.testID.responseSuccessLastRequestedUrlText)
+    responseSuccessRedirectUrlsText = element(
+        by.id(this.testID.responseSuccessRedirectUrlsText)
     );
     responseSuccessOkText = element(by.id(this.testID.responseSuccessOkText));
     responseSuccessRetriesExhaustedText = element(

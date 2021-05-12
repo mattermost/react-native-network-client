@@ -1,6 +1,7 @@
 package com.mattermost.networkclient
 
 import com.facebook.react.bridge.*
+import okhttp3.Headers
 import okhttp3.Request
 import okhttp3.Response
 import org.json.JSONArray
@@ -12,19 +13,38 @@ import java.security.MessageDigest
 var Response.retriesExhausted: Boolean? by NetworkClient.RequestRetriesExhausted
 
 /**
+ * Composes an array of redirect URLs from all prior responses
+ *
+ * @return WritableArray of HttpUrl strings
+ */
+fun Response.getRedirectUrls(): WritableArray? {
+    if (priorResponse == null)
+        return null
+
+    val list = mutableListOf(request.url.toString())
+
+    var originalResponse: Response? = priorResponse
+    while (originalResponse != null) {
+        list.add(0, originalResponse.request.url.toString())
+        originalResponse = originalResponse.priorResponse
+    }
+
+    val redirectUrls = Arguments.createArray()
+    list.forEach { redirectUrls.pushString(it) }
+
+    return redirectUrls
+}
+
+/**
  * Parses the response data into the format expected by the App
  *
  * @return WriteableMap for passing back to App
  */
 fun Response.toWritableMap(): WritableMap {
-    val headersMap = Arguments.createMap();
-    headers.forEach { k -> headersMap.putString(k.first, k.second) }
-
     val map = Arguments.createMap()
-    map.putMap("headers", headersMap)
+    map.putMap("headers", headers.toWritableMap())
     map.putInt("code", code)
     map.putBoolean("ok", isSuccessful)
-    map.putString("lastRequestedUrl", request.url.toString())
 
     if (body !== null) {
         try {
@@ -35,11 +55,16 @@ fun Response.toWritableMap(): WritableMap {
         }
     }
 
-    if (this.retriesExhausted != null) {
-        map.putBoolean("retriesExhausted", this.retriesExhausted!!)
+    if (retriesExhausted != null) {
+        map.putBoolean("retriesExhausted", retriesExhausted!!)
     }
 
-    return map;
+    val redirectUrls = getRedirectUrls()
+    if (redirectUrls != null) {
+        map.putArray("redirectUrls", redirectUrls)
+    }
+
+    return map
 }
 
 /**
@@ -50,12 +75,26 @@ fun Response.toWritableMap(): WritableMap {
 fun Request.Builder.applyHeaders(headers: ReadableMap?): Request.Builder {
     if (headers != null){
         for ((k, v) in headers.toHashMap()) {
-            this.removeHeader(k);
-            this.addHeader(k, v as String);
+            this.removeHeader(k)
+            this.addHeader(k, v as String)
         }
     }
 
-    return this;
+    return this
+}
+
+/**
+ * Parses Headers into a WritableMap
+ */
+fun Headers.toWritableMap(): WritableMap {
+    val writableMap = Arguments.createMap()
+    var i = 0
+    while (i < size) {
+        writableMap.putString(name(i), value(i))
+        i++
+    }
+
+    return writableMap
 }
 
 /**

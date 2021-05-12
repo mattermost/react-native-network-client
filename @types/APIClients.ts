@@ -33,7 +33,7 @@ type ClientResponse = {
     headers?: ClientHeaders;
     data?: Record<string, unknown>;
     code: number;
-    lastRequestedUrl: string;
+    redirectUrls?: Array<string>;
     ok: boolean;
     retriesExhausted?: boolean;
 };
@@ -87,7 +87,6 @@ type ClientP12Configuration = {
 };
 
 type SessionConfiguration = {
-    followRedirects?: boolean;
     allowsCellularAccess?: boolean;
     waitsForConnectivity?: boolean;
     timeoutIntervalForRequest?: number;

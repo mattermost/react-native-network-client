@@ -4,7 +4,7 @@ import com.facebook.react.bridge.*
 import java.lang.Exception
 
 class GenericClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
-    private var client = NetworkClient();
+    private var client = NetworkClient()
 
     override fun getName(): String {
         return "GenericClient"
