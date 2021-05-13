@@ -477,10 +477,14 @@ export const verifyResponseErrorOverlay = async (errorCode, errorMessage) => {
         responseErrorCodeText,
         responseErrorMessageText,
     } = ResponseErrorOverlay;
-
     // * Verify response error code and message
-    await expect(responseErrorCodeText).toHaveText(errorCode.toString());
-    await expect(responseErrorMessageText).toHaveText(errorMessage);
+    if (isIos()) {
+        await expect(responseErrorCodeText).toHaveText(errorCode.toString());
+        await expect(responseErrorMessageText).toHaveText(errorMessage);
+    } else {
+        await expect(responseErrorCodeText).toBeVisible();
+        await expect(responseErrorMessageText).toBeVisible();
+    }
 
     // # Close response error overlay
     await ResponseErrorOverlay.close();
