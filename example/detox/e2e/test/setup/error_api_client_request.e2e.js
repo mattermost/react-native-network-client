@@ -8,7 +8,7 @@
 // *******************************************************************
 
 import { ApiClientScreen } from "@support/ui/screen";
-import { getRandomId, isAndroid } from "@support/utils";
+import { getRandomId } from "@support/utils";
 import {
     createApiClient,
     performApiClientRequest,
@@ -21,11 +21,6 @@ describe("Error - API Client Request", () => {
     });
 
     it("should return an error response when server is unreachable", async () => {
-        // # Do not run against Android due to difference in error response
-        if (isAndroid()) {
-            return;
-        }
-
         // # Create API client and select method
         const testName = `Example ${getRandomId(10)} API`;
         const testBaseUrl = process.env.IOS
