@@ -17,7 +17,14 @@
     "!lib/typescript/example",
     "!**/__tests__",
     "!**/__fixtures__",
-    "!**/__mocks__"
+    "!**/__mocks__",
+    "!example",
+    "!.vscode",
+    "!**/.idea",
+    "!**/.gradle",
+    "!android/build",
+    "!ios/Build",
+    "!.circleci"
   ],
   "scripts": {
     "test": "jest",
