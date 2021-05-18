@@ -20,7 +20,7 @@ import java.net.URI
 import kotlin.reflect.KProperty
 
 
-class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: ReadableMap? = null, cookieJar: CookieJar? = null) {
+internal class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: ReadableMap? = null, cookieJar: CookieJar? = null) {
     var okHttpClient: OkHttpClient
     var webSocketUri: URI? = null
     var webSocket: WebSocket? = null

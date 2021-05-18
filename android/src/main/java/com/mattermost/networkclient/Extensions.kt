@@ -97,20 +97,6 @@ fun Headers.toWritableMap(): WritableMap {
 }
 
 /**
- * Parses Headers into a WritableMap
- */
-fun Headers.toWritableMap(): WritableMap {
-    val writableMap = Arguments.createMap()
-    var i = 0
-    while (i < size) {
-        writableMap.putString(name(i), value(i))
-        i++
-    }
-
-    return writableMap
-}
-
-/**
  * Trims trailing slashes in the string
  */
 fun String.trimTrailingSlashes(): String {

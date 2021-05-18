@@ -9,7 +9,7 @@ import okhttp3.HttpUrl.Companion.toHttpUrl
 import java.net.URI
 import kotlin.collections.HashMap
 
-class WebSocketClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
+internal class WebSocketClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
     private val clients = mutableMapOf<URI, NetworkClient>()
 
     override fun getName(): String {
