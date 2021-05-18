@@ -9,7 +9,6 @@ import org.json.JSONObject
 import java.lang.Exception
 import java.security.MessageDigest
 
-
 var Response.retriesExhausted: Boolean? by NetworkClient.RequestRetriesExhausted
 
 /**
@@ -117,8 +116,8 @@ fun String.sha256(): String {
 /**
  * Converts a JSONObject to a WritableMap
  */
-private fun JSONObject.toWritableMap(): WritableMap {
-    val map: WritableMap = WritableNativeMap()
+fun JSONObject.toWritableMap(): WritableMap {
+    val map = Arguments.createMap()
     val iterator = keys()
     while (iterator.hasNext()) {
         val key = iterator.next()
@@ -146,8 +145,8 @@ private fun JSONObject.toWritableMap(): WritableMap {
 /**
  * Converts a JSONArray to a WritableArray
  */
-private fun JSONArray.toWritableArray(): WritableArray {
-    val array: WritableArray = WritableNativeArray()
+fun JSONArray.toWritableArray(): WritableArray {
+    val array = Arguments.createArray()
     for (i in 0 until length()) {
         val value = this[i]
         if (value is JSONObject) {

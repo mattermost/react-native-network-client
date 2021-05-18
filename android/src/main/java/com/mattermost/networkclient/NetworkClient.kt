@@ -16,11 +16,13 @@ import okhttp3.*
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.tls.HandshakeCertificates
 import org.json.JSONObject
+import java.net.URI
 import kotlin.reflect.KProperty
 
 
-class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: ReadableMap? = null, cookieJar: CookieJar? = null) {
+internal class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: ReadableMap? = null, cookieJar: CookieJar? = null) {
     var okHttpClient: OkHttpClient
+    var webSocketUri: URI? = null
     var webSocket: WebSocket? = null
     var clientHeaders: WritableMap = Arguments.createMap()
     var clientRetryInterceptor: Interceptor? = null
@@ -45,6 +47,10 @@ class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: R
         operator fun setValue(response: Response, property: KProperty<*>, value: Boolean?) {
             requestRetriesExhausted[response] = value
         }
+    }
+
+    constructor(webSocketUri: URI, baseUrl: HttpUrl, options: ReadableMap? = null) : this(baseUrl, options) {
+        this.webSocketUri = webSocketUri
     }
 
     init {
@@ -164,8 +170,12 @@ class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: R
         return okHttpClient.newCall(request)
     }
 
-    fun createWebSocket(listener: WebSocketEventListener) {
-        val request = Request.Builder().build()
+    fun createWebSocket() {
+        var request = Request.Builder()
+                .url(webSocketUri.toString())
+                .applyHeaders(clientHeaders)
+                .build()
+        val listener = WebSocketEventListener(webSocketUri!!)
 
         webSocket = okHttpClient.newWebSocket(request, listener)
     }
@@ -288,31 +298,39 @@ class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: R
     }
 
     private fun buildHandshakeCertificates(options: ReadableMap?): HandshakeCertificates? {
-        if (options != null && options.hasKey("sessionConfiguration")) {
-            val sessionConfiguration = options.getMap("sessionConfiguration")!!
-            if (sessionConfiguration.hasKey("trustSelfSignedServerCertificate") &&
-                    sessionConfiguration.getBoolean("trustSelfSignedServerCertificate")) {
+        if (options != null) {
+            // `trustSelfSignedServerCertificate` can be in `options.sessionConfiguration` for
+            // an APIClient or just in `options` for a WebSocketClient
+            if (options.hasKey("sessionConfiguration")) {
+                val sessionConfiguration = options.getMap("sessionConfiguration")!!
+                if (sessionConfiguration.hasKey("trustSelfSignedServerCertificate") &&
+                        sessionConfiguration.getBoolean("trustSelfSignedServerCertificate")) {
+                    trustSelfSignedServerCertificate = true
+                    builder.hostnameVerifier { _, _ -> true }
+                }
+            } else if (options.hasKey("trustSelfSignedServerCertificate") &&
+                    options.getBoolean("trustSelfSignedServerCertificate")) {
                 trustSelfSignedServerCertificate = true
                 builder.hostnameVerifier { _, _ -> true }
             }
-        }
 
-        if (options != null && options.hasKey("clientP12Configuration")) {
-            val clientP12Configuration = options.getMap("clientP12Configuration")!!
-            val path = clientP12Configuration.getString("path")!!
-            val password = if (clientP12Configuration.hasKey("password")) {
-                clientP12Configuration.getString("password")!!
-            } else {
-                ""
-            }
+            if (options.hasKey("clientP12Configuration")) {
+                val clientP12Configuration = options.getMap("clientP12Configuration")!!
+                val path = clientP12Configuration.getString("path")!!
+                val password = if (clientP12Configuration.hasKey("password")) {
+                    clientP12Configuration.getString("password")!!
+                } else {
+                    ""
+                }
 
-            try {
-                importClientP12(path, password)
-            } catch (error: Exception) {
-                val params = Arguments.createMap()
-                params.putString("serverUrl", BASE_URL_STRING)
-                params.putString("errorDescription", error.localizedMessage)
-                APIClientModule.sendJSEvent(APIClientEvents.CLIENT_ERROR.event, params)
+                try {
+                    importClientP12(path, password)
+                } catch (error: Exception) {
+                    val data = Arguments.createMap()
+                    data.putString("serverUrl", BASE_URL_STRING)
+                    data.putString("errorDescription", error.localizedMessage)
+                    APIClientModule.sendJSEvent(APIClientEvents.CLIENT_ERROR.event, data)
+                }
             }
         }
 
