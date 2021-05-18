@@ -1,0 +1,11 @@
+example/
+lib/typescript/example
+**/__tests__
+**/__fixtures__
+**/__mocks__
+.vscode
+**/.idea
+**/.gradle
+android/build/
+ios/Build
+.circleci
