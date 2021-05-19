@@ -4,12 +4,11 @@ Configurable network clients for React Native. Uses Alamofire for iOS and OkHttp
 
 ## Installation
 
-TODO: Update installation instructions once package is published.
-If installing this locally, you will also need to update your applications Podfile to use our fork of Starscream. See the [example app's Podfile](https://github.com/mattermost/react-native-network-client/blob/master/example/ios/Podfile#L27).
-
 ```sh
-
+npm install @mattermost/react-native-network-client
 ```
+
+You will also need to update your applications Podfile to use our fork of Starscream. See the [example app's Podfile](https://github.com/mattermost/react-native-network-client/blob/master/example/ios/Podfile#L31).
 
 ## Usage
 
@@ -108,6 +107,17 @@ There may be cases where network requests are made by another dependency of your
 implementation "com.squareup.okhttp3:okhttp:4.9.1"
 implementation "com.squareup.okhttp3:okhttp-urlconnection:4.9.1"
 ```
+
+## Troubleshooting
+
+If you hit the following iOS build error:
+
+```
+Undefined symbols for architecture x86_64:
+  "nominal type descriptor for (extension in Foundation):__C.NSURLSessionWebSocketTask.Message", referenced from:
+```
+
+you'll need to remove the references to `"$(TOOLCHAIN_DIR)/usr/lib/swift-5.0/$(PLATFORM_NAME)"` in your project's `project.pbxproj` as described in [react-native/issues/31179#issuecomment-829536845](https://github.com/facebook/react-native/issues/31179#issuecomment-829536845)
 
 ## Contributing
 

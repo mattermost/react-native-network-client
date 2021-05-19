@@ -52,7 +52,6 @@
   "devDependencies": {
     "@babel/runtime": "7.12.5",
     "@commitlint/config-conventional": "11.0.0",
-    "@react-native-community/bob": "0.16.2",
     "@react-native-community/eslint-config": "2.0.0",
     "@release-it/conventional-changelog": "2.0.0",
     "@types/jest": "26.0.15",
@@ -61,18 +60,18 @@
     "@types/validator": "13.1.0",
     "commitlint": "11.0.0",
     "eslint": "7.12.1",
-    "eslint-config-prettier": "^6.15.0",
+    "eslint-config-prettier": "6.15.0",
     "eslint-plugin-header": "3.1.0",
     "eslint-plugin-mattermost": "github:mattermost/eslint-plugin-mattermost#070ce792d105482ffb2b27cfc0b7e78b3d20acee",
-    "eslint-plugin-prettier": "^3.3.1",
+    "eslint-plugin-prettier": "3.3.1",
     "husky": "4.3.0",
     "jest": "26.6.1",
     "pod-install": "0.1.12",
     "react": "16.13.1",
     "react-native": "0.63.3",
+    "react-native-builder-bob": "0.18.1",
     "release-it": "14.2.1",
-    "typescript": "3.8.3",
-    "validator": "13.1.17"
+    "typescript": "3.8.3"
   },
   "peerDependencies": {
     "react": "*",
@@ -117,16 +116,22 @@
     "node_modules/",
     "lib/"
   ],
-  "@react-native-community/bob": {
+  "react-native-builder-bob": {
     "source": "src",
     "output": "lib",
     "targets": [
       "commonjs",
       "module",
-      "typescript"
+      [
+        "typescript",
+        {
+          "project": "tsconfig.build.json"
+        }
+      ]
     ]
   },
   "dependencies": {
+    "validator": "13.1.17",
     "zod": "1.11.13"
   }
 }
