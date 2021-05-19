@@ -71,8 +71,7 @@
     "react-native": "0.63.3",
     "react-native-builder-bob": "0.18.1",
     "release-it": "14.2.1",
-    "typescript": "3.8.3",
-    "validator": "13.1.17"
+    "typescript": "3.8.3"
   },
   "peerDependencies": {
     "react": "*",
@@ -132,6 +131,7 @@
     ]
   },
   "dependencies": {
+    "validator": "13.1.17",
     "zod": "1.11.13"
   }
 }
