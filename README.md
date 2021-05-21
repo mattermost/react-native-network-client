@@ -2,6 +2,10 @@
 
 Configurable network clients for React Native. Uses Alamofire for iOS and OkHttp for Android.
 
+## About
+
+React Native uses a single [URLSessionConfiguration](https://github.com/facebook/react-native/blob/v0.64.1/Libraries/Network/RCTHTTPRequestHandler.mm#L78) and a single [OkHttpClient](https://github.com/facebook/react-native/blob/v0.64.1/ReactAndroid/src/main/java/com/facebook/react/modules/network/OkHttpClientProvider.java#L26) for all network requests. In order to introduce multi-server support in the Mattermost mobile app, we need to maintain isolated instances of [URLSession](https://developer.apple.com/documentation/foundation/urlsession) and [OkHttpClient](https://square.github.io/okhttp/4.x/okhttp/okhttp3/-ok-http-client/), each configured individually for a specific server. This library allows you to do just that.
+
 ## Installation
 
 ```sh
