@@ -115,8 +115,6 @@ type APIClientConfiguration = {
     sessionConfiguration?: SessionConfiguration;
     retryPolicyConfiguration?: RetryPolicyConfiguration;
     requestAdapterConfiguration?: RequestAdapterConfiguration;
-    serverTrustManagerConfiguration?: Record<string, string>;
-    cachedResponseHandlerConfiguration?: Record<string, string>;
     clientP12Configuration?: ClientP12Configuration;
 };
 
