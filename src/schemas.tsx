@@ -41,8 +41,6 @@ const APIClientConfigurationSchema = z.object({
     sessionConfiguration: SessionConfigurationSchema.optional(),
     retryPolicyConfiguration: RetryPolicyConfigurationSchema.optional(),
     requestAdapterConfiguration: RequestAdapterConfigurationSchema.optional(),
-    serverTrustManagerConfig: z.record(z.string()).optional(),
-    cachedResponseHandlerConfig: z.record(z.string()).optional(),
     clientP12Configuration: ClientP12ConfigurationSchema.optional(),
 });
 
