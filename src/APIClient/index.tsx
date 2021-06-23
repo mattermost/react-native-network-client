@@ -84,6 +84,13 @@ class APIClient implements APIClientInterface {
         return NativeAPIClient.invalidateClientFor(this.baseUrl);
     };
 
+    head = (
+        endpoint: string,
+        options?: RequestOptions
+    ): Promise<ClientResponse> => {
+        validateRequestOptions(options);
+        return NativeAPIClient.head(this.baseUrl, endpoint);
+    };
     get = (
         endpoint: string,
         options?: RequestOptions

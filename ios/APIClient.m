@@ -24,6 +24,8 @@ RCT_EXTERN_METHOD(addClientHeadersFor:(NSString *)baseUrl withHeaders:(NSDiction
 
 RCT_EXTERN_METHOD(importClientP12For:(NSString *)baseUrl withPath:(NSString *)path withPassword:(NSString *)password withResolver:(RCTPromiseResolveBlock)resolve withRejecter:(RCTPromiseRejectBlock)reject)
 
+RCT_EXTERN_METHOD(head:(NSString *)baseUrl forEndpoint:(NSString *)endpoint withOptions:(NSDictionary *)options withResolver:(RCTPromiseResolveBlock)resolve withRejecter:(RCTPromiseRejectBlock)reject)
+
 RCT_EXTERN_METHOD(get:(NSString *)baseUrl forEndpoint:(NSString *)endpoint withOptions:(NSDictionary *)options withResolver:(RCTPromiseResolveBlock)resolve withRejecter:(RCTPromiseRejectBlock)reject)
 
 RCT_EXTERN_METHOD(put:(NSString *)baseUrl forEndpoint:(NSString *)endpoint withOptions:(NSDictionary *)options withResolver:(RCTPromiseResolveBlock)resolve withRejecter:(RCTPromiseRejectBlock)reject)

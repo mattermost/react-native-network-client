@@ -11,6 +11,11 @@ internal class GenericClientModule(reactContext: ReactApplicationContext) : Reac
     }
 
     @ReactMethod
+    fun head(url: String, options: ReadableMap, promise: Promise) {
+        request("HEAD", url, options, promise)
+    }
+
+    @ReactMethod
     fun get(url: String, options: ReadableMap, promise: Promise) {
         request("GET", url, options, promise)
     }

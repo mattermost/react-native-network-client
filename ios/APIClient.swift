@@ -206,6 +206,11 @@ class APIClient: RCTEventEmitter, NetworkClient {
             reject("\(error._code)", error.localizedDescription, error)
         }
     }
+
+    @objc(head:forEndpoint:withOptions:withResolver:withRejecter:)
+    func head(baseUrl: String, endpoint: String, options: Dictionary<String, Any>, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
+        handleRequest(for: baseUrl, withEndpoint: endpoint, withMethod: .head, withOptions: JSON(options), withResolver: resolve, withRejecter: reject)
+    }
     
     @objc(get:forEndpoint:withOptions:withResolver:withRejecter:)
     func get(baseUrl: String, endpoint: String, options: Dictionary<String, Any>, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
