@@ -15,6 +15,7 @@ import GenericClient, {
 } from "@mattermost/react-native-network-client";
 
 export enum METHODS {
+    HEAD = "HEAD",
     GET = "GET",
     PUT = "PUT",
     POST = "POST",

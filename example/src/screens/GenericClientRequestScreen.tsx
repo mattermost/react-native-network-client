@@ -47,7 +47,11 @@ const GenericClientRequestScreen = ({
             timeoutInterval,
             retryPolicyConfiguration,
         };
-        if (method !== METHODS.GET && body.length) {
+
+        const canIncludeBody = ![METHODS.HEAD, METHODS.GET].includes(
+            method as METHODS
+        );
+        if (canIncludeBody && body.length) {
             try {
                 options.body = JSON.parse(body);
             } catch (e) {
@@ -61,6 +65,9 @@ const GenericClientRequestScreen = ({
         try {
             let clientMethod;
             switch (method) {
+                case METHODS.HEAD:
+                    clientMethod = client.head;
+                    break;
                 case METHODS.GET:
                     clientMethod = client.get;
                     break;

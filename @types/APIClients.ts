@@ -50,6 +50,7 @@ type ClientResponseError = {
 type APIClientErrorEventHandler = (event: APIClientErrorEvent) => void;
 
 interface GenericClientInterface {
+    head(url: string, options?: RequestOptions): Promise<ClientResponse>;
     get(url: string, options?: RequestOptions): Promise<ClientResponse>;
     put(url: string, options?: RequestOptions): Promise<ClientResponse>;
     post(url: string, options?: RequestOptions): Promise<ClientResponse>;
@@ -64,6 +65,7 @@ interface APIClientInterface {
     onClientErrorSubscription?: EmitterSubscription;
     onClientError(callback: APIClientErrorEventHandler): void;
 
+    head(endpoint: string, options?: RequestOptions): Promise<ClientResponse>;
     get(endpoint: string, options?: RequestOptions): Promise<ClientResponse>;
     put(endpoint: string, options?: RequestOptions): Promise<ClientResponse>;
     post(endpoint: string, options?: RequestOptions): Promise<ClientResponse>;

@@ -19,6 +19,11 @@ type APIClientConstants = {
 interface NativeAPIClient extends NativeModule {
     getConstants(): APIClientConstants;
 
+    head(
+        baseUrl: string,
+        endpoint: string | null,
+        options?: RequestOptions
+    ): Promise<ClientResponse>;
     get(
         baseUrl: string,
         endpoint: string | null,

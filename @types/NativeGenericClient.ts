@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 interface NativeGenericClient {
+    head(url: string, options?: RequestOptions): Promise<ClientResponse>;
     get(url: string, options?: RequestOptions): Promise<ClientResponse>;
     put(url: string, options?: RequestOptions): Promise<ClientResponse>;
     post(url: string, options?: RequestOptions): Promise<ClientResponse>;

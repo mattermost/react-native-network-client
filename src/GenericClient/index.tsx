@@ -11,6 +11,10 @@ const { GenericClient: NativeGenericClient } = NativeModules;
  * Generic client for making requests
  */
 class GenericClient implements GenericClientInterface {
+    head = (url: string, options?: RequestOptions): Promise<ClientResponse> => {
+        validateRequestOptions(options);
+        return NativeGenericClient.head(url, options);
+    };
     get = (url: string, options?: RequestOptions): Promise<ClientResponse> => {
         validateRequestOptions(options);
         return NativeGenericClient.get(url, options);
