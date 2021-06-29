@@ -254,7 +254,12 @@ class APIClient: RCTEventEmitter, NetworkClient {
             return
         }
 
-        let url = baseUrl.appendingPathComponent(endpoint)
+        let urlString = "\(baseUrl.absoluteString)\(endpoint)"
+        guard let url = URL(string: urlString) else {
+            rejectMalformed(url: urlString, withRejecter: reject)
+            return
+        }
+
         upload(fileUrl, to: url, forSession: session, withTaskId: taskId, withOptions: JSON(options), withResolver: resolve, withRejecter: reject)
     }
     
@@ -362,7 +367,12 @@ class APIClient: RCTEventEmitter, NetworkClient {
             return
         }
 
-        let url = baseUrl.appendingPathComponent(endpoint)
+        let urlString = "\(baseUrl.absoluteString)\(endpoint)"
+        guard let url = URL(string: urlString) else {
+            rejectMalformed(url: urlString, withRejecter: reject)
+            return
+        }
+
         handleRequest(for: url, withMethod: method, withSession: session, withOptions: options, withResolver: resolve, withRejecter: reject)
     }
 

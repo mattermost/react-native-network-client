@@ -126,7 +126,7 @@ internal class NetworkClient(private val baseUrl: HttpUrl? = null, private val o
     }
 
     fun cleanUpAfter(response: Response) {
-        requestRetriesExhausted.remove(response.request)
+        requestRetriesExhausted.remove(response)
         requestRetryInterceptors.remove(response.request)
         requestTimeoutInterceptors.remove(response.request)
     }
