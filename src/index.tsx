@@ -9,12 +9,12 @@ import { getOrCreateWebSocketClient } from "./WebSocketClient";
 
 const { APIClient: NativeAPIClient } = NativeModules;
 
-const Constants = NativeAPIClient.getConstants();
+const APIClientConstants = NativeAPIClient.getConstants();
 
 export * from "./types/APIClient";
 export * from "./types/NativeAPIClient";
 export * from "./types/NativeGenericClient";
 export * from "./types/NativeWebSocketClient";
 export * from "./types/WebSocketClient";
-export { getOrCreateAPIClient, getOrCreateWebSocketClient, Constants };
+export { getOrCreateAPIClient, getOrCreateWebSocketClient, APIClientConstants };
 export default GenericClient;
