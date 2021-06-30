@@ -8,7 +8,12 @@ import { Constants } from "@mattermost/react-native-network-client";
 
 import NumericInput from "./NumericInput";
 
-interface RetryPolicyConfigurationProps extends RetryPolicyConfiguration {
+import type {
+    RetryPolicyConfiguration as RetryPolicyConfigurationType,
+    RetryTypes,
+} from "@mattermost/react-native-network-client";
+
+interface RetryPolicyConfigurationProps extends RetryPolicyConfigurationType {
     policyType?: RetryTypes;
     onTypeSelected: (value?: RetryTypes) => void;
     setRetryLimit: (value: number) => void;

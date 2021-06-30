@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type { WebSocketClientConfiguration } from "./WebSocketClient";
+
 enum WebSocketEvents {
     OPEN_EVENT = "WebSocketClient-Open",
     CLOSE_EVENT = "WebSocketClient-Close",
@@ -10,7 +12,7 @@ enum WebSocketEvents {
     CLIENT_ERROR = "WebSocketClient-Error",
 }
 
-enum WebSocketReadyState {
+export enum WebSocketReadyState {
     CONNECTING,
     OPEN,
     CLOSING,
@@ -22,7 +24,7 @@ type WebSocketConstants = {
     READY_STATE: typeof WebSocketReadyState;
 };
 
-interface NativeWebSocketClient {
+export interface NativeWebSocketClient {
     getConstants(): WebSocketConstants;
     createClientFor(
         url: string,

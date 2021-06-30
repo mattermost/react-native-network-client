@@ -1,6 +1,12 @@
 import type { StackNavigationProp } from "@react-navigation/stack";
 import type { RouteProp } from "@react-navigation/native";
 
+import type {
+    APIClientInterface,
+    GenericClientInterface,
+    WebSocketClientInterface,
+} from "@mattermost/react-native-network-client";
+
 enum ClientType {
     GENERIC,
     API,

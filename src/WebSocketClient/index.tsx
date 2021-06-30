@@ -4,9 +4,17 @@
 import { NativeEventEmitter, NativeModules } from "react-native";
 import isURL from "validator/es/lib/isURL";
 
-const {
-    WebSocketClient: NativeWebSocketClient,
-}: { WebSocketClient: NativeWebSocketClient } = NativeModules;
+import type {
+    WebSocketClientConfiguration,
+    WebSocketClientErrorEvent,
+    WebSocketClientErrorEventHandler,
+    WebSocketClientInterface,
+    WebSocketEvent,
+    WebSocketEventHandler,
+    WebSocketReadyState,
+} from "@mattermost/react-native-network-client";
+
+const { WebSocketClient: NativeWebSocketClient } = NativeModules;
 const Emitter = new NativeEventEmitter(NativeWebSocketClient);
 const { EVENTS, READY_STATE } = NativeWebSocketClient.getConstants();
 

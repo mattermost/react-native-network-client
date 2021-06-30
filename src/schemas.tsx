@@ -4,6 +4,13 @@
 import { NativeModules } from "react-native";
 import * as z from "zod";
 
+import type {
+    APIClientConfiguration,
+    RetryTypes,
+    RequestOptions,
+    UploadRequestOptions,
+} from "@mattermost/react-native-network-client";
+
 const { APIClient: NativeAPIClient } = NativeModules;
 const { RETRY_TYPES } = NativeAPIClient.getConstants();
 

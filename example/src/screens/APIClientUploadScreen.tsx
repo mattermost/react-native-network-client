@@ -10,6 +10,13 @@ import ResponseErrorOverlay from "../components/ResponseErrorOverlay";
 import { UploadStatus } from "../utils";
 import AddMultipart from "../components/AddMultipart";
 
+import type {
+    ClientResponse,
+    ClientResponseError,
+    ProgressPromise,
+    UploadRequestOptions,
+} from "@mattermost/react-native-network-client";
+
 type UploadState = {
     request?: ProgressPromise<ClientResponse>;
     endpoint: string;
@@ -147,17 +154,17 @@ const APIClientUploadScreen = ({ route }: APIClientUploadScreenProps) => {
         );
         setRequest(request);
 
-        request.progress!((fractionCompleted) => {
+        request.progress!((fractionCompleted: number) => {
             setProgress(fractionCompleted);
         })
-            .then((response) => {
+            .then((response: ClientResponse) => {
                 setStateFromResponse(response);
                 setResponse(response);
                 setError(undefined);
                 setResponseSuccessVisible(true);
                 setResponseErrorVisible(false);
             })
-            .catch((error) => {
+            .catch((error: ClientResponseError) => {
                 setStatus(UploadStatus.FAILED);
                 setResponse(undefined);
                 setError(error);
