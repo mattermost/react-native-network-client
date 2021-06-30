@@ -9,7 +9,7 @@ import { sampleImageContent } from "./files/SampleImage";
 import { sampleTextContent } from "./files/SampleText";
 
 import GenericClient, {
-    APIClientConstants as Constants,
+    Constants,
     getOrCreateAPIClient,
     getOrCreateWebSocketClient,
 } from "@mattermost/react-native-network-client";

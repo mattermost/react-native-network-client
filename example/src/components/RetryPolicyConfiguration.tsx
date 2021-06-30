@@ -4,7 +4,7 @@
 import React, { useEffect, useState } from "react";
 import { View } from "react-native";
 import { ButtonGroup, CheckBox, Input } from "react-native-elements";
-import { APIClientConstants as Constants } from "@mattermost/react-native-network-client";
+import { Constants } from "@mattermost/react-native-network-client";
 
 import NumericInput from "./NumericInput";
 
