@@ -1,12 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {
+    APIClientConfiguration,
+    ClientHeaders,
+    ClientResponse,
+    RequestOptions,
+    UploadRequestOptions,
+} from "./APIClient";
+
 enum APIClientEvents {
     UPLOAD_PROGRESS = "APIClient-UploadProgress",
     CLIENT_ERROR = "APIClient-Error",
 }
 
-enum RetryTypes {
+export enum RetryTypes {
     EXPONENTIAL_RETRY = "exponential",
     LINEAR_RETRY = "linear",
 }
@@ -16,7 +24,7 @@ type APIClientConstants = {
     RETRY_TYPES: typeof RetryTypes;
 };
 
-interface NativeAPIClient extends NativeModule {
+export interface NativeAPIClient extends NativeModule {
     getConstants(): APIClientConstants;
 
     head(

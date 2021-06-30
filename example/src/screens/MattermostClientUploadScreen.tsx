@@ -6,6 +6,14 @@ import FilePickerButtonGroup from "../components/FilePickerButtonGroup";
 import ProgressiveFileUpload from "../components/ProgressiveFileUpload";
 import { UploadStatus } from "../utils";
 
+import type {
+    ClientResponse,
+    ClientResponseError,
+    ProgressPromise,
+    RequestOptions,
+    UploadRequestOptions,
+} from "@mattermost/react-native-network-client";
+
 const DEFAULT_CHANNEL_ID = "4dtzmswn93f68fkd97eeafm6xc";
 
 type UploadState = {
@@ -176,10 +184,10 @@ const MattermostClientUploadScreen = ({
         );
         setRequest(request);
 
-        request.progress!((fractionCompleted) => {
+        request.progress!((fractionCompleted: number) => {
             setProgress(fractionCompleted);
         })
-            .then((response) => {
+            .then((response: ClientResponse) => {
                 if (response.ok) {
                     setStatedFileId(response.data!.id as number);
                     setStatus(UploadStatus.COMPLETED);
@@ -187,7 +195,7 @@ const MattermostClientUploadScreen = ({
                     setStatus(UploadStatus.FAILED);
                 }
             })
-            .catch((error) => {
+            .catch((error: ClientResponseError) => {
                 Alert.alert("Upload error", error.message);
                 setStatus(UploadStatus.FAILED);
             });

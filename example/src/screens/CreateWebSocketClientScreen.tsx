@@ -17,6 +17,8 @@ import {
     webSocketClientErrorEventHandler,
 } from "../utils";
 
+import type { WebSocketClientConfiguration } from "@mattermost/react-native-network-client";
+
 const styles = StyleSheet.create({
     checkboxText: { flex: 1 },
     createButton: { padding: 10 },

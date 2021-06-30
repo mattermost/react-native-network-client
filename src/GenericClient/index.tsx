@@ -7,6 +7,12 @@ import { validateRequestOptions } from "../schemas";
 
 const { GenericClient: NativeGenericClient } = NativeModules;
 
+import type {
+    GenericClientInterface,
+    ClientResponse,
+    RequestOptions,
+} from "@mattermost/react-native-network-client";
+
 /**
  * Generic client for making requests
  */

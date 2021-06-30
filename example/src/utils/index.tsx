@@ -14,6 +14,17 @@ import GenericClient, {
     getOrCreateWebSocketClient,
 } from "@mattermost/react-native-network-client";
 
+import type {
+    APIClientConfiguration,
+    APIClientErrorEvent,
+    APIClientErrorEventHandler,
+    ClientHeaders,
+    RequestAdapterConfiguration,
+    WebSocketClientConfiguration,
+    WebSocketClientErrorEvent,
+    WebSocketClientErrorEventHandler,
+} from "@mattermost/react-native-network-client";
+
 export enum METHODS {
     HEAD = "HEAD",
     GET = "GET",

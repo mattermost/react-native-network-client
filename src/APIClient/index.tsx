@@ -14,6 +14,19 @@ import {
     validateUploadRequestOptions,
 } from "../schemas";
 
+import type {
+    APIClientConfiguration,
+    APIClientErrorEvent,
+    APIClientErrorEventHandler,
+    APIClientInterface,
+    ClientHeaders,
+    ClientResponse,
+    ProgressPromise,
+    RequestOptions,
+    UploadProgressEvent,
+    UploadRequestOptions,
+} from "@mattermost/react-native-network-client";
+
 const { APIClient: NativeAPIClient } = NativeModules;
 const Emitter = new NativeEventEmitter(NativeAPIClient);
 const { EVENTS } = NativeAPIClient.getConstants();

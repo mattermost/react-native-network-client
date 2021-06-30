@@ -5,6 +5,8 @@ import React from "react";
 import { ScrollView } from "react-native";
 import { Button, Divider, Overlay, Text } from "react-native-elements";
 
+import type { ClientResponse } from "@mattermost/react-native-network-client";
+
 type ResponseSuccessOverlayProps = {
     response: ClientResponse | undefined;
     visible: boolean;

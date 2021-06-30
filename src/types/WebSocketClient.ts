@@ -1,7 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-type WebSocketClientConfiguration = {
+import type { ClientHeaders, ClientP12Configuration } from "./APIClient";
+import type { WebSocketReadyState } from "./NativeWebSocketClient";
+
+export type WebSocketClientConfiguration = {
     headers?: ClientHeaders;
     timeoutInterval?: number;
     enableCompression?: boolean;
@@ -13,18 +16,19 @@ type WebSocketMessage =
     | string
     | WebSocketReadyState
     | Record<string, string | number>;
-type WebSocketEvent = {
+
+export type WebSocketEvent = {
     url: string;
     message: WebSocketMessage;
 };
 
-type WebSocketEventHandler = (event: WebSocketEvent) => void;
+export type WebSocketEventHandler = (event: WebSocketEvent) => void;
 
-type WebSocketClientErrorEventHandler = (
+export type WebSocketClientErrorEventHandler = (
     event: WebSocketClientErrorEvent
 ) => void;
 
-interface WebSocketClientInterface {
+export interface WebSocketClientInterface {
     url: string;
     readyState: WebSocketReadyState;
 
@@ -46,7 +50,7 @@ interface WebSocketClientInterface {
     invalidate(): Promise<void>;
 }
 
-type WebSocketClientErrorEvent = {
+export type WebSocketClientErrorEvent = {
     url: string;
     errorCode: number;
     errorDescription: string;

@@ -18,6 +18,11 @@ import {
 } from "../hooks";
 import { ClientType, parseHeaders, apiClientErrorEventHandler } from "../utils";
 
+import type {
+    APIClientConfiguration,
+    RequestAdapterConfiguration,
+} from "@mattermost/react-native-network-client";
+
 const styles = StyleSheet.create({
     checkboxText: { flex: 1 },
     createButton: { padding: 10 },

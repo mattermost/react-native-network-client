@@ -1,7 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-interface ProgressPromise<T> extends Promise<T> {
+import type { RetryTypes } from "./NativeAPIClient";
+
+export interface ProgressPromise<T> extends Promise<T> {
     progress?: (
         callback: (fractionCompleted: number) => void
     ) => ProgressPromise<T>;
@@ -9,27 +11,27 @@ interface ProgressPromise<T> extends Promise<T> {
     cancel?: () => void;
 }
 
-type ClientHeaders = Record<string, string>;
+export type ClientHeaders = Record<string, string>;
 
-type RequestOptions = {
+export type RequestOptions = {
     headers?: ClientHeaders;
     body?: Record<string, unknown> | string;
     timeoutInterval?: number;
     retryPolicyConfiguration?: RetryPolicyConfiguration;
 };
 
-type MultipartUploadConfig = {
+export type MultipartUploadConfig = {
     fileKey?: string;
     data?: Record<string, string>;
 };
 
-type UploadRequestOptions = RequestOptions & {
+export type UploadRequestOptions = RequestOptions & {
     skipBytes?: number;
     method?: string;
     multipart?: MultipartUploadConfig;
 };
 
-type ClientResponse = {
+export type ClientResponse = {
     headers?: ClientHeaders;
     data?: Record<string, unknown>;
     code: number;
@@ -38,7 +40,7 @@ type ClientResponse = {
     retriesExhausted?: boolean;
 };
 
-type ClientResponseError = {
+export type ClientResponseError = {
     code: number;
     message: string;
     domain: string;
@@ -47,9 +49,9 @@ type ClientResponseError = {
     nativeStackIOS?: Array<unknown>;
 };
 
-type APIClientErrorEventHandler = (event: APIClientErrorEvent) => void;
+export type APIClientErrorEventHandler = (event: APIClientErrorEvent) => void;
 
-interface GenericClientInterface {
+export interface GenericClientInterface {
     head(url: string, options?: RequestOptions): Promise<ClientResponse>;
     get(url: string, options?: RequestOptions): Promise<ClientResponse>;
     put(url: string, options?: RequestOptions): Promise<ClientResponse>;
@@ -58,7 +60,7 @@ interface GenericClientInterface {
     delete(url: string, options?: RequestOptions): Promise<ClientResponse>;
 }
 
-interface APIClientInterface {
+export interface APIClientInterface {
     baseUrl: string;
     config: APIClientConfiguration;
 
@@ -83,12 +85,12 @@ interface APIClientInterface {
     invalidate(): Promise<void>;
 }
 
-type ClientP12Configuration = {
+export type ClientP12Configuration = {
     path: string;
     password?: string;
 };
 
-type SessionConfiguration = {
+export type SessionConfiguration = {
     allowsCellularAccess?: boolean;
     waitsForConnectivity?: boolean;
     timeoutIntervalForRequest?: number;
@@ -98,7 +100,7 @@ type SessionConfiguration = {
     trustSelfSignedServerCertificate?: boolean;
 };
 
-type RetryPolicyConfiguration = {
+export type RetryPolicyConfiguration = {
     type?: RetryTypes;
     retryLimit?: number;
     retryInterval?: number;
@@ -108,11 +110,11 @@ type RetryPolicyConfiguration = {
     retryMethods?: string[];
 };
 
-type RequestAdapterConfiguration = {
+export type RequestAdapterConfiguration = {
     bearerAuthTokenResponseHeader?: string;
 };
 
-type APIClientConfiguration = {
+export type APIClientConfiguration = {
     headers?: ClientHeaders;
     sessionConfiguration?: SessionConfiguration;
     retryPolicyConfiguration?: RetryPolicyConfiguration;
@@ -120,16 +122,16 @@ type APIClientConfiguration = {
     clientP12Configuration?: ClientP12Configuration;
 };
 
-type UploadProgressEvent = {
+export type UploadProgressEvent = {
     taskId: string;
     fractionCompleted: number;
 };
 
-type MissingClientCertificateEvent = {
+export type MissingClientCertificateEvent = {
     serverUrl: string;
 };
 
-type APIClientErrorEvent = {
+export type APIClientErrorEvent = {
     serverUrl: string;
     errorCode: number;
     errorDescription: string;

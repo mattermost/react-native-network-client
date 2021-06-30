@@ -6,6 +6,8 @@ import { useEffect } from "react";
 import { SafeAreaView, ScrollView } from "react-native";
 import { Button, Input, Text } from "react-native-elements";
 
+import type { WebSocketEvent } from "@mattermost/react-native-network-client";
+
 export default function WebSocketClientScreen({
     route,
 }: WebSocketClientScreenProps) {
@@ -24,18 +26,18 @@ export default function WebSocketClientScreen({
     const [event, setEvent] = useState<string>("");
 
     useEffect(() => {
-        client.onOpen((event) => {
+        client.onOpen((event: WebSocketEvent) => {
             setConnected(true);
             parseAndSetEvent(event);
         });
-        client.onClose((event) => {
+        client.onClose((event: WebSocketEvent) => {
             setConnected(false);
             parseAndSetEvent(event);
         });
-        client.onError((event) => {
+        client.onError((event: WebSocketEvent) => {
             parseAndSetEvent(event);
         });
-        client.onMessage((event) => {
+        client.onMessage((event: WebSocketEvent) => {
             parseAndSetEvent(event);
         });
     }, []);

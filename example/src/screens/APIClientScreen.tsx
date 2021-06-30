@@ -8,6 +8,8 @@ import { Input, Button } from "react-native-elements";
 import ListHeaders from "../components/ListHeaders";
 import { METHODS } from "../utils";
 
+import type { ClientHeaders } from "@mattermost/react-native-network-client";
+
 export default function APIClientScreen({
     navigation,
     route,
@@ -83,7 +85,7 @@ export default function APIClientScreen({
     };
 
     useEffect(() => {
-        client.getHeaders().then((clientHeaders) => {
+        client.getHeaders().then((clientHeaders: ClientHeaders) => {
             const ordered = Object.keys(clientHeaders)
                 .sort()
                 .reduce((result: Record<string, string>, key) => {

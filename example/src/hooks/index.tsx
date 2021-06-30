@@ -3,6 +3,13 @@
 
 import { useState } from "react";
 
+import type {
+    ClientP12Configuration,
+    RetryPolicyConfiguration,
+    RetryTypes,
+    SessionConfiguration,
+} from "@mattermost/react-native-network-client";
+
 type UseSessionConfigurationResponse = [
     SessionConfiguration,
     () => void,
@@ -90,12 +97,6 @@ type UseRetryPolicyConfigurationResponse = [
     (statusCodes: number[]) => void,
     (retryMethods: string[]) => void
 ];
-
-// enum RetryTypes =
-enum RetryTypes {
-    EXPONENTIAL_RETRY = "exponential",
-    LINEAR_RETRY = "linear",
-}
 
 export const useRetryPolicyConfiguration = (): UseRetryPolicyConfigurationResponse => {
     const [

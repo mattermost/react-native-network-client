@@ -13,6 +13,12 @@ import RetryPolicyConfiguration from "../components/RetryPolicyConfiguration";
 import { useRetryPolicyConfiguration } from "../hooks";
 import { parseHeaders, METHODS } from "../utils";
 
+import type {
+    ClientResponse,
+    ClientResponseError,
+    RequestOptions,
+} from "@mattermost/react-native-network-client";
+
 const APIClientRequestScreen = ({ route }: APIClientRequestScreenProps) => {
     const {
         item: { client },
