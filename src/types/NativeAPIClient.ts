@@ -9,7 +9,7 @@ import type {
     UploadRequestOptions,
 } from "./APIClient";
 
-enum APIClientEvents {
+export enum APIClientEvents {
     UPLOAD_PROGRESS = "APIClient-UploadProgress",
     CLIENT_ERROR = "APIClient-Error",
 }
