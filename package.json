@@ -4,7 +4,7 @@
   "description": "Configurable network clients for React Native. Uses Alamofire for iOS and OkHttp3 for Android.",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
-  "types": "lib/typescript/src/index.d.ts",
+  "types": "lib/typescript/index.d.ts",
   "react-native": "src/index",
   "source": "src/index",
   "files": [
