@@ -169,34 +169,34 @@ internal class APIClientModule(reactContext: ReactApplicationContext) : ReactCon
         try {
             clients[url]!!.invalidate()
             clients.remove(url);
-            promise.resolve(clients.keys);
+            promise.resolve(null);
         } catch (error: Exception) {
             promise.reject(error)
         }
     }
 
     @ReactMethod
-    fun get(baseUrl: String, endpoint: String, options: ReadableMap, promise: Promise) {
+    fun get(baseUrl: String, endpoint: String, options: ReadableMap?, promise: Promise) {
         request("GET", baseUrl, endpoint, options, promise)
     }
 
     @ReactMethod
-    fun post(baseUrl: String, endpoint: String, options: ReadableMap, promise: Promise) {
+    fun post(baseUrl: String, endpoint: String, options: ReadableMap?, promise: Promise) {
         request("POST", baseUrl, endpoint, options, promise)
     }
 
     @ReactMethod
-    fun put(baseUrl: String, endpoint: String, options: ReadableMap, promise: Promise) {
+    fun put(baseUrl: String, endpoint: String, options: ReadableMap?, promise: Promise) {
         request("PUT", baseUrl, endpoint, options, promise)
     }
 
     @ReactMethod
-    fun patch(baseUrl: String, endpoint: String, options: ReadableMap, promise: Promise) {
+    fun patch(baseUrl: String, endpoint: String, options: ReadableMap?, promise: Promise) {
         request("PATCH", baseUrl, endpoint, options, promise)
     }
 
     @ReactMethod
-    fun delete(baseUrl: String, endpoint: String, options: ReadableMap, promise: Promise) {
+    fun delete(baseUrl: String, endpoint: String, options: ReadableMap?, promise: Promise) {
         request("DELETE", baseUrl, endpoint, options, promise)
     }
 
@@ -246,7 +246,7 @@ internal class APIClientModule(reactContext: ReactApplicationContext) : ReactCon
         return constants
     }
 
-    private fun request(method: String, baseUrl: String, endpoint: String, options: ReadableMap, promise: Promise) {
+    private fun request(method: String, baseUrl: String, endpoint: String, options: ReadableMap?, promise: Promise) {
         try {
             val url = baseUrl.toHttpUrl()
             val client = clients[url]!!

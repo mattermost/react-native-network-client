@@ -273,9 +273,7 @@ internal class NetworkClient(private val baseUrl: HttpUrl? = null, private val o
         }
 
         return baseUrl
-                .newBuilder()
-                .addPathSegments(endpoint.trim { c -> c == '/' })
-                .build()
+                .newBuilder(endpoint)?.build()
                 .toString()
     }
 
@@ -470,7 +468,7 @@ internal class NetworkClient(private val baseUrl: HttpUrl? = null, private val o
 
         val domain = baseUrl.toString()
         val cookieManager = CookieManager.getInstance()
-        val cookieString = cookieManager.getCookie(domain)
+        val cookieString = cookieManager.getCookie(domain) ?: return
         val cookies = cookieString.split(";").toTypedArray()
         for (i in cookies.indices) {
             val cookieParts = cookies[i].split("=").toTypedArray()
