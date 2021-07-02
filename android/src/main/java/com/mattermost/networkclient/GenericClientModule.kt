@@ -11,36 +11,36 @@ internal class GenericClientModule(reactContext: ReactApplicationContext) : Reac
     }
 
     @ReactMethod
-    fun head(url: String, options: ReadableMap, promise: Promise) {
+    fun head(url: String, options: ReadableMap?, promise: Promise) {
         request("HEAD", url, options, promise)
     }
 
     @ReactMethod
-    fun get(url: String, options: ReadableMap, promise: Promise) {
+    fun get(url: String, options: ReadableMap?, promise: Promise) {
         request("GET", url, options, promise)
     }
 
     @ReactMethod
-    fun post(url: String, options: ReadableMap, promise: Promise) {
+    fun post(url: String, options: ReadableMap?, promise: Promise) {
         request("POST", url, options, promise)
     }
 
     @ReactMethod
-    fun put(url: String, options: ReadableMap, promise: Promise) {
+    fun put(url: String, options: ReadableMap?, promise: Promise) {
         request("PUT", url, options, promise)
     }
 
     @ReactMethod
-    fun patch(url: String, options: ReadableMap, promise: Promise) {
+    fun patch(url: String, options: ReadableMap?, promise: Promise) {
         request("PATCH", url, options, promise)
     }
 
     @ReactMethod
-    fun delete(url: String, options: ReadableMap, promise: Promise) {
+    fun delete(url: String, options: ReadableMap?, promise: Promise) {
         request("DELETE", url, options, promise)
     }
 
-    private fun request(method: String, url: String, options: ReadableMap, promise: Promise) {
+    private fun request(method: String, url: String, options: ReadableMap?, promise: Promise) {
         try {
             client.request(method, url, options).use { response ->
                 promise.resolve(response.toWritableMap())

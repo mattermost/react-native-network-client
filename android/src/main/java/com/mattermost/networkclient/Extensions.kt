@@ -46,11 +46,12 @@ fun Response.toWritableMap(): WritableMap {
     map.putBoolean("ok", isSuccessful)
 
     if (body !== null) {
+        val bodyString = body!!.string()
         try {
-            val data = JSONObject(body!!.string()).toWritableMap()
+            val data = JSONObject(bodyString).toWritableMap()
             map.putMap("data", data)
         } catch (_: Exception) {
-            map.putString("data", body!!.string())
+            map.putString("data", bodyString)
         }
     }
 
