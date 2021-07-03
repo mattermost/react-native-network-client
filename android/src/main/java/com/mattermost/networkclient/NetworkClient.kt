@@ -4,6 +4,7 @@ import android.net.Uri
 import android.webkit.CookieManager
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReadableMap
+import com.facebook.react.bridge.ReadableType
 import com.facebook.react.bridge.WritableMap
 import com.mattermost.networkclient.enums.APIClientEvents
 import com.mattermost.networkclient.enums.RetryTypes
@@ -16,14 +17,18 @@ import okhttp3.*
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.internal.EMPTY_REQUEST
 import okhttp3.tls.HandshakeCertificates
+import org.json.JSONArray
 import org.json.JSONObject
 import java.net.URI
+import java.util.*
+import kotlin.collections.ArrayList
+import kotlin.collections.HashMap
 import kotlin.reflect.KProperty
 
 
-internal class NetworkClient(private val baseUrl: HttpUrl? = null, private val options: ReadableMap? = null, cookieJar: CookieJar? = null) {
+internal class NetworkClient(private val baseUrl: HttpUrl? = null, options: ReadableMap? = null, cookieJar: CookieJar? = null) {
     var okHttpClient: OkHttpClient
-    var webSocketUri: URI? = null
+    private var webSocketUri: URI? = null
     var webSocket: WebSocket? = null
     var clientHeaders: WritableMap = Arguments.createMap()
     var clientRetryInterceptor: Interceptor? = null
@@ -95,9 +100,30 @@ internal class NetworkClient(private val baseUrl: HttpUrl? = null, private val o
                 requestHeaders = options.getMap("headers")
             }
             if (options.hasKey("body")) {
-                val jsonBody = JSONObject(options.getMap("body")!!.toHashMap())
-                requestBody = jsonBody.toString().toRequestBody()
-            } else if (method.toUpperCase() == "POST") {
+                val type = options.getType("body")
+                when (type) {
+                    ReadableType.Array -> {
+                        val jsonBody = JSONArray(options.getArray("body")!!.toArrayList())
+                        requestBody = jsonBody.toString().toRequestBody()
+                    }
+                    ReadableType.Map -> {
+                        val jsonBody = JSONObject(options.getMap("body")!!.toHashMap())
+                        requestBody = jsonBody.toString().toRequestBody()
+                    }
+                    ReadableType.String -> {
+                        requestBody = options.getString("body")!!.toRequestBody()
+                    }
+                    ReadableType.Null -> {
+                        requestBody = EMPTY_REQUEST
+                    }
+                    ReadableType.Boolean -> {
+                        requestBody = options.getBoolean("body").toString().toRequestBody()
+                    }
+                    ReadableType.Number -> {
+                        requestBody = options.getDouble("body").toString().toRequestBody()
+                    }
+                }
+            } else if (method.toUpperCase(Locale.ENGLISH) == "POST") {
                 requestBody = EMPTY_REQUEST
             }
         }
@@ -174,7 +200,7 @@ internal class NetworkClient(private val baseUrl: HttpUrl? = null, private val o
     }
 
     fun createWebSocket() {
-        var request = Request.Builder()
+        val request = Request.Builder()
                 .url(webSocketUri.toString())
                 .applyHeaders(clientHeaders)
                 .build()
@@ -246,7 +272,7 @@ internal class NetworkClient(private val baseUrl: HttpUrl? = null, private val o
                 .url(composeEndpointUrl(endpoint))
                 .applyHeaders(clientHeaders)
                 .applyHeaders(headers)
-                .method(method.toUpperCase(), body)
+                .method(method.toUpperCase(Locale.ENGLISH), body)
                 .build()
     }
 
@@ -351,7 +377,7 @@ internal class NetworkClient(private val baseUrl: HttpUrl? = null, private val o
                 .addPlatformTrustedCertificates()
 
         if (trustSelfSignedServerCertificate) {
-            builder.addInsecureHost(baseUrl!!.host)
+            builder.addInsecureHost(baseUrl.host)
         }
 
         if (heldCertificate != null) {
@@ -385,10 +411,10 @@ internal class NetworkClient(private val baseUrl: HttpUrl? = null, private val o
         if (options != null && options.hasKey("sessionConfiguration")) {
             val config = options.getMap("sessionConfiguration")!!
             if (config.hasKey("timeoutIntervalForRequest")) {
-                readTimeout = config.getDouble("timeoutIntervalForRequest")!!.toInt()
+                readTimeout = config.getDouble("timeoutIntervalForRequest").toInt()
             }
             if (config.hasKey("timeoutIntervalForRequest")) {
-                writeTimeout = config.getDouble("timeoutIntervalForResource")!!.toInt()
+                writeTimeout = config.getDouble("timeoutIntervalForResource").toInt()
             }
         }
 
@@ -410,16 +436,16 @@ internal class NetworkClient(private val baseUrl: HttpUrl? = null, private val o
 
         var retryLimit = RetryInterceptor.defaultRetryLimit
         if (retryConfig.hasKey("retryLimit")) {
-            retryLimit = retryConfig.getDouble("retryLimit")!!
+            retryLimit = retryConfig.getDouble("retryLimit")
         }
 
         var retryMethods = RetryInterceptor.defaultRetryMethods
         if (request != null) {
-            retryMethods = setOf(request.method.toUpperCase())
+            retryMethods = setOf(request.method.toUpperCase(Locale.ENGLISH))
         } else if (retryConfig.hasKey("retryMethods")) {
             retryMethods = retryConfig.getArray("retryMethods")!!
                     .toArrayList()
-                    .map { (it as String).toUpperCase() }
+                    .map { (it as String).toUpperCase(Locale.ENGLISH) }
                     .toSet()
         }
 
@@ -432,18 +458,18 @@ internal class NetworkClient(private val baseUrl: HttpUrl? = null, private val o
         if (retryType == RetryTypes.LINEAR_RETRY) {
             var retryInterval = LinearRetryInterceptor.defaultRetryInterval
             if (retryConfig.hasKey("retryInterval")) {
-                retryInterval = retryConfig.getDouble("retryInterval")!!
+                retryInterval = retryConfig.getDouble("retryInterval")
             }
 
             retryInterceptor = LinearRetryInterceptor(retryLimit, retryStatusCodes, retryMethods, retryInterval)
         } else if (retryType == RetryTypes.EXPONENTIAL_RETRY) {
             var exponentialBackoffBase = ExponentialRetryInterceptor.defaultExponentialBackoffBase
             if (retryConfig.hasKey("exponentialBackoffBase")) {
-                exponentialBackoffBase = retryConfig.getDouble("exponentialBackoffBase")!!
+                exponentialBackoffBase = retryConfig.getDouble("exponentialBackoffBase")
             }
             var exponentialBackoffScale = ExponentialRetryInterceptor.defaultExponentialBackoffScale
             if (retryConfig.hasKey("exponentialBackoffScale")) {
-                exponentialBackoffScale = retryConfig.getDouble("exponentialBackoffScale")!!
+                exponentialBackoffScale = retryConfig.getDouble("exponentialBackoffScale")
             }
 
             retryInterceptor = ExponentialRetryInterceptor(retryLimit, retryStatusCodes, retryMethods, exponentialBackoffBase, exponentialBackoffScale)
