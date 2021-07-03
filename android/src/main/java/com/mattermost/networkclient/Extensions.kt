@@ -6,6 +6,7 @@ import okhttp3.Request
 import okhttp3.Response
 import org.json.JSONArray
 import org.json.JSONObject
+import org.json.JSONTokener
 import java.lang.Exception
 import java.security.MessageDigest
 
@@ -48,8 +49,17 @@ fun Response.toWritableMap(): WritableMap {
     if (body !== null) {
         val bodyString = body!!.string()
         try {
-            val data = JSONObject(bodyString).toWritableMap()
-            map.putMap("data", data)
+            when (val json = JSONTokener(bodyString).nextValue()) {
+                is JSONArray -> {
+                    map.putArray("data", json.toWritableArray())
+                }
+                is JSONObject -> {
+                    map.putMap("data", json.toWritableMap())
+                }
+                else -> {
+                    map.putString("data", bodyString)
+                }
+            }
         } catch (_: Exception) {
             map.putString("data", bodyString)
         }
