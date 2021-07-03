@@ -129,6 +129,7 @@ dependencies {
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
   implementation "com.squareup.okhttp3:okhttp:4.9.1"
   implementation "com.squareup.okhttp3:okhttp-tls:4.9.1"
+  implementation "com.squareup.okhttp3:okhttp-urlconnection:4.9.1"
 
   testImplementation "junit:junit:4.12"
   testImplementation "org.mockito:mockito-core:3.+"
