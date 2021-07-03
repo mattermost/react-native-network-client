@@ -14,6 +14,7 @@ import com.mattermost.networkclient.interceptors.*
 import com.mattermost.networkclient.interfaces.RetryInterceptor
 import okhttp3.*
 import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.internal.EMPTY_REQUEST
 import okhttp3.tls.HandshakeCertificates
 import org.json.JSONObject
 import java.net.URI
@@ -96,6 +97,8 @@ internal class NetworkClient(private val baseUrl: HttpUrl? = null, private val o
             if (options.hasKey("body")) {
                 val jsonBody = JSONObject(options.getMap("body")!!.toHashMap())
                 requestBody = jsonBody.toString().toRequestBody()
+            } else if (method.toUpperCase() == "POST") {
+                requestBody = EMPTY_REQUEST
             }
         }
 
