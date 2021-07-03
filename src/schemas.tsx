@@ -53,7 +53,9 @@ const APIClientConfigurationSchema = z.object({
 
 const RequestOptionsSchema = z.object({
     headers: z.record(z.string()).optional(),
-    body: z.union([z.record(z.unknown()), z.string()]).optional(),
+    body: z
+        .union([z.record(z.unknown()), z.array(z.unknown()), z.string()])
+        .optional(),
     timeoutInterval: z.number().optional(),
     retryPolicyConfiguration: RetryPolicyConfigurationSchema.optional(),
 });
