@@ -55,10 +55,10 @@ const FilePickerButtonGroup = (props: FilePickerButtonGroupProps) => {
         if (hasPermission) {
             launchImageLibrary({ quality: 1, mediaType: "photo" }, (result) => {
                 const file = {
-                    name: result.fileName,
-                    type: result.type,
-                    size: result.fileSize,
-                    uri: result.uri,
+                    name: result.assets[0].fileName,
+                    type: result.assets[0].type,
+                    size: result.assets[0].fileSize,
+                    uri: result.assets[0].uri,
                 };
                 props.onFilePicked(file);
             });
