@@ -14,3 +14,7 @@ tab_width = 4
 
 [{*.json}]
 indent_size = 2
+
+# Windows files
+[*.bat]
+end_of_line = crlf
