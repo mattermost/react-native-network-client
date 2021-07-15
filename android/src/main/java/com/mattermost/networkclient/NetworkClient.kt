@@ -91,7 +91,7 @@ internal class NetworkClient(private val baseUrl: HttpUrl? = null, options: Read
         }
     }
 
-    fun request(method: String, endpoint: String, options: ReadableMap?): Response {
+    fun request(method: String, endpoint: String, options: ReadableMap?, promise: Promise) {
         var requestHeaders: ReadableMap? = null
         var requestBody: RequestBody? = null
 
@@ -140,9 +140,17 @@ internal class NetworkClient(private val baseUrl: HttpUrl? = null, options: Read
             requestRetryInterceptors[request] = retryInterceptor
         }
 
-        return okHttpClient
-                .newCall(request)
-                .execute()
+        val call = okHttpClient.newCall(request)
+        call.enqueue(object : okhttp3.Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                promise.reject(e)
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                promise.resolve(response.toWritableMap())
+                cleanUpAfter(response)
+            }
+        })
     }
 
     fun adaptRCTRequest(request: Request): Call {
