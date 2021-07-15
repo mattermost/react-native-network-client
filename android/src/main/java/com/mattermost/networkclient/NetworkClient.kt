@@ -2,10 +2,7 @@ package com.mattermost.networkclient
 
 import android.net.Uri
 import android.webkit.CookieManager
-import com.facebook.react.bridge.Arguments
-import com.facebook.react.bridge.ReadableMap
-import com.facebook.react.bridge.ReadableType
-import com.facebook.react.bridge.WritableMap
+import com.facebook.react.bridge.*
 import com.mattermost.networkclient.enums.APIClientEvents
 import com.mattermost.networkclient.enums.RetryTypes
 import com.mattermost.networkclient.helpers.DocumentHelper
@@ -19,6 +16,7 @@ import okhttp3.internal.EMPTY_REQUEST
 import okhttp3.tls.HandshakeCertificates
 import org.json.JSONArray
 import org.json.JSONObject
+import java.io.IOException
 import java.net.URI
 import java.util.*
 import kotlin.collections.ArrayList
