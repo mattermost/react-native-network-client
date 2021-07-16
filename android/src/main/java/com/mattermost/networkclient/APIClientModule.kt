@@ -250,10 +250,7 @@ internal class APIClientModule(reactContext: ReactApplicationContext) : ReactCon
         try {
             val url = baseUrl.toHttpUrl()
             val client = clients[url]!!
-            client.request(method, endpoint, options).use { response ->
-                promise.resolve(response.toWritableMap())
-                client.cleanUpAfter(response)
-            }
+            client.request(method, endpoint, options, promise)
         } catch (error: Exception) {
             return promise.reject(error)
         }

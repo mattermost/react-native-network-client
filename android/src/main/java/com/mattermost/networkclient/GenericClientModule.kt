@@ -42,10 +42,7 @@ internal class GenericClientModule(reactContext: ReactApplicationContext) : Reac
 
     private fun request(method: String, url: String, options: ReadableMap?, promise: Promise) {
         try {
-            client.request(method, url, options).use { response ->
-                promise.resolve(response.toWritableMap())
-                client.cleanUpAfter(response)
-            }
+            client.request(method, url, options, promise)
         } catch (error: Exception) {
             return promise.reject(error)
         }
