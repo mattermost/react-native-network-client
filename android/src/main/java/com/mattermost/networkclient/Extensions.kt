@@ -132,21 +132,31 @@ fun JSONObject.toWritableMap(): WritableMap {
     val iterator = keys()
     while (iterator.hasNext()) {
         val key = iterator.next()
-        val value = this[key]
-        if (value is JSONObject) {
-            map.putMap(key, value.toWritableMap())
-        } else if (value is JSONArray) {
-            map.putArray(key, value.toWritableArray())
-        } else if (value is Boolean) {
-            map.putBoolean(key, value)
-        } else if (value is Int) {
-            map.putInt(key, value)
-        } else if (value is Double) {
-            map.putDouble(key, value)
-        } else if (value is String) {
-            map.putString(key, value)
-        } else {
-            map.putString(key, value.toString())
+        when (val value = this[key]) {
+            is JSONObject -> {
+                map.putMap(key, value.toWritableMap())
+            }
+            is JSONArray -> {
+                map.putArray(key, value.toWritableArray())
+            }
+            is Boolean -> {
+                map.putBoolean(key, value)
+            }
+            is Int -> {
+                map.putInt(key, value)
+            }
+            is Double -> {
+                map.putDouble(key, value)
+            }
+            is Long -> {
+                map.putDouble(key, value.toDouble())
+            }
+            is String -> {
+                map.putString(key, value)
+            }
+            else -> {
+                map.putString(key, value.toString())
+            }
         }
     }
 
@@ -159,21 +169,31 @@ fun JSONObject.toWritableMap(): WritableMap {
 fun JSONArray.toWritableArray(): WritableArray {
     val array = Arguments.createArray()
     for (i in 0 until length()) {
-        val value = this[i]
-        if (value is JSONObject) {
-            array.pushMap(value.toWritableMap())
-        } else if (value is JSONArray) {
-            array.pushArray(value.toWritableArray())
-        } else if (value is Boolean) {
-            array.pushBoolean(value)
-        } else if (value is Int) {
-            array.pushInt(value)
-        } else if (value is Double) {
-            array.pushDouble(value)
-        } else if (value is String) {
-            array.pushString(value)
-        } else {
-            array.pushString(value.toString())
+        when (val value = this[i]) {
+            is JSONObject -> {
+                array.pushMap(value.toWritableMap())
+            }
+            is JSONArray -> {
+                array.pushArray(value.toWritableArray())
+            }
+            is Boolean -> {
+                array.pushBoolean(value)
+            }
+            is Int -> {
+                array.pushInt(value)
+            }
+            is Double -> {
+                array.pushDouble(value)
+            }
+            is Long -> {
+                array.pushDouble(value.toDouble())
+            }
+            is String -> {
+                array.pushString(value)
+            }
+            else -> {
+                array.pushString(value.toString())
+            }
         }
     }
     return array
