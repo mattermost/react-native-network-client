@@ -13,7 +13,7 @@ class BearerTokenInterceptor(private val alias: String, private val bearerAuthTo
         var token = APIClientModule.retrieveValue(alias)
         if (token !== null) {
             request = request.newBuilder()
-                    .addHeader("Authorization", "Bearer $token")
+                    .header("Authorization", "Bearer $token")
                     .build()
         }
 
