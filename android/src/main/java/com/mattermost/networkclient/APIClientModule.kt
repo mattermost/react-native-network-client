@@ -9,12 +9,10 @@ import com.facebook.react.modules.network.ReactCookieJarContainer
 import com.mattermost.networkclient.enums.APIClientEvents
 import com.mattermost.networkclient.enums.RetryTypes
 import com.mattermost.networkclient.helpers.KeyStoreHelper
-import okhttp3.Call
-import okhttp3.HttpUrl
+import okhttp3.*
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
-import okhttp3.JavaNetCookieJar
-import okhttp3.Request
+import java.io.IOException
 
 internal class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
     override fun getName(): String {
@@ -209,15 +207,26 @@ internal class APIClientModule(reactContext: ReactApplicationContext) : ReactCon
             return promise.reject(error)
         }
 
-        val uploadCall = clients[url]!!.buildUploadCall(endpoint, filePath, taskId, options)
+        val client = clients[url]!!
+        val uploadCall = client.buildUploadCall(endpoint, filePath, taskId, options)
         calls[taskId] = uploadCall
 
         try {
-            uploadCall.execute().use { response ->
-                promise.resolve(response.toWritableMap())
-            }
+            uploadCall.enqueue(object : okhttp3.Callback {
+                override fun onFailure(call: Call, e: IOException) {
+                    calls.remove(taskId)
+                    promise.reject(e)
+                }
+
+                override fun onResponse(call: Call, response: Response) {
+                    promise.resolve(response.toWritableMap())
+                    client.cleanUpAfter(response)
+                    calls.remove(taskId)
+                }
+            })
         } catch (error: Exception) {
             promise.reject(error)
+            calls.remove(taskId)
         }
     }
 
@@ -225,6 +234,7 @@ internal class APIClientModule(reactContext: ReactApplicationContext) : ReactCon
     fun cancelRequest(taskId: String, promise: Promise) {
         try {
             calls[taskId]!!.cancel()
+            calls.remove(taskId)
             promise.resolve(null)
         } catch (error: Exception) {
             promise.reject(error)

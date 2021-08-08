@@ -2,6 +2,7 @@ package com.mattermost.networkclient.helpers
 
 import android.net.Uri
 import com.mattermost.networkclient.APIClientModule
+import com.mattermost.networkclient.enums.APIClientEvents
 import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody
@@ -12,7 +13,7 @@ import java.io.IOException
 class UploadFileRequestBody(private val uri: Uri, private val skipBytes: Long, private val taskId: String) : RequestBody() {
     private val stream = APIClientModule.context.contentResolver.openInputStream(uri)!!
     private val total = stream.available().toDouble();
-    private val progressListener = ProgressListener(taskId)
+    private val progressListener = ProgressListener(taskId, APIClientEvents.UPLOAD_PROGRESS.event)
 
     override fun contentLength(): Long {
         return total.toLong();

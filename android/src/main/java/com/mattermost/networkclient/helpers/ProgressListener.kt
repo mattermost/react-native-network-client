@@ -11,7 +11,7 @@ interface ProgressListenerInterface {
     fun emitProgressEvent(progress: Double, bytesRead: Double)
 }
 
-class ProgressListener(private val taskId: String) : ProgressListenerInterface {
+class ProgressListener(private val taskId: String, private val eventName: String) : ProgressListenerInterface {
     // 2-Decimal places, rounded up
     private val df = DecimalFormat("#.00", ).apply{ roundingMode = RoundingMode.UP }
 
@@ -20,7 +20,7 @@ class ProgressListener(private val taskId: String) : ProgressListenerInterface {
         data.putDouble("fractionCompleted", progress)
         data.putString("taskId", "$taskId")
         data.putDouble("bytesRead", bytesRead)
-        APIClientModule.sendJSEvent(APIClientEvents.UPLOAD_PROGRESS.event, data)
+        APIClientModule.sendJSEvent(eventName, data)
     }
 
     override fun update(bytesRead: Double, contentLength: Double) {
