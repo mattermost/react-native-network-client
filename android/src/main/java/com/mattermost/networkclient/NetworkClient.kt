@@ -205,6 +205,28 @@ internal class NetworkClient(private val baseUrl: HttpUrl? = null, options: Read
         return okHttpClient.newCall(request)
     }
 
+    fun buildDownloadCall(endpoint: String, taskId: String, options: ReadableMap?): Call {
+        var method = "GET"
+        var requestHeaders: ReadableMap? = null
+
+        if (options != null) {
+            if (options.hasKey("method")) {
+                method = options.getString("method")!!
+            }
+
+            if (options.hasKey("headers")) {
+                requestHeaders = options.getMap("headers")
+            }
+        }
+
+
+        val request = buildRequest(method, endpoint, requestHeaders, EMPTY_REQUEST)
+        requestRetryInterceptors[request] = DownloadProgressInterceptor(taskId)
+
+
+        return okHttpClient.newCall(request)
+    }
+
     fun createWebSocket() {
         val request = Request.Builder()
                 .url(webSocketUri.toString())

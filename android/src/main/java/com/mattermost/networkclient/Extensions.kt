@@ -77,6 +77,21 @@ fun Response.toWritableMap(): WritableMap {
     return map
 }
 
+fun Response.toDownloadMap(path: String): WritableMap {
+    val map = Arguments.createMap()
+    map.putMap("headers", headers.toWritableMap())
+    map.putInt("code", code)
+    map.putBoolean("ok", isSuccessful)
+    map.putString("path", path)
+
+    val redirectUrls = getRedirectUrls()
+    if (redirectUrls != null) {
+        map.putArray("redirectUrls", redirectUrls)
+    }
+
+    return map
+}
+
 /**
  * Parses headers passed in over the bridge for individual requests
  *

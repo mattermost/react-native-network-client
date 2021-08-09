@@ -38,7 +38,7 @@ class UploadFileRequestBody(private val uri: Uri, private val skipBytes: Long, p
             while (source.read(sink.buffer, 65536L).also { read = it } != -1L) {
                 sink.flush()
                 totalRead += read
-                progressListener.update(totalRead.toDouble(), total)
+                progressListener.update(totalRead.toDouble(), total, null)
             }
         } catch (e: IOException) {
             // Allow upstream to handle

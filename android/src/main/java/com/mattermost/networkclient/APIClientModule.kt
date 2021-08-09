@@ -12,7 +12,10 @@ import com.mattermost.networkclient.helpers.KeyStoreHelper
 import okhttp3.*
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
+import java.io.File
+import java.io.FileOutputStream
 import java.io.IOException
+import java.io.InputStream
 
 internal class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
     override fun getName(): String {
@@ -196,6 +199,73 @@ internal class APIClientModule(reactContext: ReactApplicationContext) : ReactCon
     @ReactMethod
     fun delete(baseUrl: String, endpoint: String, options: ReadableMap?, promise: Promise) {
         request("DELETE", baseUrl, endpoint, options, promise)
+    }
+
+    @ReactMethod
+    fun download(baseUrl: String, endpoint: String, filePath: String, taskId: String, options: ReadableMap?, promise: Promise) {
+        var url: HttpUrl
+        try {
+            url = baseUrl.toHttpUrl()
+        } catch (error: IllegalArgumentException) {
+            return promise.reject(error)
+        }
+
+        val client = clients[url]!!
+        val downloadCall = client.buildDownloadCall(endpoint, taskId, options)
+        calls[taskId] = downloadCall
+
+        try {
+            downloadCall.enqueue(object : okhttp3.Callback {
+                override fun onFailure(call: Call, e: IOException) {
+                    calls.remove(taskId)
+                    promise.reject(e)
+                }
+
+                override fun onResponse(call: Call, response: Response) {
+                    var inputStream: InputStream? = null
+                    var outputStream: FileOutputStream? = null
+                    try {
+                        val responseBody = response.body
+                        if (responseBody != null) {
+                            val f = File(filePath)
+                            val parent = f.parentFile
+                            if (parent != null && !parent.exists() && !parent.mkdirs()) {
+                                promise.reject(Error("Couldn't create dir: " + parent.path))
+                            } else {
+                                inputStream = responseBody.byteStream()
+                                outputStream = FileOutputStream(File(filePath))
+                                val totalCount = inputStream.available()
+                                val buffer = ByteArray(2 * 1024)
+                                var len: Int
+                                var readLen = 0
+                                while (inputStream.read(buffer).also { len = it } != -1) {
+                                    outputStream.write(buffer, 0, len)
+                                    readLen += len
+                                }
+                                promise.resolve(response.toDownloadMap(filePath))
+                            }
+                        } else {
+                            promise.reject(Error("Response body empty"))
+                        }
+                    } catch (e: IOException) {
+                        e.printStackTrace()
+                        promise.reject(e)
+                    } finally {
+                        try {
+                            inputStream?.close()
+                            outputStream?.close()
+                        } catch (e: IOException) {
+                            e.printStackTrace()
+                        }
+                    }
+                    client.cleanUpAfter(response)
+                }
+            })
+        }  catch (error: Exception) {
+            promise.reject(error)
+        } finally {
+            calls.remove(taskId)
+        }
     }
 
     @ReactMethod
