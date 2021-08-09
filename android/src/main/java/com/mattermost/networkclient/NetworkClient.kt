@@ -220,7 +220,7 @@ internal class NetworkClient(private val baseUrl: HttpUrl? = null, options: Read
         }
 
 
-        val request = buildRequest(method, endpoint, requestHeaders, EMPTY_REQUEST)
+        val request = buildRequest(method, endpoint, requestHeaders, null)
         requestRetryInterceptors[request] = DownloadProgressInterceptor(taskId)
 
 
