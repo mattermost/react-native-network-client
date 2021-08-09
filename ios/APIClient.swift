@@ -317,8 +317,7 @@ class APIClient: RCTEventEmitter, NetworkClient {
             return (destinationUrl, [.removePreviousFile])
         }
         
-        let request = session.download(url, to: destination)
-            
+        let request = session.download(url, method: .get, parameters: nil, encoding: URLEncoding.default, headers: headers, interceptor: nil, requestModifier: requestModifer, to: destination)
         request.downloadProgress { progress in
                 if (self.hasListeners) {
                     if (progress.fractionCompleted > 0.0 && progress.fractionCompleted.remainder(dividingBy: 10.0) == 0) {
