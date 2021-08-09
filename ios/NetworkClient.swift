@@ -99,9 +99,9 @@ extension NetworkClient {
             
             var response: [String: Any] = [
                 "ok": ok,
-                "headers": data.response?.allHeaderFields,
+                "headers": data.response?.allHeaderFields as Any,
                 "path": destinationUrl.absoluteString,
-                "code": data.response?.statusCode,
+                "code": data.response?.statusCode as Any,
             ]
             if let redirectUrls = getRedirectUrls(for: request!) {
                 response["redirectUrls"] = redirectUrls
@@ -118,8 +118,8 @@ extension NetworkClient {
             
             var response: [String: Any] = [
                 "ok": false,
-                "headers": data.response?.allHeaderFields,
-                "code": responseCode,
+                "headers": data.response?.allHeaderFields as Any,
+                "code": responseCode as Any,
                 "retriesExhausted": retriesExhausted
             ]
             if let redirectUrls = getRedirectUrls(for: request!) {

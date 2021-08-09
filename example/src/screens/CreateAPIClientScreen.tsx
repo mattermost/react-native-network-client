@@ -70,7 +70,7 @@ export default function CreateAPIClientScreen({
         requestAdapterConfiguration,
         setRequestAdapterConfiguration,
     ] = useState<RequestAdapterConfiguration>({
-        bearerAuthTokenResponseHeader: "",
+        bearerAuthTokenResponseHeader: "token",
     });
 
     const setBearerAuthTokenResponseHeader = (

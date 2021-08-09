@@ -68,13 +68,11 @@ const APIClientDownloadScreen = ({ route }: APIClientDownloadScreenProps) => {
     } = route.params;
 
     const [state, setState] = useState<DownloadState>({
-        filePath: `${RFNS.DocumentDirectoryPath}/destinationFile.pdf`,
-        endpoint: "/api/v4/files/zjqh9u4n17gtdmikepyjh3fauy?download=1",
+        filePath: `${RFNS.DocumentDirectoryPath}/destinationFile.mp4`,
+        endpoint: "/api/v4/files/maq116ypr3dbiq667ksotywqna?download=1", // 50MB
         // endpoint: "/api/v4/files/krjwgxannjbu7xrzezhe6oo58r?download=1", // 200MB
         progress: 0,
     });
-
-    console.log(state.filePath);
 
     const setRequest = (request?: ProgressPromise<ClientResponse>) =>
         setState((state) => ({ ...state, request }));

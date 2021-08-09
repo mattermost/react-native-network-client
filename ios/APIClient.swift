@@ -274,7 +274,10 @@ class APIClient: RCTEventEmitter, NetworkClient {
         let destinationUrl = NSURL.fileURL(withPath: filePath)
         do {
             let parentDir = destinationUrl.deletingLastPathComponent()
-            try FileManager.default.createDirectory(atPath: parentDir.absoluteString, withIntermediateDirectories: true)
+            var isDir : ObjCBool = false
+            if(!FileManager.default.fileExists(atPath: parentDir.path, isDirectory: &isDir)) {
+                try FileManager.default.createDirectory(atPath: parentDir.path, withIntermediateDirectories: true)
+            }
         } catch {
             reject("\(error._code)", error.localizedDescription, error)
             return
@@ -318,7 +321,10 @@ class APIClient: RCTEventEmitter, NetworkClient {
             
         request.downloadProgress { progress in
                 if (self.hasListeners) {
-                    self.sendEvent(withName: API_CLIENT_EVENTS["DOWNLOAD_PROGRESS"], body: ["taskId": taskId, "fractionCompleted": progress.fractionCompleted])
+                    if (progress.fractionCompleted > 0.0 && progress.fractionCompleted.remainder(dividingBy: 10.0) == 0) {
+                        print("Download Progress: \(progress.fractionCompleted)")
+                        self.sendEvent(withName: API_CLIENT_EVENTS["DOWNLOAD_PROGRESS"], body: ["taskId": taskId, "fractionCompleted": progress.fractionCompleted])
+                    }
                 }
             }
             .responseData { data in
