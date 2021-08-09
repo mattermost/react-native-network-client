@@ -78,6 +78,11 @@ export interface APIClientInterface {
         fileUrl: string,
         options?: UploadRequestOptions
     ): ProgressPromise<ClientResponse>;
+    download(
+        endpoint: string,
+        filePath: string,
+        options?: RequestOptions
+    ): ProgressPromise<ClientResponse>;
 
     getHeaders(): Promise<ClientHeaders>;
     addHeaders(headers: ClientHeaders): Promise<void>;

@@ -184,9 +184,10 @@ class APIClient implements APIClientInterface {
     };
     download = (
         endpoint: string,
-        fileUrl: string,
-        options?: UploadRequestOptions
+        filePath: string,
+        options?: RequestOptions
     ): ProgressPromise<ClientResponse> => {
+        validateRequestOptions(options);
         const taskId = generateTaskId();
         const promise: ProgressPromise<ClientResponse> = new Promise(
             (resolve, reject) => {
@@ -202,7 +203,7 @@ class APIClient implements APIClientInterface {
                 NativeAPIClient.download(
                     this.baseUrl,
                     endpoint,
-                    fileUrl,
+                    filePath,
                     taskId,
                     options
                 )

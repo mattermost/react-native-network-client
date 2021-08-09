@@ -68,9 +68,9 @@ export interface NativeAPIClient extends NativeModule {
     download(
         baseUrl: string,
         endpoint: string | null,
-        fileUrl: string,
+        filePath: string,
         taskId: string,
-        options?: UploadRequestOptions
+        options?: RequestOptions
     ): Promise<ClientResponse>;
     cancelRequest(taskId: string): void;
 
