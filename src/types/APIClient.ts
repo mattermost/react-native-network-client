@@ -38,6 +38,7 @@ export type ClientResponse = {
     redirectUrls?: Array<string>;
     ok: boolean;
     retriesExhausted?: boolean;
+    path?: string;
 };
 
 export type ClientResponseError = {
