@@ -210,6 +210,12 @@ internal class APIClientModule(reactContext: ReactApplicationContext) : ReactCon
             return promise.reject(error)
         }
 
+        val f = File(filePath)
+        val parent = f.parentFile
+        if (parent != null && !parent.exists() && !parent.mkdirs()) {
+            return promise.reject(Error("Couldn't create dir: " + parent.path))
+        }
+
         val client = clients[url]!!
         val downloadCall = client.buildDownloadCall(endpoint, taskId, options)
         calls[taskId] = downloadCall
@@ -227,23 +233,17 @@ internal class APIClientModule(reactContext: ReactApplicationContext) : ReactCon
                     try {
                         val responseBody = response.body
                         if (responseBody != null) {
-                            val f = File(filePath)
-                            val parent = f.parentFile
-                            if (parent != null && !parent.exists() && !parent.mkdirs()) {
-                                promise.reject(Error("Couldn't create dir: " + parent.path))
-                            } else {
-                                inputStream = responseBody.byteStream()
-                                outputStream = FileOutputStream(File(filePath))
-                                val totalCount = inputStream.available()
-                                val buffer = ByteArray(2 * 1024)
-                                var len: Int
-                                var readLen = 0
-                                while (inputStream.read(buffer).also { len = it } != -1) {
-                                    outputStream.write(buffer, 0, len)
-                                    readLen += len
-                                }
-                                promise.resolve(response.toDownloadMap(filePath))
+                            inputStream = responseBody.byteStream()
+                            outputStream = FileOutputStream(f)
+
+                            val buffer = ByteArray(2 * 1024)
+                            var len: Int
+                            var readLen = 0
+                            while (inputStream.read(buffer).also { len = it } != -1) {
+                                outputStream.write(buffer, 0, len)
+                                readLen += len
                             }
+                            promise.resolve(response.toDownloadMap(filePath))
                         } else {
                             promise.reject(Error("Response body empty"))
                         }
