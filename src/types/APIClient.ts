@@ -122,7 +122,7 @@ export type APIClientConfiguration = {
     clientP12Configuration?: ClientP12Configuration;
 };
 
-export type UploadProgressEvent = {
+export type ProgressEvent = {
     taskId: string;
     fractionCompleted: number;
 };

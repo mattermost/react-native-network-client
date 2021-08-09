@@ -10,6 +10,7 @@ import type {
 } from "./APIClient";
 
 export enum APIClientEvents {
+    DOWNLOAD_PROGRESS = "APIClient-DownloadProgress",
     UPLOAD_PROGRESS = "APIClient-UploadProgress",
     CLIENT_ERROR = "APIClient-Error",
 }
@@ -58,6 +59,13 @@ export interface NativeAPIClient extends NativeModule {
         options?: RequestOptions
     ): Promise<ClientResponse>;
     upload(
+        baseUrl: string,
+        endpoint: string | null,
+        fileUrl: string,
+        taskId: string,
+        options?: UploadRequestOptions
+    ): Promise<ClientResponse>;
+    download(
         baseUrl: string,
         endpoint: string | null,
         fileUrl: string,
