@@ -170,7 +170,11 @@ fun JSONObject.toWritableMap(): WritableMap {
                 map.putString(key, value)
             }
             else -> {
-                map.putString(key, value.toString())
+                if (value.equals(JSONObject.NULL)) {
+                    map.putNull(key);
+                } else {
+                    map.putString(key, value.toString())
+                }
             }
         }
     }
@@ -207,7 +211,11 @@ fun JSONArray.toWritableArray(): WritableArray {
                 array.pushString(value)
             }
             else -> {
-                array.pushString(value.toString())
+                if (value.equals(JSONObject.NULL)) {
+                    array.pushNull()
+                } else {
+                    array.pushString(value.toString())
+                }
             }
         }
     }
