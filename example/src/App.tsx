@@ -12,6 +12,7 @@ import GenericClientRequestScreen from "./screens/GenericClientRequestScreen";
 import APIClientScreen from "./screens/APIClientScreen";
 import APIClientRequestScreen from "./screens/APIClientRequestScreen";
 import APIClientUploadScreen from "./screens/APIClientUploadScreen";
+import APIClientDownloadScreen from "./screens/APIClientDownloadScreen";
 import APIClientFastImageScreen from "./screens/APIClientFastImageScreen";
 import APIClientImportP12Screen from "./screens/APIClientImportP12Screen";
 import MattermostClientUploadScreen from "./screens/MattermostClientUploadScreen";
@@ -49,6 +50,10 @@ function App() {
                 <Stack.Screen
                     name="APIClientUpload"
                     component={APIClientUploadScreen}
+                />
+                <Stack.Screen
+                    name="APIClientDownload"
+                    component={APIClientDownloadScreen}
                 />
                 <Stack.Screen
                     name="APIClientFastImage"

@@ -46,6 +46,8 @@ export default function APIClientScreen({
         });
     const uploadRequest = () =>
         navigation.navigate("APIClientUpload", { item });
+    const downloadRequest = () =>
+        navigation.navigate("APIClientDownload", { item });
     const mattermostUploadRequest = () =>
         navigation.navigate("MattermostClientUpload", { item });
     const fastImageRequest = () =>
@@ -60,6 +62,7 @@ export default function APIClientScreen({
             { title: METHODS.PATCH, onPress: patchRequest },
             { title: METHODS.DELETE, onPress: deleteRequest },
             { title: "UPLOAD", onPress: uploadRequest },
+            { title: "DOWNLOAD", onPress: downloadRequest },
             { title: "FAST IMAGE", onPress: fastImageRequest },
             { title: "IMPORT P12", onPress: importP12 },
         ];
