@@ -145,6 +145,7 @@ export default function CreateAPIClientScreen({
                     onChangeText={setBearerAuthTokenResponseHeader}
                     placeholder="token"
                     autoCapitalize="none"
+                    value=""
                     testID="create_api_client.bearer_auth_token.input"
                 />
 

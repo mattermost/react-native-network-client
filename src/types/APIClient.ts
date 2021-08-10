@@ -38,6 +38,7 @@ export type ClientResponse = {
     redirectUrls?: Array<string>;
     ok: boolean;
     retriesExhausted?: boolean;
+    path?: string;
 };
 
 export type ClientResponseError = {
@@ -77,6 +78,11 @@ export interface APIClientInterface {
         endpoint: string,
         fileUrl: string,
         options?: UploadRequestOptions
+    ): ProgressPromise<ClientResponse>;
+    download(
+        endpoint: string,
+        filePath: string,
+        options?: RequestOptions
     ): ProgressPromise<ClientResponse>;
 
     getHeaders(): Promise<ClientHeaders>;
@@ -122,7 +128,7 @@ export type APIClientConfiguration = {
     clientP12Configuration?: ClientP12Configuration;
 };
 
-export type UploadProgressEvent = {
+export type ProgressEvent = {
     taskId: string;
     fractionCompleted: number;
 };

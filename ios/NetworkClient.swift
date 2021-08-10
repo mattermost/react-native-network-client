@@ -31,6 +31,11 @@ protocol NetworkClient {
                         withUrl url: URL,
                         withData data: AFDataResponse<Any>) -> Void
     
+    func resolveOrRejectDownloadResponse(_ response: AFDownloadResponse<URL>,
+                                         for request: Request?,
+                                         withResolver resolve: @escaping RCTPromiseResolveBlock,
+                                         withRejecter reject: @escaping RCTPromiseRejectBlock)
+    
     func resolveOrRejectJSONResponse(_ json: AFDataResponse<Any>,
                                      for request: Request?,
                                      withResolver resolve: @escaping RCTPromiseResolveBlock,
@@ -76,6 +81,57 @@ extension NetworkClient {
     }
     
     func handleResponse(for session: Session, withUrl url: URL, withData data: AFDataResponse<Any>) -> Void {}
+    
+    func resolveOrRejectDownloadResponse(_ data: AFDownloadResponse<URL>,
+                                         for request: Request? = nil,
+                                         withResolver resolve: @escaping RCTPromiseResolveBlock,
+                                         withRejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+        data.request?.removeRetryPolicy()
+        
+        switch (data.result) {
+        case .success:
+            var ok = false
+            if let statusCode = data.response?.statusCode {
+                ok = (200 ... 299).contains(statusCode)
+            }
+            
+            var response: [String: Any] = [
+                "ok": ok,
+                "headers": data.response?.allHeaderFields as Any,
+                "data": ["path": data.fileURL?.absoluteString as Any],
+                "code": data.response?.statusCode as Any,
+            ]
+            if let redirectUrls = getRedirectUrls(for: request!) {
+                response["redirectUrls"] = redirectUrls
+            }
+            
+            resolve(response)
+        case .failure(let error):
+            var responseCode = error.responseCode
+            var retriesExhausted = false
+            if error.isRequestRetryError, let underlyingError = error.underlyingError {
+                responseCode = underlyingError.asAFError?.responseCode
+                retriesExhausted = true
+            }
+            
+            var response: [String: Any] = [
+                "ok": false,
+                "headers": data.response?.allHeaderFields as Any,
+                "code": responseCode as Any,
+                "retriesExhausted": retriesExhausted
+            ]
+            if let redirectUrls = getRedirectUrls(for: request!) {
+                response["redirectUrls"] = redirectUrls
+            }
+            
+            if responseCode != nil {
+                resolve(response)
+                return
+            }
+
+            reject("\(error._code)", error.localizedDescription, error)
+        }
+    }
     
     func resolveOrRejectJSONResponse(_ json: AFDataResponse<Any>,
                                      for request: Request? = nil,

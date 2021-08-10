@@ -23,7 +23,7 @@ import type {
     ClientResponse,
     ProgressPromise,
     RequestOptions,
-    UploadProgressEvent,
+    ProgressEvent,
     UploadRequestOptions,
 } from "@mattermost/react-native-network-client";
 
@@ -44,7 +44,7 @@ const DEFAULT_API_CLIENT_CONFIG: APIClientConfiguration = {
     },
 };
 
-const generateUploadTaskId = () =>
+const generateTaskId = () =>
     Math.random().toString(36).slice(-10) +
     Math.random().toString(36).slice(-10);
 
@@ -145,12 +145,12 @@ class APIClient implements APIClientInterface {
         options?: UploadRequestOptions
     ): ProgressPromise<ClientResponse> => {
         validateUploadRequestOptions(options);
-        const taskId = generateUploadTaskId();
+        const taskId = generateTaskId();
         const promise: ProgressPromise<ClientResponse> = new Promise(
             (resolve, reject) => {
                 const uploadSubscription = Emitter.addListener(
                     EVENTS.UPLOAD_PROGRESS,
-                    (e: UploadProgressEvent) => {
+                    (e: ProgressEvent) => {
                         if (e.taskId === taskId && promise.onProgress) {
                             promise.onProgress(e.fractionCompleted);
                         }
@@ -168,6 +168,49 @@ class APIClient implements APIClientInterface {
                     .catch((error) => reject(error))
                     .finally(() => {
                         uploadSubscription.remove();
+                        delete promise.progress;
+                    });
+            }
+        );
+
+        promise.progress = (fn) => {
+            promise.onProgress = fn;
+            return promise;
+        };
+
+        promise.cancel = () => NativeAPIClient.cancelRequest(taskId);
+
+        return promise;
+    };
+    download = (
+        endpoint: string,
+        filePath: string,
+        options?: RequestOptions
+    ): ProgressPromise<ClientResponse> => {
+        validateRequestOptions(options);
+        const taskId = generateTaskId();
+        const promise: ProgressPromise<ClientResponse> = new Promise(
+            (resolve, reject) => {
+                const downloadSubscription = Emitter.addListener(
+                    EVENTS.DOWNLOAD_PROGRESS,
+                    (e: ProgressEvent) => {
+                        if (e.taskId === taskId && promise.onProgress) {
+                            promise.onProgress(e.fractionCompleted);
+                        }
+                    }
+                );
+
+                NativeAPIClient.download(
+                    this.baseUrl,
+                    endpoint,
+                    filePath,
+                    taskId,
+                    options
+                )
+                    .then((response) => resolve(response))
+                    .catch((error) => reject(error))
+                    .finally(() => {
+                        downloadSubscription.remove();
                         delete promise.progress;
                     });
             }

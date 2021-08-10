@@ -77,6 +77,23 @@ fun Response.toWritableMap(): WritableMap {
     return map
 }
 
+fun Response.toDownloadMap(path: String): WritableMap {
+    val map = Arguments.createMap()
+    map.putMap("headers", headers.toWritableMap())
+    map.putInt("code", code)
+    map.putBoolean("ok", isSuccessful)
+    val data = Arguments.createMap()
+    data.putString("path", path)
+    map.putMap("data", data)
+
+    val redirectUrls = getRedirectUrls()
+    if (redirectUrls != null) {
+        map.putArray("redirectUrls", redirectUrls)
+    }
+
+    return map
+}
+
 /**
  * Parses headers passed in over the bridge for individual requests
  *
@@ -155,7 +172,11 @@ fun JSONObject.toWritableMap(): WritableMap {
                 map.putString(key, value)
             }
             else -> {
-                map.putString(key, value.toString())
+                if (value.equals(JSONObject.NULL)) {
+                    map.putNull(key);
+                } else {
+                    map.putString(key, value.toString())
+                }
             }
         }
     }
@@ -192,7 +213,11 @@ fun JSONArray.toWritableArray(): WritableArray {
                 array.pushString(value)
             }
             else -> {
-                array.pushString(value.toString())
+                if (value.equals(JSONObject.NULL)) {
+                    array.pushNull()
+                } else {
+                    array.pushString(value.toString())
+                }
             }
         }
     }

@@ -41,6 +41,12 @@ export enum UploadStatus {
     POST_FAILED = "POST_FAILED",
 }
 
+export enum DownloadStatus {
+    DOWNLOADING = "DOWNLOADING",
+    FAILED = "FAILED",
+    COMPLETED = "COMPLETED",
+}
+
 export enum ClientType {
     GENERIC,
     API,

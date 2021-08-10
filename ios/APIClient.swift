@@ -32,6 +32,7 @@ extension APIClientError: LocalizedError {
 
 let API_CLIENT_EVENTS = [
     "UPLOAD_PROGRESS": "APIClient-UploadProgress",
+    "DOWNLOAD_PROGRESS": "APIClient-DownloadProgress",
     "CLIENT_ERROR": "APIClient-Error"
 ]
 
@@ -66,7 +67,7 @@ class APIClientSessionDelegate: SessionDelegate {
 class APIClient: RCTEventEmitter, NetworkClient {
     var emitter: RCTEventEmitter!
     var hasListeners: Bool!
-    let requestsTable = NSMapTable<NSString, UploadRequest>.strongToWeakObjects()
+    let requestsTable = NSMapTable<NSString, Request>.strongToWeakObjects()
     
     override init() {
         super.init()
@@ -263,6 +264,39 @@ class APIClient: RCTEventEmitter, NetworkClient {
         upload(fileUrl, to: url, forSession: session, withTaskId: taskId, withOptions: JSON(options), withResolver: resolve, withRejecter: reject)
     }
     
+    @objc(download:forEndpoint:withFilePath:withTaskId:withOptions:withResolver:withRejecter:)
+    func upload(baseUrlString: String, endpoint: String, filePath: String, taskId: String, options: Dictionary<String, Any>, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
+        guard let baseUrl = URL(string: baseUrlString) else {
+            rejectMalformed(url: baseUrlString, withRejecter: reject)
+            return
+        }
+        
+        let destinationUrl = NSURL.fileURL(withPath: filePath)
+        do {
+            let parentDir = destinationUrl.deletingLastPathComponent()
+            var isDir : ObjCBool = false
+            if(!FileManager.default.fileExists(atPath: parentDir.path, isDirectory: &isDir)) {
+                try FileManager.default.createDirectory(atPath: parentDir.path, withIntermediateDirectories: true)
+            }
+        } catch {
+            reject("\(error._code)", error.localizedDescription, error)
+            return
+        }
+
+        guard let session = SessionManager.default.getSession(for: baseUrl) else {
+            rejectInvalidSession(for: baseUrl, withRejecter: reject)
+            return
+        }
+
+        let urlString = "\(baseUrl.absoluteString)\(endpoint)"
+        guard let url = URL(string: urlString) else {
+            rejectMalformed(url: urlString, withRejecter: reject)
+            return
+        }
+
+        download(url, to: destinationUrl, forSession: session, withTaskId: taskId, withOptions: JSON(options), withResolver: resolve, withRejecter: reject)
+    }
+    
     func upload(_ fileUrl: URL, to url: URL, forSession session: Session, withTaskId taskId: String, withOptions options: JSON, withResolver resolve: @escaping RCTPromiseResolveBlock, withRejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
         guard let fileSize = try? Double(fileUrl.fileSize()) else {
             rejectFileSize(for: fileUrl, withRejecter: reject)
@@ -274,6 +308,32 @@ class APIClient: RCTEventEmitter, NetworkClient {
         } else {
             self.streamUpload(fileUrl, to: url, forSession: session, withFileSize: fileSize, withTaskId: taskId, withOptions: options, withResolver: resolve, withRejecter: reject)
         }
+    }
+    
+    func download(_ url: URL, to destinationUrl: URL, forSession session: Session, withTaskId taskId: String, withOptions options: JSON, withResolver resolve: @escaping RCTPromiseResolveBlock, withRejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+        let headers = getHTTPHeaders(from: options)
+        let requestModifer = getRequestModifier(from: options)
+        let destination: DownloadRequest.Destination = { _, _ in
+            return (destinationUrl, [.removePreviousFile])
+        }
+        
+        let request = session.download(url, method: .get, parameters: nil, encoding: URLEncoding.default, headers: headers, interceptor: nil, requestModifier: requestModifer, to: destination)
+
+        request.downloadProgress { progress in
+                if (self.hasListeners) {
+                    if (progress.fractionCompleted >= 0.0) {
+                        self.sendEvent(withName: API_CLIENT_EVENTS["DOWNLOAD_PROGRESS"], body: ["taskId": taskId, "fractionCompleted": progress.fractionCompleted])
+                    }
+                }
+            }
+            .responseURL { data in
+                if data.response?.statusCode == 401 && session.cancelRequestsOnUnauthorized {
+                    session.cancelAllRequests()
+                }
+                self.resolveOrRejectDownloadResponse(data, for: request, withResolver: resolve, withRejecter: reject)
+            }
+
+        self.requestsTable.setObject(request, forKey: taskId as NSString)
     }
     
     func multipartUpload(_ fileUrl: URL, to url: URL, forSession session: Session, withFileSize fileSize: Double, withTaskId taskId: String, withOptions options: JSON, withResolver resolve: @escaping RCTPromiseResolveBlock, withRejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
