@@ -31,9 +31,8 @@ protocol NetworkClient {
                         withUrl url: URL,
                         withData data: AFDataResponse<Any>) -> Void
     
-    func resolveOrRejectDownloadResponse(_ response: AFDownloadResponse<Data>,
+    func resolveOrRejectDownloadResponse(_ response: AFDownloadResponse<URL>,
                                          for request: Request?,
-                                         withDestinationUrl: URL,
                                          withResolver resolve: @escaping RCTPromiseResolveBlock,
                                          withRejecter reject: @escaping RCTPromiseRejectBlock)
     
@@ -83,9 +82,8 @@ extension NetworkClient {
     
     func handleResponse(for session: Session, withUrl url: URL, withData data: AFDataResponse<Any>) -> Void {}
     
-    func resolveOrRejectDownloadResponse(_ data: AFDownloadResponse<Data>,
+    func resolveOrRejectDownloadResponse(_ data: AFDownloadResponse<URL>,
                                          for request: Request? = nil,
-                                         withDestinationUrl destinationUrl: URL,
                                          withResolver resolve: @escaping RCTPromiseResolveBlock,
                                          withRejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
         data.request?.removeRetryPolicy()
@@ -100,7 +98,7 @@ extension NetworkClient {
             var response: [String: Any] = [
                 "ok": ok,
                 "headers": data.response?.allHeaderFields as Any,
-                "path": destinationUrl.absoluteString,
+                "data": ["path": data.fileURL?.absoluteString as Any],
                 "code": data.response?.statusCode as Any,
             ]
             if let redirectUrls = getRedirectUrls(for: request!) {

@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { SafeAreaView, ScrollView, View } from "react-native";
 import { Button, Input } from "react-native-elements";
-import RFNS from "react-native-fs";
 import { Bar as ProgressBar } from "react-native-progress";
 
 import ResponseSuccessOverlay from "../components/ResponseSuccessOverlay";
@@ -68,9 +67,8 @@ const APIClientDownloadScreen = ({ route }: APIClientDownloadScreenProps) => {
     } = route.params;
 
     const [state, setState] = useState<DownloadState>({
-        filePath: `${RFNS.DocumentDirectoryPath}/destinationFile.mp4`,
-        endpoint: "/api/v4/files/maq116ypr3dbiq667ksotywqna?download=1", // 50MB
-        // endpoint: "/api/v4/files/krjwgxannjbu7xrzezhe6oo58r?download=1", // 200MB
+        filePath: "",
+        endpoint: "",
         progress: 0,
     });
 

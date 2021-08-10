@@ -31,8 +31,8 @@ const styles = StyleSheet.create({
 export default function CreateAPIClientScreen({
     navigation,
 }: CreateAPIClientScreenProps) {
-    const [name, setName] = useState("MM");
-    const [baseUrl, setBaseUrl] = useState("https://community.mattermost.com");
+    const [name, setName] = useState("");
+    const [baseUrl, setBaseUrl] = useState("");
     const [clientHeaders, setClientHeaders] = useState<Header[]>([]);
     const [alertOnClientError, setAlertOnClientError] = useState(true);
     const toggleAlertOnClientError = () =>
@@ -70,7 +70,7 @@ export default function CreateAPIClientScreen({
         requestAdapterConfiguration,
         setRequestAdapterConfiguration,
     ] = useState<RequestAdapterConfiguration>({
-        bearerAuthTokenResponseHeader: "token",
+        bearerAuthTokenResponseHeader: "",
     });
 
     const setBearerAuthTokenResponseHeader = (
@@ -145,7 +145,7 @@ export default function CreateAPIClientScreen({
                     onChangeText={setBearerAuthTokenResponseHeader}
                     placeholder="token"
                     autoCapitalize="none"
-                    value="token"
+                    value=""
                     testID="create_api_client.bearer_auth_token.input"
                 />
 

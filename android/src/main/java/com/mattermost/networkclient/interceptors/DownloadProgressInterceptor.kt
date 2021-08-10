@@ -10,14 +10,14 @@ class DownloadProgressInterceptor(private val taskId: String) : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
         val originalResponse = chain.proceed(chain.request())
         val responseBuilder = originalResponse.newBuilder()
-        val uncompressHeaderName = "X-Uncompressed-Content-Length"
-        var uncompressHeader = originalResponse.headers.get(uncompressHeaderName.toLowerCase())
+        val uncompressedHeaderName = "X-Uncompressed-Content-Length"
+        var uncompressHeader = originalResponse.headers.get(uncompressedHeaderName.toLowerCase())
         if (uncompressHeader == null) {
-            uncompressHeader = originalResponse.headers.get(uncompressHeaderName)
+            uncompressHeader = originalResponse.headers.get(uncompressedHeaderName)
         }
 
         var uncompressBytes: Long? = null
-        if (uncompressHeader != null && uncompressHeader.length > 0) {
+        if (uncompressHeader != null && uncompressHeader.isNotEmpty()) {
             uncompressBytes = uncompressHeader.toLongOrNull()
         }
 

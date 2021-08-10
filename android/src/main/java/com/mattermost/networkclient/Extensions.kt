@@ -82,7 +82,9 @@ fun Response.toDownloadMap(path: String): WritableMap {
     map.putMap("headers", headers.toWritableMap())
     map.putInt("code", code)
     map.putBoolean("ok", isSuccessful)
-    map.putString("path", path)
+    val data = Arguments.createMap()
+    data.putString("path", path)
+    map.putMap("data", data)
 
     val redirectUrls = getRedirectUrls()
     if (redirectUrls != null) {

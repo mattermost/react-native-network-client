@@ -24,7 +24,7 @@ class ProgressResponseBody(private val responseBody: ResponseBody, private val t
 
     override fun source(): BufferedSource {
         if (bufferedSource == null)
-            bufferedSource = getforwardSource(responseBody.source()).buffer()
+            bufferedSource = getForwardSource(responseBody.source()).buffer()
         return bufferedSource!!
     }
 
@@ -32,7 +32,7 @@ class ProgressResponseBody(private val responseBody: ResponseBody, private val t
         super.close()
     }
 
-    private fun getforwardSource(source: Source): Source =
+    private fun getForwardSource(source: Source): Source =
             object : ForwardingSource(source) {
                 var totalBytesRead = 0L
 

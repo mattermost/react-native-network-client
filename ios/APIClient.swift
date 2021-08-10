@@ -318,19 +318,19 @@ class APIClient: RCTEventEmitter, NetworkClient {
         }
         
         let request = session.download(url, method: .get, parameters: nil, encoding: URLEncoding.default, headers: headers, interceptor: nil, requestModifier: requestModifer, to: destination)
+
         request.downloadProgress { progress in
                 if (self.hasListeners) {
-                    if (progress.fractionCompleted > 0.0 && progress.fractionCompleted.remainder(dividingBy: 10.0) == 0) {
-                        print("Download Progress: \(progress.fractionCompleted)")
+                    if (progress.fractionCompleted >= 0.0) {
                         self.sendEvent(withName: API_CLIENT_EVENTS["DOWNLOAD_PROGRESS"], body: ["taskId": taskId, "fractionCompleted": progress.fractionCompleted])
                     }
                 }
             }
-            .responseData { data in
+            .responseURL { data in
                 if data.response?.statusCode == 401 && session.cancelRequestsOnUnauthorized {
                     session.cancelAllRequests()
                 }
-                self.resolveOrRejectDownloadResponse(data, for: request, withDestinationUrl: destinationUrl, withResolver: resolve, withRejecter: reject)
+                self.resolveOrRejectDownloadResponse(data, for: request, withResolver: resolve, withRejecter: reject)
             }
 
         self.requestsTable.setObject(request, forKey: taskId as NSString)
