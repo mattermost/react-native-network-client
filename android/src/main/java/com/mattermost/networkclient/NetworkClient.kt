@@ -223,6 +223,11 @@ internal class NetworkClient(private val baseUrl: HttpUrl? = null, options: Read
         val request = buildRequest(method, endpoint, requestHeaders, null)
         requestRetryInterceptors[request] = DownloadProgressInterceptor(taskId)
 
+        val timeoutInterceptor = createRequestTimeoutInterceptor(options)
+        if (timeoutInterceptor != null) {
+            requestTimeoutInterceptors[request] = timeoutInterceptor
+        }
+
 
         return okHttpClient.newCall(request)
     }
