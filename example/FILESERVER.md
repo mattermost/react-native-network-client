@@ -1,11 +1,11 @@
 # File Server
 
-### How to run Fast Image Server
-1. Run Fast Image Server
+### How to run File Download Server
+1. Run File Download Server
 ```
-npm run fast-image-server
+npm run file-download-server
 ```
-2. Verify Fast Image Server is running: `http://127.0.0.1:8009`.
+2. Verify File Download Server is running: `http://127.0.0.1:8009`.
 
 ### How to run File Upload Server
 1. Run File Upload Server

@@ -17,6 +17,7 @@ class ApiClientScreen {
     baseUrlInput = element(by.id(this.testID.baseUrlInput));
     nameInput = element(by.id(this.testID.nameInput));
     clientListButton = element(by.text("ClientList")).atIndex(0);
+    downloadButton = element(by.text("DOWNLOAD"));
     fastImageButton = element(by.text("FAST IMAGE"));
     importP12Button = element(by.text("IMPORT P12"));
     uploadButton = element(by.text("UPLOAD"));
@@ -113,6 +114,14 @@ class ApiClientScreen {
             this.testID.apiClientScrollView
         );
         await this.putButton.tap();
+    };
+
+    selectDownload = async () => {
+        await waitForAndScrollDown(
+            this.downloadButton,
+            this.testID.apiClientScrollView
+        );
+        await this.downloadButton.tap();
     };
 
     selectUpload = async () => {

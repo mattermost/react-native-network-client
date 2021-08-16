@@ -2,9 +2,9 @@
 // See LICENSE.txt for license information.
 
 import {
-    fastImageSiteUrl,
+    fileDownloadSiteUrl,
     fileUploadSiteUrl,
-    secureFastImageSiteUrl,
+    secureFileDownloadSiteUrl,
     secureFileUploadSiteUrl,
     secureSiteUrl,
     secureWebSocketSiteUrl,
@@ -28,12 +28,13 @@ const secureServerOptions = {
     rejectUnauthorized: false, // so we can do own error handling
     ca: [fs.readFileSync(path.join(certs, "server_cert.pem"))],
 };
+const servers = [];
 
 beforeAll(async () => {
     launchMockserver();
     launchSecureMockserver();
-    launchFastImageServer();
-    launchSecureFastImageServer();
+    launchFileDownloadServer();
+    launchSecureFileDownloadServer();
     launchFileUploadServer();
     launchSecureFileUploadServer();
     launchWebSocketServer();
@@ -51,18 +52,26 @@ beforeAll(async () => {
     });
 });
 
-function launchFastImageServer() {
-    launchServer("Fast Image Server", fileServer, fastImageSiteUrl, {
+afterAll(async () => {
+    await device.terminateApp();
+
+    servers.forEach((server) => {
+        server.close();
+    });
+});
+
+function launchFileDownloadServer() {
+    launchServer("File Download Server", fileServer, fileDownloadSiteUrl, {
         directory: "./e2e/support/fixtures",
         secure: false,
     });
 }
 
-function launchSecureFastImageServer() {
+function launchSecureFileDownloadServer() {
     launchServer(
-        "Secure Fast Image Server",
+        "Secure File Download Server",
         fileServer,
-        secureFastImageSiteUrl,
+        secureFileDownloadSiteUrl,
         { directory: "./e2e/support/fixtures", secure: true },
         secureServerOptions,
         https
@@ -104,13 +113,15 @@ function launchSecureMockserver() {
 
 function launchWebSocketServer() {
     const port = webSocketSiteUrl.split(":")[2];
-    webSocketServer(port, { secure: false });
+    const server = webSocketServer(port, { secure: false });
+    servers.push(server);
     console.log(`WebSocket Server listening at ${webSocketSiteUrl}`);
 }
 
 function launchSecureWebSocketServer() {
     const port = secureWebSocketSiteUrl.split(":")[2];
-    webSocketServer(port, { secure: true, serverOptions: secureServerOptions });
+    const server = webSocketServer(port, { secure: true, serverOptions: secureServerOptions });
+    servers.push(server);
     console.log(
         `Secure WebSocket Server listening at ${secureWebSocketSiteUrl}`
     );
@@ -135,6 +146,7 @@ function launchServer(
         ? requestListener(requestListenerParams)
         : requestListener();
     const server = protocol.createServer(serverOptions, listener).listen(port);
+    servers.push(server);
 
     // Check server status
     checkServerStatus(server, serverName, port, listeningMessage);

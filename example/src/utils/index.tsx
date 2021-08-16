@@ -176,8 +176,8 @@ const createJSONPlaceholderAPIClient = async (): Promise<APIClientItem | null> =
     return createAPIClient(name, baseUrl, configuration);
 };
 
-const createFastImageServerAPIClient = async (): Promise<APIClientItem | null> => {
-    const name = "Fast Image Server API";
+const createFileDownloadServerAPIClient = async (): Promise<APIClientItem | null> => {
+    const name = "File Download Server API";
     const baseUrl =
         Platform.OS === "ios"
             ? "http://127.0.0.1:8009"
@@ -193,8 +193,8 @@ const createFastImageServerAPIClient = async (): Promise<APIClientItem | null> =
     return createAPIClient(name, baseUrl, configuration, false, false);
 };
 
-const createSecureFastImageServerAPIClient = async (): Promise<APIClientItem | null> => {
-    const name = "Secure Fast Image Server API";
+const createSecureFileDownloadServerAPIClient = async (): Promise<APIClientItem | null> => {
+    const name = "Secure File Download Server API";
     const baseUrl =
         Platform.OS === "ios"
             ? "https://127.0.0.1:9009"
@@ -379,8 +379,8 @@ export const createTestClients = async (): Promise<NetworkClientItem[]> => {
         { name: "Generic", client: GenericClient, type: ClientType.GENERIC },
         await createMattermostAPIClient(),
         await createJSONPlaceholderAPIClient(),
-        await createFastImageServerAPIClient(),
-        await createSecureFastImageServerAPIClient(),
+        await createFileDownloadServerAPIClient(),
+        await createSecureFileDownloadServerAPIClient(),
         await createFileUploadServerAPIClient(),
         await createSecureFileUploadServerAPIClient(),
         await createMockserverAPIClient(),

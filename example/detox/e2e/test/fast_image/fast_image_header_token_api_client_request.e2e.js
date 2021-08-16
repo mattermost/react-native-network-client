@@ -7,14 +7,14 @@
 // - Use element testID when selecting an element. Create one if none.
 // *******************************************************************
 
-import { fastImageServerUrl } from "@support/test_config";
+import { fileDownloadServerUrl } from "@support/test_config";
 import { ApiClientFastImageScreen, ApiClientScreen } from "@support/ui/screen";
 import { verifyApiClient } from "../helpers";
 
 describe("Fast Image Header Token - API Client Request", () => {
-    const testBaseUrl = fastImageServerUrl;
+    const testBaseUrl = fileDownloadServerUrl;
     const testImageUrl = `${testBaseUrl}/protected/api/files/fast-image.jpg`;
-    const testName = "Fast Image Server API";
+    const testName = "File Download Server API";
     const { imageNotSupportedIcon, setImageUrl } = ApiClientFastImageScreen;
 
     beforeAll(async () => {
