@@ -32,28 +32,28 @@ openssl pkcs12 \
 	-inkey certs/client_key.pem \
 	-passin pass:password -passout pass:password
 
-# Generate cert for secure fast image server client
+# Generate cert for secure file download server client
 openssl req \
 	-newkey rsa:4096 \
-	-keyout certs/secure_fast_image_server_client_key.pem \
-	-out certs/secure_fast_image_server_client_csr.pem \
+	-keyout certs/secure_file_download_server_client_key.pem \
+	-out certs/secure_file_download_server_client_csr.pem \
 	-nodes \
 	-days 365 \
 	-subj "/CN=Alice"
 
 openssl x509 \
 	-req \
-	-in certs/secure_fast_image_server_client_csr.pem \
+	-in certs/secure_file_download_server_client_csr.pem \
 	-CA certs/server_cert.pem \
 	-CAkey certs/server_key.pem \
-	-out certs/secure_fast_image_server_client_cert.pem \
+	-out certs/secure_file_download_server_client_cert.pem \
 	-set_serial 02 \
 	-days 365
 
 openssl pkcs12 \
-    -export -out certs/secure_fast_image_server_client_cert.p12 \
-	-in certs/secure_fast_image_server_client_cert.pem \
-	-inkey certs/secure_fast_image_server_client_key.pem \
+    -export -out certs/secure_file_download_server_client_cert.p12 \
+	-in certs/secure_file_download_server_client_cert.pem \
+	-inkey certs/secure_file_download_server_client_key.pem \
 	-passin pass:password -passout pass:password
 
 # Generate cert for secure file upload server client

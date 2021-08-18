@@ -6,7 +6,7 @@
         "binaryPath": "../ios/Build/Products/Debug-iphonesimulator/NetworkClientExample.app",
         "type": "ios.simulator",
         "device": {
-          "type": "iPhone 11"
+          "type": "iPhone 12"
         }
       },
       "android.emu.debug": {

@@ -22,13 +22,11 @@ import { isAndroid, waitForAndScrollDown } from "@support/utils";
 import { verifyApiClient, verifyResponseSuccessOverlay } from "../helpers";
 
 describe("Upload - API Client Request", () => {
-    const {
-        setEndpoint,
-        toggleOnSendAsMultipartCheckbox,
-    } = ApiClientUploadScreen;
+    const { setEndpoint, toggleOnSendAsMultipartCheckbox } =
+        ApiClientUploadScreen;
     const testImageFilename = "sample-image.jpg";
     const testStreamEndpoint = `/api/files/stream/${testImageFilename}`;
-    const testMultipartEndpoint = `/api/files/multipart`;
+    const testMultipartEndpoint = "/api/files/multipart";
     const testBaseUrl = fileUploadServerUrl;
     const testStreamUrl = `${testBaseUrl}${testStreamEndpoint}`;
     const testMultipartUrl = `${testBaseUrl}${testMultipartEndpoint}`;

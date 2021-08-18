@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { SafeAreaView, ScrollView, View } from "react-native";
 import { Button, Input } from "react-native-elements";
+import RFNS from "react-native-fs";
 import { Bar as ProgressBar } from "react-native-progress";
 
 import ResponseSuccessOverlay from "../components/ResponseSuccessOverlay";
@@ -147,9 +148,13 @@ const APIClientDownloadScreen = ({ route }: APIClientDownloadScreenProps) => {
         }
     };
 
+    const setDefaultFilePath = () => {
+        setFilePath(RFNS.DocumentDirectoryPath);
+    };
+
     return (
         <SafeAreaView style={{ flex: 1 }}>
-            <ScrollView testID="api_client_upload.scroll_view">
+            <ScrollView testID="api_client_dowload.scroll_view">
                 <Input
                     label="Endpoint"
                     placeholder="/download"
@@ -163,9 +168,10 @@ const APIClientDownloadScreen = ({ route }: APIClientDownloadScreenProps) => {
                     label="File path"
                     placeholder="file://some/file/path"
                     value={state.filePath}
+                    onFocus={setDefaultFilePath}
                     onChangeText={setFilePath}
                     autoCapitalize="none"
-                    testID="api_client_download.filePath.input"
+                    testID="api_client_download.file_path.input"
                 />
 
                 <ProgressBar

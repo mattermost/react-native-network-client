@@ -47,6 +47,8 @@ const webSocketServer = (port, { secure = false, serverOptions = {} } = {}) => {
 
     // Listen on port
     server.listen(port);
+
+    return server;
 };
 
 module.exports = webSocketServer;

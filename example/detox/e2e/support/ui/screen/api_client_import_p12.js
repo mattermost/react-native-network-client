@@ -6,7 +6,7 @@ import { isAndroid } from "@support/utils";
 
 class ApiClientImportP12Screen {
     apiClientImportP12Screen = element(by.text("APIClientImportP12"));
-    apiClientButton = element(by.text("APIClient")).atIndex(0);
+    apiClientButton = element(by.text("APIClient")).atIndex(1);
     importButton = element(by.text("Import"));
 
     // convenience props

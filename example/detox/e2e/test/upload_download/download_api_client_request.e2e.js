@@ -13,51 +13,48 @@ import {
     secureFileDownloadServerClientCertUrl,
     secureFileDownloadServerUrl,
 } from "@support/test_config";
+import { ResponseSuccessOverlay } from "@support/ui/component";
 import {
-    ApiClientFastImageScreen,
+    ApiClientDownloadScreen,
     ApiClientImportP12Screen,
     ApiClientScreen,
 } from "@support/ui/screen";
 import { isAndroid } from "@support/utils";
 import { verifyApiClient } from "../helpers";
 
-describe("Fast Image Regular - API Client Request", () => {
+describe("Download - API Client Request", () => {
+    const testEndpoint = "/api/files/sample.txt";
     const testBaseUrl = fileDownloadServerUrl;
-    const testImageUrl = `${testBaseUrl}/api/files/fast-image.jpg`;
     const testName = "File Download Server API";
     const testSecureBaseUrl = secureFileDownloadServerUrl;
-    const testSecureImageUrl = `${testSecureBaseUrl}/api/files/fast-image.jpg`;
     const testSecureName = "Secure File Download Server API";
-    const { imageNotSupportedIcon, setImageUrl } = ApiClientFastImageScreen;
+    const testStatus = 200;
+    const { setEndpoint } = ApiClientDownloadScreen;
 
     beforeEach(async () => {
         await device.reloadReactNative();
     });
 
-    it("should display fast image - regular request", async () => {
-        // # Select fast image
+    it("should be able to download file", async () => {
+        // # Select download
         await ApiClientScreen.open(testName);
         await verifyApiClient(testName, testBaseUrl);
-        await ApiClientScreen.selectFastImage();
+        await ApiClientScreen.selectDownload();
 
-        // * Verify image not supported is displayed
-        await setImageUrl(testBaseUrl);
-        await expect(imageNotSupportedIcon).toBeVisible();
+        // # Set endpoint
+        await setEndpoint(testEndpoint);
 
-        // # Set image url
-        await setImageUrl(testImageUrl);
-
-        // * Verify image not supported is not displayed
-        await expect(imageNotSupportedIcon).not.toBeVisible();
+        // # Download file and verify
+        await downloadFileAndVerify(testStatus);
     });
 
-    it("should display fast image - regular request - secure connection", async () => {
+    it("should be able to download file - secure connection", async () => {
         // # Do not run against Android due to file attachment limitation
         if (isAndroid()) {
             return;
         }
 
-        // # Import p12 and select fast image
+        // # Import p12 and select download
         await ApiClientScreen.open(testSecureName);
         await verifyApiClient(testSecureName, testSecureBaseUrl);
         await ApiClientScreen.selectImportP12();
@@ -65,16 +62,37 @@ describe("Fast Image Regular - API Client Request", () => {
             secureFileDownloadServerClientCertUrl,
             clientCertPassword
         );
-        await ApiClientScreen.selectFastImage();
+        await ApiClientScreen.selectDownload();
 
-        // * Verify image not supported is displayed
-        await setImageUrl(testSecureBaseUrl);
-        await expect(imageNotSupportedIcon).toBeVisible();
+        // # Set endpoint
+        await setEndpoint(testEndpoint);
 
-        // # Set image url
-        await setImageUrl(testSecureImageUrl);
-
-        // * Verify image not supported is not displayed
-        await expect(imageNotSupportedIcon).not.toBeVisible();
+        // # Download file and verify
+        await downloadFileAndVerify(testStatus);
     });
 });
+
+async function downloadFileAndVerify(testStatus) {
+    const { filePathInput, makeDownloadRequest, progressBar } =
+        ApiClientDownloadScreen;
+    const { responseSuccessCodeText, responseSuccessOkText } =
+        ResponseSuccessOverlay;
+
+    // # Focus on file path to set default
+    await filePathInput.tap();
+
+    // * Verify progress bar
+    await expect(progressBar).toBeVisible();
+
+    // # Download file
+    await makeDownloadRequest();
+
+    // * Verify response success overlay
+    await expect(responseSuccessCodeText).toHaveText(testStatus.toString());
+    await expect(responseSuccessOkText).toHaveText(
+        testStatus === 200 ? "true" : "false"
+    );
+
+    // # Close response success overlay
+    await ResponseSuccessOverlay.close();
+}

@@ -3,22 +3,22 @@
 
 module.exports = {
     clientCertPassword: "password",
-    fastImageServerUrl:
+    fileDownloadServerUrl:
         process.env.FAST_IMAGE_SITE_URL ||
         (process.env.IOS ? "http://127.0.0.1:8009" : "http://10.0.2.2:8009"),
-    fastImageSiteUrl:
+    fileDownloadSiteUrl:
         process.env.FAST_IMAGE_SITE_URL || "http://127.0.0.1:8009",
     fileUploadServerUrl:
         process.env.FILE_UPLOAD_SITE_URL ||
         (process.env.IOS ? "http://127.0.0.1:8008" : "http://10.0.2.2:8008"),
     fileUploadSiteUrl:
         process.env.FILE_UPLOAD_SITE_URL || "http://127.0.0.1:8008",
-    secureFastImageServerClientCertUrl:
-        "https://github.com/mattermost/react-native-network-client/raw/master/example/certs/secure_fast_image_server_client_cert.p12",
-    secureFastImageServerUrl:
+    secureFileDownloadServerClientCertUrl:
+        "https://github.com/mattermost/react-native-network-client/raw/master/example/certs/secure_file_download_server_client_cert.p12",
+    secureFileDownloadServerUrl:
         process.env.SECURE_FAST_IMAGE_SITE_URL ||
         (process.env.IOS ? "https://127.0.0.1:9009" : "https://10.0.2.2:9009"),
-    secureFastImageSiteUrl:
+    secureFileDownloadSiteUrl:
         process.env.SECURE_FAST_IMAGE_SITE_URL || "https://127.0.0.1:9009",
     secureFileUploadServerClientCertUrl:
         "https://github.com/mattermost/react-native-network-client/raw/master/example/certs/secure_file_upload_server_client_cert.p12",
