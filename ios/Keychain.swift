@@ -93,6 +93,7 @@ class Keychain {
         
         var attributes = try buildTokenAttributes(for: serverUrl)
         attributes[kSecValueData] = tokenData
+        attributes[kSecAttrAccessible] = kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
 
         let status: OSStatus = SecItemAdd(attributes as CFDictionary, nil)
         if status == errSecDuplicateItem {
@@ -190,8 +191,7 @@ class Keychain {
         
         var attributes: [CFString: Any] = [
             kSecClass: kSecClassInternetPassword,
-            kSecAttrServer: serverUrlData,
-            kSecAttrAccessible: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
+            kSecAttrServer: serverUrlData
         ]
 
         if let accessGroup = Bundle.main.object(forInfoDictionaryKey: "AppGroupIdentifier") as! String? {
