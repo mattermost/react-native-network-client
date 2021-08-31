@@ -190,7 +190,6 @@ class Keychain {
         
         var attributes: [CFString: Any] = [
             kSecClass: kSecClassInternetPassword,
-            kSecAttrLabel: "token",
             kSecAttrServer: serverUrlData,
             kSecAttrAccessible: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
         ]
