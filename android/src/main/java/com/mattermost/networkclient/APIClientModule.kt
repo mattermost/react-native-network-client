@@ -17,20 +17,20 @@ import java.io.FileOutputStream
 import java.io.IOException
 import java.io.InputStream
 
-internal class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
+class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
     override fun getName(): String {
         return "APIClient"
     }
 
     companion object {
-        lateinit var context: ReactApplicationContext
+        private lateinit var context: ReactApplicationContext
         private val clients = mutableMapOf<HttpUrl, NetworkClient>()
         private val calls = mutableMapOf<String, Call>()
         private lateinit var sharedPreferences: SharedPreferences
         private const val SHARED_PREFERENCES_NAME = "APIClientPreferences"
-        val cookieJar = ReactCookieJarContainer()
+        private val cookieJar = ReactCookieJarContainer()
 
-        fun getClientForRequest(request: Request): NetworkClient? {
+        internal fun getClientForRequest(request: Request): NetworkClient? {
             var urlParts = request.url.toString().split("/")
             while (urlParts.isNotEmpty()) {
                 val url = urlParts.joinToString(separator = "/") { it }.toHttpUrlOrNull()
@@ -44,14 +44,14 @@ internal class APIClientModule(reactContext: ReactApplicationContext) : ReactCon
             return null
         }
 
-        fun storeValue(value: String, alias: String) {
+        internal fun storeValue(value: String, alias: String) {
             val encryptedValue = KeyStoreHelper.encryptData(value)
             sharedPreferences.edit()
                 .putString(alias, encryptedValue)
                 .apply()
         }
 
-        fun retrieveValue(alias: String): String? {
+        internal fun retrieveValue(alias: String): String? {
             val encryptedData = sharedPreferences.getString(alias, null)
             if (encryptedData != null) {
                 return KeyStoreHelper.decryptData(encryptedData)
@@ -60,13 +60,13 @@ internal class APIClientModule(reactContext: ReactApplicationContext) : ReactCon
             return null
         }
 
-        fun deleteValue(alias: String) {
+        internal fun deleteValue(alias: String) {
             sharedPreferences.edit()
                     .remove(alias)
                     .apply()
         }
 
-        fun sendJSEvent(eventName: String, data: WritableMap?) {
+        internal fun sendJSEvent(eventName: String, data: WritableMap?) {
             context.getJSModule(RCTDeviceEventEmitter::class.java)
                     .emit(eventName, data)
         }
