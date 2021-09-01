@@ -23,12 +23,12 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     }
 
     companion object {
-        private lateinit var context: ReactApplicationContext
+        internal lateinit var context: ReactApplicationContext
         private val clients = mutableMapOf<HttpUrl, NetworkClient>()
         private val calls = mutableMapOf<String, Call>()
         private lateinit var sharedPreferences: SharedPreferences
         private const val SHARED_PREFERENCES_NAME = "APIClientPreferences"
-        private val cookieJar = ReactCookieJarContainer()
+        internal val cookieJar = ReactCookieJarContainer()
 
         internal fun getClientForRequest(request: Request): NetworkClient? {
             var urlParts = request.url.toString().split("/")
