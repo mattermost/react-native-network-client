@@ -19,9 +19,11 @@ internal class WebSocketClientModule(reactContext: ReactApplicationContext) : Re
     companion object {
         lateinit var context: ReactApplicationContext
 
-        fun sendJSEvent(eventName: String, data: WritableMap?) {
-            context.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
-                    .emit(eventName, data)
+        fun sendJSEvent(eventName: String, data: ReadableMap?) {
+            if (context.hasActiveCatalystInstance()) {
+                context.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
+                        .emit(eventName, data)
+            }
         }
 
         private fun setCtx(reactContext: ReactApplicationContext) {
@@ -94,7 +96,7 @@ internal class WebSocketClientModule(reactContext: ReactApplicationContext) : Re
         }
 
         try {
-            clients[wsUri]!!.webSocket!!.close(1000, null)
+            clients[wsUri]!!.webSocket!!.close(1000, "manual")
         } catch (error: Exception) {
             promise.reject(error)
         }

@@ -7,22 +7,24 @@ import com.mattermost.networkclient.enums.WebSocketReadyState
 import okhttp3.Response
 import okhttp3.WebSocket
 import okhttp3.WebSocketListener
+import okio.EOFException
 import org.json.JSONObject
+import java.net.ConnectException
 import java.net.URI
 
 class WebSocketEventListener(private val uri: URI) : WebSocketListener() {
     override fun onOpen(webSocket: WebSocket, response: Response) {
         val message = Arguments.createMap()
-        message.putMap("headers", response.headers.toWritableMap())
+        message.putMap("headers", response.headers.toWritableMap().copy())
         message.putInt("code", response.code)
         message.putString("message", response.message)
 
         val data = Arguments.createMap()
         data.putString("url", uri.toString())
-        data.putMap("message", message)
+        data.putMap("message", message.copy())
 
-        sendJSEvent(WebSocketEvents.OPEN_EVENT.event, data)
         sendReadyState(WebSocketReadyState.OPEN)
+        sendJSEvent(WebSocketEvents.OPEN_EVENT.event, data)
     }
 
     override fun onMessage(webSocket: WebSocket, text: String) {
@@ -39,12 +41,18 @@ class WebSocketEventListener(private val uri: URI) : WebSocketListener() {
     }
 
     override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
+        if (t is EOFException || t is ConnectException) {
+            webSocket.close(1001, "connection terminated")
+            onClosed(webSocket, 1001, t.localizedMessage ?: "connection terminated")
+            return
+        }
+
         val message = Arguments.createMap()
         message.putString("error", response?.message ?: t.toString())
 
         val data = Arguments.createMap()
         data.putString("url", uri.toString())
-        data.putMap("message", message)
+        data.putMap("message", message.copy())
 
         sendJSEvent(WebSocketEvents.ERROR_EVENT.event, data)
     }
@@ -56,10 +64,10 @@ class WebSocketEventListener(private val uri: URI) : WebSocketListener() {
 
         val data = Arguments.createMap()
         data.putString("url", uri.toString())
-        data.putMap("message", message)
+        data.putMap("message", message.copy())
 
-        sendJSEvent(WebSocketEvents.CLOSING_EVENT.event, data)
         sendReadyState(WebSocketReadyState.CLOSING)
+        sendJSEvent(WebSocketEvents.CLOSING_EVENT.event, data)
     }
 
     override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
@@ -69,20 +77,20 @@ class WebSocketEventListener(private val uri: URI) : WebSocketListener() {
 
         val data = Arguments.createMap()
         data.putString("url", uri.toString())
-        data.putMap("message", message)
+        data.putMap("message", message.copy())
 
-        sendJSEvent(WebSocketEvents.CLOSE_EVENT.event, data)
         sendReadyState(WebSocketReadyState.CLOSED)
+        sendJSEvent(WebSocketEvents.CLOSE_EVENT.event, data)
     }
 
     private fun sendJSEvent(eventName: String, data: WritableMap) {
-        WebSocketClientModule.sendJSEvent(eventName, data)
+        WebSocketClientModule.sendJSEvent(eventName, data.copy())
     }
 
     private fun sendReadyState(readyState: WebSocketReadyState) {
         val data = Arguments.createMap();
         data.putString("url", uri.toString())
-        data.putInt("readyState", readyState.ordinal)
+        data.putInt("message", readyState.ordinal)
 
         sendJSEvent(WebSocketEvents.READY_STATE_EVENT.event, data)
     }

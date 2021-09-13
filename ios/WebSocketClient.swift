@@ -31,6 +31,7 @@ let READY_STATE = [
 class WebSocketClient: RCTEventEmitter, WebSocketDelegate {
     var emitter: RCTEventEmitter!
     var hasListeners: Bool!
+    internal var errorCounter: [String: Int] = [:]
     
     override init() {
         super.init()
@@ -91,7 +92,7 @@ class WebSocketClient: RCTEventEmitter, WebSocketDelegate {
             rejectInvalidWebSocket(for: url, withRejecter: reject)
             return
         }
-        
+        errorCounter[url.absoluteString] = 0
         resolve(webSocket.connect())
     }
     
@@ -107,7 +108,10 @@ class WebSocketClient: RCTEventEmitter, WebSocketDelegate {
             return
         }
         
-        resolve(webSocket.disconnect())
+        resolve(webSocket.disconnect(closeCode: 1000))
+        let wsUrl = webSocket.request.url!.absoluteString
+        self.sendEvent(withName: WEBSOCKET_CLIENT_EVENTS["READY_STATE_EVENT"], body: ["url": wsUrl, "message": READY_STATE["CLOSED"]!])
+        self.sendEvent(withName: WEBSOCKET_CLIENT_EVENTS["CLOSE_EVENT"], body: ["url": wsUrl])
     }
 
     @objc(sendDataFor:withData:withResolver:withRejecter:)
@@ -166,9 +170,11 @@ class WebSocketClient: RCTEventEmitter, WebSocketDelegate {
 
         switch event {
         case .connected(let headers):
-            self.sendEvent(withName: WEBSOCKET_CLIENT_EVENTS["OPEN_EVENT"], body: ["url": url, "message": ["headers": headers]])
             self.sendEvent(withName: WEBSOCKET_CLIENT_EVENTS["READY_STATE_EVENT"], body: ["url": url, "message": READY_STATE["OPEN"]!])
+            self.sendEvent(withName: WEBSOCKET_CLIENT_EVENTS["OPEN_EVENT"], body: ["url": url, "message": ["headers": headers]])
+            errorCounter.removeValue(forKey: url)
         case .disconnected(let reason, let code):
+            self.sendEvent(withName: WEBSOCKET_CLIENT_EVENTS["READY_STATE_EVENT"], body: ["url": url, "message": READY_STATE["CLOSED"]!])
             self.sendEvent(withName: WEBSOCKET_CLIENT_EVENTS["CLOSE_EVENT"], body: ["url": url, "message": ["reason": reason, "code": code]])
         case .text(let text):
             if let data = text.data(using: .utf16), let json = JSON(data).dictionaryObject {
@@ -177,12 +183,23 @@ class WebSocketClient: RCTEventEmitter, WebSocketDelegate {
                 self.sendEvent(withName: WEBSOCKET_CLIENT_EVENTS["MESSAGE_EVENT"], body: ["url": url, "message": text])
             }
         case .cancelled:
+            self.sendEvent(withName: WEBSOCKET_CLIENT_EVENTS["READY_STATE_EVENT"], body: ["url": url, "message": READY_STATE["CLOSED"]!])
             self.sendEvent(withName: WEBSOCKET_CLIENT_EVENTS["CLOSE_EVENT"], body: ["url": url])
-            self.sendEvent(withName: WEBSOCKET_CLIENT_EVENTS["READY_STATE_EVENT"], body: ["url": url, "message": READY_STATE["CLOSED"]!])
+            client.disconnect(closeCode: 1001)
         case .error(let error):
-            self.sendEvent(withName: WEBSOCKET_CLIENT_EVENTS["ERROR_EVENT"], body: ["url": url, "message": ["error": error]])
-            self.sendEvent(withName: WEBSOCKET_CLIENT_EVENTS["READY_STATE_EVENT"], body: ["url": url, "message": READY_STATE["CLOSED"]!])
+            let errorCode = (error as NSError?)?.code
+            if (errorCode == 61 && (errorCounter[url] ?? 0) % 2 == 0) {
+                let count = errorCounter[url] ?? 0
+                errorCounter[url] = count + 1
+                self.sendEvent(withName: WEBSOCKET_CLIENT_EVENTS["READY_STATE_EVENT"], body: ["url": url, "message": READY_STATE["CLOSED"]!])
+                self.sendEvent(withName: WEBSOCKET_CLIENT_EVENTS["CLOSE_EVENT"], body: ["url": url, "message": ["reason": error?.localizedDescription as Any, "code": errorCode as Any]])
+            } else {
+                self.sendEvent(withName: WEBSOCKET_CLIENT_EVENTS["ERROR_EVENT"], body: ["url": url, "message": ["error": error]])
+            }
+        case .viabilityChanged(let viable):
+            print("Websocket viable \(viable)")
         default:
+            print("Websocket event \(event)")
             break
         }
     }
