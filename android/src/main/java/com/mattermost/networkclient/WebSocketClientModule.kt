@@ -119,6 +119,16 @@ internal class WebSocketClientModule(reactContext: ReactApplicationContext) : Re
         }
     }
 
+    @ReactMethod
+    fun addListener(eventName: String) {
+        // Keep: Required for RN built in Event Emitter Calls.
+    }
+
+    @ReactMethod
+    fun removeListeners(count: Int) {
+        // Keep: Required for RN built in Event Emitter Calls.
+    }
+
     @Override
     override fun getConstants(): Map<String, Any> {
         val constants: MutableMap<String, Any> = HashMap<String, Any>()

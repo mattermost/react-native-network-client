@@ -23,4 +23,12 @@ RCT_EXTERN_METHOD(patch:(NSString *)url withOptions:(NSDictionary *)options with
 
 RCT_EXTERN_METHOD(delete:(NSString *)url withOptions:(NSDictionary *)options withResolver:(RCTPromiseResolveBlock)resolve withRejecter:(RCTPromiseRejectBlock)reject)
 
+RCT_EXPORT_METHOD(addListener : (NSString *)eventName) {
+  // Keep: Required for RN built in Event Emitter Calls.
+}
+
+RCT_EXPORT_METHOD(removeListeners : (NSInteger)count) {
+  // Keep: Required for RN built in Event Emitter Calls.
+}
+
 @end

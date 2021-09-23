@@ -40,6 +40,16 @@ internal class GenericClientModule(reactContext: ReactApplicationContext) : Reac
         request("DELETE", url, options, promise)
     }
 
+    @ReactMethod
+    fun addListener(eventName: String) {
+        // Keep: Required for RN built in Event Emitter Calls.
+    }
+
+    @ReactMethod
+    fun removeListeners(count: Int) {
+        // Keep: Required for RN built in Event Emitter Calls.
+    }
+
     private fun request(method: String, url: String, options: ReadableMap?, promise: Promise) {
         try {
             client.request(method, url, options, promise)
