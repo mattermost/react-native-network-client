@@ -61,7 +61,8 @@ const GenericClientRequestScreen = ({
             try {
                 options.body = JSON.parse(body);
             } catch (e) {
-                Alert.alert("Error parsing Body", e.message, [{ text: "OK" }], {
+                const error = e as Error;
+                Alert.alert("Error parsing Body", error.message, [{ text: "OK" }], {
                     cancelable: false,
                 });
                 return;
@@ -99,7 +100,7 @@ const GenericClientRequestScreen = ({
             setResponseErrorVisible(false);
         } catch (error) {
             setResponse(undefined);
-            setError(error);
+            setError(error as ClientResponseError);
             setResponseSuccessVisible(false);
             setResponseErrorVisible(true);
         }

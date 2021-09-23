@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type { EventSubscription } from "react-native";
 import type { WebSocketClientConfiguration } from "./WebSocketClient";
 
 enum WebSocketEvents {
@@ -9,7 +10,6 @@ enum WebSocketEvents {
     ERROR_EVENT = "WebSocketClient-Error",
     MESSAGE_EVENT = "WebSocketClient-Message",
     READY_STATE_EVENT = "WebSocketClient-ReadyState",
-    CLIENT_ERROR = "WebSocketClient-Error",
 }
 
 export enum WebSocketReadyState {
@@ -35,6 +35,6 @@ export interface NativeWebSocketClient {
     sendDataFor(url: string, data: string): Promise<void>;
     invalidateClientFor(url: string): Promise<void>;
 
-    addListener(): void;
+    addListener(): EventSubscription;
     removeListeners(): void;
 }

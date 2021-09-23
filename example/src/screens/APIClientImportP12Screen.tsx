@@ -36,7 +36,7 @@ const APIClientImportP12Screen = ({ route }: APIClientImportP12ScreenProps) => {
             await client.importClientP12(path, password);
             setSuccess(true);
         } catch (e) {
-            setError(e);
+            setError(e as ClientResponseError);
         }
     };
 

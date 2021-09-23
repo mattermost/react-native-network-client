@@ -33,7 +33,7 @@ const FilePickerButtonGroup = (props: FilePickerButtonGroupProps) => {
         const hasPermission = await hasPhotoLibraryPermissions();
         if (hasPermission) {
             try {
-                const result = await DocumentPicker.pick({
+                const result = await DocumentPicker.pickSingle({
                     type: [DocumentPicker.types.allFiles],
                     copyTo: "cachesDirectory",
                 });
@@ -41,7 +41,7 @@ const FilePickerButtonGroup = (props: FilePickerButtonGroupProps) => {
                 const file = { ...result, uri: result.fileCopyUri };
                 props.onFilePicked(file);
             } catch (err) {
-                if (DocumentPicker.isCancel(err)) {
+                if (DocumentPicker.isCancel(err as Error)) {
                     // User cancelled the picker, exit any dialogs or menus and move on
                 } else {
                     throw err;
@@ -54,13 +54,15 @@ const FilePickerButtonGroup = (props: FilePickerButtonGroupProps) => {
         const hasPermission = await hasPhotoLibraryPermissions();
         if (hasPermission) {
             launchImageLibrary({ quality: 1, mediaType: "photo" }, (result) => {
-                const file = {
-                    name: result.assets[0].fileName,
-                    type: result.assets[0].type,
-                    size: result.assets[0].fileSize,
-                    uri: result.assets[0].uri,
-                };
-                props.onFilePicked(file);
+                if (result.assets) {
+                    const file = {
+                        name: result.assets[0].fileName,
+                        type: result.assets[0].type,
+                        size: result.assets[0].fileSize,
+                        uri: result.assets[0].uri,
+                    };
+                    props.onFilePicked(file);
+                }
             });
         }
     };

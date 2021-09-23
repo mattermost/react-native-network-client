@@ -110,7 +110,8 @@ export default function CreateWebSocketClientScreen({
             };
 
             navigation.navigate("ClientList", { createdClient });
-        } catch (error) {
+        } catch (e) {
+            const error = e as Error;
             Alert.alert("Error", error.message, [{ text: "OK" }], {
                 cancelable: false,
             });

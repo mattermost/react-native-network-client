@@ -338,7 +338,8 @@ const createWebSocketClient = async (
             isMattermostClient,
         };
     } catch (e) {
-        console.log(e.message);
+        const error = e as Error;
+        console.log(error.message);
         return null;
     }
 };

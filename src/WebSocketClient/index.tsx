@@ -114,8 +114,9 @@ class WebSocketClient implements WebSocketClientInterface {
         if (this.onWebSocketClientErrorSubscription) {
             this.onWebSocketClientErrorSubscription.remove();
         }
+
         this.onWebSocketClientErrorSubscription = Emitter.addListener(
-            EVENTS.CLIENT_ERROR,
+            EVENTS.ERROR_EVENT,
             (event: WebSocketClientErrorEvent) => {
                 if (event.url === this.url) {
                     callback(event);

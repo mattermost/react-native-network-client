@@ -156,7 +156,8 @@ const MattermostClientUploadScreen = ({
         try {
             const response = await client.post("/api/v4/uploads", options);
             setSessionId(response.data!.id as string);
-        } catch (error) {
+        } catch (e) {
+            const error = e as Error;
             Alert.alert("Session creation error", error.message);
         }
     };
@@ -172,7 +173,8 @@ const MattermostClientUploadScreen = ({
                     `/api/v4/uploads/${state.sessionId}`
                 );
                 options.skipBytes = data!.file_offset as number;
-            } catch (error) {
+            } catch (e) {
+                const error = e as Error;
                 Alert.alert("Resume error", error.message);
             }
         }
@@ -219,7 +221,8 @@ const MattermostClientUploadScreen = ({
                 setStatus(UploadStatus.POST_FAILED);
                 Alert.alert("Post error", `Status Code: ${response.code}`);
             }
-        } catch (error) {
+        } catch (e) {
+            const error = e as Error;
             setStatus(UploadStatus.POST_FAILED);
             Alert.alert("Post error", error.message);
         }

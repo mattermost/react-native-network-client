@@ -45,13 +45,13 @@ const P12Inputs = (props: P12InputsProps) => {
         const hasPermission = await hasPhotoLibraryPermissions();
         if (hasPermission) {
             try {
-                const result = await DocumentPicker.pick({
+                const result = await DocumentPicker.pickSingle({
                     type: [DocumentPicker.types.allFiles],
                 });
 
                 props.onSelectP12(result.fileCopyUri);
             } catch (err) {
-                if (DocumentPicker.isCancel(err)) {
+                if (DocumentPicker.isCancel(err as Error)) {
                     // User cancelled the picker, exit any dialogs or menus and move on
                 } else {
                     throw err;
