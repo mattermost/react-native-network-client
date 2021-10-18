@@ -336,7 +336,16 @@ class APIClient: RCTEventEmitter, NetworkClient {
         self.requestsTable.setObject(request, forKey: taskId as NSString)
     }
     
-    func multipartUpload(_ fileUrl: URL, to url: URL, forSession session: Session, withFileSize fileSize: Double, withTaskId taskId: String, withOptions options: JSON, withResolver resolve: @escaping RCTPromiseResolveBlock, withRejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+    func multipartUpload(
+                         _ fileUrl: URL,
+                         to url: URL,
+                         forSession session: Session,
+                         withFileSize fileSize: Double,
+                         withTaskId taskId: String,
+                         withOptions options: JSON,
+                         withResolver resolve: @escaping RCTPromiseResolveBlock,
+                         withRejecter reject: @escaping RCTPromiseRejectBlock
+    ) -> Void {
         let headers = getHTTPHeaders(from: options)
         let requestModifer = getRequestModifier(from: options)
 
@@ -354,22 +363,29 @@ class APIClient: RCTEventEmitter, NetworkClient {
                 method = .post
         }
 
-        let request = session.upload(multipartFormData: { multipartFormData in
-            multipartFormData.append(fileUrl, withName: fileKey)
-            if let data = data {
-               for (key, value) in data {
-                   multipartFormData.append(value.data(using: .utf8)!, withName: key)
-               }
-            }
-        }, to: url, method: method, headers: headers, requestModifier: requestModifer)
-            .uploadProgress { progress in
-                if (self.hasListeners) {
+        let request = session.upload(
+            multipartFormData: { multipartFormData in
+                multipartFormData.append(fileUrl, withName: fileKey)
+                if let data = data {
+                   for (key, value) in data {
+                       multipartFormData.append(value.data(using: .utf8)!, withName: key)
+                   }
+                }
+            },
+            to: url, method: method,
+            headers: headers,
+            requestModifier: requestModifer
+        )
+        
+        request
+        .uploadProgress { progress in
+                if (self.hasListeners != nil) {
                     self.sendEvent(withName: API_CLIENT_EVENTS["UPLOAD_PROGRESS"], body: ["taskId": taskId, "fractionCompleted": progress.fractionCompleted])
                 }
-            }
-            .responseJSON { json in
-                self.resolveOrRejectJSONResponse(json, withResolver: resolve, withRejecter: reject)
-            }
+        }
+        .responseJSON { json in
+                self.resolveOrRejectJSONResponse(json, for:request, withResolver: resolve, withRejecter: reject)
+        }
 
         self.requestsTable.setObject(request, forKey: taskId as NSString)
     }
