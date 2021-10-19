@@ -20,7 +20,7 @@ class UploadFileRequestBody(private val uri: Uri, private val skipBytes: Long, p
     }
 
     override fun contentType(): MediaType? {
-        return APIClientModule.context.contentResolver.getType(uri)!!.toMediaTypeOrNull();
+        return APIClientModule.context.contentResolver.getType(uri)?.toMediaTypeOrNull();
     }
 
     @Throws(IOException::class)
