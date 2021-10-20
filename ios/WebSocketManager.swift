@@ -78,6 +78,12 @@ class WebSocketManager: NSObject {
     func getWebSocket(for url:URL) -> WebSocket? {
         return webSockets[url]
     }
+    
+    func disconnectAll() -> Void {
+        for ws in webSockets {
+            ws.value.disconnect()
+        }
+    }
 
     func invalidateClient(for url:URL) -> Void {
         guard let webSocket = getWebSocket(for: url) else {
