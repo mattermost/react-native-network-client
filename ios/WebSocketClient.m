@@ -24,12 +24,5 @@ RCT_EXTERN_METHOD(sendDataFor:(NSString *)url withData:(NSString *)data withReso
 
 RCT_EXTERN_METHOD(invalidateClientFor:(NSString *)url withResolver:(RCTPromiseResolveBlock)resolve withRejecter:(RCTPromiseRejectBlock)reject)
 
-RCT_EXPORT_METHOD(addListener : (NSString *)eventName) {
-  // Keep: Required for RN built in Event Emitter Calls.
-}
-
-RCT_EXPORT_METHOD(removeListeners : (NSInteger)count) {
-  // Keep: Required for RN built in Event Emitter Calls.
-}
 
 @end

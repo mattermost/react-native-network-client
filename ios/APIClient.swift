@@ -66,7 +66,7 @@ class APIClientSessionDelegate: SessionDelegate {
 @objc(APIClient)
 class APIClient: RCTEventEmitter, NetworkClient {
     var emitter: RCTEventEmitter!
-    var hasListeners: Bool!
+    var hasListeners: Bool = false
     let requestsTable = NSMapTable<NSString, Request>.strongToWeakObjects()
     
     override init() {
@@ -83,8 +83,8 @@ class APIClient: RCTEventEmitter, NetworkClient {
                                                   object: nil)
     }
 
-    func requiresMainQueueSetup() -> Bool {
-        return false
+    override static func requiresMainQueueSetup() -> Bool {
+        return true
     }
     
     override func constantsToExport() -> [AnyHashable : Any]! {
@@ -379,7 +379,7 @@ class APIClient: RCTEventEmitter, NetworkClient {
         
         request
         .uploadProgress { progress in
-                if (self.hasListeners != nil) {
+            if self.hasListeners {
                     self.sendEvent(withName: API_CLIENT_EVENTS["UPLOAD_PROGRESS"], body: ["taskId": taskId, "fractionCompleted": progress.fractionCompleted])
                 }
         }
@@ -531,7 +531,9 @@ class APIClient: RCTEventEmitter, NetworkClient {
     }
     
     func sendErrorEvent(for serverUrl: String, withErrorCode errorCode: Int, withErrorDescription errorDescription: String) {
-        self.sendEvent(withName: API_CLIENT_EVENTS["CLIENT_ERROR"],
-                       body: ["serverUrl": serverUrl, "errorCode": errorCode, "errorDescription": errorDescription])
+        if hasListeners {
+            self.sendEvent(withName: API_CLIENT_EVENTS["CLIENT_ERROR"],
+                           body: ["serverUrl": serverUrl, "errorCode": errorCode, "errorDescription": errorDescription])
+        }
     }
 }

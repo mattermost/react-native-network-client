@@ -47,8 +47,8 @@ class WebSocketClient: RCTEventEmitter, WebSocketDelegate {
                                                   object: nil)
     }
     
-    func requiresMainQueueSetup() -> Bool {
-        return false
+    override static func requiresMainQueueSetup() -> Bool {
+        return true
     }
     
     override func constantsToExport() -> [AnyHashable : Any]! {
@@ -65,6 +65,7 @@ class WebSocketClient: RCTEventEmitter, WebSocketDelegate {
 
     override func stopObserving() -> Void {
         hasListeners = false;
+        WebSocketManager.default.disconnectAll()
     }
 
     @objc(createClientFor:withOptions:withResolver:withRejecter:)
@@ -110,8 +111,10 @@ class WebSocketClient: RCTEventEmitter, WebSocketDelegate {
         
         resolve(webSocket.disconnect(closeCode: 1000))
         let wsUrl = webSocket.request.url!.absoluteString
-        self.sendEvent(withName: WEBSOCKET_CLIENT_EVENTS["READY_STATE_EVENT"], body: ["url": wsUrl, "message": READY_STATE["CLOSED"]!])
-        self.sendEvent(withName: WEBSOCKET_CLIENT_EVENTS["CLOSE_EVENT"], body: ["url": wsUrl])
+        if hasListeners {
+            self.sendEvent(withName: WEBSOCKET_CLIENT_EVENTS["READY_STATE_EVENT"], body: ["url": wsUrl, "message": READY_STATE["CLOSED"]!])
+            self.sendEvent(withName: WEBSOCKET_CLIENT_EVENTS["CLOSE_EVENT"], body: ["url": wsUrl])
+        }
     }
 
     @objc(sendDataFor:withData:withResolver:withRejecter:)
@@ -159,8 +162,10 @@ class WebSocketClient: RCTEventEmitter, WebSocketDelegate {
     }
     
     func sendErrorEvent(for url: String, withErrorCode errorCode: Int, withErrorDescription errorDescription: String) {
-        self.sendEvent(withName: WEBSOCKET_CLIENT_EVENTS["CLIENT_ERROR"],
-                       body: ["url": url, "errorCode": errorCode, "errorDescription": errorDescription])
+        if hasListeners {
+            self.sendEvent(withName: WEBSOCKET_CLIENT_EVENTS["CLIENT_ERROR"],
+                           body: ["url": url, "errorCode": errorCode, "errorDescription": errorDescription])
+        }
     }
     
     // MARK: WebSocketDelegate methods
@@ -170,31 +175,41 @@ class WebSocketClient: RCTEventEmitter, WebSocketDelegate {
 
         switch event {
         case .connected(let headers):
-            self.sendEvent(withName: WEBSOCKET_CLIENT_EVENTS["READY_STATE_EVENT"], body: ["url": url, "message": READY_STATE["OPEN"]!])
-            self.sendEvent(withName: WEBSOCKET_CLIENT_EVENTS["OPEN_EVENT"], body: ["url": url, "message": ["headers": headers]])
+            if hasListeners {
+                self.sendEvent(withName: WEBSOCKET_CLIENT_EVENTS["READY_STATE_EVENT"], body: ["url": url, "message": READY_STATE["OPEN"]!])
+                self.sendEvent(withName: WEBSOCKET_CLIENT_EVENTS["OPEN_EVENT"], body: ["url": url, "message": ["headers": headers]])
+            }
             errorCounter.removeValue(forKey: url)
         case .disconnected(let reason, let code):
-            self.sendEvent(withName: WEBSOCKET_CLIENT_EVENTS["READY_STATE_EVENT"], body: ["url": url, "message": READY_STATE["CLOSED"]!])
-            self.sendEvent(withName: WEBSOCKET_CLIENT_EVENTS["CLOSE_EVENT"], body: ["url": url, "message": ["reason": reason, "code": code]])
+            if hasListeners {
+                self.sendEvent(withName: WEBSOCKET_CLIENT_EVENTS["READY_STATE_EVENT"], body: ["url": url, "message": READY_STATE["CLOSED"]!])
+                self.sendEvent(withName: WEBSOCKET_CLIENT_EVENTS["CLOSE_EVENT"], body: ["url": url, "message": ["reason": reason, "code": code]])
+            }
         case .text(let text):
-            if let data = text.data(using: .utf16), let json = JSON(data).dictionaryObject {
-                self.sendEvent(withName: WEBSOCKET_CLIENT_EVENTS["MESSAGE_EVENT"], body: ["url": url, "message": json])
-            } else {
-                self.sendEvent(withName: WEBSOCKET_CLIENT_EVENTS["MESSAGE_EVENT"], body: ["url": url, "message": text])
+            if hasListeners {
+                if let data = text.data(using: .utf16), let json = JSON(data).dictionaryObject {
+                    self.sendEvent(withName: WEBSOCKET_CLIENT_EVENTS["MESSAGE_EVENT"], body: ["url": url, "message": json])
+                } else {
+                    self.sendEvent(withName: WEBSOCKET_CLIENT_EVENTS["MESSAGE_EVENT"], body: ["url": url, "message": text])
+                }
             }
         case .cancelled:
-            self.sendEvent(withName: WEBSOCKET_CLIENT_EVENTS["READY_STATE_EVENT"], body: ["url": url, "message": READY_STATE["CLOSED"]!])
-            self.sendEvent(withName: WEBSOCKET_CLIENT_EVENTS["CLOSE_EVENT"], body: ["url": url])
+            if hasListeners {
+                self.sendEvent(withName: WEBSOCKET_CLIENT_EVENTS["READY_STATE_EVENT"], body: ["url": url, "message": READY_STATE["CLOSED"]!])
+                self.sendEvent(withName: WEBSOCKET_CLIENT_EVENTS["CLOSE_EVENT"], body: ["url": url])
+            }
             client.disconnect(closeCode: 1001)
         case .error(let error):
-            let errorCode = (error as NSError?)?.code
-            if (errorCode == 61 && (errorCounter[url] ?? 0) % 2 == 0) {
-                let count = errorCounter[url] ?? 0
-                errorCounter[url] = count + 1
-                self.sendEvent(withName: WEBSOCKET_CLIENT_EVENTS["READY_STATE_EVENT"], body: ["url": url, "message": READY_STATE["CLOSED"]!])
-                self.sendEvent(withName: WEBSOCKET_CLIENT_EVENTS["CLOSE_EVENT"], body: ["url": url, "message": ["reason": error?.localizedDescription as Any, "code": errorCode as Any]])
-            } else {
-                self.sendEvent(withName: WEBSOCKET_CLIENT_EVENTS["ERROR_EVENT"], body: ["url": url, "message": ["error": error]])
+            if hasListeners {
+                let errorCode = (error as NSError?)?.code
+                if (errorCode == 61 && (errorCounter[url] ?? 0) % 2 == 0) {
+                    let count = errorCounter[url] ?? 0
+                    errorCounter[url] = count + 1
+                    self.sendEvent(withName: WEBSOCKET_CLIENT_EVENTS["READY_STATE_EVENT"], body: ["url": url, "message": READY_STATE["CLOSED"]!])
+                    self.sendEvent(withName: WEBSOCKET_CLIENT_EVENTS["CLOSE_EVENT"], body: ["url": url, "message": ["reason": error?.localizedDescription as Any, "code": errorCode as Any]])
+                } else {
+                    self.sendEvent(withName: WEBSOCKET_CLIENT_EVENTS["ERROR_EVENT"], body: ["url": url, "message": ["error": error]])
+                }
             }
         case .viabilityChanged(let viable):
             print("Websocket viable \(viable)")
