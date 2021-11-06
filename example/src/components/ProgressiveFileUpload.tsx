@@ -16,10 +16,10 @@ const ProgressiveFileUpload = (props: ProgressiveFileUploadProps) => {
     }
 
     let FileComponent;
-    if (file!.type?.startsWith("image")) {
+    if (file!.type?.startsWith("image") && file!.uri) {
         FileComponent = () => (
             <Image
-                source={{ uri: file!.uri }}
+                source={{ uri: file!.uri! }}
                 style={{
                     marginTop: 20,
                     width: 200,

@@ -29,7 +29,7 @@ type UploadState = {
 type UploadButtonProps = {
     channelId?: string;
     sessionId?: string;
-    fileUri?: string;
+    fileUri?: string | null;
     status?: UploadStatus;
     createUploadSession: () => void;
     upload: () => void;

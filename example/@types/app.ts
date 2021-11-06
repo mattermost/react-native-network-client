@@ -13,9 +13,9 @@ type Multipart = {
 
 type File = {
     name?: string;
-    size?: number;
-    type?: string;
-    uri?: string;
+    size?: number | null;
+    type?: string | null;
+    uri?: string | null;
 };
 
 type FileContent = {

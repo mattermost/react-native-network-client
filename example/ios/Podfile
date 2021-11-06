@@ -18,6 +18,7 @@ target 'NetworkClientExample' do
   use_flipper!()
   post_install do |installer|
     react_native_post_install(installer)
+    __apply_Xcode_12_5_M1_post_install_workaround(installer)
     puts 'Patching Alamofire to include X-Uncompressed-Content-Length to measure download progress'
     %x(patch Pods/Alamofire/Source/SessionDelegate.swift < patches/SessionDelegate.patch)
   end

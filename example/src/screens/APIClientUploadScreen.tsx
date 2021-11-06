@@ -27,7 +27,7 @@ type UploadState = {
 
 type UploadButtonProps = {
     endpoint: string;
-    fileUri?: string;
+    fileUri?: string | null;
     status?: UploadStatus;
     upload: () => void;
     cancelUpload: () => void;
