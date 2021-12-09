@@ -35,7 +35,7 @@ export type ClientResponse = {
     headers?: ClientHeaders;
     data?: Record<string, unknown>;
     code: number;
-    redirectUrls?: Array<string>;
+    redirectUrls?: string[];
     ok: boolean;
     retriesExhausted?: boolean;
     path?: string;
@@ -46,8 +46,8 @@ export type ClientResponseError = {
     message: string;
     domain: string;
     userInfo?: Record<string, unknown>;
-    nativeStackAndroid?: Array<unknown>;
-    nativeStackIOS?: Array<unknown>;
+    nativeStackAndroid?: unknown[];
+    nativeStackIOS?: unknown[];
 };
 
 export type APIClientErrorEventHandler = (event: APIClientErrorEvent) => void;

@@ -1,12 +1,12 @@
 diff --git a/node_modules/react-native-image-picker/src/index.ts b/node_modules/react-native-image-picker/src/index.ts
-index e4ba8a0..071e9a6 100644
+index 48ee8de..69792b0 100644
 --- a/node_modules/react-native-image-picker/src/index.ts
 +++ b/node_modules/react-native-image-picker/src/index.ts
 @@ -1,6 +1,6 @@
  import {NativeModules} from 'react-native';
  
--import {CameraOptions, ImageLibraryOptions, Callback} from './types';
-+import type {CameraOptions, ImageLibraryOptions, Callback} from './types';
+-import {CameraOptions, ImageLibraryOptions, Callback, ImagePickerResponse} from './types';
++import type {CameraOptions, ImageLibraryOptions, Callback, ImagePickerResponse} from './types';
  export * from './types';
  
  const DEFAULT_OPTIONS: ImageLibraryOptions & CameraOptions = {
