@@ -74,7 +74,7 @@
     "jest": "27.4.5",
     "pod-install": "0.1.30",
     "react": "17.0.2",
-    "react-native": "0.66.11",
+    "react-native": "0.66.4",
     "react-native-builder-bob": "0.18.2",
     "release-it": "14.11.8",
     "typescript": "4.5.4"
