@@ -152,7 +152,10 @@ class APIClient implements APIClientInterface {
                     EVENTS.UPLOAD_PROGRESS,
                     (e: ProgressEvent) => {
                         if (e.taskId === taskId && promise.onProgress) {
-                            promise.onProgress(e.fractionCompleted);
+                            promise.onProgress(
+                                e.fractionCompleted,
+                                e.bytesRead
+                            );
                         }
                     }
                 );
@@ -195,7 +198,10 @@ class APIClient implements APIClientInterface {
                     EVENTS.DOWNLOAD_PROGRESS,
                     (e: ProgressEvent) => {
                         if (e.taskId === taskId && promise.onProgress) {
-                            promise.onProgress(e.fractionCompleted);
+                            promise.onProgress(
+                                e.fractionCompleted,
+                                e.bytesRead
+                            );
                         }
                     }
                 );

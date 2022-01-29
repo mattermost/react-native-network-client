@@ -322,7 +322,7 @@ class APIClient: RCTEventEmitter, NetworkClient {
         request.downloadProgress { progress in
                 if (self.hasListeners) {
                     if (progress.fractionCompleted >= 0.0) {
-                        self.sendEvent(withName: API_CLIENT_EVENTS["DOWNLOAD_PROGRESS"], body: ["taskId": taskId, "fractionCompleted": progress.fractionCompleted])
+                        self.sendEvent(withName: API_CLIENT_EVENTS["DOWNLOAD_PROGRESS"], body: ["taskId": taskId, "fractionCompleted": progress.fractionCompleted, "bytesRead": progress.completedUnitCount])
                     }
                 }
             }
@@ -380,7 +380,7 @@ class APIClient: RCTEventEmitter, NetworkClient {
         request
         .uploadProgress { progress in
             if self.hasListeners {
-                    self.sendEvent(withName: API_CLIENT_EVENTS["UPLOAD_PROGRESS"], body: ["taskId": taskId, "fractionCompleted": progress.fractionCompleted])
+                self.sendEvent(withName: API_CLIENT_EVENTS["UPLOAD_PROGRESS"], body: ["taskId": taskId, "fractionCompleted": progress.fractionCompleted, "bytesRead": progress.completedUnitCount])
                 }
         }
         .responseJSON { json in

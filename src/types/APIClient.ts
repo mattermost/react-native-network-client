@@ -5,9 +5,12 @@ import type { RetryTypes } from "./NativeAPIClient";
 
 export interface ProgressPromise<T> extends Promise<T> {
     progress?: (
-        callback: (fractionCompleted: number) => void
+        callback: (fractionCompleted: number, bytesRead?: number | null) => void
     ) => ProgressPromise<T>;
-    onProgress?: (fractionCompleted: number) => void;
+    onProgress?: (
+        fractionCompleted: number,
+        bytesRead: number | null | undefined
+    ) => void;
     cancel?: () => void;
 }
 
@@ -131,6 +134,7 @@ export type APIClientConfiguration = {
 export type ProgressEvent = {
     taskId: string;
     fractionCompleted: number;
+    bytesRead?: number | null;
 };
 
 export type MissingClientCertificateEvent = {
