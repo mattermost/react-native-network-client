@@ -114,8 +114,8 @@ For Android, we provide the interceptor [android/src/main/java/com/mattermost/ne
 2. Ensure that all dependencies use the same version of okhttp3 by adding the following to the dependencies block of your application's `android/app/build.gradle` file (see [example/android/app/build.gradle](https://github.com/mattermost/react-native-network-client/blob/master/example/android/app/build.gradle##L213-L214)):
 
 ```
-implementation "com.squareup.okhttp3:okhttp:4.9.1"
-implementation "com.squareup.okhttp3:okhttp-urlconnection:4.9.1"
+implementation "com.squareup.okhttp3:okhttp:4.9.2"
+implementation "com.squareup.okhttp3:okhttp-urlconnection:4.9.2"
 ```
 
 ## Troubleshooting
