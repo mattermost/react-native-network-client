@@ -303,11 +303,12 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     @ReactMethod
     fun cancelRequest(taskId: String, promise: Promise) {
         try {
-            calls[taskId]!!.cancel()
-            calls.remove(taskId)
-            promise.resolve(null)
+            val call = calls[taskId];
+            if (call != null) {
+                call.cancel()
+                calls.remove(taskId)
+            }
         } catch (error: Exception) {
-            promise.reject(error)
         }
     }
 
