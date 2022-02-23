@@ -47,7 +47,10 @@ class WebSocketClient implements WebSocketClientInterface {
     }
 
     open = () => NativeWebSocketClient.connectFor(this.url);
-    close = () => NativeWebSocketClient.disconnectFor(this.url);
+    close = () => {
+        this.readyState = READY_STATE.CLOSED;
+        return NativeWebSocketClient.disconnectFor(this.url);
+    };
     send = (data: string) => NativeWebSocketClient.sendDataFor(this.url, data);
 
     onOpen = (callback: WebSocketEventHandler) => {
