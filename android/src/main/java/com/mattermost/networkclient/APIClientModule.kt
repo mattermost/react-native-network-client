@@ -252,6 +252,7 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
                         promise.reject(e)
                     } finally {
                         try {
+                            calls.remove(taskId)
                             inputStream?.close()
                             outputStream?.close()
                         } catch (e: IOException) {
@@ -261,10 +262,9 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
                     client.cleanUpAfter(response)
                 }
             })
-        }  catch (error: Exception) {
-            promise.reject(error)
-        } finally {
+        } catch (error: Exception) {
             calls.remove(taskId)
+            promise.reject(error)
         }
     }
 
