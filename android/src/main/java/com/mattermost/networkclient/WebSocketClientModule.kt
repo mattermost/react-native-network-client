@@ -35,6 +35,13 @@ internal class WebSocketClientModule(reactContext: ReactApplicationContext) : Re
         setCtx(reactContext)
     }
 
+    override fun invalidate() {
+        super.invalidate()
+        clients.forEach {(_, value) ->
+            value.webSocket?.close(1000, null)
+        }
+    }
+
     @ReactMethod
     fun createClientFor(wsUrl: String, options: ReadableMap, promise: Promise) {
         var wsUri: URI
