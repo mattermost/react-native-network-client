@@ -20,7 +20,7 @@ internal class WebSocketClientModule(reactContext: ReactApplicationContext) : Re
         lateinit var context: ReactApplicationContext
 
         fun sendJSEvent(eventName: String, data: ReadableMap?) {
-            if (context.hasActiveCatalystInstance()) {
+            if (context.hasActiveReactInstance()) {
                 context.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
                         .emit(eventName, data)
             }

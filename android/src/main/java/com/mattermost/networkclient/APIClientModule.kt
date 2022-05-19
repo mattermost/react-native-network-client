@@ -67,8 +67,10 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         }
 
         internal fun sendJSEvent(eventName: String, data: WritableMap?) {
-            context.getJSModule(RCTDeviceEventEmitter::class.java)
-                    .emit(eventName, data)
+            if (context.hasActiveReactInstance()) {
+                context.getJSModule(RCTDeviceEventEmitter::class.java)
+                        .emit(eventName, data)
+            }
         }
 
         private fun setCtx(reactContext: ReactApplicationContext) {
