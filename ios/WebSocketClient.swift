@@ -208,7 +208,10 @@ class WebSocketClient: RCTEventEmitter, WebSocketDelegate {
                     self.sendEvent(withName: WEBSOCKET_CLIENT_EVENTS["READY_STATE_EVENT"], body: ["url": url, "message": READY_STATE["CLOSED"]!])
                     self.sendEvent(withName: WEBSOCKET_CLIENT_EVENTS["CLOSE_EVENT"], body: ["url": url, "message": ["reason": error?.localizedDescription as Any, "code": errorCode as Any]])
                 } else {
-                    self.sendEvent(withName: WEBSOCKET_CLIENT_EVENTS["ERROR_EVENT"], body: ["url": url, "message": ["error": error]])
+                    let errorDetails: [String: Any] = [
+                        "message": nsError!.description,
+                    ]
+                    self.sendEvent(withName: WEBSOCKET_CLIENT_EVENTS["ERROR_EVENT"], body: ["url": url, "message": ["error": errorDetails]])
                 }
             }
         case .viabilityChanged(let viable):
