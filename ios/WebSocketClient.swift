@@ -201,7 +201,8 @@ class WebSocketClient: RCTEventEmitter, WebSocketDelegate {
             client.disconnect(closeCode: 1001)
         case .error(let error):
             if hasListeners {
-                let errorCode = (error as NSError?)?.code
+                let nsError = error as NSError?
+                let errorCode = nsError?.code
                 if (errorCode == 61 && (errorCounter[url] ?? 0) % 2 == 0) {
                     let count = errorCounter[url] ?? 0
                     errorCounter[url] = count + 1
