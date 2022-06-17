@@ -73,7 +73,7 @@ extension NetworkClient {
 
         let request = session.request(url, method: method, parameters: parameters, encoder: encoder, headers: headers, requestModifier: requestModifer)
             
-        request.validate()
+        request.validate(statusCode: 200...409)
             .responseJSON { json in
                 self.handleResponse(for: session, withUrl: url, withData: json)
                 self.resolveOrRejectJSONResponse(json, for: request, withResolver: resolve, withRejecter: reject)
