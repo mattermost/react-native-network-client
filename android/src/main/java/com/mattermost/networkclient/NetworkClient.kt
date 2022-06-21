@@ -334,8 +334,10 @@ internal class NetworkClient(private val baseUrl: HttpUrl? = null, options: Read
             return endpoint
         }
 
+        var subpath = if (baseUrl.pathSegments.size > 0) baseUrl.pathSegments.joinToString("/") else ""
+
         return baseUrl
-                .newBuilder(endpoint)?.build()
+                .newBuilder(subpath + endpoint)?.build()
                 .toString()
     }
 
