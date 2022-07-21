@@ -2,8 +2,7 @@ package com.mattermost.networkclient.helpers
 
 import com.facebook.react.bridge.Arguments
 import com.mattermost.networkclient.APIClientModule
-import java.math.RoundingMode
-import java.text.DecimalFormat
+import kotlin.math.roundToInt
 
 interface ProgressListenerInterface {
     fun update(bytesRead: Double, contentLength: Double, done: Boolean?)
@@ -11,9 +10,6 @@ interface ProgressListenerInterface {
 }
 
 class ProgressListener(private val taskId: String, private val eventName: String) : ProgressListenerInterface {
-    // 2-Decimal places, rounded up
-    private val df = DecimalFormat("#.00").apply{ roundingMode = RoundingMode.UP }
-
     override fun emitProgressEvent(progress: Double, bytesRead: Double) {
         val data = Arguments.createMap()
         data.putDouble("fractionCompleted", progress)
@@ -28,7 +24,7 @@ class ProgressListener(private val taskId: String, private val eventName: String
         }
         var progress = 0.0
         // Only emit if we can show progress against content length
-        if(contentLength > 0) progress = df.format(bytesRead / contentLength).toDouble()
+        if (contentLength > 0) progress = (bytesRead / contentLength * 100).roundToInt() / 100.0
         emitProgressEvent(progress, bytesRead)
     }
 }
