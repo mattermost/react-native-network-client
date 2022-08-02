@@ -123,6 +123,7 @@ const GenericClientRequestScreen = ({
                     containerStyle={{ height: 50 }}
                 />
                 <Input
+                    autoCompleteType={undefined}
                     label="URL"
                     placeholder="https://google.com"
                     value={url}
@@ -133,6 +134,7 @@ const GenericClientRequestScreen = ({
                 <AddHeaders onHeadersChanged={setRequestHeaders} />
                 {methods[selectedMethodIndex] !== METHODS.GET && (
                     <Input
+                        autoCompleteType={undefined}
                         label="Body"
                         placeholder='{"username": "johndoe"}'
                         value={body}

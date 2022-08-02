@@ -28,8 +28,12 @@ const MultipartListItem = ({
         updateMultipart && updateMultipart({ ...multipart, value }, index);
 
     return (
-        <ListItem>
+        <ListItem
+            hasTVPreferredFocus={false}
+            tvParallaxProperties={undefined}
+        >
             <Input
+                autoCompleteType={undefined}
                 containerStyle={{ flex: 1 }}
                 onChangeText={updateMultipartKey}
                 placeholder="key"
@@ -38,6 +42,7 @@ const MultipartListItem = ({
                 testID={`${testID}.${index}.key.input`}
             />
             <Input
+                autoCompleteType={undefined}
                 containerStyle={{ flex: 1 }}
                 onChangeText={updateMultipartValue}
                 placeholder="value"

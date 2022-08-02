@@ -21,6 +21,7 @@ const ListHeaders = ({ headers }: ListHeadersProps) => (
             }}
         >
             <Input
+                autoCompleteType={undefined}
                 placeholder="Headers"
                 disabled={true}
                 style={{ fontWeight: "bold", fontSize: 17, opacity: 1 }}

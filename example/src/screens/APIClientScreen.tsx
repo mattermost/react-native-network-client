@@ -106,12 +106,14 @@ export default function APIClientScreen({
         <SafeAreaView>
             <ScrollView testID="api_client.scroll_view">
                 <Input
+                    autoCompleteType={undefined}
                     label="Name"
                     value={name}
                     disabled={true}
                     testID="api_client.name.input"
                 />
                 <Input
+                    autoCompleteType={undefined}
                     label="Base URL"
                     value={client.baseUrl}
                     disabled={true}
