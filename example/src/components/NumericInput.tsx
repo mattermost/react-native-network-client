@@ -30,6 +30,7 @@ const ClientNumericInput = (props: ClientNumericInputProps) => {
 
     return (
         <Input
+            autoCompleteType={undefined}
             placeholder={props.title}
             disabled={true}
             style={{ fontWeight: "bold", fontSize: 17, opacity: 1 }}

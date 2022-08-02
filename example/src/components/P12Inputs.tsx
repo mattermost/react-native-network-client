@@ -100,6 +100,7 @@ const P12Inputs = (props: P12InputsProps) => {
                         />
                     </View>
                     <Input
+                        autoCompleteType={undefined}
                         placeholder="password"
                         value={props.password}
                         onChangeText={props.onPasswordChange}
@@ -109,6 +110,7 @@ const P12Inputs = (props: P12InputsProps) => {
                 </View>
             ) : (
                 <Input
+                    autoCompleteType={undefined}
                     placeholder="Download URL"
                     onChangeText={setUrl}
                     autoCapitalize="none"
@@ -121,6 +123,7 @@ const P12Inputs = (props: P12InputsProps) => {
     return (
         <>
             <Input
+                autoCompleteType={undefined}
                 placeholder={props.title}
                 disabled={true}
                 style={{

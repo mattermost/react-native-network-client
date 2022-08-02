@@ -156,6 +156,7 @@ const APIClientDownloadScreen = ({ route }: APIClientDownloadScreenProps) => {
         <SafeAreaView style={{ flex: 1 }}>
             <ScrollView testID="api_client_dowload.scroll_view">
                 <Input
+                    autoCompleteType={undefined}
                     label="Endpoint"
                     placeholder="/download"
                     value={state.endpoint}
@@ -165,6 +166,7 @@ const APIClientDownloadScreen = ({ route }: APIClientDownloadScreenProps) => {
                 />
 
                 <Input
+                    autoCompleteType={undefined}
                     label="File path"
                     placeholder="file://some/file/path"
                     value={state.filePath}

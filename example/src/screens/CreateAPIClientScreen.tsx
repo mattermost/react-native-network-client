@@ -125,12 +125,14 @@ export default function CreateAPIClientScreen({
         <SafeAreaView>
             <ScrollView testID="create_api_client.scroll_view">
                 <Input
+                    autoCompleteType={undefined}
                     label="Name"
                     onChangeText={setName}
                     autoCorrect={false}
                     testID="create_api_client.name.input"
                 />
                 <Input
+                    autoCompleteType={undefined}
                     label="Base URL"
                     onChangeText={setBaseUrl}
                     autoCapitalize="none"
@@ -141,6 +143,7 @@ export default function CreateAPIClientScreen({
                 <AddHeaders onHeadersChanged={setClientHeaders} />
 
                 <Input
+                    autoCompleteType={undefined}
                     label="Bearer Auth Token Response Header"
                     onChangeText={setBearerAuthTokenResponseHeader}
                     placeholder="token"
