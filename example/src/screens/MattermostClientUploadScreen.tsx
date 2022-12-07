@@ -1,3 +1,4 @@
+import { useRoute } from "@react-navigation/native";
 import React, { useState } from "react";
 import { Alert, SafeAreaView, ScrollView, Text, View } from "react-native";
 import { Button, Input } from "react-native-elements";
@@ -107,9 +108,8 @@ const UploadButton = (props: UploadButtonProps) => {
     );
 };
 
-const MattermostClientUploadScreen = ({
-    route,
-}: APIClientUploadScreenProps) => {
+const MattermostClientUploadScreen = () => {
+    const route = useRoute<APIClientUploadScreenProps['route']>();
     const {
         item: { client },
     } = route.params;

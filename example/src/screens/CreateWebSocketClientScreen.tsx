@@ -18,18 +18,18 @@ import {
 } from "../utils";
 
 import type { WebSocketClientConfiguration } from "@mattermost/react-native-network-client";
+import { useNavigation } from "@react-navigation/native";
 
 const styles = StyleSheet.create({
     checkboxText: { flex: 1 },
     createButton: { padding: 10 },
 });
 
-export default function CreateWebSocketClientScreen({
-    navigation,
-}: CreateWebSocketClientScreenProps) {
+export default function CreateWebSocketClientScreen() {
     const [name, setName] = useState("");
     const [url, setUrl] = useState("");
     const [alertOnClientError, setAlertOnClientError] = useState(true);
+    const navigation = useNavigation<CreateWebSocketClientScreenProps['navigation']>();
     const toggleAlertOnClientError = () =>
         setAlertOnClientError((alertOnClientError) => !alertOnClientError);
 

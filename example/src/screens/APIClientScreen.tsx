@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import { useNavigation, useRoute } from "@react-navigation/native";
 import React, { useState, useEffect } from "react";
 import { SafeAreaView, ScrollView } from "react-native";
 import { Input, Button } from "react-native-elements";
@@ -10,10 +11,9 @@ import { METHODS } from "../utils";
 
 import type { ClientHeaders } from "@mattermost/react-native-network-client";
 
-export default function APIClientScreen({
-    navigation,
-    route,
-}: APIClientScreenProps) {
+export default function APIClientScreen() {
+    const navigation = useNavigation<APIClientScreenProps['navigation']>();
+    const route = useRoute<APIClientScreenProps['route']>();
     const { item } = route.params;
     const { client, name } = item;
 

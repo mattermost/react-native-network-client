@@ -12,7 +12,7 @@ type Multipart = {
 };
 
 type File = {
-    name?: string;
+    name?: string | null;
     size?: number | null;
     type?: string | null;
     uri?: string | null;

@@ -38,7 +38,7 @@ const FilePickerButtonGroup = (props: FilePickerButtonGroupProps) => {
                     copyTo: "cachesDirectory",
                 });
 
-                const file = { ...result, uri: result.fileCopyUri };
+                const file: File = { ...result, uri: result.fileCopyUri };
                 props.onFilePicked(file);
             } catch (err) {
                 if (DocumentPicker.isCancel(err as Error)) {

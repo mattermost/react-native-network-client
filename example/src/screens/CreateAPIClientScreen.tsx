@@ -22,19 +22,19 @@ import type {
     APIClientConfiguration,
     RequestAdapterConfiguration,
 } from "@mattermost/react-native-network-client";
+import { useNavigation } from "@react-navigation/native";
 
 const styles = StyleSheet.create({
     checkboxText: { flex: 1 },
     createButton: { padding: 10 },
 });
 
-export default function CreateAPIClientScreen({
-    navigation,
-}: CreateAPIClientScreenProps) {
+export default function CreateAPIClientScreen() {
     const [name, setName] = useState("");
     const [baseUrl, setBaseUrl] = useState("");
     const [clientHeaders, setClientHeaders] = useState<Header[]>([]);
     const [alertOnClientError, setAlertOnClientError] = useState(true);
+    const navigation = useNavigation<CreateAPIClientScreenProps['navigation']>();
     const toggleAlertOnClientError = () =>
         setAlertOnClientError((alertOnClientError) => !alertOnClientError);
 

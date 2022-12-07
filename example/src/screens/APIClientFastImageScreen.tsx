@@ -1,13 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import { useRoute } from "@react-navigation/native";
 import React, { useState } from "react";
 import { ActivityIndicator, SafeAreaView, View } from "react-native";
 import { Input } from "react-native-elements";
 import FastImage from "react-native-fast-image";
 import Icon from "react-native-vector-icons/MaterialIcons";
 
-const APIClientFastImageScreen = ({ route }: APIClientFastImageScreenProps) => {
+const APIClientFastImageScreen = () => {
+    const route = useRoute<APIClientFastImageScreenProps['route']>();
     const {
         item: { client },
     } = route.params;

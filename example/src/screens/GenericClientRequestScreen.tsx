@@ -1,3 +1,4 @@
+import { useRoute } from "@react-navigation/native";
 import React, { useState } from "react";
 import { Alert, SafeAreaView, ScrollView } from "react-native";
 import { Button, ButtonGroup, Input } from "react-native-elements";
@@ -16,9 +17,8 @@ import type {
     RequestOptions,
 } from "@mattermost/react-native-network-client";
 
-const GenericClientRequestScreen = ({
-    route,
-}: GenericClientRequestScreenProps) => {
+const GenericClientRequestScreen = () => {
+    const route = useRoute<GenericClientRequestScreenProps['route']>();
     const {
         item: { client },
     } = route.params;

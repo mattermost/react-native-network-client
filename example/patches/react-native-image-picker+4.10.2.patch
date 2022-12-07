@@ -1,0 +1,86 @@
+diff --git a/node_modules/react-native-image-picker/src/index.ts b/node_modules/react-native-image-picker/src/index.ts
+index 906b6a1..8b02b22 100644
+--- a/node_modules/react-native-image-picker/src/index.ts
++++ b/node_modules/react-native-image-picker/src/index.ts
+@@ -1,6 +1,6 @@
+ import {Platform} from 'react-native';
+ 
+-import {CameraOptions, ImageLibraryOptions, Callback} from './types';
++import type {CameraOptions, ImageLibraryOptions, Callback} from './types';
+ import {
+   imageLibrary as nativeImageLibrary,
+   camera as nativeCamera,
+diff --git a/node_modules/react-native-image-picker/src/platforms/native.ts b/node_modules/react-native-image-picker/src/platforms/native.ts
+index 8b08d66..58e68d3 100644
+--- a/node_modules/react-native-image-picker/src/platforms/native.ts
++++ b/node_modules/react-native-image-picker/src/platforms/native.ts
+@@ -1,6 +1,6 @@
+ import {NativeModules} from 'react-native';
+ 
+-import {
++import type {
+   CameraOptions,
+   ImageLibraryOptions,
+   Callback,
+diff --git a/node_modules/react-native-image-picker/src/platforms/web.ts b/node_modules/react-native-image-picker/src/platforms/web.ts
+index 938c729..a94ba06 100644
+--- a/node_modules/react-native-image-picker/src/platforms/web.ts
++++ b/node_modules/react-native-image-picker/src/platforms/web.ts
+@@ -1,4 +1,4 @@
+-import {
++import type {
+   CameraOptions,
+   ImageLibraryOptions,
+   Callback,
+@@ -25,6 +25,7 @@ export function camera(
+     const result = {
+       errorCode: 'camera_unavailable' as ErrorCode,
+       errorMessage: 'launchCamera is not supported for web yet',
++      options,
+     };
+ 
+     if (callback) callback(result);
+@@ -49,6 +50,7 @@ export function imageLibrary(
+     return Promise.resolve(result);
+   }
+   
++  // @ts-expect-error dom
+   const input = document.createElement('input');
+   input.style.display = 'none';
+   input.setAttribute('type', 'file');
+@@ -58,6 +60,7 @@ export function imageLibrary(
+     input.setAttribute('multiple', 'multiple');
+   }
+ 
++  // @ts-expect-error dom
+   document.body.appendChild(input);
+ 
+   return new Promise((resolve) => {
+@@ -76,6 +79,7 @@ export function imageLibrary(
+         } else {
+           const imgs = await Promise.all(
+             Array.from(input.files).map((file) =>
++            // @ts-expect-error blob
+               readFile(file, {includeBase64: options.includeBase64}),
+             ),
+           );
+@@ -90,9 +94,11 @@ export function imageLibrary(
+           resolve(result);
+         }
+       }
++      // @ts-expect-error dom
+       document.body.removeChild(input);
+     });
+ 
++    // @ts-expect-error dom
+     const event = new MouseEvent('click');
+     input.dispatchEvent(event);
+   });
+@@ -122,6 +128,7 @@ function readFile(
+         });
+ 
+       if (typeof uri === 'string') {
++        // @ts-expect-error dom
+         const image = new Image();
+         image.src = uri;
+         image.onload = () =>
