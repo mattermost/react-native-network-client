@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import { useNavigation, useRoute } from "@react-navigation/native";
 import React, { useState, useEffect } from "react";
 import { FlatList, SafeAreaView } from "react-native";
 import { ButtonGroup } from "react-native-elements";
@@ -8,11 +9,10 @@ import { ButtonGroup } from "react-native-elements";
 import ClientListItem from "../components/ClientListItem";
 import { createTestClients, networkClientKeyExtractor } from "../utils";
 
-export default function ClientListScreen({
-    navigation,
-    route,
-}: ClientListScreenProps) {
+export default function ClientListScreen() {
     const [clients, setClients] = useState<NetworkClientItem[]>([]);
+    const navigation = useNavigation<ClientListScreenProps['navigation']>();
+    const route = useRoute<ClientListScreenProps['route']>();
 
     useEffect(() => {
         if (!clients.length) {

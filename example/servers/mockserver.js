@@ -101,6 +101,7 @@ const mockserver = ({ secure = false } = {}) => {
     // Create handlers
     const secureRequestHandler = (req, res, next, requestHandler) => {
         const cert = req.socket.getPeerCertificate();
+        console.log('Secure Request', req.headers)
 
         if (req.client.authorized) {
             console.log("Client Authorized!");
@@ -118,7 +119,7 @@ const mockserver = ({ secure = false } = {}) => {
         }
     };
     const nonSecureMockRequestHandler = (req, res, next, cert = null) => {
-        console.log("Request is received!");
+        console.log("Request is received!", req.headers);
         const responseStatus = req.headers.responseStatus
             ? req.headers.responseStatus
             : 200;

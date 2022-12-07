@@ -1,11 +1,10 @@
 {
   "extends": [
-    "plugin:mattermost/react",
     "prettier",
     "plugin:prettier/recommended"
   ],
   "parser": "@typescript-eslint/parser",
-  "plugins": ["mattermost", "@typescript-eslint"],
+  "plugins": ["@typescript-eslint"],
   "settings": {
     "react": {
       "pragma": "React",

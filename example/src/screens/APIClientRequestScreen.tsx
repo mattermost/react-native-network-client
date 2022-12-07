@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import { useRoute } from "@react-navigation/native";
 import React, { useState } from "react";
 import { Alert, SafeAreaView, ScrollView } from "react-native";
 import { Button, Input } from "react-native-elements";
@@ -19,7 +20,8 @@ import type {
     RequestOptions,
 } from "@mattermost/react-native-network-client";
 
-const APIClientRequestScreen = ({ route }: APIClientRequestScreenProps) => {
+const APIClientRequestScreen = () => {
+    const route = useRoute<APIClientRequestScreenProps['route']>();
     const {
         item: { client },
         method,

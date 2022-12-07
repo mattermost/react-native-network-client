@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import { useRoute } from "@react-navigation/native";
 import React, { useState } from "react";
 import { useEffect } from "react";
 import { SafeAreaView, ScrollView } from "react-native";
@@ -8,9 +9,8 @@ import { Button, Input, Text } from "react-native-elements";
 
 import type { WebSocketEvent } from "@mattermost/react-native-network-client";
 
-export default function WebSocketClientScreen({
-    route,
-}: WebSocketClientScreenProps) {
+export default function WebSocketClientScreen() {
+    const route = useRoute<WebSocketClientScreenProps['route']>();
     const {
         item: { client },
     } = route.params;

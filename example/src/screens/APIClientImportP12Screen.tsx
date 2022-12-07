@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import { useRoute } from "@react-navigation/native";
 import React, { useState } from "react";
 import { SafeAreaView, StyleSheet, Text } from "react-native";
 import { Button } from "react-native-elements";
@@ -14,7 +15,8 @@ const styles = StyleSheet.create({
     importButton: { padding: 10 },
 });
 
-const APIClientImportP12Screen = ({ route }: APIClientImportP12ScreenProps) => {
+const APIClientImportP12Screen = () => {
+    const route = useRoute<APIClientImportP12ScreenProps['route']>();
     const {
         item: { client },
     } = route.params;

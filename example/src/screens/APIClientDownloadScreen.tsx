@@ -1,3 +1,4 @@
+import { useRoute } from "@react-navigation/native";
 import React, { useState } from "react";
 import { SafeAreaView, ScrollView, View } from "react-native";
 import { Button, Input } from "react-native-elements";
@@ -62,7 +63,8 @@ const DownloadButton = (props: DownloadButtonProps) => {
     );
 };
 
-const APIClientDownloadScreen = ({ route }: APIClientDownloadScreenProps) => {
+const APIClientDownloadScreen = () => {
+    const route = useRoute<APIClientDownloadScreenProps['route']>();
     const {
         item: { client },
     } = route.params;

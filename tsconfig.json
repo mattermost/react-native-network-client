@@ -25,5 +25,13 @@
     "target": "esnext",
     "strictNullChecks": true
   },
-  "exclude": ["lib"]
+  "exclude": [
+    "lib",
+    "node_modules",
+    "build",
+    "babel.config.js",
+    "metro.config.js",
+    "jest.config.js",
+    "example/detox/**/*",
+  ]
 }
