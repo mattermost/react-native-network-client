@@ -144,6 +144,7 @@ public class SessionManager: NSObject {
             session.session.reset {
                 do {
                     try Keychain.deleteAll(for: baseUrl.absoluteString)
+                    URLCache.shared.removeAllCachedResponses()
                 } catch {
                     NotificationCenter.default.post(name: Notification.Name(API_CLIENT_EVENTS["CLIENT_ERROR"]!),
                                                     object: nil,
