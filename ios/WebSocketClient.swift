@@ -203,7 +203,7 @@ class WebSocketClient: RCTEventEmitter, WebSocketDelegate {
             if hasListeners {
                 let nsError = error as NSError?
                 let errorCode = nsError?.code
-                if (errorCode == 61 && (errorCounter[url] ?? 0) % 2 == 0) {
+                if ((errorCode == 61 || errorCode == 57) && (errorCounter[url] ?? 0) % 2 == 0) {
                     let count = errorCounter[url] ?? 0
                     errorCounter[url] = count + 1
                     self.sendEvent(withName: WEBSOCKET_CLIENT_EVENTS["READY_STATE_EVENT"], body: ["url": url, "message": READY_STATE["CLOSED"]!])
