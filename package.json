@@ -1,6 +1,6 @@
 {
   "name": "@mattermost/react-native-network-client",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Configurable network clients for React Native. Uses Alamofire for iOS and OkHttp3 for Android.",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
