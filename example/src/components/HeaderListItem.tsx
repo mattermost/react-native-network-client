@@ -25,12 +25,8 @@ const HeaderListItem = ({
         updateHeader && updateHeader({ ...header, value }, index);
 
     return (
-        <ListItem
-            hasTVPreferredFocus={false}
-            tvParallaxProperties={undefined}
-        >
+        <ListItem>
             <Input
-                autoCompleteType={undefined}
                 containerStyle={{ flex: 1 }}
                 onChangeText={updateHeaderKey}
                 placeholder="key"
@@ -39,7 +35,6 @@ const HeaderListItem = ({
                 testID={`${testID}.${index}.key.input`}
             />
             <Input
-                autoCompleteType={undefined}
                 containerStyle={{ flex: 1 }}
                 onChangeText={updateHeaderValue}
                 placeholder="value"

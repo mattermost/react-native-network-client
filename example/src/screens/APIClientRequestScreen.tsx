@@ -119,7 +119,6 @@ const APIClientRequestScreen = () => {
                 showsVerticalScrollIndicator={true}
             >
                 <Input
-                    autoCompleteType={undefined}
                     label={`${method}\n\n${client.baseUrl}`}
                     placeholder="/api/v4/system/ping"
                     value={endpoint}
@@ -130,7 +129,6 @@ const APIClientRequestScreen = () => {
                 <AddHeaders onHeadersChanged={setRequestHeaders} />
                 {method !== METHODS.GET && (
                     <Input
-                        autoCompleteType={undefined}
                         label="Body"
                         placeholder='{"username": "johndoe"}'
                         value={body}
