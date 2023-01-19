@@ -45,10 +45,6 @@ android {
   lintOptions {
     disable 'GradleCompatible'
   }
-  compileOptions {
-    sourceCompatibility JavaVersion.VERSION_1_8
-    targetCompatibility JavaVersion.VERSION_1_8
-  }
 }
 
 repositories {
@@ -128,11 +124,11 @@ dependencies {
   // noinspection GradleDynamicVersion
   api 'com.facebook.react:react-native:+'
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-  implementation "com.squareup.okhttp3:okhttp:4.9.2"
-  implementation "com.squareup.okhttp3:okhttp-tls:4.9.2"
-  implementation "com.squareup.okhttp3:okhttp-urlconnection:4.9.2"
+  implementation "com.squareup.okhttp3:okhttp:4.10.0"
+  implementation "com.squareup.okhttp3:okhttp-tls:4.10.0"
+  implementation "com.squareup.okhttp3:okhttp-urlconnection:4.10.0"
 
   testImplementation "junit:junit:4.12"
   testImplementation "org.mockito:mockito-core:3.+"
-  testImplementation "com.squareup.okhttp3:mockwebserver:4.9.2"
+  testImplementation "com.squareup.okhttp3:mockwebserver:4.10.0"
 }
