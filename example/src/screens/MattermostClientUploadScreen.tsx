@@ -238,7 +238,6 @@ const MattermostClientUploadScreen = () => {
         if (Boolean(state.sessionId)) {
             return (
                 <Input
-                    autoCompleteType={undefined}
                     label="Session ID"
                     value={state.sessionId}
                     disabled={true}
@@ -253,7 +252,6 @@ const MattermostClientUploadScreen = () => {
         <SafeAreaView style={{ flex: 1 }}>
             <ScrollView>
                 <Input
-                    autoCompleteType={undefined}
                     label="Channel ID"
                     placeholder="pspxu7bu17yttmtnzsjnqu78fe"
                     value={state.channelId}

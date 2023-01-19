@@ -122,13 +122,11 @@ export default function CreateWebSocketClientScreen() {
         <SafeAreaView>
             <ScrollView testID="create_websocket_client.scroll_view">
                 <Input
-                    autoCompleteType={undefined}
                     label="Name"
                     onChangeText={setName}
                     testID="create_websocket_client.name.input"
                 />
                 <Input
-                    autoCompleteType={undefined}
                     label="URL"
                     onChangeText={setUrl}
                     autoCapitalize="none"

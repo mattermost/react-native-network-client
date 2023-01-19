@@ -53,7 +53,6 @@ export default function WebSocketClientScreen() {
     return (
         <SafeAreaView style={{ flex: 1 }}>
             <Input
-                autoCompleteType={undefined}
                 label="Message"
                 multiline={true}
                 numberOfLines={10}
@@ -78,7 +77,6 @@ export default function WebSocketClientScreen() {
                 style={{ padding: 10 }}
             />
             <Input
-                autoCompleteType={undefined}
                 placeholder="Received"
                 disabled={true}
                 style={{ fontWeight: "bold", fontSize: 17, opacity: 1 }}

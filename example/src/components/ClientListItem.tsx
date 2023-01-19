@@ -73,8 +73,6 @@ const ClientListItem = (props: ClientListItemProps) => {
             onLongPress={removeClient}
             bottomDivider
             testID="client_list_item.item"
-            hasTVPreferredFocus={false}
-            tvParallaxProperties={undefined}
         >
             <ListItem.Content testID="client_list_item.content">
                 <ListItem.Title testID="client_list_item.title">
@@ -84,7 +82,6 @@ const ClientListItem = (props: ClientListItemProps) => {
             </ListItem.Content>
             <ListItem.Chevron
                 testID="client_list_item.chevron"
-                tvParallaxProperties={undefined}
             />
         </ListItem>
     );

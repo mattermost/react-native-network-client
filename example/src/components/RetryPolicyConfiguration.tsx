@@ -111,7 +111,6 @@ const RetryPolicyConfiguration = (props: RetryPolicyConfigurationProps) => {
     return (
         <>
             <Input
-                autoCompleteType={undefined}
                 placeholder="Retry Policy"
                 disabled={true}
                 style={{ fontWeight: "bold", fontSize: 17, opacity: 1 }}
@@ -167,7 +166,6 @@ const RetryPolicyConfiguration = (props: RetryPolicyConfigurationProps) => {
             {props.policyType && (
                 <>
                     <Input
-                        autoCompleteType={undefined}
                         placeholder="Retry Status Codes"
                         disabled={true}
                         style={{ fontWeight: "bold", fontSize: 17, opacity: 1 }}
@@ -178,7 +176,6 @@ const RetryPolicyConfiguration = (props: RetryPolicyConfigurationProps) => {
                     />
 
                     <Input
-                        autoCompleteType={undefined}
                         value={statusCodesText}
                         onChangeText={setStatusCodesText}
                         onBlur={updateStatusCodes}
@@ -187,7 +184,6 @@ const RetryPolicyConfiguration = (props: RetryPolicyConfigurationProps) => {
                     {props.setRetryMethods && (
                         <>
                             <Input
-                                autoCompleteType={undefined}
                                 placeholder="Retry Methods"
                                 disabled={true}
                                 style={{

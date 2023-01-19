@@ -63,7 +63,6 @@ const AddMultiparts = (props: AddMultipartsProps) => {
                 }}
             >
                 <Input
-                    autoCompleteType={undefined}
                     placeholder="Multiparts"
                     disabled={true}
                     style={{ fontWeight: "bold", fontSize: 17, opacity: 1 }}

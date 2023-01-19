@@ -27,7 +27,6 @@ const APIClientFastImageScreen = () => {
     return (
         <SafeAreaView style={{ flex: 1 }}>
             <Input
-                autoCompleteType={undefined}
                 label="Image URL"
                 placeholder={`${client.baseUrl}/image.png`}
                 value={imageUrl}

@@ -244,6 +244,7 @@ internal class NetworkClient(private val baseUrl: HttpUrl? = null, options: Read
 
     fun invalidate() {
         cancelAllRequests()
+        clearCache()
         clearCookies()
         APIClientModule.deleteValue(TOKEN_ALIAS)
         APIClientModule.deleteValue(P12_ALIAS)
@@ -524,6 +525,21 @@ internal class NetworkClient(private val baseUrl: HttpUrl? = null, options: Read
 
     private fun cancelAllRequests() {
         okHttpClient.dispatcher.cancelAll()
+    }
+
+    private fun clearCache() {
+        if (baseUrl == null)
+            return
+
+        val domain = baseUrl.toString()
+        if (okHttpClient.cache != null) {
+            val urlIterator = okHttpClient.cache!!.urls()
+            while (urlIterator.hasNext()) {
+                if (urlIterator.next().startsWith(domain)) {
+                    urlIterator.remove()
+                }
+            }
+        }
     }
 
     private fun clearCookies() {
