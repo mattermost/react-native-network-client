@@ -23,10 +23,9 @@ import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 import kotlin.reflect.KProperty
 
-
-internal class NetworkClient(private val baseUrl: HttpUrl? = null, options: ReadableMap? = null, cookieJar: CookieJar? = null) {
-    var okHttpClient: OkHttpClient
-    private var webSocketUri: URI? = null
+internal open class NetworkClientBase(private val baseUrl: HttpUrl? = null) {
+    lateinit var okHttpClient: OkHttpClient
+    internal var webSocketUri: URI? = null
     var webSocket: WebSocket? = null
     var clientHeaders: WritableMap = Arguments.createMap()
     var clientRetryInterceptor: Interceptor? = null
@@ -34,7 +33,7 @@ internal class NetworkClient(private val baseUrl: HttpUrl? = null, options: Read
     val requestRetryInterceptors: HashMap<Request, Interceptor> = hashMapOf()
     val requestTimeoutInterceptors: HashMap<Request, TimeoutInterceptor> = hashMapOf()
     private var trustSelfSignedServerCertificate = false
-    private val builder: OkHttpClient.Builder = OkHttpClient().newBuilder()
+    val builder: OkHttpClient.Builder = OkHttpClient().newBuilder()
 
     private val BASE_URL_STRING = baseUrl.toString().trimTrailingSlashes()
     private val BASE_URL_HASH = BASE_URL_STRING.sha256()
@@ -53,18 +52,54 @@ internal class NetworkClient(private val baseUrl: HttpUrl? = null, options: Read
         }
     }
 
-    constructor(webSocketUri: URI, baseUrl: HttpUrl, options: ReadableMap? = null) : this(baseUrl, options) {
-        this.webSocketUri = webSocketUri
+    protected open fun applyGenericClientBuilderConfiguration() {
+        builder.followRedirects(true)
+        builder.followSslRedirects(true)
     }
 
-    init {
-        if (baseUrl == null) {
-            applyGenericClientBuilderConfiguration()
-        } else {
-            applyClientBuilderConfiguration(options, cookieJar)
+    protected open fun applyClientBuilderConfiguration(options: ReadableMap?, cookieJar: CookieJar?) {
+        setClientHeaders(options)
+        setClientRetryInterceptor(options)
+        setClientTimeoutInterceptor(options)
+
+        builder.followRedirects(false)
+        builder.followSslRedirects(false)
+        builder.retryOnConnectionFailure(false)
+        builder.addInterceptor(RuntimeInterceptor(this as NetworkClient, "retry"))
+        builder.addInterceptor(RuntimeInterceptor(this, "timeout"))
+
+        val bearerTokenInterceptor = getBearerTokenInterceptor(options)
+        if (bearerTokenInterceptor != null) {
+            builder.addInterceptor(bearerTokenInterceptor)
         }
 
-        okHttpClient = builder.build()
+        val handshakeCertificates = buildHandshakeCertificates(options)
+        if (handshakeCertificates != null) {
+            builder.sslSocketFactory(
+                    handshakeCertificates.sslSocketFactory(),
+                    handshakeCertificates.trustManager
+            )
+        }
+
+        if (cookieJar != null) {
+            builder.cookieJar(cookieJar)
+        }
+
+        if (options != null && options.hasKey("sessionConfiguration")) {
+            val config = options.getMap("sessionConfiguration")!!
+
+            if (config.hasKey("httpMaximumConnectionsPerHost")) {
+                val maxConnections = config.getInt("httpMaximumConnectionsPerHost")
+                val dispatcher = Dispatcher()
+                dispatcher.maxRequests = maxConnections
+                dispatcher.maxRequestsPerHost = maxConnections
+                builder.dispatcher(dispatcher)
+            }
+
+            if (config.hasKey("enableCompression")) {
+                builder.minWebSocketMessageToCompress(0)
+            }
+        }
     }
 
     fun addClientHeaders(additionalHeaders: ReadableMap?) {
@@ -98,8 +133,7 @@ internal class NetworkClient(private val baseUrl: HttpUrl? = null, options: Read
                 requestHeaders = options.getMap("headers")
             }
             if (options.hasKey("body")) {
-                val type = options.getType("body")
-                when (type) {
+                when (options.getType("body")) {
                     ReadableType.Array -> {
                         val jsonBody = JSONArray(options.getArray("body")!!.toArrayList())
                         requestBody = jsonBody.toString().toRequestBody()
@@ -121,7 +155,7 @@ internal class NetworkClient(private val baseUrl: HttpUrl? = null, options: Read
                         requestBody = options.getDouble("body").toString().toRequestBody()
                     }
                 }
-            } else if (method.toUpperCase(Locale.ENGLISH) == "POST") {
+            } else if (method.uppercase(Locale.ENGLISH) == "POST") {
                 requestBody = EMPTY_REQUEST
             }
         }
@@ -251,62 +285,12 @@ internal class NetworkClient(private val baseUrl: HttpUrl? = null, options: Read
         KeyStoreHelper.deleteClientCertificates(P12_ALIAS)
     }
 
-    private fun applyGenericClientBuilderConfiguration() {
-        builder.followRedirects(true)
-        builder.followSslRedirects(true)
-    }
-
-    private fun applyClientBuilderConfiguration(options: ReadableMap?, cookieJar: CookieJar?) {
-        setClientHeaders(options)
-        setClientRetryInterceptor(options)
-        setClientTimeoutInterceptor(options)
-
-        builder.followRedirects(false)
-        builder.followSslRedirects(false)
-        builder.retryOnConnectionFailure(false)
-        builder.addInterceptor(RuntimeInterceptor(this, "retry"))
-        builder.addInterceptor(RuntimeInterceptor(this, "timeout"))
-
-        val bearerTokenInterceptor = getBearerTokenInterceptor(options)
-        if (bearerTokenInterceptor != null) {
-            builder.addInterceptor(bearerTokenInterceptor)
-        }
-
-        val handshakeCertificates = buildHandshakeCertificates(options)
-        if (handshakeCertificates != null) {
-            builder.sslSocketFactory(
-                    handshakeCertificates.sslSocketFactory(),
-                    handshakeCertificates.trustManager
-            )
-        }
-
-        if (cookieJar != null) {
-            builder.cookieJar(cookieJar)
-        }
-
-        if (options != null && options.hasKey("sessionConfiguration")) {
-            val config = options.getMap("sessionConfiguration")!!
-
-            if (config.hasKey("httpMaximumConnectionsPerHost")) {
-                val maxConnections = config.getInt("httpMaximumConnectionsPerHost")
-                val dispatcher = Dispatcher()
-                dispatcher.maxRequests = maxConnections
-                dispatcher.maxRequestsPerHost = maxConnections
-                builder.dispatcher(dispatcher)
-            }
-
-            if (config.hasKey("enableCompression")) {
-                builder.minWebSocketMessageToCompress(0)
-            }
-        }
-    }
-
     private fun buildRequest(method: String, endpoint: String, headers: ReadableMap?, body: RequestBody?): Request {
         return Request.Builder()
                 .url(composeEndpointUrl(endpoint))
                 .applyHeaders(clientHeaders)
                 .applyHeaders(headers)
-                .method(method.toUpperCase(Locale.ENGLISH), body)
+                .method(method.uppercase(Locale.ENGLISH), body)
                 .build()
     }
 
@@ -335,20 +319,20 @@ internal class NetworkClient(private val baseUrl: HttpUrl? = null, options: Read
             return endpoint
         }
 
-        var subpath = if (baseUrl.pathSegments.size > 0) baseUrl.pathSegments.joinToString("/") else ""
+        val pathname = if (baseUrl.pathSegments.isNotEmpty()) baseUrl.pathSegments.joinToString("/") else ""
 
         return baseUrl
-                .newBuilder(subpath + endpoint)?.build()
+                .newBuilder(pathname + endpoint)?.build()
                 .toString()
     }
 
-    private fun setClientHeaders(options: ReadableMap?) {
+    internal fun setClientHeaders(options: ReadableMap?) {
         if (options != null && options.hasKey(("headers"))) {
             addClientHeaders(options.getMap("headers"))
         }
     }
 
-    private fun getBearerTokenInterceptor(options: ReadableMap?): BearerTokenInterceptor? {
+    internal fun getBearerTokenInterceptor(options: ReadableMap?): BearerTokenInterceptor? {
         if (options != null && options.hasKey("requestAdapterConfiguration")) {
             val requestAdapterConfiguration = options.getMap("requestAdapterConfiguration")!!
             if (requestAdapterConfiguration.hasKey("bearerAuthTokenResponseHeader")) {
@@ -360,7 +344,7 @@ internal class NetworkClient(private val baseUrl: HttpUrl? = null, options: Read
         return null
     }
 
-    private fun buildHandshakeCertificates(options: ReadableMap?): HandshakeCertificates? {
+    internal fun buildHandshakeCertificates(options: ReadableMap?): HandshakeCertificates? {
         if (options != null) {
             // `trustSelfSignedServerCertificate` can be in `options.sessionConfiguration` for
             // an APIClient or just in `options` for a WebSocketClient
@@ -436,11 +420,11 @@ internal class NetworkClient(private val baseUrl: HttpUrl? = null, options: Read
         KeyStoreHelper.importClientCertificateFromP12(realPath, password, P12_ALIAS)
     }
 
-    private fun setClientRetryInterceptor(options: ReadableMap?) {
+    internal fun setClientRetryInterceptor(options: ReadableMap?) {
         clientRetryInterceptor = createRetryInterceptor(options)
     }
 
-    private fun setClientTimeoutInterceptor(options: ReadableMap?) {
+    internal fun setClientTimeoutInterceptor(options: ReadableMap?) {
         var readTimeout = TimeoutInterceptor.defaultReadTimeout
         var writeTimeout = TimeoutInterceptor.defaultWriteTimeout
 
@@ -477,11 +461,11 @@ internal class NetworkClient(private val baseUrl: HttpUrl? = null, options: Read
 
         var retryMethods = RetryInterceptor.defaultRetryMethods
         if (request != null) {
-            retryMethods = setOf(request.method.toUpperCase(Locale.ENGLISH))
+            retryMethods = setOf(request.method.uppercase(Locale.ENGLISH))
         } else if (retryConfig.hasKey("retryMethods")) {
             retryMethods = retryConfig.getArray("retryMethods")!!
                     .toArrayList()
-                    .map { (it as String).toUpperCase(Locale.ENGLISH) }
+                    .map { (it as String).uppercase(Locale.ENGLISH) }
                     .toSet()
         }
 

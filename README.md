@@ -118,6 +118,31 @@ implementation "com.squareup.okhttp3:okhttp:4.9.2"
 implementation "com.squareup.okhttp3:okhttp-urlconnection:4.9.2"
 ```
 
+### Enable Flipper on Android
+
+```diff
+--- a/android/app/src/debug/java/com/RNDiff/flipper/ReactNativeFlipper.java
++++ b/android/app/src/debug/java/com/RNDiff/flipper/ReactNativeFlipper.java
+@@ -22,6 +22,8 @@ import com.facebook.react.ReactInstanceEventListener;
+ import com.facebook.react.ReactInstanceManager;
+ import com.facebook.react.bridge.ReactContext;
+ import com.facebook.react.modules.network.NetworkingModule;
++import com.mattermost.networkclient.RCTOkHttpClientFactory;
++
+ import okhttp3.OkHttpClient;
+ 
+ /**
+@@ -37,6 +39,8 @@ public class ReactNativeFlipper {
+       client.addPlugin(new SharedPreferencesFlipperPlugin(context));
+       client.addPlugin(CrashReporterPlugin.getInstance());
+       NetworkFlipperPlugin networkFlipperPlugin = new NetworkFlipperPlugin();
++      RCTOkHttpClientFactory.Companion.setFlipperPlugin(networkFlipperPlugin);
++
+       NetworkingModule.setCustomClientBuilder(
+           new NetworkingModule.CustomClientBuilder() {
+             @Override
+```
+
 ## Troubleshooting
 
 If you hit the following iOS build error:

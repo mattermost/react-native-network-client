@@ -22,6 +22,8 @@ import com.facebook.react.ReactInstanceEventListener;
 import com.facebook.react.ReactInstanceManager;
 import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.modules.network.NetworkingModule;
+import com.mattermost.networkclient.RCTOkHttpClientFactory;
+
 import okhttp3.OkHttpClient;
 
 /**
@@ -37,6 +39,7 @@ public class ReactNativeFlipper {
       client.addPlugin(new SharedPreferencesFlipperPlugin(context));
       client.addPlugin(CrashReporterPlugin.getInstance());
       NetworkFlipperPlugin networkFlipperPlugin = new NetworkFlipperPlugin();
+      RCTOkHttpClientFactory.Companion.setFlipperPlugin(networkFlipperPlugin);
       NetworkingModule.setCustomClientBuilder(
           new NetworkingModule.CustomClientBuilder() {
             @Override
