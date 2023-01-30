@@ -352,4 +352,18 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
             return promise.reject(error)
         }
     }
+
+    fun getSync(baseUrl: String, endpoint: String, options: ReadableMap?): Response {
+        return requestSync("GET", baseUrl, endpoint, options)
+    }
+
+    fun postSync(baseUrl: String, endpoint: String, options: ReadableMap?): Response {
+        return requestSync("POST", baseUrl, endpoint, options)
+    }
+
+    private fun requestSync(method: String, baseUrl: String, endpoint: String, options: ReadableMap?): Response {
+        val url = baseUrl.toHttpUrl()
+        val client = clients[url]!!
+        return client.requestSync(method, endpoint, options)
+    }
 }
