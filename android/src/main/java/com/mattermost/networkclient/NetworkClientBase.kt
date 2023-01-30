@@ -125,41 +125,8 @@ internal open class NetworkClientBase(private val baseUrl: HttpUrl? = null) {
     }
 
     fun request(method: String, endpoint: String, options: ReadableMap?, promise: Promise) {
-        var requestHeaders: ReadableMap? = null
-        var requestBody: RequestBody? = null
-
-        if (options != null) {
-            if (options.hasKey("headers")) {
-                requestHeaders = options.getMap("headers")
-            }
-            if (options.hasKey("body")) {
-                when (options.getType("body")) {
-                    ReadableType.Array -> {
-                        val jsonBody = JSONArray(options.getArray("body")!!.toArrayList())
-                        requestBody = jsonBody.toString().toRequestBody()
-                    }
-                    ReadableType.Map -> {
-                        val jsonBody = JSONObject(options.getMap("body")!!.toHashMap())
-                        requestBody = jsonBody.toString().toRequestBody()
-                    }
-                    ReadableType.String -> {
-                        requestBody = options.getString("body")!!.toRequestBody()
-                    }
-                    ReadableType.Null -> {
-                        requestBody = EMPTY_REQUEST
-                    }
-                    ReadableType.Boolean -> {
-                        requestBody = options.getBoolean("body").toString().toRequestBody()
-                    }
-                    ReadableType.Number -> {
-                        requestBody = options.getDouble("body").toString().toRequestBody()
-                    }
-                }
-            } else if (method.uppercase(Locale.ENGLISH) == "POST") {
-                requestBody = EMPTY_REQUEST
-            }
-        }
-
+        val requestHeaders = prepareRequestHeaders(options)
+        val requestBody = prepareRequestBody(method, options)
         val request = buildRequest(method, endpoint, requestHeaders, requestBody)
 
         val timeoutInterceptor = createRequestTimeoutInterceptor(options)
@@ -183,6 +150,24 @@ internal open class NetworkClientBase(private val baseUrl: HttpUrl? = null) {
                 cleanUpAfter(response)
             }
         })
+    }
+
+    fun requestSync(method: String, endpoint: String, options: ReadableMap?): Response {
+        val requestHeaders = prepareRequestHeaders(options)
+        val requestBody = prepareRequestBody(method, options)
+        val request = buildRequest(method, endpoint, requestHeaders, requestBody)
+
+        val timeoutInterceptor = createRequestTimeoutInterceptor(options)
+        if (timeoutInterceptor != null) {
+            requestTimeoutInterceptors[request] = timeoutInterceptor
+        }
+
+        val retryInterceptor = createRetryInterceptor(options, request)
+        if (retryInterceptor != null) {
+            requestRetryInterceptors[request] = retryInterceptor
+        }
+
+        return okHttpClient.newCall(request).execute();
     }
 
     fun adaptRCTRequest(request: Request): Call {
@@ -283,6 +268,52 @@ internal open class NetworkClientBase(private val baseUrl: HttpUrl? = null) {
         APIClientModule.deleteValue(TOKEN_ALIAS)
         APIClientModule.deleteValue(P12_ALIAS)
         KeyStoreHelper.deleteClientCertificates(P12_ALIAS)
+    }
+
+    private fun prepareRequestHeaders(options: ReadableMap?): ReadableMap? {
+        var requestHeaders: ReadableMap? = null
+
+        if (options != null) {
+            if (options.hasKey("headers")) {
+                requestHeaders = options.getMap("headers")
+            }
+        }
+
+        return requestHeaders
+    }
+    private fun prepareRequestBody(method: String, options: ReadableMap?): RequestBody? {
+        var requestBody: RequestBody? = null
+
+        if (options != null) {
+            if (options.hasKey("body")) {
+                when (options.getType("body")) {
+                    ReadableType.Array -> {
+                        val jsonBody = JSONArray(options.getArray("body")!!.toArrayList())
+                        requestBody = jsonBody.toString().toRequestBody()
+                    }
+                    ReadableType.Map -> {
+                        val jsonBody = JSONObject(options.getMap("body")!!.toHashMap())
+                        requestBody = jsonBody.toString().toRequestBody()
+                    }
+                    ReadableType.String -> {
+                        requestBody = options.getString("body")!!.toRequestBody()
+                    }
+                    ReadableType.Null -> {
+                        requestBody = EMPTY_REQUEST
+                    }
+                    ReadableType.Boolean -> {
+                        requestBody = options.getBoolean("body").toString().toRequestBody()
+                    }
+                    ReadableType.Number -> {
+                        requestBody = options.getDouble("body").toString().toRequestBody()
+                    }
+                }
+            } else if (method.uppercase(Locale.ENGLISH) == "POST") {
+                requestBody = EMPTY_REQUEST
+            }
+        }
+
+        return requestBody
     }
 
     private fun buildRequest(method: String, endpoint: String, headers: ReadableMap?, body: RequestBody?): Request {
