@@ -53,6 +53,10 @@ internal class WebSocketClientModule(reactContext: ReactApplicationContext) : Re
             return promise.reject(error)
         }
 
+        if (clients.containsKey(wsUri)) {
+            return promise.reject("already existing client for this websocket url");
+        }
+
         try {
             clients[wsUri] = NetworkClient(wsUri, baseUrl, options)
             promise.resolve(null)
