@@ -75,6 +75,11 @@ class WebSocketClient: RCTEventEmitter, WebSocketDelegate {
             return
         }
 
+        guard WebSocketManager.default.getWebSocket(for: url) == nil else {
+            rejectAlreadyExisting(withRejecter: reject);
+            return
+        }
+
         do {
             try resolve(WebSocketManager.default.createWebSocket(for: url, withOptions: options, withDelegate: self))
         } catch {
@@ -154,6 +159,12 @@ class WebSocketClient: RCTEventEmitter, WebSocketDelegate {
         reject("\(error.code)", message, error)
     }
     
+    func rejectAlreadyExisting(withRejecter: reject: RCTPromiseRejectBlock) -> Void {
+        let message = "already existing client for this websocket url"
+        let error = NSError(domain: NSCocoaErrorDomain, code: NSKeyValueValidationError, userInfo: [NSLocalizedDescriptionKey: message])
+        reject("\(error.code)", message, error)
+    }
+
     @objc(errorHandler:)
     func errorHandler(notification: Notification) {
         self.sendErrorEvent(for: notification.userInfo!["url"] as! String,
