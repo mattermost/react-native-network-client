@@ -159,7 +159,7 @@ class WebSocketClient: RCTEventEmitter, WebSocketDelegate {
         reject("\(error.code)", message, error)
     }
     
-    func rejectAlreadyExisting(withRejecter: reject: RCTPromiseRejectBlock) -> Void {
+    func rejectAlreadyExisting(withRejecter reject: RCTPromiseRejectBlock) -> Void {
         let message = "already existing client for this websocket url"
         let error = NSError(domain: NSCocoaErrorDomain, code: NSKeyValueValidationError, userInfo: [NSLocalizedDescriptionKey: message])
         reject("\(error.code)", message, error)
