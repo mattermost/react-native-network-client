@@ -68,6 +68,24 @@ class WebSocketClient: RCTEventEmitter, WebSocketDelegate {
         WebSocketManager.default.disconnectAll()
     }
 
+    override func invalidate() {
+        WebSocketManager.default.invalidateContext()
+    }
+
+    @objc(ensureClientFor:withOptions:withResolver:withRejecter:)
+    func ensureClientFor(urlString: String, options: Dictionary<String, Any> = [:], resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
+        guard let url = URL(string: urlString) else {
+            rejectMalformed(url: urlString, withRejecter: reject)
+            return
+        }
+
+        if WebSocketManager.default.getWebSocket(for: url) != nil {
+            WebSocketManager.default.invalidateClient(for: url)
+        }
+
+        createClientFor(urlString: urlString, options: options, resolve: resolve, reject: reject)
+    }
+
     @objc(createClientFor:withOptions:withResolver:withRejecter:)
     func createClientFor(urlString: String, options: Dictionary<String, Any> = [:], resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
         guard let url = URL(string: urlString) else {

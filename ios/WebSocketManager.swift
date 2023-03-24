@@ -103,4 +103,9 @@ class WebSocketManager: NSObject {
         webSocket.delegate = nil
         webSockets.removeValue(forKey: url)
     }
+
+    func invalidateContext() -> Void {
+        disconnectAll()
+        webSockets.removeAll()
+    }
 }
