@@ -19,6 +19,7 @@ const Emitter = new NativeEventEmitter(NativeWebSocketClient);
 const { EVENTS, READY_STATE } = NativeWebSocketClient.getConstants();
 
 const CLIENTS: { [key: string]: WebSocketClient } = {};
+const CREATING_CLIENT: { [key: string]: boolean } = {};
 
 /**
  * Configurable WebSocket client
@@ -154,13 +155,18 @@ async function getOrCreateWebSocketClient(
     let created = false;
     let client = CLIENTS[url];
     if (!client) {
+        if (CREATING_CLIENT[url]) {
+            throw new Error(`Already creating a client for url "${url}"`)
+        }
+        CREATING_CLIENT[url] = true;
         created = true;
         client = new WebSocketClient(url);
         if (clientErrorEventHandler) {
             client.onClientError(clientErrorEventHandler);
         }
-        await NativeWebSocketClient.createClientFor(url, config);
+        await NativeWebSocketClient.ensureClientFor(url, config);
         CLIENTS[url] = client;
+        delete CREATING_CLIENT[url];
     }
 
     return { client, created };

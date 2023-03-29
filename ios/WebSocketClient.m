@@ -14,6 +14,8 @@
 
 RCT_EXTERN_METHOD(supportedEvents)
 
+RCT_EXTERN_METHOD(ensureClientFor:(NSString *)url withOptions:(NSDictionary *)options withResolver:(RCTPromiseResolveBlock)resolve withRejecter:(RCTPromiseRejectBlock)reject)
+
 RCT_EXTERN_METHOD(createClientFor:(NSString *)url withOptions:(NSDictionary *)options withResolver:(RCTPromiseResolveBlock)resolve withRejecter:(RCTPromiseRejectBlock)reject)
 
 RCT_EXTERN_METHOD(connectFor:(NSString *)url withResolver:(RCTPromiseResolveBlock)resolve withRejecter:(RCTPromiseRejectBlock)reject)

@@ -43,6 +43,25 @@ internal class WebSocketClientModule(reactContext: ReactApplicationContext) : Re
     }
 
     @ReactMethod
+    fun ensureClientFor(wsUrl: String, options: ReadableMap, promise: Promise) {
+        var wsUri: URI
+        var baseUrl: HttpUrl
+        try {
+            wsUri = URI(wsUrl)
+            baseUrl = httpUrlFromURI(wsUri)
+        } catch (error: IllegalArgumentException) {
+            return promise.reject(error)
+        }
+
+        if (clients.containsKey(wsUri)) {
+            clients[wsUri]!!.webSocket?.close(1000, null)
+            clients.remove(wsUri);
+        }
+
+        createClientFor(wsUrl, options, promise);
+    }
+
+    @ReactMethod
     fun createClientFor(wsUrl: String, options: ReadableMap, promise: Promise) {
         var wsUri: URI
         var baseUrl: HttpUrl
