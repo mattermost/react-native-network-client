@@ -156,7 +156,7 @@ async function getOrCreateWebSocketClient(
     let client = CLIENTS[url];
     if (!client) {
         if (CREATING_CLIENT[url]) {
-            throw new Error(`Already creating a client for url "${url}"`)
+            throw new Error(`Already creating a client for url "${url}"`);
         }
         CREATING_CLIENT[url] = true;
         created = true;
