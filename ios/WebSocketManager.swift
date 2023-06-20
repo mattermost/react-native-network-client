@@ -30,7 +30,7 @@ class WebSocketManager: NSObject {
         var request = URLRequest(url: url)
         var compressionHandler: CompressionHandler? = nil
         var clientCredential: URLCredential? = nil
-        var certPinner: FoundationSecurity? = nil
+        var certPinner = FoundationSecurity()
 
         let options = JSON(options)
         if options != JSON.null {
