@@ -5,11 +5,14 @@ import type { RetryTypes } from "./NativeAPIClient";
 
 export interface ProgressPromise<T> extends Promise<T> {
     progress?: (
-        callback: (fractionCompleted: number, bytesRead?: number | null) => void
+        callback: (
+            fractionCompleted: number,
+            bytesRead?: number | null,
+        ) => void,
     ) => ProgressPromise<T>;
     onProgress?: (
         fractionCompleted: number,
-        bytesRead: number | null | undefined
+        bytesRead: number | null | undefined,
     ) => void;
     cancel?: () => void;
 }
@@ -80,12 +83,12 @@ export interface APIClientInterface {
     upload(
         endpoint: string,
         fileUrl: string,
-        options?: UploadRequestOptions
+        options?: UploadRequestOptions,
     ): ProgressPromise<ClientResponse>;
     download(
         endpoint: string,
         filePath: string,
-        options?: RequestOptions
+        options?: RequestOptions,
     ): ProgressPromise<ClientResponse>;
 
     getHeaders(): Promise<ClientHeaders>;

@@ -31,52 +31,52 @@ export interface NativeAPIClient extends NativeModule {
     head(
         baseUrl: string,
         endpoint: string | null,
-        options?: RequestOptions
+        options?: RequestOptions,
     ): Promise<ClientResponse>;
     get(
         baseUrl: string,
         endpoint: string | null,
-        options?: RequestOptions
+        options?: RequestOptions,
     ): Promise<ClientResponse>;
     put(
         baseUrl: string,
         endpoint: string | null,
-        options?: RequestOptions
+        options?: RequestOptions,
     ): Promise<ClientResponse>;
     post(
         baseUrl: string,
         endpoint: string | null,
-        options?: RequestOptions
+        options?: RequestOptions,
     ): Promise<ClientResponse>;
     patch(
         baseUrl: string,
         endpoint: string | null,
-        options?: RequestOptions
+        options?: RequestOptions,
     ): Promise<ClientResponse>;
     delete(
         baseUrl: string,
         endpoint: string | null,
-        options?: RequestOptions
+        options?: RequestOptions,
     ): Promise<ClientResponse>;
     upload(
         baseUrl: string,
         endpoint: string | null,
         fileUrl: string,
         taskId: string,
-        options?: UploadRequestOptions
+        options?: UploadRequestOptions,
     ): Promise<ClientResponse>;
     download(
         baseUrl: string,
         endpoint: string | null,
         filePath: string,
         taskId: string,
-        options?: RequestOptions
+        options?: RequestOptions,
     ): Promise<ClientResponse>;
     cancelRequest(taskId: string): void;
 
     createClientFor(
         baseUrl: string,
-        config?: APIClientConfiguration
+        config?: APIClientConfiguration,
     ): Promise<void>;
 
     getClientHeadersFor(baseUrl: string): Promise<ClientHeaders>;
@@ -84,7 +84,7 @@ export interface NativeAPIClient extends NativeModule {
     importClientP12For(
         baseUrl: string,
         path: string,
-        password?: string
+        password?: string,
     ): Promise<void>;
     invalidateClientFor(baseUrl: string): Promise<void>;
 }

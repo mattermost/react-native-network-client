@@ -35,14 +35,14 @@ class GenericClient implements GenericClientInterface {
     };
     patch = (
         url: string,
-        options?: RequestOptions
+        options?: RequestOptions,
     ): Promise<ClientResponse> => {
         validateRequestOptions(options);
         return NativeGenericClient.patch(url, options);
     };
     delete = (
         url: string,
-        options?: RequestOptions
+        options?: RequestOptions,
     ): Promise<ClientResponse> => {
         validateRequestOptions(options);
         return NativeGenericClient.delete(url, options);

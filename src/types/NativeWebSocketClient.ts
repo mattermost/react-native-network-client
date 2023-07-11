@@ -28,11 +28,11 @@ export interface NativeWebSocketClient {
     getConstants(): WebSocketConstants;
     ensureClientFor(
         url: string,
-        config?: WebSocketClientConfiguration
+        config?: WebSocketClientConfiguration,
     ): Promise<void>;
     createClientFor(
         url: string,
-        config?: WebSocketClientConfiguration
+        config?: WebSocketClientConfiguration,
     ): Promise<void>;
     connectFor(url: string): Promise<void>;
     disconnectFor(url: string): Promise<void>;

@@ -43,7 +43,7 @@ class WebSocketClient implements WebSocketClientInterface {
                 if (event.url === this.url) {
                     this.readyState = event.message as WebSocketReadyState;
                 }
-            }
+            },
         );
     }
 
@@ -65,7 +65,7 @@ class WebSocketClient implements WebSocketClientInterface {
                 if (event.url === this.url && callback) {
                     callback(event);
                 }
-            }
+            },
         );
     };
 
@@ -80,7 +80,7 @@ class WebSocketClient implements WebSocketClientInterface {
                 if (event.url === this.url && callback) {
                     callback(event);
                 }
-            }
+            },
         );
     };
 
@@ -95,7 +95,7 @@ class WebSocketClient implements WebSocketClientInterface {
                 if (event.url === this.url && callback) {
                     callback(event);
                 }
-            }
+            },
         );
     };
 
@@ -110,7 +110,7 @@ class WebSocketClient implements WebSocketClientInterface {
                 if (event.url === this.url && callback) {
                     callback(event);
                 }
-            }
+            },
         );
     };
 
@@ -125,7 +125,7 @@ class WebSocketClient implements WebSocketClientInterface {
                 if (event.url === this.url) {
                     callback(event);
                 }
-            }
+            },
         );
     };
 
@@ -146,7 +146,7 @@ class WebSocketClient implements WebSocketClientInterface {
 async function getOrCreateWebSocketClient(
     url: string,
     config: WebSocketClientConfiguration = {},
-    clientErrorEventHandler?: WebSocketClientErrorEventHandler
+    clientErrorEventHandler?: WebSocketClientErrorEventHandler,
 ): Promise<{ client: WebSocketClient; created: boolean }> {
     if (!isValidWebSocketURL(url)) {
         throw new Error(`"${url}" is not a valid WebSocket URL`);

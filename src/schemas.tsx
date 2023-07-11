@@ -72,7 +72,7 @@ const UploadRequestOptionsSchema = RequestOptionsSchema.extend({
 });
 
 export const validateAPIClientConfiguration = (
-    config: APIClientConfiguration
+    config: APIClientConfiguration,
 ) => {
     const result = APIClientConfigurationSchema.safeParse(config);
     if (!result.success) {
@@ -90,7 +90,7 @@ export const validateRequestOptions = (options?: RequestOptions) => {
 };
 
 export const validateUploadRequestOptions = (
-    options?: UploadRequestOptions
+    options?: UploadRequestOptions,
 ) => {
     if (options) {
         const result = UploadRequestOptionsSchema.safeParse(options);

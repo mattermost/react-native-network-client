@@ -71,7 +71,7 @@ class APIClient implements APIClientInterface {
                 if (event.serverUrl === this.baseUrl && callback) {
                     callback(event);
                 }
-            }
+            },
         );
     };
 
@@ -97,42 +97,42 @@ class APIClient implements APIClientInterface {
 
     head = (
         endpoint: string,
-        options?: RequestOptions
+        options?: RequestOptions,
     ): Promise<ClientResponse> => {
         validateRequestOptions(options);
         return NativeAPIClient.head(this.baseUrl, endpoint);
     };
     get = (
         endpoint: string,
-        options?: RequestOptions
+        options?: RequestOptions,
     ): Promise<ClientResponse> => {
         validateRequestOptions(options);
         return NativeAPIClient.get(this.baseUrl, endpoint, options);
     };
     put = (
         endpoint: string,
-        options?: RequestOptions
+        options?: RequestOptions,
     ): Promise<ClientResponse> => {
         validateRequestOptions(options);
         return NativeAPIClient.put(this.baseUrl, endpoint, options);
     };
     post = (
         endpoint: string,
-        options?: RequestOptions
+        options?: RequestOptions,
     ): Promise<ClientResponse> => {
         validateRequestOptions(options);
         return NativeAPIClient.post(this.baseUrl, endpoint, options);
     };
     patch = (
         endpoint: string,
-        options?: RequestOptions
+        options?: RequestOptions,
     ): Promise<ClientResponse> => {
         validateRequestOptions(options);
         return NativeAPIClient.patch(this.baseUrl, endpoint, options);
     };
     delete = (
         endpoint: string,
-        options?: RequestOptions
+        options?: RequestOptions,
     ): Promise<ClientResponse> => {
         validateRequestOptions(options);
         return NativeAPIClient.delete(this.baseUrl, endpoint, options);
@@ -140,7 +140,7 @@ class APIClient implements APIClientInterface {
     upload = (
         endpoint: string,
         fileUrl: string,
-        options?: UploadRequestOptions
+        options?: UploadRequestOptions,
     ): ProgressPromise<ClientResponse> => {
         validateUploadRequestOptions(options);
         const taskId = generateTaskId();
@@ -152,10 +152,10 @@ class APIClient implements APIClientInterface {
                         if (e.taskId === taskId && promise.onProgress) {
                             promise.onProgress(
                                 e.fractionCompleted,
-                                e.bytesRead
+                                e.bytesRead,
                             );
                         }
-                    }
+                    },
                 );
 
                 NativeAPIClient.upload(
@@ -163,7 +163,7 @@ class APIClient implements APIClientInterface {
                     endpoint,
                     fileUrl,
                     taskId,
-                    options
+                    options,
                 )
                     .then((response) => resolve(response))
                     .catch((error) => reject(error))
@@ -171,7 +171,7 @@ class APIClient implements APIClientInterface {
                         uploadSubscription.remove();
                         delete promise.progress;
                     });
-            }
+            },
         );
 
         promise.progress = (fn) => {
@@ -186,7 +186,7 @@ class APIClient implements APIClientInterface {
     download = (
         endpoint: string,
         filePath: string,
-        options?: RequestOptions
+        options?: RequestOptions,
     ): ProgressPromise<ClientResponse> => {
         validateRequestOptions(options);
         const taskId = generateTaskId();
@@ -198,10 +198,10 @@ class APIClient implements APIClientInterface {
                         if (e.taskId === taskId && promise.onProgress) {
                             promise.onProgress(
                                 e.fractionCompleted,
-                                e.bytesRead
+                                e.bytesRead,
                             );
                         }
-                    }
+                    },
                 );
 
                 NativeAPIClient.download(
@@ -209,7 +209,7 @@ class APIClient implements APIClientInterface {
                     endpoint,
                     filePath,
                     taskId,
-                    options
+                    options,
                 )
                     .then((response) => resolve(response))
                     .catch((error) => reject(error))
@@ -217,7 +217,7 @@ class APIClient implements APIClientInterface {
                         downloadSubscription.remove();
                         delete promise.progress;
                     });
-            }
+            },
         );
 
         promise.progress = (fn) => {
@@ -234,7 +234,7 @@ class APIClient implements APIClientInterface {
 async function getOrCreateAPIClient(
     baseUrl: string,
     config: APIClientConfiguration = {},
-    clientErrorEventHandler?: APIClientErrorEventHandler
+    clientErrorEventHandler?: APIClientErrorEventHandler,
 ): Promise<{ client: APIClient; created: boolean }> {
     if (!isValidBaseURL(baseUrl)) {
         throw new Error(`"${baseUrl}" is not a valid API base URL`);

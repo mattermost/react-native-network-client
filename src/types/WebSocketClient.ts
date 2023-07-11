@@ -25,7 +25,7 @@ export type WebSocketEvent = {
 export type WebSocketEventHandler = (event: WebSocketEvent) => void;
 
 export type WebSocketClientErrorEventHandler = (
-    event: WebSocketClientErrorEvent
+    event: WebSocketClientErrorEvent,
 ) => void;
 
 export interface WebSocketClientInterface {
