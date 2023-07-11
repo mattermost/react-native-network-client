@@ -37,8 +37,6 @@ const DEFAULT_API_CLIENT_CONFIG: APIClientConfiguration = {
     sessionConfiguration: {
         allowsCellularAccess: true,
         waitsForConnectivity: false,
-        timeoutIntervalForRequest: 30,
-        timeoutIntervalForResource: 30,
         httpMaximumConnectionsPerHost: 10,
         cancelRequestsOnUnauthorized: false,
     },

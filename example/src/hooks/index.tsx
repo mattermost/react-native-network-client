@@ -28,8 +28,6 @@ export const useSessionConfiguration = (): UseSessionConfigurationResponse => {
     ] = useState<SessionConfiguration>({
         allowsCellularAccess: true,
         waitsForConnectivity: false,
-        timeoutIntervalForRequest: 30000,
-        timeoutIntervalForResource: 30000,
         httpMaximumConnectionsPerHost: 10,
         cancelRequestsOnUnauthorized: false,
         trustSelfSignedServerCertificate: false,

@@ -91,7 +91,7 @@ internal open class NetworkClientBase(private val baseUrl: HttpUrl? = null) {
             if (config.hasKey("httpMaximumConnectionsPerHost")) {
                 val maxConnections = config.getInt("httpMaximumConnectionsPerHost")
                 val dispatcher = Dispatcher()
-                dispatcher.maxRequests = maxConnections
+                dispatcher.maxRequests = maxConnections * 13
                 dispatcher.maxRequestsPerHost = maxConnections
                 builder.dispatcher(dispatcher)
             }
