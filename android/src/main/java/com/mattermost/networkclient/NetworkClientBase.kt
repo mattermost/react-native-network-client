@@ -221,6 +221,11 @@ internal open class NetworkClientBase(private val baseUrl: HttpUrl? = null) {
 
         val request = buildRequest(method, endpoint, requestHeaders, requestBody)
 
+        val timeoutInterceptor = createRequestTimeoutInterceptor(options)
+        if (timeoutInterceptor != null) {
+            requestTimeoutInterceptors[request] = timeoutInterceptor
+        }
+
         return okHttpClient.newCall(request)
     }
 
