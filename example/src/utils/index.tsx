@@ -78,8 +78,6 @@ const buildDefaultApiClientConfiguration = (
     const sessionConfiguration = {
         allowsCellularAccess: true,
         waitsForConnectivity: false,
-        timeoutIntervalForRequest: 60000,
-        timeoutIntervalForResource: 604800000, // 7 days
         httpMaximumConnectionsPerHost: 10,
         cancelRequestsOnUnauthorized: true,
     };
