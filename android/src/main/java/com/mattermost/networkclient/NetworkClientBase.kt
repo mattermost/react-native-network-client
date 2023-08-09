@@ -464,6 +464,7 @@ internal open class NetworkClientBase(private val baseUrl: HttpUrl? = null) {
         var readTimeout = TimeoutInterceptor.defaultReadTimeout
         var writeTimeout = TimeoutInterceptor.defaultWriteTimeout
 
+        val config = options.getMap("sessionConfiguration")!!
         if (config.hasKey("timeoutIntervalForRequest")) {
                 try {
                     config.getDouble("timeoutIntervalForRequest").toInt().also { readTimeout = it }
