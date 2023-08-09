@@ -464,15 +464,20 @@ internal open class NetworkClientBase(private val baseUrl: HttpUrl? = null) {
         var readTimeout = TimeoutInterceptor.defaultReadTimeout
         var writeTimeout = TimeoutInterceptor.defaultWriteTimeout
 
-        if (options != null && options.hasKey("sessionConfiguration")) {
-            val config = options.getMap("sessionConfiguration")!!
-            if (config.hasKey("timeoutIntervalForRequest")) {
-                readTimeout = config.getDouble("timeoutIntervalForRequest").toInt()
+        if (config.hasKey("timeoutIntervalForRequest")) {
+                try {
+                    config.getDouble("timeoutIntervalForRequest").toInt().also { readTimeout = it }
+                } catch (e: Exception) {
+                    readTimeout = 0
+                }
             }
             if (config.hasKey("timeoutIntervalForRequest")) {
-                writeTimeout = config.getDouble("timeoutIntervalForResource").toInt()
+                try {
+                    config.getDouble("timeoutIntervalForResource").toInt().also { writeTimeout = it }
+                } catch (e: Exception) {
+                    writeTimeout = 0
+                }
             }
-        }
 
         clientTimeoutInterceptor = TimeoutInterceptor(readTimeout, writeTimeout)
     }
