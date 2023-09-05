@@ -13,12 +13,14 @@ import React
 
 enum APIClientError: Error {
     case ClientCertificateMissing
+    case ServerCertificateInvalid
 }
 
 extension APIClientError: LocalizedError {
     var errorCode: Int {
         switch self {
         case .ClientCertificateMissing: return -200
+        case .ServerCertificateInvalid: return -299
         }
     }
     
@@ -26,6 +28,8 @@ extension APIClientError: LocalizedError {
         switch self {
         case .ClientCertificateMissing:
             return "Failed to authenticate: missing client certificate"
+        case .ServerCertificateInvalid:
+            return "Invalid or not trusted server certificate"
         }
     }
 }
@@ -60,6 +64,17 @@ class APIClientSessionDelegate: SessionDelegate {
         }
 
         completionHandler(disposition, credential)
+    }
+    
+    override open func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
+        if let err = error as? NSError,
+           let urlSession = SessionManager.default.getSession(for: session),
+           err.domain == NSURLErrorDomain && err.code == NSURLErrorServerCertificateUntrusted {
+            NotificationCenter.default.post(name: Notification.Name(API_CLIENT_EVENTS["CLIENT_ERROR"]!),
+                                            object: nil,
+                                            userInfo: ["serverUrl": urlSession.baseUrl.absoluteString, "errorCode": APIClientError.ServerCertificateInvalid.errorCode, "errorDescription": err.localizedDescription])
+            super.urlSession(session, task: task, didCompleteWithError: error)
+        }
     }
 }
 

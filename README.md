@@ -99,6 +99,7 @@ For both API client and WebSocket client, the following error codes apply:
   | Code | Reason                                                   |
   | ---- | -------------------------------------------------------- |
   | -200 | SSL handshake failed due to a missing client certificate |
+  | -299 | Server SSL certificate is not trusted or invalid         |
 
 ## Method Swizzling
 

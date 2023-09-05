@@ -18,9 +18,14 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.io.IOException
 import java.net.URI
+import java.security.SecureRandom
+import java.security.cert.CertificateException
+import java.security.cert.X509Certificate
 import java.util.*
-import kotlin.collections.ArrayList
-import kotlin.collections.HashMap
+import javax.net.ssl.HttpsURLConnection
+import javax.net.ssl.SSLContext
+import javax.net.ssl.SSLSocketFactory
+import javax.net.ssl.X509TrustManager
 import kotlin.reflect.KProperty
 
 internal open class NetworkClientBase(private val baseUrl: HttpUrl? = null) {
@@ -75,9 +80,14 @@ internal open class NetworkClientBase(private val baseUrl: HttpUrl? = null) {
 
         val handshakeCertificates = buildHandshakeCertificates(options)
         if (handshakeCertificates != null) {
+            val sslContext = SSLContext.getInstance("TLS")
+            val trustManager = getTrustManager(handshakeCertificates.trustManager)
+            val trustManagers = arrayOf(trustManager)
+            sslContext.init(null, trustManagers, SecureRandom())
+
             builder.sslSocketFactory(
-                    handshakeCertificates.sslSocketFactory(),
-                    handshakeCertificates.trustManager
+                    sslContext.socketFactory,
+                    getTrustManager(handshakeCertificates.trustManager)
             )
         }
 
@@ -115,11 +125,24 @@ internal open class NetworkClientBase(private val baseUrl: HttpUrl? = null) {
 
         val handshakeCertificates = buildHandshakeCertificates()
         if (handshakeCertificates != null) {
+            val sslContext = SSLContext.getInstance("TLS")
+            val trustManager = getTrustManager(handshakeCertificates.trustManager)
+            val trustManagers = arrayOf(trustManager)
+            sslContext.init(null, trustManagers, SecureRandom())
+
             okHttpClient = okHttpClient.newBuilder()
                     .sslSocketFactory(
-                            handshakeCertificates.sslSocketFactory(),
-                            handshakeCertificates.trustManager
+                            sslContext.socketFactory,
+                            getTrustManager(handshakeCertificates.trustManager)
                     )
+                    .hostnameVerifier {hostname, session ->
+                        val hv = HttpsURLConnection.getDefaultHostnameVerifier()
+                        val result = hv.verify(hostname, session)
+                        if (!result) {
+                            emitInvalidCertificateError()
+                        }
+                        result
+                    }
                     .build()
         }
     }
@@ -380,6 +403,37 @@ internal open class NetworkClientBase(private val baseUrl: HttpUrl? = null) {
         return null
     }
 
+    internal fun getTrustManager(defaultTrustManager: X509TrustManager): X509TrustManager {
+         return object : X509TrustManager {
+            @Throws(CertificateException::class)
+            override fun checkClientTrusted(chain: Array<X509Certificate>, authType: String) {
+                defaultTrustManager.checkClientTrusted(chain, authType)
+            }
+
+            @Throws(CertificateException::class)
+            override fun checkServerTrusted(chain: Array<X509Certificate>, authType: String) {
+                try {
+                    defaultTrustManager.checkServerTrusted(chain, authType)
+                } catch (ce: CertificateException) {
+                    emitInvalidCertificateError()
+                    throw ce
+                }
+            }
+
+            override fun getAcceptedIssuers(): Array<X509Certificate> {
+                return defaultTrustManager.acceptedIssuers
+            }
+        }
+    }
+
+    internal fun emitInvalidCertificateError() {
+        val data = Arguments.createMap()
+        data.putString("serverUrl", BASE_URL_STRING)
+        data.putInt("errorCode", -299)
+        data.putString("errorDescription", "The certificate for this server is invalid.\nYou might be connecting to a server that is pretending to be “${URI(BASE_URL_STRING).host}” which could put your confidential information at risk.")
+        APIClientModule.sendJSEvent(APIClientEvents.CLIENT_ERROR.event, data)
+    }
+
     internal fun buildHandshakeCertificates(options: ReadableMap?): HandshakeCertificates? {
         if (options != null) {
             // `trustSelfSignedServerCertificate` can be in `options.sessionConfiguration` for
@@ -390,11 +444,15 @@ internal open class NetworkClientBase(private val baseUrl: HttpUrl? = null) {
                         sessionConfiguration.getBoolean("trustSelfSignedServerCertificate")) {
                     trustSelfSignedServerCertificate = true
                     builder.hostnameVerifier { _, _ -> true }
+                } else {
+                    buildHostnameVerifier()
                 }
             } else if (options.hasKey("trustSelfSignedServerCertificate") &&
                     options.getBoolean("trustSelfSignedServerCertificate")) {
                 trustSelfSignedServerCertificate = true
                 builder.hostnameVerifier { _, _ -> true }
+            } else {
+                buildHostnameVerifier()
             }
 
             if (options.hasKey("clientP12Configuration")) {
@@ -420,14 +478,22 @@ internal open class NetworkClientBase(private val baseUrl: HttpUrl? = null) {
         return buildHandshakeCertificates()
     }
 
+    private fun buildHostnameVerifier() {
+        builder.hostnameVerifier {hostname, session ->
+            val hv = HttpsURLConnection.getDefaultHostnameVerifier()
+            val result = hv.verify(hostname, session)
+            if (!result) {
+                emitInvalidCertificateError()
+            }
+            result
+        }
+    }
+
     private fun buildHandshakeCertificates(): HandshakeCertificates? {
         if (baseUrl == null)
             return null
 
         val (heldCertificate, intermediates) = KeyStoreHelper.getClientCertificates(P12_ALIAS)
-
-        if (!trustSelfSignedServerCertificate && heldCertificate == null)
-            return null
 
         val builder = HandshakeCertificates.Builder()
                 .addPlatformTrustedCertificates()
