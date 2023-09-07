@@ -73,8 +73,8 @@ class APIClientSessionDelegate: SessionDelegate {
             NotificationCenter.default.post(name: Notification.Name(API_CLIENT_EVENTS["CLIENT_ERROR"]!),
                                             object: nil,
                                             userInfo: ["serverUrl": urlSession.baseUrl.absoluteString, "errorCode": APIClientError.ServerCertificateInvalid.errorCode, "errorDescription": err.localizedDescription])
-            super.urlSession(session, task: task, didCompleteWithError: error)
         }
+        super.urlSession(session, task: task, didCompleteWithError: error)
     }
 }
 
