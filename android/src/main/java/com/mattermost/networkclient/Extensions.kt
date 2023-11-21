@@ -7,8 +7,8 @@ import okhttp3.Response
 import org.json.JSONArray
 import org.json.JSONObject
 import org.json.JSONTokener
-import java.lang.Exception
 import java.security.MessageDigest
+
 
 var Response.retriesExhausted: Boolean? by NetworkClientBase.RequestRetriesExhausted
 
@@ -99,11 +99,11 @@ fun Response.toDownloadMap(path: String): WritableMap {
  *
  * @param headers ReadableMap of headers from the App
  */
-fun Request.Builder.applyHeaders(headers: ReadableMap?): Request.Builder {
+fun Request.Builder.applyHeaders(headers: Map<String, String>?): Request.Builder {
     if (headers != null){
-        for ((k, v) in headers.toHashMap()) {
+        for ((k, v) in headers) {
             this.removeHeader(k)
-            this.addHeader(k, v as String)
+            this.addHeader(k, v)
         }
     }
 
@@ -222,4 +222,73 @@ fun JSONArray.toWritableArray(): WritableArray {
         }
     }
     return array
+}
+
+fun Array<Any?>.toWritableArray(): WritableArray? {
+    val writableArray = Arguments.createArray()
+    for (value in this) {
+        if (value == null) {
+            writableArray.pushNull()
+        } else if (value is Boolean) {
+            writableArray.pushBoolean((value as Boolean?)!!)
+        } else if (value is Double) {
+            writableArray.pushDouble((value as Double?)!!)
+        } else if (value is Int) {
+            writableArray.pushInt((value as Int?)!!)
+        } else if (value is String) {
+            writableArray.pushString(value as String?)
+        } else if (value is Map<*, *>) {
+            writableArray.pushMap((value as Map<String?, Any?>?)?.toWritableMap())
+        } else if (value is ReadableMap) {
+            writableArray.pushMap(value as ReadableMap?)
+        } else if (value.javaClass.isArray) {
+            writableArray.pushArray((value as Array<Any?>?)?.toWritableArray())
+        }
+    }
+    return writableArray
+}
+
+fun Map<String?, Any?>.toWritableMap(): WritableMap? {
+    val writableMap = Arguments.createMap()
+    val iterator = this.iterator()
+    for ((key, value) in this) {
+        if (value == null) {
+            writableMap.putNull(key!!)
+        } else if (value is Boolean) {
+            writableMap.putBoolean(key!!, (value as Boolean?)!!)
+        } else if (value is Double) {
+            writableMap.putDouble(key!!, (value as Double?)!!)
+        } else if (value is Int) {
+            writableMap.putInt(key!!, (value as Int?)!!)
+        } else if (value is String) {
+            writableMap.putString(key!!, value as String?)
+        } else if (value is Map<*, *>) writableMap.putMap(key!!, (value as Map<String?, Any?>?)?.toWritableMap()) else if (value.javaClass.isArray) {
+            writableMap.putArray(key!!, (value as Array<Any?>?)?.toWritableArray())
+        }
+    }
+    return writableMap
+}
+
+fun ReadableMap.toWritableMap(): WritableMap {
+    val writableMap = Arguments.createMap()
+    val iterator = toHashMap().iterator()
+    while (iterator.hasNext()) {
+        val (key, value) = iterator.next()
+        if (value == null) {
+            writableMap.putNull(key)
+        } else if (value is Boolean) {
+            writableMap.putBoolean(key, (value as Boolean)!!)
+        } else if (value is Double) {
+            writableMap.putDouble(key, (value as Double)!!)
+        } else if (value is Int) {
+            writableMap.putInt(key, (value as Int)!!)
+        } else if (value is String) {
+            writableMap.putString(key, value as String)
+        } else if (value is Map<*, *>) writableMap.putMap(key, (value as Map<String?, Any?>)?.toWritableMap()) else if (value.javaClass.isArray) {
+            writableMap.putArray(key, (value as Array<Any?>)?.toWritableArray())
+        }
+        iterator.remove()
+    }
+
+    return writableMap
 }

@@ -4,7 +4,7 @@
 import React from "react";
 import { Alert, Platform } from "react-native";
 import DeviceInfo from "react-native-device-info";
-import RFNS, { StatResult } from "react-native-fs";
+import RFNS, { type StatResult } from "react-native-fs";
 import { sampleImageContent } from "./files/SampleImage";
 import { sampleTextContent } from "./files/SampleText";
 
@@ -150,7 +150,7 @@ const createAPIClient = async (
 
 const createMattermostAPIClient = async (): Promise<APIClientItem | null> => {
     const name = "Mattermost API";
-    const baseUrl = "http://192.168.0.14:8065";
+    const baseUrl = "http://192.168.0.32:8065";
     const userAgent = await DeviceInfo.getUserAgent();
     const headers = {
         "X-Requested-With": "XMLHttpRequest",
@@ -193,10 +193,7 @@ const createFileDownloadServerAPIClient = async (): Promise<APIClientItem | null
 
 const createSecureFileDownloadServerAPIClient = async (): Promise<APIClientItem | null> => {
     const name = "Secure File Download Server API";
-    const baseUrl =
-        Platform.OS === "ios"
-            ? "https://127.0.0.1:9009"
-            : "https://10.0.2.2:9009";
+    const baseUrl = "http://192.168.0.32:8008";
     const headers = {
         "header-1-key": "header-1-value",
         "header-2-key": "header-2-value",
@@ -213,10 +210,7 @@ const createSecureFileDownloadServerAPIClient = async (): Promise<APIClientItem 
 
 const createFileUploadServerAPIClient = async (): Promise<APIClientItem | null> => {
     const name = "File Upload Server API";
-    const baseUrl =
-        Platform.OS === "ios"
-            ? "http://127.0.0.1:8008"
-            : "http://10.0.2.2:8008";
+    const baseUrl = "http://192.168.0.32:8008";
     const headers = {
         "header-1-key": "header-1-value",
         "header-2-key": "header-2-value",
@@ -344,7 +338,7 @@ const createWebSocketClient = async (
 
 const createMattermostWebSocketClient = async (): Promise<WebSocketClientItem | null> => {
     const name = "Mattermost WebSocket";
-    const host = Platform.OS === "ios" ? "192.168.0.14:8065" : "10.0.2.2:8065";
+    const host = "192.168.0.32:8065";
     const url = `ws://${host}/api/v4/websocket`;
     const origin = `https://${host}`;
     const configuration: WebSocketClientConfiguration = {

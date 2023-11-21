@@ -71,8 +71,8 @@ const RetryPolicyConfiguration = (props: RetryPolicyConfigurationProps) => {
                 checked={linearRetryChecked}
                 onPress={onLinearPress}
                 iconType="ionicon"
-                checkedIcon="ios-checkmark-circle"
-                uncheckedIcon="ios-checkmark-circle"
+                checkedIcon="checkmark-circle"
+                uncheckedIcon="checkmark-circle"
                 iconRight
                 containerStyle={{
                     padding: 0,
@@ -85,8 +85,8 @@ const RetryPolicyConfiguration = (props: RetryPolicyConfigurationProps) => {
                 checked={exponentialRetryChecked}
                 onPress={onExponentialPress}
                 iconType="ionicon"
-                checkedIcon="ios-checkmark-circle"
-                uncheckedIcon="ios-checkmark-circle"
+                checkedIcon="checkmark-circle"
+                uncheckedIcon="checkmark-circle"
                 iconRight
                 containerStyle={{
                     padding: 0,

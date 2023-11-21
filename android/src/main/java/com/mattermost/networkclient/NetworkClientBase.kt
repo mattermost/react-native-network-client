@@ -26,13 +26,14 @@ import javax.net.ssl.HttpsURLConnection
 import javax.net.ssl.SSLContext
 import javax.net.ssl.SSLSocketFactory
 import javax.net.ssl.X509TrustManager
+import kotlin.collections.HashMap
 import kotlin.reflect.KProperty
 
 internal open class NetworkClientBase(private val baseUrl: HttpUrl? = null) {
     lateinit var okHttpClient: OkHttpClient
     internal var webSocketUri: URI? = null
     var webSocket: WebSocket? = null
-    var clientHeaders: WritableMap = Arguments.createMap()
+    var clientHeaders: HashMap<String, String> = hashMapOf()
     var clientRetryInterceptor: Interceptor? = null
     lateinit var clientTimeoutInterceptor: TimeoutInterceptor
     val requestRetryInterceptors: HashMap<Request, Interceptor> = hashMapOf()
@@ -115,7 +116,7 @@ internal open class NetworkClientBase(private val baseUrl: HttpUrl? = null) {
     fun addClientHeaders(additionalHeaders: ReadableMap?) {
         if (additionalHeaders != null) {
             for ((k, v) in additionalHeaders.toHashMap()) {
-                clientHeaders.putString(k, v as String)
+                clientHeaders[k] = v as String
             }
         }
     }
@@ -210,7 +211,7 @@ internal open class NetworkClientBase(private val baseUrl: HttpUrl? = null) {
 
     fun buildUploadCall(endpoint: String, filePath: String, taskId: String, options: ReadableMap?): Call {
         var method = "POST"
-        var requestHeaders: ReadableMap? = null
+        var requestHeaders: Map<String, String>? = null
         var multipartOptions: ReadableMap? = null
         var skipBytes: Long = 0
 
@@ -220,7 +221,7 @@ internal open class NetworkClientBase(private val baseUrl: HttpUrl? = null) {
             }
 
             if (options.hasKey("headers")) {
-                requestHeaders = options.getMap("headers")
+                requestHeaders = options.getMap("headers")?.toHashMap() as Map<String, String>
             }
 
             if (options.hasKey("multipart")) {
@@ -254,7 +255,7 @@ internal open class NetworkClientBase(private val baseUrl: HttpUrl? = null) {
 
     fun buildDownloadCall(endpoint: String, taskId: String, options: ReadableMap?): Call {
         var method = "GET"
-        var requestHeaders: ReadableMap? = null
+        var requestHeaders: Map<String, String>? = null
 
         if (options != null) {
             if (options.hasKey("method")) {
@@ -262,7 +263,7 @@ internal open class NetworkClientBase(private val baseUrl: HttpUrl? = null) {
             }
 
             if (options.hasKey("headers")) {
-                requestHeaders = options.getMap("headers")
+                requestHeaders = options.getMap("headers")?.toHashMap() as Map<String, String>
             }
         }
 
@@ -298,12 +299,12 @@ internal open class NetworkClientBase(private val baseUrl: HttpUrl? = null) {
         KeyStoreHelper.deleteClientCertificates(P12_ALIAS)
     }
 
-    private fun prepareRequestHeaders(options: ReadableMap?): ReadableMap? {
-        var requestHeaders: ReadableMap? = null
+    private fun prepareRequestHeaders(options: ReadableMap?): Map<String, String>? {
+        var requestHeaders: Map<String, String>? = null
 
         if (options != null) {
             if (options.hasKey("headers")) {
-                requestHeaders = options.getMap("headers")
+                requestHeaders = options.getMap("headers")?.toHashMap() as Map<String, String>
             }
         }
 
@@ -344,7 +345,7 @@ internal open class NetworkClientBase(private val baseUrl: HttpUrl? = null) {
         return requestBody
     }
 
-    private fun buildRequest(method: String, endpoint: String, headers: ReadableMap?, body: RequestBody?): Request {
+    private fun buildRequest(method: String, endpoint: String, headers: Map<String, String>?, body: RequestBody?): Request {
         return Request.Builder()
                 .url(composeEndpointUrl(endpoint))
                 .applyHeaders(clientHeaders)
@@ -387,7 +388,7 @@ internal open class NetworkClientBase(private val baseUrl: HttpUrl? = null) {
 
     internal fun setClientHeaders(options: ReadableMap?) {
         if (options != null && options.hasKey(("headers"))) {
-            addClientHeaders(options.getMap("headers"))
+            addClientHeaders(options.getMap("headers")?.toHashMap()?.toWritableMap())
         }
     }
 

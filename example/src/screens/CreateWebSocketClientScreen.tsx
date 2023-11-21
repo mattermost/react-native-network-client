@@ -157,8 +157,8 @@ export default function CreateWebSocketClientScreen() {
                     checked={alertOnClientError}
                     onPress={toggleAlertOnClientError}
                     iconType="ionicon"
-                    checkedIcon="ios-checkmark-circle"
-                    uncheckedIcon="ios-checkmark-circle"
+                    checkedIcon="checkmark-circle"
+                    uncheckedIcon="checkmark-circle"
                     iconRight
                     textStyle={styles.checkboxText}
                 />
@@ -168,8 +168,8 @@ export default function CreateWebSocketClientScreen() {
                     checked={configuration.enableCompression!}
                     onPress={toggleEnableCompression}
                     iconType="ionicon"
-                    checkedIcon="ios-checkmark-circle"
-                    uncheckedIcon="ios-checkmark-circle"
+                    checkedIcon="checkmark-circle"
+                    uncheckedIcon="checkmark-circle"
                     iconRight
                     textStyle={styles.checkboxText}
                 />
@@ -181,8 +181,8 @@ export default function CreateWebSocketClientScreen() {
                     }
                     onPress={toggleTrustSelfSignedServerCertificate}
                     iconType="ionicon"
-                    checkedIcon="ios-checkmark-circle"
-                    uncheckedIcon="ios-checkmark-circle"
+                    checkedIcon="checkmark-circle"
+                    uncheckedIcon="checkmark-circle"
                     iconRight
                     textStyle={styles.checkboxText}
                 />

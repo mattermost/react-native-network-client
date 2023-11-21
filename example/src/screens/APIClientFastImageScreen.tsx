@@ -44,7 +44,7 @@ const APIClientFastImageScreen = () => {
                 {loading && <ActivityIndicator />}
                 {errored && (
                     <Icon
-                        name="image-not-supported"
+                        name="image"
                         size={100}
                         testID="api_client_fast_image.image_not_supported.icon"
                     />

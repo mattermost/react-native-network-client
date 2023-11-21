@@ -18,7 +18,7 @@ Pod::Spec.new do |s|
   
 
   s.dependency "React-Core"
-  s.dependency "Alamofire", "~> 5.6.4"
+  s.dependency "Alamofire", "~> 5.8.1"
   s.dependency "SwiftyJSON", "~> 5.0"
   s.dependency "Starscream", "~> 4.0.4"
 end

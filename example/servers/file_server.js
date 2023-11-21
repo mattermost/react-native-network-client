@@ -8,7 +8,7 @@ const express = require("express");
 const fileUpload = require("express-fileupload");
 const fs = require("fs");
 const jwt = require("jsonwebtoken");
-const jwtMiddleware = require("express-jwt");
+const { expressjwt: jwtMiddleware } = require("express-jwt");
 const path = require("path");
 
 const AUTH_SECRET = process.env.FILE_SERVER_AUTH_SECRET || "secret";

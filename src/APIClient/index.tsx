@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {
-    EmitterSubscription,
+    type EmitterSubscription,
     NativeEventEmitter,
     NativeModules,
 } from "react-native";

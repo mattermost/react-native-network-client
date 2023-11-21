@@ -209,8 +209,8 @@ const APIClientUploadScreen = () => {
                         multipart ? setMultipart(false) : setMultipart(true)
                     }
                     iconType="ionicon"
-                    checkedIcon="ios-checkmark-circle"
-                    uncheckedIcon="ios-checkmark-circle"
+                    checkedIcon="checkmark-circle"
+                    uncheckedIcon="checkmark-circle"
                     iconRight
                     textStyle={{ flex: 1 }}
                 />

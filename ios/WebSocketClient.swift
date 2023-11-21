@@ -199,8 +199,9 @@ class WebSocketClient: RCTEventEmitter, WebSocketDelegate {
     
     // MARK: WebSocketDelegate methods
     
-    func didReceive(event: WebSocketEvent, client: WebSocket) {
-        let url = client.request.url!.absoluteString
+    func didReceive(event: WebSocketEvent, client: Starscream.WebSocketClient) {
+        
+        guard let url = client.url() else { return }
 
         switch event {
         case .connected(let headers):

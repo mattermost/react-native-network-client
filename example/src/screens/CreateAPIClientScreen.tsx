@@ -209,8 +209,8 @@ export default function CreateAPIClientScreen() {
                     checked={alertOnClientError}
                     onPress={toggleAlertOnClientError}
                     iconType="ionicon"
-                    checkedIcon="ios-checkmark-circle"
-                    uncheckedIcon="ios-checkmark-circle"
+                    checkedIcon="checkmark-circle"
+                    uncheckedIcon="checkmark-circle"
                     iconRight
                     textStyle={styles.checkboxText}
                 />
@@ -222,8 +222,8 @@ export default function CreateAPIClientScreen() {
                     }
                     onPress={toggleAllowsCellularAccess}
                     iconType="ionicon"
-                    checkedIcon="ios-checkmark-circle"
-                    uncheckedIcon="ios-checkmark-circle"
+                    checkedIcon="checkmark-circle"
+                    uncheckedIcon="checkmark-circle"
                     iconRight
                     textStyle={styles.checkboxText}
                 />
@@ -235,8 +235,8 @@ export default function CreateAPIClientScreen() {
                     }
                     onPress={toggleWaitsForConnectivity}
                     iconType="ionicon"
-                    checkedIcon="ios-checkmark-circle"
-                    uncheckedIcon="ios-checkmark-circle"
+                    checkedIcon="checkmark-circle"
+                    uncheckedIcon="checkmark-circle"
                     iconRight
                     textStyle={styles.checkboxText}
                 />
@@ -248,8 +248,8 @@ export default function CreateAPIClientScreen() {
                     }
                     onPress={toggleCancelRequestsOnUnauthorized}
                     iconType="ionicon"
-                    checkedIcon="ios-checkmark-circle"
-                    uncheckedIcon="ios-checkmark-circle"
+                    checkedIcon="checkmark-circle"
+                    uncheckedIcon="checkmark-circle"
                     iconRight
                     textStyle={styles.checkboxText}
                 />
@@ -261,8 +261,8 @@ export default function CreateAPIClientScreen() {
                     }
                     onPress={toggleTrustSelfSignedServerCertificate}
                     iconType="ionicon"
-                    checkedIcon="ios-checkmark-circle"
-                    uncheckedIcon="ios-checkmark-circle"
+                    checkedIcon="checkmark-circle"
+                    uncheckedIcon="checkmark-circle"
                     iconRight
                     textStyle={styles.checkboxText}
                 />

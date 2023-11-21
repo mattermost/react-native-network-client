@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import * as React from "react";
+import React from "react";
+import {LogBox} from 'react-native';
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 
@@ -19,7 +20,6 @@ import MattermostClientUploadScreen from "./screens/MattermostClientUploadScreen
 import WebSocketClientScreen from "./screens/WebSocketClientScreen";
 
 if (__DEV__) {
-    const LogBox = require("react-native/Libraries/LogBox/LogBox");
     LogBox.ignoreLogs(["Require cycle: ../node_modules/zod/lib/src/index.js"]);
 }
 
