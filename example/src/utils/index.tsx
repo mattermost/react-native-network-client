@@ -392,7 +392,7 @@ export const createTestClients = async (): Promise<NetworkClientItem[]> => {
 
 export const createNativeFile = async (
     fileContent: FileContent
-): Promise<File> => {
+): Promise<NativeFile> => {
     const path = `${RFNS.DocumentDirectoryPath}/${fileContent.name}`;
     await RFNS.writeFile(path, fileContent.content, fileContent.encoding);
     const statResult: StatResult = await RFNS.stat(path);
@@ -408,7 +408,7 @@ export const createNativeFile = async (
 export const downloadToNativeFile = async (
     fromUrl: string,
     fileContent: FileContent
-): Promise<File> => {
+): Promise<NativeFile> => {
     const filename = fromUrl.substring(fromUrl.lastIndexOf("/"));
     fileContent.name = filename;
     const toFile = `${RFNS.DocumentDirectoryPath}/${fileContent.name}`;

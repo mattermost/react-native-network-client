@@ -21,7 +21,7 @@ type UploadState = {
     request?: ProgressPromise<ClientResponse>;
     channelId?: string;
     sessionId?: string;
-    file?: File;
+    file?: NativeFile;
     progress: number;
     status?: UploadStatus;
     uploadedFileId?: number;
@@ -125,7 +125,7 @@ const MattermostClientUploadScreen = () => {
         setState((state) => ({ ...state, channelId }));
     const setSessionId = (sessionId: string) =>
         setState((state) => ({ ...state, sessionId }));
-    const setFile = (file: File) => setState((state) => ({ ...state, file }));
+    const setFile = (file: NativeFile) => setState((state) => ({ ...state, file }));
     const setProgress = (progress: number) =>
         setState((state) => ({ ...state, progress }));
     const setStatus = (status?: UploadStatus) => {

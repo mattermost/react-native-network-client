@@ -4,7 +4,7 @@ import { Bar as ProgressBar } from "react-native-progress";
 import Icon from "react-native-vector-icons/Ionicons";
 
 type ProgressiveFileUploadProps = {
-    file?: File;
+    file?: NativeFile;
     progress: number;
 };
 

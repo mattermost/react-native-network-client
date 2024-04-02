@@ -21,7 +21,7 @@ import type {
 type UploadState = {
     request?: ProgressPromise<ClientResponse>;
     endpoint: string;
-    file?: File;
+    file?: NativeFile;
     progress: number;
     status?: UploadStatus;
 };
@@ -88,7 +88,7 @@ const APIClientUploadScreen = () => {
     const setRequest = (request?: ProgressPromise<ClientResponse>) =>
         setState((state) => ({ ...state, request }));
     const setEndpoint = (endpoint: string) => setState({ ...state, endpoint });
-    const setFile = (file: File) => setState((state) => ({ ...state, file }));
+    const setFile = (file: NativeFile) => setState((state) => ({ ...state, file }));
     const setProgress = (progress: number) =>
         setState((state) => ({ ...state, progress }));
     const setStatus = (status?: UploadStatus) => {

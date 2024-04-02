@@ -11,7 +11,7 @@ index 906b6a1..8b02b22 100644
    imageLibrary as nativeImageLibrary,
    camera as nativeCamera,
 diff --git a/node_modules/react-native-image-picker/src/platforms/native.ts b/node_modules/react-native-image-picker/src/platforms/native.ts
-index 8b08d66..58e68d3 100644
+index e2c293f..150dc74 100644
 --- a/node_modules/react-native-image-picker/src/platforms/native.ts
 +++ b/node_modules/react-native-image-picker/src/platforms/native.ts
 @@ -1,6 +1,6 @@
@@ -23,7 +23,7 @@ index 8b08d66..58e68d3 100644
    ImageLibraryOptions,
    Callback,
 diff --git a/node_modules/react-native-image-picker/src/platforms/web.ts b/node_modules/react-native-image-picker/src/platforms/web.ts
-index 938c729..a94ba06 100644
+index 938c729..30e0232 100644
 --- a/node_modules/react-native-image-picker/src/platforms/web.ts
 +++ b/node_modules/react-native-image-picker/src/platforms/web.ts
 @@ -1,4 +1,4 @@
@@ -43,7 +43,7 @@ index 938c729..a94ba06 100644
 @@ -49,6 +50,7 @@ export function imageLibrary(
      return Promise.resolve(result);
    }
-   
+ 
 +  // @ts-expect-error dom
    const input = document.createElement('input');
    input.style.display = 'none';

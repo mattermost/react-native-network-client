@@ -8,7 +8,7 @@ import { Platform } from "react-native";
 
 type FilePickerButtonGroupProps = {
     disabled: boolean;
-    onFilePicked: (file: File) => void;
+    onFilePicked: (file: NativeFile) => void;
 };
 
 const FilePickerButtonGroup = (props: FilePickerButtonGroupProps) => {
@@ -38,7 +38,7 @@ const FilePickerButtonGroup = (props: FilePickerButtonGroupProps) => {
                     copyTo: "cachesDirectory",
                 });
 
-                const file: File = { ...result, uri: result.fileCopyUri };
+                const file: NativeFile = { ...result, uri: result.fileCopyUri };
                 props.onFilePicked(file);
             } catch (err) {
                 if (DocumentPicker.isCancel(err as Error)) {
@@ -68,7 +68,7 @@ const FilePickerButtonGroup = (props: FilePickerButtonGroupProps) => {
     };
 
     const attachFile = async (fileContent: FileContent) => {
-        const file: File = await createNativeFile(fileContent);
+        const file: NativeFile = await createNativeFile(fileContent);
         props.onFilePicked(file);
     };
     const attachSampleImage = async () => {
