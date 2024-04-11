@@ -1,5 +1,5 @@
 PODS:
-  - Alamofire (5.8.1)
+  - Alamofire (5.9.1)
   - BEMCheckBox (1.4.1)
   - boost (1.83.0)
   - CocoaAsyncSocket (7.6.5)
@@ -965,7 +965,7 @@ PODS:
     - RCT-Folly (= 2022.05.16.00)
     - React-Core
   - react-native-network-client (1.5.0):
-    - Alamofire (~> 5.8.1)
+    - Alamofire (~> 5.9.1)
     - React-Core
     - Starscream (~> 4.0.4)
     - SwiftyJSON (~> 5.0)
@@ -1268,7 +1268,7 @@ DEPENDENCIES:
   - RNReanimated (from `../node_modules/react-native-reanimated`)
   - RNScreens (from `../node_modules/react-native-screens`)
   - RNVectorIcons (from `../node_modules/react-native-vector-icons`)
-  - Starscream (from `https://github.com/mattermost/Starscream.git`, commit `7494780a021e44873e6e5fde5026ef96696c1865`)
+  - Starscream (from `https://github.com/mattermost/Starscream.git`, commit `b75de7f62f8d3802c9a85d48d878176771c76cf3`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
 SPEC REPOS:
@@ -1418,18 +1418,18 @@ EXTERNAL SOURCES:
   RNVectorIcons:
     :path: "../node_modules/react-native-vector-icons"
   Starscream:
-    :commit: 7494780a021e44873e6e5fde5026ef96696c1865
+    :commit: b75de7f62f8d3802c9a85d48d878176771c76cf3
     :git: https://github.com/mattermost/Starscream.git
   Yoga:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 CHECKOUT OPTIONS:
   Starscream:
-    :commit: 7494780a021e44873e6e5fde5026ef96696c1865
+    :commit: b75de7f62f8d3802c9a85d48d878176771c76cf3
     :git: https://github.com/mattermost/Starscream.git
 
 SPEC CHECKSUMS:
-  Alamofire: 3ca42e259043ee0dc5c0cdd76c4bc568b8e42af7
+  Alamofire: f36a35757af4587d8e4f4bfa223ad10be2422b8c
   BEMCheckBox: 5ba6e37ade3d3657b36caecc35c8b75c6c2b1a4e
   boost: d3f49c53809116a5d38da093a8aa78bf551aed09
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
@@ -1473,7 +1473,7 @@ SPEC CHECKSUMS:
   React-Mapbuffer: 84ea43c6c6232049135b1550b8c60b2faac19fab
   react-native-document-picker: 3599b238843369026201d2ef466df53f77ae0452
   react-native-image-picker: d3db110a3ded6e48c93aef7e8e51afdde8b16ed0
-  react-native-network-client: 7ca5125fe613d2085c8ee12723a4ba9bca04f948
+  react-native-network-client: 399214f4e9f8399c89a29922f5021a75ded2c56f
   react-native-safe-area-context: b97eb6f9e3b7f437806c2ce5983f479f8eb5de4b
   React-nativeconfig: b4d4e9901d4cabb57be63053fd2aa6086eb3c85f
   React-NativeModulesApple: cd26e56d56350e123da0c1e3e4c76cb58a05e1ee
@@ -1508,10 +1508,10 @@ SPEC CHECKSUMS:
   SDWebImage: a7f831e1a65eb5e285e3fb046a23fcfbf08e696d
   SDWebImageWebPCoder: 908b83b6adda48effe7667cd2b7f78c897e5111d
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
-  Starscream: e7497aedb1c2e27d2a672d40286fd1b34f20f2e4
+  Starscream: c5d70811b01d9ada7fdeb2132bc47fc893b6b0c9
   SwiftyJSON: 2f33a42c6fbc52764d96f13368585094bfd8aa5e
   Yoga: 805bf71192903b20fc14babe48080582fee65a80
 
-PODFILE CHECKSUM: dbc7e649c89a125294a190922a1430253f40a126
+PODFILE CHECKSUM: ee97fd2d57a687d969a397b5a321c825af9bd9fd
 
 COCOAPODS: 1.14.3

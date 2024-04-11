@@ -44,7 +44,7 @@ target 'NetworkClientExample' do
   pod 'RNVectorIcons', :path => '../node_modules/react-native-vector-icons'
 
   # TODO: Remove this once upstream PR https://github.com/daltoniam/Starscream/pull/871 is merged
-  pod 'Starscream', :git => 'https://github.com/mattermost/Starscream.git', :commit => '7494780a021e44873e6e5fde5026ef96696c1865'
+  pod 'Starscream', :git => 'https://github.com/mattermost/Starscream.git', :commit => 'b75de7f62f8d3802c9a85d48d878176771c76cf3'
 
   post_install do |installer|
     # https://github.com/facebook/react-native/blob/main/packages/react-native/scripts/react_native_pods.rb#L197-L202
