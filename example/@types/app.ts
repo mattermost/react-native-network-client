@@ -11,7 +11,7 @@ type Multipart = {
     value: string;
 };
 
-type File = {
+type NativeFile = {
     name?: string | null;
     size?: number | null;
     type?: string | null;

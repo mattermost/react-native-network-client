@@ -63,7 +63,7 @@ const P12Inputs = (props: P12InputsProps) => {
     };
 
     const downloadCertificate = async () => {
-        const file: File = await downloadToNativeFile(url, clientCertP12);
+        const file: NativeFile = await downloadToNativeFile(url, clientCertP12);
         props.onSelectP12(`${file.uri}`);
     };
 
