@@ -20,5 +20,6 @@ Pod::Spec.new do |s|
   s.dependency "React-Core"
   s.dependency "Alamofire", "~> 5.9.1"
   s.dependency "SwiftyJSON", "~> 5.0"
-  s.dependency "Starscream", "~> 4.0.4"
+  s.dependency "Starscream", "~> 4.0.8"
+  s.prepare_command = 'ruby ios/patches/apply_patches.rb'
 end

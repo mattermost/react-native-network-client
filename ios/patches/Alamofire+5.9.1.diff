@@ -1,0 +1,19 @@
+diff --git a/Pods/Alamofire/Source/Core/SessionDelegate.swift b/Pods/Alamofire/Source/Core/SessionDelegate.swift
+index de0fcbb..bdc5cf2 100644
+--- a/Pods/Alamofire/Source/Core/SessionDelegate.swift
++++ b/Pods/Alamofire/Source/Core/SessionDelegate.swift
+@@ -343,6 +343,14 @@ extension SessionDelegate: URLSessionDownloadDelegate {
+             return
+         }
+ 
++        let sizeString = ((downloadTask.response as? HTTPURLResponse)?.allHeaderFields["X-Uncompressed-Content-Length"]) as? String
++        if (sizeString != nil) {
++            let size = Int64(sizeString!)
++            downloadRequest.updateDownloadProgress(bytesWritten: bytesWritten,
++                                               totalBytesExpectedToWrite: totalBytesExpectedToWrite)
++            return
++        }
++
+         downloadRequest.updateDownloadProgress(bytesWritten: bytesWritten,
+                                                totalBytesExpectedToWrite: totalBytesExpectedToWrite)
+     }
