@@ -20,6 +20,7 @@
     "start:reset-cache": "react-native start -- --reset-cache"
   },
   "dependencies": {
+    "@mattermost/react-native-network-client": "../",
     "@react-native-community/checkbox": "0.5.17",
     "@react-native-community/masked-view": "0.1.11",
     "@react-navigation/native": "6.1.17",

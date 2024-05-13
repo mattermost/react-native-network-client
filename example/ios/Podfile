@@ -40,11 +40,11 @@ target 'NetworkClientExample' do
   )
 
   # Pods for NetworkClientExample
-  pod 'react-native-network-client', :path => '../..'
+  # pod 'react-native-network-client', :path => '../..'
   pod 'RNVectorIcons', :path => '../node_modules/react-native-vector-icons'
 
   # TODO: Remove this once upstream PR https://github.com/daltoniam/Starscream/pull/871 is merged
-  pod 'Starscream', :git => 'https://github.com/mattermost/Starscream.git', :commit => 'b75de7f62f8d3802c9a85d48d878176771c76cf3'
+  # pod 'Starscream', :git => 'https://github.com/mattermost/Starscream.git', :commit => 'b75de7f62f8d3802c9a85d48d878176771c76cf3'
 
   post_install do |installer|
     # https://github.com/facebook/react-native/blob/main/packages/react-native/scripts/react_native_pods.rb#L197-L202
@@ -53,8 +53,8 @@ target 'NetworkClientExample' do
       config[:reactNativePath],
       :mac_catalyst_enabled => false
     )
-    puts 'Patching Alamofire to include X-Uncompressed-Content-Length to measure download progress'
-    %x(patch Pods/Alamofire/Source/SessionDelegate.swift < patches/SessionDelegate.patch)
+    # puts 'Patching Alamofire to include X-Uncompressed-Content-Length to measure download progress'
+    # %x(patch Pods/Alamofire/Source/SessionDelegate.swift < patches/SessionDelegate.patch)
   end
 end
 
