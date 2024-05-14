@@ -15,11 +15,28 @@ Pod::Spec.new do |s|
 
   
   s.source_files = "ios/**/*.{h,m,mm,swift}"
+  s.prepare_command = 'ruby ios/patches/apply_patches.rb'
   
+  fabric_enabled = ENV["RCT_NEW_ARCH_ENABLED"] == "1"
 
-  s.dependency "React-Core"
+  if fabric_enabled
+    s.pod_target_xcconfig    = {
+      "DEFINES_MODULE" => "YES",
+      "BUILD_LIBRARY_FOR_DISTRIBUTION" => "YES",
+      "OTHER_CPLUSPLUSFLAGS" => "-DRCT_NEW_ARCH_ENABLED=1",
+      "OTHER_SWIFT_FLAGS" => "-no-verify-emitted-module-interface"
+    }
+  else
+    s.pod_target_xcconfig    = {
+      "DEFINES_MODULE" => "YES",
+      "BUILD_LIBRARY_FOR_DISTRIBUTION" => "YES",
+      "OTHER_SWIFT_FLAGS" => "-no-verify-emitted-module-interface"
+    }
+  end
+
+  install_modules_dependencies(s)
+
   s.dependency "Alamofire", "~> 5.9.1"
   s.dependency "SwiftyJSON", "~> 5.0"
   s.dependency "Starscream", "~> 4.0.8"
-  s.prepare_command = 'ruby ios/patches/apply_patches.rb'
 end

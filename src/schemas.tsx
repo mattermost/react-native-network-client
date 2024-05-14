@@ -1,18 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import { NativeModules } from "react-native";
 import * as z from "zod";
 
 import type {
     APIClientConfiguration,
-    RetryTypes,
     RequestOptions,
     UploadRequestOptions,
 } from "@mattermost/react-native-network-client";
-
-const { APIClient: NativeAPIClient } = NativeModules;
-const { RETRY_TYPES } = NativeAPIClient.getConstants();
+import { RetryTypes } from "./APIClient/NativeApiClient";
 
 const SessionConfigurationSchema = z.object({
     allowsCellularAccess: z.boolean().optional(),
@@ -25,7 +21,7 @@ const SessionConfigurationSchema = z.object({
 });
 
 const RetryPolicyConfigurationSchema = z.object({
-    type: z.enum(Object.values(RETRY_TYPES) as [RetryTypes]).optional(),
+    type: z.enum(Object.values(RetryTypes) as [RetryTypes]).optional(),
     retryLimit: z.number().optional(),
     retryInterval: z.number().optional(),
     exponentialBackoffBase: z.number().optional(),
