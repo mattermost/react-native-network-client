@@ -17,8 +17,6 @@ setup_permissions([
   'PhotoLibrary',
 ])
 
-flipper_config = ENV['NO_FLIPPER'] == "1" ? FlipperConfiguration.disabled : FlipperConfiguration.enabled
-
 linkage = ENV['USE_FRAMEWORKS']
 if linkage != nil
   Pod::UI.puts "Configuring Pod with #{linkage}ally linked Frameworks".green
@@ -30,21 +28,8 @@ target 'NetworkClientExample' do
 
   use_react_native!(
     :path => config[:reactNativePath],
-    # Enables Flipper.
-    #
-    # Note that if you have use_frameworks! enabled, Flipper will not work and
-    # you should disable the next line.
-    :flipper_configuration => flipper_config,
-    # An absolute path to your application root.
     :app_path => "#{Pod::Config.instance.installation_root}/.."
   )
-
-  # Pods for NetworkClientExample
-  # pod 'react-native-network-client', :path => '../..'
-  pod 'RNVectorIcons', :path => '../node_modules/react-native-vector-icons'
-
-  # TODO: Remove this once upstream PR https://github.com/daltoniam/Starscream/pull/871 is merged
-  # pod 'Starscream', :git => 'https://github.com/mattermost/Starscream.git', :commit => 'b75de7f62f8d3802c9a85d48d878176771c76cf3'
 
   post_install do |installer|
     # https://github.com/facebook/react-native/blob/main/packages/react-native/scripts/react_native_pods.rb#L197-L202
@@ -53,8 +38,6 @@ target 'NetworkClientExample' do
       config[:reactNativePath],
       :mac_catalyst_enabled => false
     )
-    # puts 'Patching Alamofire to include X-Uncompressed-Content-Length to measure download progress'
-    # %x(patch Pods/Alamofire/Source/SessionDelegate.swift < patches/SessionDelegate.patch)
   end
 end
 

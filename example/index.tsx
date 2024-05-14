@@ -7,7 +7,10 @@ import App from "./src/App";
 import { name as appName } from "./app.json";
 
 if (__DEV__) {
-    LogBox.ignoreLogs(["Non-serializable values were found in the navigation state. Check:"]);
+    LogBox.ignoreLogs([
+        "Non-serializable values were found in the navigation state. Check:",
+        "Support for defaultProps will be removed from function components"
+    ]);
 }
 
 AppRegistry.registerComponent(appName, () => App);

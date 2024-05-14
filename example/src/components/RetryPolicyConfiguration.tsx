@@ -4,13 +4,12 @@
 import React, { useEffect, useState } from "react";
 import { View } from "react-native";
 import { ButtonGroup, CheckBox, Input } from "react-native-elements";
-import { Constants } from "@mattermost/react-native-network-client";
 
 import NumericInput from "./NumericInput";
 
-import type {
-    RetryPolicyConfiguration as RetryPolicyConfigurationType,
+import {
     RetryTypes,
+    type RetryPolicyConfiguration as RetryPolicyConfigurationType,
 } from "@mattermost/react-native-network-client";
 
 interface RetryPolicyConfigurationProps extends RetryPolicyConfigurationType {
@@ -31,23 +30,23 @@ const RetryPolicyConfiguration = (props: RetryPolicyConfigurationProps) => {
 
     const onLinearPress = () =>
         onCheckBoxPress(
-            props.policyType === Constants.RETRY_TYPES.LINEAR_RETRY
+            props.policyType === RetryTypes.LINEAR_RETRY
                 ? undefined
-                : Constants.RETRY_TYPES.LINEAR_RETRY
+                : RetryTypes.LINEAR_RETRY
         );
     const onExponentialPress = () =>
         onCheckBoxPress(
-            props.policyType === Constants.RETRY_TYPES.EXPONENTIAL_RETRY
+            props.policyType === RetryTypes.EXPONENTIAL_RETRY
                 ? undefined
-                : Constants.RETRY_TYPES.EXPONENTIAL_RETRY
+                : RetryTypes.EXPONENTIAL_RETRY
         );
     const onCheckBoxPress = (policyType?: RetryTypes) => {
         props.onTypeSelected(policyType);
     };
     const linearRetryChecked =
-        props.policyType === Constants.RETRY_TYPES.LINEAR_RETRY;
+        props.policyType === RetryTypes.LINEAR_RETRY;
     const exponentialRetryChecked =
-        props.policyType === Constants.RETRY_TYPES.EXPONENTIAL_RETRY;
+        props.policyType === RetryTypes.EXPONENTIAL_RETRY;
 
     const buttonMethods = ["get", "post", "put", "patch", "delete"];
     const [selectedMethodsIndex, setSelectedMethodsIndex] = useState<number[]>([
@@ -133,7 +132,7 @@ const RetryPolicyConfiguration = (props: RetryPolicyConfigurationProps) => {
                 />
             )}
 
-            {props.policyType === Constants.RETRY_TYPES.LINEAR_RETRY && (
+            {props.policyType === RetryTypes.LINEAR_RETRY && (
                 <NumericInput
                     title="Retry interval"
                     value={props.retryInterval}
@@ -142,7 +141,7 @@ const RetryPolicyConfiguration = (props: RetryPolicyConfigurationProps) => {
                     testID="retry_policy_configuration.retry_interval.input"
                 />
             )}
-            {props.policyType === Constants.RETRY_TYPES.EXPONENTIAL_RETRY && (
+            {props.policyType === RetryTypes.EXPONENTIAL_RETRY && (
                 <>
                     <NumericInput
                         title="Exponential backoff base"

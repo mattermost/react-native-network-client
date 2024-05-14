@@ -2,20 +2,23 @@
 
 #import <React/RCTBundleURLProvider.h>
 
+#import "NetworkClientExample-Swift.h"
+
 @implementation AppDelegate
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
   self.moduleName = @"NetworkClientExample";
+  [SDImageDownloadSwizzleHelper performSwizzling];
   return [super application:application didFinishLaunchingWithOptions:launchOptions];
 }
 
 - (NSURL *)sourceURLForBridge:(RCTBridge *)bridge
 {
-  return [self getBundleUrl];
+  return [self bundleURL];
 }
 
-- (NSURL *)getBundleUrl
+- (NSURL *)bundleURL
 {
 #if DEBUG
   return [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index"];
