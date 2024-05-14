@@ -1,12 +1,3 @@
-//
-//  WebSocketManager.swift
-//  NetworkClient
-//
-//  Created by Miguel Alatzar on 1/19/21.
-//  Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-//  See LICENSE.txt for license information.
-//
-
 import Foundation
 import Starscream
 import SwiftyJSON
@@ -20,7 +11,7 @@ class WebSocketManager: NSObject {
         return webSockets.count
     }
     
-    func createWebSocket(for url:URL, withOptions options: Dictionary<String, Any>, withDelegate delegate: WebSocketClient) throws -> Void {
+    func createWebSocket(for url:URL, withOptions options: Dictionary<String, Any>, withDelegate delegate: WebSocketWrapper) throws -> Void {
         let existingWebSocket = getWebSocket(for: url)
         if (existingWebSocket != nil) {
             existingWebSocket!.delegate = delegate
@@ -94,7 +85,7 @@ class WebSocketManager: NSObject {
             do {
                 try Keychain.deleteClientP12(for: url.host!)
             } catch {
-                NotificationCenter.default.post(name: Notification.Name(WEBSOCKET_CLIENT_EVENTS["CLIENT_ERROR"]!),
+                NotificationCenter.default.post(name: Notification.Name(WSEvents.CLIENT_ERROR.rawValue),
                                                 object: nil,
                                                 userInfo: ["url": url.absoluteString, "errorCode": error._code, "errorDescription": error.localizedDescription])
             }

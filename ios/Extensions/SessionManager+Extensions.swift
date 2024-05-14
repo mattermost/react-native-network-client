@@ -1,12 +1,3 @@
-//
-//  SessionManager+Extensions.swift
-//  NetworkClient
-//
-//  Created by Miguel Alatzar on 4/7/21.
-//  Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-//  See LICENSE.txt for license information.
-//
-
 import Foundation
 
 extension SessionManager {

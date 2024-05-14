@@ -1,12 +1,3 @@
-//
-//  Keychain.swift
-//  NetworkClient
-//
-//  Created by Miguel Alatzar on 2/22/21.
-//  Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-//  See LICENSE.txt for license information.
-//
-
 import Foundation
 
 enum KeychainError: Error {
