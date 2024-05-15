@@ -9,10 +9,8 @@ import com.facebook.react.ReactPackage
 import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.load
 import com.facebook.react.defaults.DefaultReactHost.getDefaultReactHost
 import com.facebook.react.defaults.DefaultReactNativeHost
-import com.facebook.react.flipper.ReactNativeFlipper
 import com.facebook.soloader.SoLoader
 import com.facebook.react.modules.network.OkHttpClientProvider
-import com.mattermost.networkclient.NetworkClientPackage
 import com.mattermost.networkclient.RCTOkHttpClientFactory
 
 class MainApplication : Application(), ReactApplication {
@@ -20,7 +18,6 @@ class MainApplication : Application(), ReactApplication {
         object : DefaultReactNativeHost(this) {
             override fun getPackages(): List<ReactPackage> =
                 PackageList(this).packages.apply {
-                    add(NetworkClientPackage())
                 }
 
             override fun getJSMainModuleName(): String = "index"
@@ -32,7 +29,7 @@ class MainApplication : Application(), ReactApplication {
     }
 
     override val reactHost: ReactHost
-        get() = getDefaultReactHost(this.applicationContext, reactNativeHost)
+        get() = getDefaultReactHost(applicationContext, reactNativeHost)
 
     override fun onCreate() {
         super.onCreate()
@@ -41,7 +38,6 @@ class MainApplication : Application(), ReactApplication {
             // If you opted-in for the New Architecture, we load the native entry point for this app.
             load()
         }
-        ReactNativeFlipper.initializeFlipper(this, reactNativeHost.reactInstanceManager)
 
         // Tells React Native to use our RCTOkHttpClientFactory which builds an OKHttpClient
         // with a cookie jar defined in APIClientModule and an interceptor to intercept all
