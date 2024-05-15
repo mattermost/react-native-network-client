@@ -2,27 +2,30 @@ package com.mattermost.networkclient
 
 import android.content.Context
 import android.content.SharedPreferences
-import com.facebook.react.bridge.*
+import com.facebook.react.bridge.Promise
+import com.facebook.react.bridge.ReactApplicationContext
+import com.facebook.react.bridge.ReadableMap
+import com.facebook.react.bridge.WritableMap
 import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter
 import com.facebook.react.modules.network.ForwardingCookieHandler
 import com.facebook.react.modules.network.ReactCookieJarContainer
-import com.mattermost.networkclient.enums.APIClientEvents
-import com.mattermost.networkclient.enums.RetryTypes
 import com.mattermost.networkclient.helpers.KeyStoreHelper
-import okhttp3.*
+import okhttp3.Call
+import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
+import okhttp3.JavaNetCookieJar
+import okhttp3.Request
+import okhttp3.Response
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 import java.io.InputStream
 
-class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
-    override fun getName(): String {
-        return "APIClient"
-    }
-
+class ApiClientModuleImpl(reactApplicationContext: ReactApplicationContext) {
     companion object {
+        const val NAME = "ApiClient"
+
         internal lateinit var context: ReactApplicationContext
         private val clients = mutableMapOf<HttpUrl, NetworkClient>()
         private val calls = mutableMapOf<String, Call>()
@@ -47,8 +50,8 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         internal fun storeValue(value: String, alias: String) {
             val encryptedValue = KeyStoreHelper.encryptData(value)
             sharedPreferences.edit()
-                .putString(alias, encryptedValue)
-                .apply()
+                    .putString(alias, encryptedValue)
+                    .apply()
         }
 
         internal fun retrieveValue(alias: String): String? {
@@ -68,8 +71,8 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
         internal fun sendJSEvent(eventName: String, data: WritableMap?) {
             if (context.hasActiveReactInstance()) {
-                context.getJSModule(RCTDeviceEventEmitter::class.java)
-                        .emit(eventName, data)
+                context.getJSModule(RCTDeviceEventEmitter::class.java)?.emit(eventName, data)
+
             }
         }
 
@@ -78,24 +81,23 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         }
 
         private fun setSharedPreferences(reactContext: ReactApplicationContext) {
-            sharedPreferences = reactContext.getSharedPreferences(SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE);
+            sharedPreferences = reactContext.getSharedPreferences(SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE)
         }
 
         private fun setCookieJar(reactContext: ReactApplicationContext) {
-            val cookieHandler = ForwardingCookieHandler(reactContext);
+            val cookieHandler = ForwardingCookieHandler(reactContext)
             cookieJar.setCookieJar(JavaNetCookieJar(cookieHandler))
         }
     }
 
     init {
-        setCtx(reactContext)
-        setSharedPreferences(reactContext)
-        setCookieJar(reactContext)
+        setCtx(reactApplicationContext)
+        setSharedPreferences(reactApplicationContext)
+        setCookieJar(reactApplicationContext)
     }
 
-    @ReactMethod
     fun createClientFor(baseUrl: String, options: ReadableMap, promise: Promise) {
-        var url: HttpUrl
+        val url: HttpUrl
         try {
             url = baseUrl.toHttpUrl()
         } catch (error: IllegalArgumentException) {
@@ -103,16 +105,15 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         }
 
         try {
-            clients[url] = NetworkClient(url, options, cookieJar)
+            clients[url] = NetworkClient(context, url, options, cookieJar)
             promise.resolve(null)
         } catch (error: Exception) {
             promise.reject(error)
         }
     }
 
-    @ReactMethod
     fun getClientHeadersFor(baseUrl: String, promise: Promise) {
-        var url: HttpUrl
+        val url: HttpUrl
         try {
             url = baseUrl.toHttpUrl()
         } catch (error: IllegalArgumentException) {
@@ -126,9 +127,8 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         }
     }
 
-    @ReactMethod
     fun addClientHeadersFor(baseUrl: String, headers: ReadableMap, promise: Promise) {
-        var url: HttpUrl
+        val url: HttpUrl
         try {
             url = baseUrl.toHttpUrl()
         } catch (error: IllegalArgumentException) {
@@ -137,15 +137,14 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
         try {
             clients[url]!!.addClientHeaders(headers)
-            promise.resolve(null);
+            promise.resolve(null)
         } catch (error: Exception) {
             promise.reject(error)
         }
     }
 
-    @ReactMethod
     fun importClientP12For(baseUrl: String, path: String, password: String, promise: Promise) {
-        var url: HttpUrl
+        val url: HttpUrl
         try {
             url = baseUrl.toHttpUrl()
         } catch (error: IllegalArgumentException) {
@@ -160,9 +159,8 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         }
     }
 
-    @ReactMethod
     fun invalidateClientFor(baseUrl: String, promise: Promise) {
-        var url: HttpUrl
+        val url: HttpUrl
         try {
             url = baseUrl.toHttpUrl()
         } catch (error: IllegalArgumentException) {
@@ -171,41 +169,39 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
         try {
             clients[url]!!.invalidate()
-            clients.remove(url);
-            promise.resolve(null);
+            clients.remove(url)
+            promise.resolve(null)
         } catch (error: Exception) {
             promise.reject(error)
         }
     }
 
-    @ReactMethod
+    fun head(baseUrl: String, endpoint: String, options: ReadableMap?, promise: Promise) {
+        request("HEAD", baseUrl, endpoint, options, promise)
+    }
+
     fun get(baseUrl: String, endpoint: String, options: ReadableMap?, promise: Promise) {
         request("GET", baseUrl, endpoint, options, promise)
     }
 
-    @ReactMethod
     fun post(baseUrl: String, endpoint: String, options: ReadableMap?, promise: Promise) {
         request("POST", baseUrl, endpoint, options, promise)
     }
 
-    @ReactMethod
     fun put(baseUrl: String, endpoint: String, options: ReadableMap?, promise: Promise) {
         request("PUT", baseUrl, endpoint, options, promise)
     }
 
-    @ReactMethod
     fun patch(baseUrl: String, endpoint: String, options: ReadableMap?, promise: Promise) {
         request("PATCH", baseUrl, endpoint, options, promise)
     }
 
-    @ReactMethod
     fun delete(baseUrl: String, endpoint: String, options: ReadableMap?, promise: Promise) {
         request("DELETE", baseUrl, endpoint, options, promise)
     }
 
-    @ReactMethod
     fun download(baseUrl: String, endpoint: String, filePath: String, taskId: String, options: ReadableMap?, promise: Promise) {
-        var url: HttpUrl
+        val url: HttpUrl
         try {
             url = baseUrl.toHttpUrl()
         } catch (error: IllegalArgumentException) {
@@ -270,9 +266,8 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         }
     }
 
-    @ReactMethod
     fun upload(baseUrl: String, endpoint: String, filePath: String, taskId: String, options: ReadableMap?, promise: Promise) {
-        var url: HttpUrl
+        val url: HttpUrl
         try {
             url = baseUrl.toHttpUrl()
         } catch (error: IllegalArgumentException) {
@@ -302,68 +297,45 @@ class APIClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         }
     }
 
-    @ReactMethod
     fun cancelRequest(taskId: String, promise: Promise) {
         try {
-            val call = calls[taskId];
+            val call = calls[taskId]
             if (call != null) {
                 call.cancel()
                 calls.remove(taskId)
             }
+            promise.resolve(null)
         } catch (error: Exception) {
+            promise.reject(error)
         }
-    }
-
-    @ReactMethod
-    fun addListener(eventName: String) {
-        // Keep: Required for RN built in Event Emitter Calls
-    }
-
-    @ReactMethod
-    fun removeListeners(count: Int) {
-        // Keep: Required for RN built in Event Emitter Calls
-    }
-
-    @Override
-    override fun getConstants(): Map<String, Any> {
-        val constants: MutableMap<String, Any> = HashMap<String, Any>()
-
-        val events = HashMap<String, String>()
-        APIClientEvents.values().forEach { enum -> events[enum.name] = enum.event }
-        constants["EVENTS"] = events
-
-        val retryTypes = HashMap<String, String>()
-        RetryTypes.values().forEach { enum -> retryTypes[enum.name] = enum.type }
-        constants["RETRY_TYPES"] = retryTypes
-
-        return constants
-    }
-
-    fun hasClientFor(url: HttpUrl): Boolean {
-        return clients.containsKey(url)
     }
 
     private fun request(method: String, baseUrl: String, endpoint: String, options: ReadableMap?, promise: Promise) {
         try {
             val url = baseUrl.toHttpUrl()
-            val client = clients[url]!!
-            client.request(method, endpoint, options, promise)
+            val client = clients[url]
+            client?.request(method, endpoint, options, promise)
         } catch (error: Exception) {
             return promise.reject(error)
         }
     }
 
-    fun getSync(baseUrl: String, endpoint: String, options: ReadableMap?): Response {
+    // Methods to use with native implementations
+    fun hasClientFor(url: HttpUrl): Boolean {
+        return clients.containsKey(url)
+    }
+
+    private fun requestSync(method: String, baseUrl: String, endpoint: String, options: ReadableMap?): Response? {
+        val url = baseUrl.toHttpUrl()
+        val client = clients[url]
+        return client?.requestSync(method, endpoint, options)
+    }
+
+    fun getSync(baseUrl: String, endpoint: String, options: ReadableMap?): Response? {
         return requestSync("GET", baseUrl, endpoint, options)
     }
 
-    fun postSync(baseUrl: String, endpoint: String, options: ReadableMap?): Response {
+    fun postSync(baseUrl: String, endpoint: String, options: ReadableMap?): Response? {
         return requestSync("POST", baseUrl, endpoint, options)
-    }
-
-    private fun requestSync(method: String, baseUrl: String, endpoint: String, options: ReadableMap?): Response {
-        val url = baseUrl.toHttpUrl()
-        val client = clients[url]!!
-        return client.requestSync(method, endpoint, options)
     }
 }

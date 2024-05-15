@@ -84,7 +84,10 @@
   "codegenConfig": {
     "name": "NetworkClientSpec",
     "type": "modules",
-    "jsSrcsDir": "./src"
+    "jsSrcsDir": "./src",
+    "android": {
+      "javaPackageName:": "com.mattermost.networkclient"
+    }
   },
   "jest": {
     "preset": "react-native",

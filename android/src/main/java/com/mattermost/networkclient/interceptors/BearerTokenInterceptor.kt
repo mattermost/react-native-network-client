@@ -1,6 +1,6 @@
 package com.mattermost.networkclient.interceptors
 
-import com.mattermost.networkclient.APIClientModule
+import com.mattermost.networkclient.ApiClientModuleImpl
 import okhttp3.Interceptor
 import okhttp3.Response
 import java.io.IOException
@@ -10,7 +10,7 @@ class BearerTokenInterceptor(private val alias: String, private val bearerAuthTo
     override fun intercept(chain: Interceptor.Chain): Response {
         var request = chain.request()
 
-        var token = APIClientModule.retrieveValue(alias)
+        var token = ApiClientModuleImpl.retrieveValue(alias)
         if (token !== null) {
             request = request.newBuilder()
                     .header("Authorization", "Bearer $token")
@@ -20,7 +20,7 @@ class BearerTokenInterceptor(private val alias: String, private val bearerAuthTo
         val response = chain.proceed(request)
         token = response.headers[bearerAuthTokenResponseHeader]
         if (token != null) {
-            APIClientModule.storeValue(token, alias)
+            ApiClientModuleImpl.storeValue(token, alias)
         }
 
         return response

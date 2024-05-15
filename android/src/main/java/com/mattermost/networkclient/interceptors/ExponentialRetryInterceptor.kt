@@ -12,8 +12,8 @@ open class ExponentialRetryInterceptor(
 ) : RetryInterceptor {
 
     companion object {
-        const val defaultExponentialBackoffBase = 2.0
-        const val defaultExponentialBackoffScale = 0.5
+        const val DEFAULT_EXPONENTIAL_BACKOFF_BASE = 2.0
+        const val DEFAULT_EXPONENTIAL_BACKOFF_SCALE = 0.5
     }
 
     override fun getWaitInterval(attempts: Int): Long {

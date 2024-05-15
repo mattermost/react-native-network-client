@@ -4,6 +4,7 @@ import com.mattermost.networkclient.helpers.ProgressResponseBody
 import okhttp3.Interceptor
 import okhttp3.Response
 import java.io.IOException
+import java.util.Locale
 
 class DownloadProgressInterceptor(private val taskId: String) : Interceptor {
     @Throws(IOException::class)
@@ -11,13 +12,13 @@ class DownloadProgressInterceptor(private val taskId: String) : Interceptor {
         val originalResponse = chain.proceed(chain.request())
         val responseBuilder = originalResponse.newBuilder()
         val uncompressedHeaderName = "X-Uncompressed-Content-Length"
-        var uncompressHeader = originalResponse.headers.get(uncompressedHeaderName.toLowerCase())
+        var uncompressHeader = originalResponse.headers[uncompressedHeaderName.lowercase(Locale.getDefault())]
         if (uncompressHeader == null) {
-            uncompressHeader = originalResponse.headers.get(uncompressedHeaderName)
+            uncompressHeader = originalResponse.headers[uncompressedHeaderName]
         }
 
         var uncompressBytes: Long? = null
-        if (uncompressHeader != null && uncompressHeader.isNotEmpty()) {
+        if (!uncompressHeader.isNullOrEmpty()) {
             uncompressBytes = uncompressHeader.toLongOrNull()
         }
 

@@ -10,7 +10,7 @@ class LinearRetryInterceptor(
 ) : RetryInterceptor {
 
     companion object {
-        const val defaultRetryInterval = 2000.0
+        const val DEFAULT_RETRY_INTERVAL = 2000.0
     }
 
     override fun getWaitInterval(attempts: Int): Long {

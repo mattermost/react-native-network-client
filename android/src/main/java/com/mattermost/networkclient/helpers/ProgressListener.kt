@@ -1,7 +1,7 @@
 package com.mattermost.networkclient.helpers
 
 import com.facebook.react.bridge.Arguments
-import com.mattermost.networkclient.APIClientModule
+import com.mattermost.networkclient.ApiClientModuleImpl
 import kotlin.math.roundToInt
 
 interface ProgressListenerInterface {
@@ -15,7 +15,7 @@ class ProgressListener(private val taskId: String, private val eventName: String
         data.putDouble("fractionCompleted", progress)
         data.putString("taskId", taskId)
         data.putDouble("bytesRead", bytesRead)
-        APIClientModule.sendJSEvent(eventName, data)
+        ApiClientModuleImpl.sendJSEvent(eventName, data)
     }
 
     override fun update(bytesRead: Double, contentLength: Double, done: Boolean?) {

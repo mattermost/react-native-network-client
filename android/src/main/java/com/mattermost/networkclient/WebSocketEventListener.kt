@@ -85,11 +85,11 @@ class WebSocketEventListener(private val uri: URI) : WebSocketListener() {
     }
 
     private fun sendJSEvent(eventName: String, data: WritableMap) {
-        WebSocketClientModule.sendJSEvent(eventName, data.copy())
+        WebSocketClientModuleImpl.sendJSEvent(eventName, data.copy())
     }
 
     private fun sendReadyState(readyState: WebSocketReadyState) {
-        val data = Arguments.createMap();
+        val data = Arguments.createMap()
         data.putString("url", uri.toString())
         data.putInt("message", readyState.ordinal)
 

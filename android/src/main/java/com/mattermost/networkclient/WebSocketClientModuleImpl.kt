@@ -1,27 +1,24 @@
 package com.mattermost.networkclient
 
-import com.facebook.react.bridge.*
-import com.facebook.react.modules.core.DeviceEventManagerModule
-import com.mattermost.networkclient.enums.WebSocketEvents
-import com.mattermost.networkclient.enums.WebSocketReadyState
+import com.facebook.react.bridge.Promise
+import com.facebook.react.bridge.ReactApplicationContext
+import com.facebook.react.bridge.ReadableMap
+import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import java.net.URI
-import kotlin.collections.HashMap
 
-internal class WebSocketClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
+class WebSocketClientModuleImpl(reactApplicationContext: ReactApplicationContext) {
     private val clients = mutableMapOf<URI, NetworkClient>()
 
-    override fun getName(): String {
-        return "WebSocketClient"
-    }
-
     companion object {
-        lateinit var context: ReactApplicationContext
+        const val NAME = "WebSocketClient"
+
+        private lateinit var context: ReactApplicationContext
 
         fun sendJSEvent(eventName: String, data: ReadableMap?) {
             if (context.hasActiveReactInstance()) {
-                context.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
+                context.getJSModule(RCTDeviceEventEmitter::class.java)
                         .emit(eventName, data)
             }
         }
@@ -32,39 +29,34 @@ internal class WebSocketClientModule(reactContext: ReactApplicationContext) : Re
     }
 
     init {
-        setCtx(reactContext)
+        setCtx(reactApplicationContext)
     }
 
-    override fun invalidate() {
-        super.invalidate()
+    fun invalidate() {
         clients.forEach {(_, value) ->
             value.webSocket?.close(1000, null)
         }
     }
 
-    @ReactMethod
     fun ensureClientFor(wsUrl: String, options: ReadableMap, promise: Promise) {
-        var wsUri: URI
-        var baseUrl: HttpUrl
+        val wsUri: URI
         try {
             wsUri = URI(wsUrl)
-            baseUrl = httpUrlFromURI(wsUri)
         } catch (error: IllegalArgumentException) {
             return promise.reject(error)
         }
 
         if (clients.containsKey(wsUri)) {
             clients[wsUri]!!.webSocket?.close(1000, null)
-            clients.remove(wsUri);
+            clients.remove(wsUri)
         }
 
-        createClientFor(wsUrl, options, promise);
+        createClientFor(wsUrl, options, promise)
     }
 
-    @ReactMethod
     fun createClientFor(wsUrl: String, options: ReadableMap, promise: Promise) {
-        var wsUri: URI
-        var baseUrl: HttpUrl
+        val wsUri: URI
+        val baseUrl: HttpUrl
         try {
             wsUri = URI(wsUrl)
             baseUrl = httpUrlFromURI(wsUri)
@@ -73,20 +65,19 @@ internal class WebSocketClientModule(reactContext: ReactApplicationContext) : Re
         }
 
         if (clients.containsKey(wsUri)) {
-            return promise.reject("already existing client for this websocket url");
+            return promise.reject("WebSocket error", "already existing client for this websocket url")
         }
 
         try {
-            clients[wsUri] = NetworkClient(wsUri, baseUrl, options)
+            clients[wsUri] = NetworkClient(context, wsUri, baseUrl, options)
             promise.resolve(null)
         } catch (error: Exception) {
             promise.reject(error)
         }
     }
 
-    @ReactMethod
     fun invalidateClientFor(wsUrl: String, promise: Promise) {
-        var wsUri: URI
+        val wsUri: URI
         try {
             wsUri = URI(wsUrl)
         } catch (error: IllegalArgumentException) {
@@ -95,14 +86,13 @@ internal class WebSocketClientModule(reactContext: ReactApplicationContext) : Re
 
 
         clients[wsUri]!!.webSocket?.close(1000, null)
-        clients.remove(wsUri);
+        clients.remove(wsUri)
 
         promise.resolve(null)
     }
 
-    @ReactMethod
     fun connectFor(wsUrl: String, promise: Promise) {
-        var wsUri: URI
+        val wsUri: URI
         try {
             wsUri = URI(wsUrl)
         } catch (error: IllegalArgumentException) {
@@ -116,9 +106,8 @@ internal class WebSocketClientModule(reactContext: ReactApplicationContext) : Re
         }
     }
 
-    @ReactMethod
     fun disconnectFor(wsUrl: String, promise: Promise) {
-        var wsUri: URI
+        val wsUri: URI
         try {
             wsUri = URI(wsUrl)
         } catch (error: IllegalArgumentException) {
@@ -132,9 +121,8 @@ internal class WebSocketClientModule(reactContext: ReactApplicationContext) : Re
         }
     }
 
-    @ReactMethod
     fun sendDataFor(wsUrl: String, data: String, promise: Promise) {
-        var wsUri: URI
+        val wsUri: URI
         try {
             wsUri = URI(wsUrl)
         } catch (error: IllegalArgumentException) {
@@ -149,32 +137,6 @@ internal class WebSocketClientModule(reactContext: ReactApplicationContext) : Re
         }
     }
 
-    @ReactMethod
-    fun addListener(eventName: String) {
-        // Keep: Required for RN built in Event Emitter Calls
-    }
-
-    @ReactMethod
-    fun removeListeners(count: Int) {
-        // Keep: Required for RN built in Event Emitter Calls
-    }
-
-    @Override
-    override fun getConstants(): Map<String, Any> {
-        val constants: MutableMap<String, Any> = HashMap<String, Any>()
-
-        val events = HashMap<String, String>()
-        WebSocketEvents.values().forEach { enum -> events[enum.name] = enum.event }
-
-        val readyState = HashMap<String, Int>()
-        WebSocketReadyState.values().forEach { enum -> readyState[enum.name] = enum.ordinal }
-
-        constants["READY_STATE"] = readyState
-        constants["EVENTS"] = events
-
-        return constants
-    }
-
     /**
      * Creates an HttpUrl from a URI by replacing the scheme with `http` or `https`
      *
@@ -186,5 +148,4 @@ internal class WebSocketClientModule(reactContext: ReactApplicationContext) : Re
 
         return httpUri.toString().toHttpUrl()
     }
-
 }

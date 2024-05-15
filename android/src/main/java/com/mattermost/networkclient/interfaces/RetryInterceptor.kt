@@ -12,7 +12,7 @@ interface RetryInterceptor : Interceptor {
     val retryStatusCodes: Set<Int>
 
     companion object {
-        const val defaultRetryLimit = 2.0
+        const val DEFAULT_RETRY_LIMIT = 2.0
         val defaultRetryStatusCodes = setOf(408, 500, 502, 503, 504)
         val defaultRetryMethods = setOf("GET", "PATCH", "POST", "PUT", "DELETE")
     }
@@ -27,15 +27,15 @@ interface RetryInterceptor : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
         val request = chain.request()
         var response = chain.proceed(request)
-        var attempts = 1;
+        var attempts = 1
 
         while (!response.isSuccessful
                 && attempts <= retryLimit
                 && retryStatusCodes.contains(response.code)
-                && retryMethods.contains(request.method.toUpperCase())) {
+                && retryMethods.contains(request.method.uppercase())) {
             runCatching { response.close() }
             waitForMilliseconds(getWaitInterval(attempts))
-            attempts++;
+            attempts++
 
             response = chain.proceed(request)
         }
@@ -44,6 +44,6 @@ interface RetryInterceptor : Interceptor {
             response.retriesExhausted = true
         }
 
-        return response;
+        return response
     }
 }

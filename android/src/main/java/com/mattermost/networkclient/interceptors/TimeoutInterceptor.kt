@@ -10,13 +10,13 @@ class TimeoutInterceptor(
         private val writeTimeout: Int
 ) : Interceptor {
     companion object {
-        const val defaultReadTimeout = 60000
-        const val defaultWriteTimeout = 60000
+        const val DEFAULT_READ_TIMEOUT = 60000
+        const val DEFAULT_WRITE_TIMEOUT = 60000
     }
 
     @Throws(IOException::class)
     override fun intercept(chain: Interceptor.Chain): Response {
-        val request = chain.request();
+        val request = chain.request()
 
         val newChain = chain
                 .withConnectTimeout(0, TimeUnit.MILLISECONDS)
