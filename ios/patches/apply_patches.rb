@@ -10,6 +10,7 @@ module Pod
         def apply_patch(file)
             repo_root = `git rev-parse --show-toplevel`.strip
             directory_arg = Dir.glob(Pathname(repo_root).join("**/**/Pods")).first.sub("#{repo_root}/", "")
+            puts "HEY #{file}"
         
             Dir.chdir(repo_root) {
                 check_cmd = "git apply --check '#{file}' --directory='#{directory_arg}' -p2 2> /dev/null"
@@ -29,7 +30,7 @@ module Pod
         def apply
             files = find_patches()
             files.each do |f|
-                apply_patch(f)
+                apply_patch("#{Dir.pwd}/#{f}")
             end
         end
     end
