@@ -2,14 +2,12 @@
 
 #import <React/RCTBundleURLProvider.h>
 
-#import "NetworkClientExample-Swift.h"
 
 @implementation AppDelegate
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
   self.moduleName = @"NetworkClientExample";
-  [SDImageDownloadSwizzleHelper performSwizzling];
   return [super application:application didFinishLaunchingWithOptions:launchOptions];
 }
 

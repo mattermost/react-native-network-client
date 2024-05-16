@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 46;
+	objectVersion = 54;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -13,6 +13,8 @@
 		20F357B024636CDF00C146DC /* SDWebImageDownloaderOperation+Swizzle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20F357AF24636CDF00C146DC /* SDWebImageDownloaderOperation+Swizzle.swift */; };
 		463BEC047F81A3DAAAE2A17F /* libPods-NetworkClientExample.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 7030B3173508BB900788149F /* libPods-NetworkClientExample.a */; };
 		7F94792C254DC57A00B0CF2B /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 7F94792B254DC57A00B0CF2B /* LaunchScreen.storyboard */; };
+		7F9814992BF5AD8A00C56A0D /* SDWebImageDownloaderOperation.m in Sources */ = {isa = PBXBuildFile; fileRef = 7F9814982BF5AD8A00C56A0D /* SDWebImageDownloaderOperation.m */; };
+		DD448CFE03519F9296D88409 /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = A265497B8A6157C9F0C47F50 /* ExpoModulesProvider.swift */; };
 		F39CAD6A83A1A74AEE055B58 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = ECB44516F12C27C565B6EE0A /* PrivacyInfo.xcprivacy */; };
 /* End PBXBuildFile section */
 
@@ -30,7 +32,9 @@
 		4D7192F03A36A017E887435B /* Pods-NetworkClientExample.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NetworkClientExample.release.xcconfig"; path = "Target Support Files/Pods-NetworkClientExample/Pods-NetworkClientExample.release.xcconfig"; sourceTree = "<group>"; };
 		7030B3173508BB900788149F /* libPods-NetworkClientExample.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-NetworkClientExample.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		7F94792B254DC57A00B0CF2B /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = NetworkClientExample/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		7F9814982BF5AD8A00C56A0D /* SDWebImageDownloaderOperation.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = SDWebImageDownloaderOperation.m; path = NetworkClientExample/SDWebImageDownloaderOperation.m; sourceTree = "<group>"; };
 		871719007ECC5EAD276C345C /* Pods-NetworkClientExample.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NetworkClientExample.debug.xcconfig"; path = "Target Support Files/Pods-NetworkClientExample/Pods-NetworkClientExample.debug.xcconfig"; sourceTree = "<group>"; };
+		A265497B8A6157C9F0C47F50 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-NetworkClientExample/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
 		ECB44516F12C27C565B6EE0A /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = NetworkClientExample/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
@@ -50,6 +54,7 @@
 		13B07FAE1A68108700A75B9A /* NetworkClientExample */ = {
 			isa = PBXGroup;
 			children = (
+				20F357AE24636CDF00C146DC /* NetworkClientExample-Bridging-Header.h */,
 				4922643B254760E8001EEA01 /* NetworkClientExample.entitlements */,
 				13B07FAF1A68108700A75B9A /* AppDelegate.h */,
 				13B07FB01A68108700A75B9A /* AppDelegate.mm */,
@@ -59,6 +64,7 @@
 				7F94792B254DC57A00B0CF2B /* LaunchScreen.storyboard */,
 				ECB44516F12C27C565B6EE0A /* PrivacyInfo.xcprivacy */,
 				20F357AF24636CDF00C146DC /* SDWebImageDownloaderOperation+Swizzle.swift */,
+				7F9814982BF5AD8A00C56A0D /* SDWebImageDownloaderOperation.m */,
 			);
 			name = NetworkClientExample;
 			sourceTree = "<group>";
@@ -91,13 +97,13 @@
 		83CBB9F61A601CBA00E9B192 = {
 			isa = PBXGroup;
 			children = (
-				20F357AE24636CDF00C146DC /* NetworkClientExample-Bridging-Header.h */,
 				13B07FAE1A68108700A75B9A /* NetworkClientExample */,
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
 				1CFFDEF7170271C97B8B7E5A /* Pods */,
 				20F357AD24636CDE00C146DC /* NetworkClientExample-Bridging-Header.h */,
+				A4412F979E4B44792B75F1BC /* ExpoModulesProviders */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -112,6 +118,22 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		8549C613068DE1A8BD330685 /* NetworkClientExample */ = {
+			isa = PBXGroup;
+			children = (
+				A265497B8A6157C9F0C47F50 /* ExpoModulesProvider.swift */,
+			);
+			name = NetworkClientExample;
+			sourceTree = "<group>";
+		};
+		A4412F979E4B44792B75F1BC /* ExpoModulesProviders */ = {
+			isa = PBXGroup;
+			children = (
+				8549C613068DE1A8BD330685 /* NetworkClientExample */,
+			);
+			name = ExpoModulesProviders;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -121,6 +143,7 @@
 			buildPhases = (
 				CCCC07BCAFDEF1FCADC0D0C9 /* [CP] Check Pods Manifest.lock */,
 				FD10A7F022414F080027D42C /* Start Packager */,
+				177534106FEF20DFFE896A0C /* [Expo] Configure project */,
 				13B07F871A680F5B00A75B9A /* Sources */,
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
@@ -201,6 +224,25 @@
 			shellPath = /bin/sh;
 			shellScript = "set -e\n\nWITH_ENVIRONMENT=\"../node_modules/react-native/scripts/xcode/with-environment.sh\"\nREACT_NATIVE_XCODE=\"../node_modules/react-native/scripts/react-native-xcode.sh\"\n\n/bin/sh -c \"$WITH_ENVIRONMENT $REACT_NATIVE_XCODE\"\n";
 		};
+		177534106FEF20DFFE896A0C /* [Expo] Configure project */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "[Expo] Configure project";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# This script configures Expo modules and generates the modules provider file.\nbash -l -c \"./Pods/Target\\ Support\\ Files/Pods-NetworkClientExample/expo-configure-project.sh\"\n";
+		};
 		1AAAD1CEE14078EB228880AD /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -227,6 +269,7 @@
 			inputPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-NetworkClientExample/Pods-NetworkClientExample-resources.sh",
 				"${PODS_CONFIGURATION_BUILD_DIR}/Alamofire/Alamofire.bundle",
+				"${PODS_CONFIGURATION_BUILD_DIR}/ExpoFileSystem/ExpoFileSystem_privacy.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/RNDeviceInfo/RNDeviceInfoPrivacyInfo.bundle",
 				"${PODS_ROOT}/../../node_modules/react-native-vector-icons/Fonts/AntDesign.ttf",
 				"${PODS_ROOT}/../../node_modules/react-native-vector-icons/Fonts/Entypo.ttf",
@@ -248,12 +291,14 @@
 				"${PODS_ROOT}/../../node_modules/react-native-vector-icons/Fonts/SimpleLineIcons.ttf",
 				"${PODS_ROOT}/../../node_modules/react-native-vector-icons/Fonts/Zocial.ttf",
 				"${PODS_CONFIGURATION_BUILD_DIR}/React-Core/RCTI18nStrings.bundle",
+				"${PODS_CONFIGURATION_BUILD_DIR}/SDWebImage/SDWebImage.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/Starscream/Starscream_Privacy.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/SwiftyJSON/SwiftyJSON.bundle",
 			);
 			name = "[CP] Copy Pods Resources";
 			outputPaths = (
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/Alamofire.bundle",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/ExpoFileSystem_privacy.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/RNDeviceInfoPrivacyInfo.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/AntDesign.ttf",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/Entypo.ttf",
@@ -275,6 +320,7 @@
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/SimpleLineIcons.ttf",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/Zocial.ttf",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/RCTI18nStrings.bundle",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/SDWebImage.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/Starscream_Privacy.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/SwiftyJSON.bundle",
 			);
@@ -332,8 +378,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				13B07FBC1A68108700A75B9A /* AppDelegate.mm in Sources */,
+				7F9814992BF5AD8A00C56A0D /* SDWebImageDownloaderOperation.m in Sources */,
 				20F357B024636CDF00C146DC /* SDWebImageDownloaderOperation+Swizzle.swift in Sources */,
 				13B07FC11A68108700A75B9A /* main.m in Sources */,
+				DD448CFE03519F9296D88409 /* ExpoModulesProvider.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -352,7 +400,10 @@
 				DEVELOPMENT_TEAM = UQ8HT4Q2XM;
 				INFOPLIST_FILE = NetworkClientExample/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 13.4;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
 				OTHER_CFLAGS = (
 					"$(inherited)",
 					"-DFB_SONARKIT_ENABLED=1",
@@ -373,6 +424,7 @@
 					"-ObjC",
 					"-lc++",
 				);
+				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
 				PRODUCT_BUNDLE_IDENTIFIER = "com.mattermost.network-client";
 				PRODUCT_NAME = NetworkClientExample;
 				SWIFT_OBJC_BRIDGING_HEADER = "NetworkClientExample-Bridging-Header.h";
@@ -393,7 +445,10 @@
 				DEVELOPMENT_TEAM = UQ8HT4Q2XM;
 				INFOPLIST_FILE = NetworkClientExample/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 13.4;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
 				OTHER_CFLAGS = (
 					"$(inherited)",
 					"-DFB_SONARKIT_ENABLED=1",
@@ -403,6 +458,7 @@
 					"-ObjC",
 					"-lc++",
 				);
+				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
 				PRODUCT_BUNDLE_IDENTIFIER = "com.mattermost.network-client";
 				PRODUCT_NAME = NetworkClientExample;
 				SWIFT_OBJC_BRIDGING_HEADER = "NetworkClientExample-Bridging-Header.h";
@@ -461,7 +517,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.4;
 				LD = "";
 				LDPLUSPLUS = "";
 				MTL_ENABLE_DEBUG_INFO = YES;
@@ -521,7 +577,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.4;
 				LD = "";
 				LDPLUSPLUS = "";
 				MTL_ENABLE_DEBUG_INFO = NO;

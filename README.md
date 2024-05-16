@@ -4,15 +4,13 @@ Configurable network clients for React Native. Uses Alamofire for iOS and OkHttp
 
 ## About
 
-React Native uses a single [URLSessionConfiguration](https://github.com/facebook/react-native/blob/v0.64.1/Libraries/Network/RCTHTTPRequestHandler.mm#L78) and a single [OkHttpClient](https://github.com/facebook/react-native/blob/v0.64.1/ReactAndroid/src/main/java/com/facebook/react/modules/network/OkHttpClientProvider.java#L26) for all network requests. In order to introduce multi-server support in the Mattermost mobile app, we need to maintain isolated instances of [URLSession](https://developer.apple.com/documentation/foundation/urlsession) and [OkHttpClient](https://square.github.io/okhttp/4.x/okhttp/okhttp3/-ok-http-client/), each configured individually for a specific server. This library allows you to do just that.
+React Native uses a single **URLSessionConfiguration** and a single **OkHttpClient** for all network requests. In order to introduce multi-server support in the Mattermost mobile app, we need to maintain isolated instances of [URLSession](https://developer.apple.com/documentation/foundation/urlsession) and [OkHttpClient](https://square.github.io/okhttp/4.x/okhttp/okhttp3/-ok-http-client/), each configured individually for a specific server. This library allows you to do just that.
 
 ## Installation
 
 ```sh
 npm install @mattermost/react-native-network-client
 ```
-
-You will also need to update your applications Podfile to use our fork of Starscream. See the [example app's Podfile](https://github.com/mattermost/react-native-network-client/blob/master/example/ios/Podfile#L31).
 
 ## Usage
 
@@ -103,57 +101,24 @@ For both API client and WebSocket client, the following error codes apply:
 
 ## Method Swizzling
 
-There may be cases where network requests are made by another dependency of your app, for example, [react-native-fast-image](https://github.com/DylanVann/react-native-fast-image), and you'll want those requests to adopt the configuration of your `react-native-network-client` created client. 
+There may be cases where network requests are made by another dependency of your app, for example, [react-native-fast-image](https://github.com/DylanVann/react-native-fast-image), [expo-image](https://docs.expo.dev/versions/latest/sdk/image/), or the *Image* component of React Native, and you'll want those requests to adopt the configuration of your `react-native-network-client` created client. 
 
 ### iOS:
-While there might be a cleaner solution to this, we've opted for method swizzling in IOS for our own use case at Mattermost. You can find an example of how to do this in [example/ios/SDWebImageDownloaderOperation+Swizzle.m](https://github.com/mattermost/react-native-network-client/blob/master/example/ios/SDWebImageDownloaderOperation%2BSwizzle.m). The specific swizzle code to write will depend on your dependency and on the dependency version as well since method implementations change. 
+While there might be a cleaner solution to this, we've opted for method swizzling in IOS for our own use case at Mattermost. You can find an example of how to do this in [example/ios/SDWebImageDownloaderOperation.m](https://github.com/mattermost/react-native-network-client/blob/master/example/ios/SDWebImageDownloaderOperation.m). The specific swizzle code to write will depend on your dependency and on the dependency version as well since method implementations change.
 
 ### Android: 
 For Android, we provide the interceptor [android/src/main/java/com/mattermost/networkclient/interceptors/RCTClientRequestInterceptor.kt](https://github.com/mattermost/react-native-network-client/blob/master/android/src/main/java/com/mattermost/networkclient/interceptors/RCTClientRequestInterceptor.kt) that adapts the request if an APIClient is found for the request. To make this interceptor active you need to do two things:
 
-1. Add `OkHttpClientProvider.setOkHttpClientFactory(new RCTOkHttpClientFactory());` to your `MainApplication`'s `onCreate` function (see [example/android/app/src/main/java/com/example/reactnativenetworkclient/MainApplication.java](https://github.com/mattermost/react-native-network-client/blob/master/example/android/app/src/main/java/com/example/reactnativenetworkclient/MainApplication.java#L58)).
-2. Ensure that all dependencies use the same version of okhttp3 by adding the following to the dependencies block of your application's `android/app/build.gradle` file (see [example/android/app/build.gradle](https://github.com/mattermost/react-native-network-client/blob/master/example/android/app/build.gradle##L213-L214)):
+1. Add `OkHttpClientProvider.setOkHttpClientFactory(RCTOkHttpClientFactory());` to your `MainApplication`'s `onCreate` function (see [example/android/app/src/main/java/com/example/reactnativenetworkclient/MainApplication.kt](https://github.com/mattermost/react-native-network-client/blob/master/example/android/app/src/main/java/com/example/reactnativenetworkclient/MainApplication.kt#L57)).
+2. Ensure that all dependencies use the same version of okhttp3 by adding the following to the dependencies block of your application's `android/app/build.gradle` file (see [example/android/app/build.gradle](https://github.com/mattermost/react-native-network-client/blob/master/example/android/app/build.gradle##L119-L120)):
 
 ```
-implementation "com.squareup.okhttp3:okhttp:4.9.2"
-implementation "com.squareup.okhttp3:okhttp-urlconnection:4.9.2"
+implementation "com.squareup.okhttp3:okhttp:4.12.0"
+implementation "com.squareup.okhttp3:okhttp-urlconnection:4.12.0"
 ```
 
-### Enable Flipper on Android
+In case you are using [expo-image](https://docs.expo.dev/versions/latest/sdk/image/) you can include the patch found in [example/patches/expo-image+1.12.9.patch](https://github.com/mattermost/react-native-network-client/blob/master/example/patches/expo-image+1.12.9.patch) and then set the **expo-image** http client to use the one provided by this library in your `MainApplication`'s `onCreate` function and add a call to `ExpoImageOkHttpClientGlideModule.okHttpClient = RCTOkHttpClientFactory().createNewNetworkModuleClient()` (see [example/android/app/src/main/java/com/example/reactnativenetworkclient/MainApplication.kt#L58](https://github.com/mattermost/react-native-network-client/blob/master/example/android/app/src/main/java/com/example/reactnativenetworkclient/MainApplication.kt#L58))
 
-```diff
---- a/android/app/src/debug/java/com/RNDiff/flipper/ReactNativeFlipper.java
-+++ b/android/app/src/debug/java/com/RNDiff/flipper/ReactNativeFlipper.java
-@@ -22,6 +22,8 @@ import com.facebook.react.ReactInstanceEventListener;
- import com.facebook.react.ReactInstanceManager;
- import com.facebook.react.bridge.ReactContext;
- import com.facebook.react.modules.network.NetworkingModule;
-+import com.mattermost.networkclient.RCTOkHttpClientFactory;
-+
- import okhttp3.OkHttpClient;
- 
- /**
-@@ -37,6 +39,8 @@ public class ReactNativeFlipper {
-       client.addPlugin(new SharedPreferencesFlipperPlugin(context));
-       client.addPlugin(CrashReporterPlugin.getInstance());
-       NetworkFlipperPlugin networkFlipperPlugin = new NetworkFlipperPlugin();
-+      RCTOkHttpClientFactory.Companion.setFlipperPlugin(networkFlipperPlugin);
-+
-       NetworkingModule.setCustomClientBuilder(
-           new NetworkingModule.CustomClientBuilder() {
-             @Override
-```
-
-## Troubleshooting
-
-If you hit the following iOS build error:
-
-```
-Undefined symbols for architecture x86_64:
-  "nominal type descriptor for (extension in Foundation):__C.NSURLSessionWebSocketTask.Message", referenced from:
-```
-
-you'll need to remove the references to `"$(TOOLCHAIN_DIR)/usr/lib/swift-5.0/$(PLATFORM_NAME)"` in your project's `project.pbxproj` as described in [react-native/issues/31179#issuecomment-829536845](https://github.com/facebook/react-native/issues/31179#issuecomment-829536845)
 
 ## Contributing
 

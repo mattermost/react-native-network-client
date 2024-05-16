@@ -3,12 +3,51 @@ PODS:
   - BEMCheckBox (1.4.1)
   - boost (1.83.0)
   - DoubleConversion (1.1.6)
+  - Expo (51.0.0):
+    - ExpoModulesCore
+  - ExpoFileSystem (17.0.1):
+    - ExpoModulesCore
+  - ExpoImage (1.12.9):
+    - ExpoModulesCore
+    - libavif/libdav1d
+    - SDWebImage (~> 5.19.1)
+    - SDWebImageAVIFCoder (~> 0.11.0)
+    - SDWebImageSVGCoder (~> 1.7.0)
+    - SDWebImageWebPCoder (~> 0.14.6)
+  - ExpoModulesCore (1.12.9):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.01.01.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Codegen
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsinspector
+    - React-NativeModulesApple
+    - React-RCTAppDelegate
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - FBLazyVector (0.74.1)
   - fmt (9.1.0)
   - glog (0.3.5)
   - hermes-engine (0.74.1):
     - hermes-engine/Pre-built (= 0.74.1)
   - hermes-engine/Pre-built (0.74.1)
+  - libavif/core (0.11.1)
+  - libavif/libdav1d (0.11.1):
+    - libavif/core
+    - libdav1d (>= 0.6.0)
+  - libdav1d (1.2.0)
   - libwebp (1.3.2):
     - libwebp/demux (= 1.3.2)
     - libwebp/mux (= 1.3.2)
@@ -1303,10 +1342,6 @@ PODS:
     - React
   - RNDeviceInfo (10.13.2):
     - React-Core
-  - RNFastImage (8.6.3):
-    - React-Core
-    - SDWebImage (~> 5.11.1)
-    - SDWebImageWebPCoder (~> 0.8.4)
   - RNFS (2.20.0):
     - React-Core
   - RNGestureHandler (2.16.2):
@@ -1438,12 +1473,17 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - SDWebImage (5.11.1):
-    - SDWebImage/Core (= 5.11.1)
-  - SDWebImage/Core (5.11.1)
-  - SDWebImageWebPCoder (0.8.5):
+  - SDWebImage (5.19.1):
+    - SDWebImage/Core (= 5.19.1)
+  - SDWebImage/Core (5.19.1)
+  - SDWebImageAVIFCoder (0.11.0):
+    - libavif/core (>= 0.11.0)
+    - SDWebImage (~> 5.10)
+  - SDWebImageSVGCoder (1.7.0):
+    - SDWebImage/Core (~> 5.6)
+  - SDWebImageWebPCoder (0.14.6):
     - libwebp (~> 1.0)
-    - SDWebImage/Core (~> 5.10)
+    - SDWebImage/Core (~> 5.17)
   - SocketRocket (0.7.0)
   - Starscream (4.0.8)
   - SwiftyJSON (5.0.2)
@@ -1452,6 +1492,10 @@ PODS:
 DEPENDENCIES:
   - boost (from `../node_modules/react-native/third-party-podspecs/boost.podspec`)
   - DoubleConversion (from `../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec`)
+  - Expo (from `../node_modules/expo`)
+  - ExpoFileSystem (from `../node_modules/expo-file-system/ios`)
+  - ExpoImage (from `../node_modules/expo-image/ios`)
+  - ExpoModulesCore (from `../node_modules/expo-modules-core`)
   - FBLazyVector (from `../node_modules/react-native/Libraries/FBLazyVector`)
   - fmt (from `../node_modules/react-native/third-party-podspecs/fmt.podspec`)
   - glog (from `../node_modules/react-native/third-party-podspecs/glog.podspec`)
@@ -1512,7 +1556,6 @@ DEPENDENCIES:
   - "RNCCheckbox (from `../node_modules/@react-native-community/checkbox`)"
   - "RNCMaskedView (from `../node_modules/@react-native-community/masked-view`)"
   - RNDeviceInfo (from `../node_modules/react-native-device-info`)
-  - RNFastImage (from `../node_modules/react-native-fast-image`)
   - RNFS (from `../node_modules/react-native-fs`)
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - RNPermissions (from `../node_modules/react-native-permissions`)
@@ -1525,8 +1568,12 @@ SPEC REPOS:
   trunk:
     - Alamofire
     - BEMCheckBox
+    - libavif
+    - libdav1d
     - libwebp
     - SDWebImage
+    - SDWebImageAVIFCoder
+    - SDWebImageSVGCoder
     - SDWebImageWebPCoder
     - SocketRocket
     - Starscream
@@ -1537,6 +1584,14 @@ EXTERNAL SOURCES:
     :podspec: "../node_modules/react-native/third-party-podspecs/boost.podspec"
   DoubleConversion:
     :podspec: "../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec"
+  Expo:
+    :path: "../node_modules/expo"
+  ExpoFileSystem:
+    :path: "../node_modules/expo-file-system/ios"
+  ExpoImage:
+    :path: "../node_modules/expo-image/ios"
+  ExpoModulesCore:
+    :path: "../node_modules/expo-modules-core"
   FBLazyVector:
     :path: "../node_modules/react-native/Libraries/FBLazyVector"
   fmt:
@@ -1654,8 +1709,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-community/masked-view"
   RNDeviceInfo:
     :path: "../node_modules/react-native-device-info"
-  RNFastImage:
-    :path: "../node_modules/react-native-fast-image"
   RNFS:
     :path: "../node_modules/react-native-fs"
   RNGestureHandler:
@@ -1676,10 +1729,16 @@ SPEC CHECKSUMS:
   BEMCheckBox: 5ba6e37ade3d3657b36caecc35c8b75c6c2b1a4e
   boost: d3f49c53809116a5d38da093a8aa78bf551aed09
   DoubleConversion: 76ab83afb40bddeeee456813d9c04f67f78771b5
+  Expo: 17eb02cbf2ac0db49a6bc0c80a6b635a900d4f60
+  ExpoFileSystem: 80bfe850b1f9922c16905822ecbf97acd711dc51
+  ExpoImage: eab004b9363e388d3f6a118f18716de6dcfb8e8d
+  ExpoModulesCore: b3e29f9593d24651ee05eb88032a75ef66c16213
   FBLazyVector: 898d14d17bf19e2435cafd9ea2a1033efe445709
   fmt: 4c2741a687cc09f0634a2e2c72a838b99f1ff120
   glog: c5d68082e772fa1c511173d6b30a9de2c05a69a2
   hermes-engine: f98dbda741ab53e3cd9a7da03fd3588e3d7b1d85
+  libavif: 84bbb62fb232c3018d6f1bab79beea87e35de7b7
+  libdav1d: 23581a4d8ec811ff171ed5e2e05cd27bad64c39f
   libwebp: 1786c9f4ff8a279e4dac1e8f385004d5fc253009
   RCT-Folly: 02617c592a293bd6d418e0a88ff4ee1f88329b47
   RCTDeprecation: efb313d8126259e9294dc4ee0002f44a6f676aba
@@ -1735,20 +1794,21 @@ SPEC CHECKSUMS:
   RNCCheckbox: a3ca9978cb0846b981d28da4e9914bd437403d77
   RNCMaskedView: 0e1bc4bfa8365eba5fbbb71e07fbdc0555249489
   RNDeviceInfo: 42aadf1282ffa0a88dc38a504a7be145eb010dfa
-  RNFastImage: 5c9c9fed9c076e521b3f509fe79e790418a544e8
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
   RNGestureHandler: 156548e18203327173a764c6932a3f52e90cb9cd
   RNPermissions: 3791ee18a215ab23a7ffd6738b7b30eb564a3be1
   RNReanimated: 2f33b2f8c79c456ce3858a7cd2e07460eb5f61e0
   RNScreens: 63fe8222c172a79f5c30dd1aefaeb369c6eb57b6
   RNVectorIcons: 933948590e598ec50433d6f207242e5a7c1d6b7d
-  SDWebImage: a7f831e1a65eb5e285e3fb046a23fcfbf08e696d
-  SDWebImageWebPCoder: 908b83b6adda48effe7667cd2b7f78c897e5111d
+  SDWebImage: 40b0b4053e36c660a764958bff99eed16610acbb
+  SDWebImageAVIFCoder: 00310d246aab3232ce77f1d8f0076f8c4b021d90
+  SDWebImageSVGCoder: 15a300a97ec1c8ac958f009c02220ac0402e936c
+  SDWebImageWebPCoder: e38c0a70396191361d60c092933e22c20d5b1380
   SocketRocket: abac6f5de4d4d62d24e11868d7a2f427e0ef940d
   Starscream: 19b5533ddb925208db698f0ac508a100b884a1b9
   SwiftyJSON: f5b1bf1cd8dd53cd25887ac0eabcfd92301c6a5a
   Yoga: 348f8b538c3ed4423eb58a8e5730feec50bce372
 
-PODFILE CHECKSUM: de83edb5790bdca790cfa1a5af18e4324355603e
+PODFILE CHECKSUM: 5a17df5a118de10610125183c96cb78160e9e011
 
 COCOAPODS: 1.14.3

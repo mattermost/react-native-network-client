@@ -25,13 +25,14 @@
     "@react-native-community/masked-view": "0.1.11",
     "@react-navigation/native": "6.1.17",
     "@react-navigation/stack": "6.3.29",
+    "expo": "51.0.0",
+    "expo-image": "1.12.9",
     "react": "18.2.0",
     "react-native": "0.74.1",
     "react-native-device-info": "10.13.2",
     "react-native-document-picker": "9.2.0",
     "react-native-dropdown-picker": "5.4.6",
     "react-native-elements": "3.4.3",
-    "react-native-fast-image": "8.6.3",
     "react-native-fs": "2.20.0",
     "react-native-gesture-handler": "2.16.2",
     "react-native-image-picker": "7.1.2",
@@ -76,6 +77,17 @@
     },
     "react-native-numeric-input": {
       "react-native-vector-icons": "10.1.0"
+    }
+  },
+  "expo": {
+    "autolinking": {
+      "exclude": [
+        "expo-application",
+        "expo-asset",
+        "expo-constants",
+        "expo-font",
+        "expo-keep-awake"
+      ]
     }
   }
 }

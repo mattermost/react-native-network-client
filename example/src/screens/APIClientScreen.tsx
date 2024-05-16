@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import { useNavigation, useRoute } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/core";
 import React, { useState, useEffect } from "react";
 import { SafeAreaView, ScrollView } from "react-native";
 import { Input, Button } from "react-native-elements";
@@ -63,7 +63,7 @@ export default function APIClientScreen() {
             { title: METHODS.DELETE, onPress: deleteRequest },
             { title: "UPLOAD", onPress: uploadRequest },
             { title: "DOWNLOAD", onPress: downloadRequest },
-            { title: "FAST IMAGE", onPress: fastImageRequest },
+            { title: "IMAGE", onPress: fastImageRequest },
             { title: "IMPORT P12", onPress: importP12 },
         ];
         if (item.isMattermostClient) {
