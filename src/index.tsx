@@ -9,4 +9,8 @@ export * from "./types/APIClient";
 export * from "./types/WebSocketClient";
 export { getOrCreateAPIClient, getOrCreateWebSocketClient };
 export { RetryTypes } from "./APIClient/NativeApiClient";
+export {
+    WebSocketEvents,
+    WebSocketReadyState,
+} from "./WebSocketClient/NativeWebSocketClient";
 export default GenericClient;
