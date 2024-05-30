@@ -15,6 +15,8 @@
 
 @implementation ApiClient {
     ApiClientWrapper *wrapper;
+    bool hasListeners;
+
 }
 
 -(instancetype) init {
@@ -26,6 +28,15 @@
     }
     
     return self;
+}
+
+-(void)startObserving {
+    hasListeners = YES;
+}
+
+// Will be called when this module's last listener is removed, or on dealloc.
+-(void)stopObserving {
+    hasListeners = NO;
 }
 
 RCT_EXPORT_MODULE(ApiClient)
@@ -98,7 +109,9 @@ RCT_EXPORT_METHOD(cancelRequest:(NSString *)taskId withResolver:(RCTPromiseResol
 #pragma protocol
 
 - (void)sendEventWithName:(NSString * _Nonnull)name result:(NSDictionary<NSString *,id> * _Nullable)result {
-    [self sendEventWithName:name body:result];
+    if (hasListeners) {
+        [self sendEventWithName:name body:result];
+    }
 }
 
 - (NSArray<NSString *> *)supportedEvents {
