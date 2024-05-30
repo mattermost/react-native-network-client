@@ -6,7 +6,6 @@ import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableMap
-import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter
 import com.facebook.react.modules.network.ForwardingCookieHandler
 import com.facebook.react.modules.network.ReactCookieJarContainer
 import com.mattermost.networkclient.helpers.KeyStoreHelper
@@ -71,7 +70,7 @@ class ApiClientModuleImpl(reactApplicationContext: ReactApplicationContext) {
 
         internal fun sendJSEvent(eventName: String, data: WritableMap?) {
             if (context.hasActiveReactInstance()) {
-                context.getJSModule(RCTDeviceEventEmitter::class.java)?.emit(eventName, data)
+                context.emitDeviceEvent(eventName, data)
 
             }
         }

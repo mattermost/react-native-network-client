@@ -3,7 +3,6 @@ package com.mattermost.networkclient
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableMap
-import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import java.net.URI
@@ -18,8 +17,7 @@ class WebSocketClientModuleImpl(reactApplicationContext: ReactApplicationContext
 
         fun sendJSEvent(eventName: String, data: ReadableMap?) {
             if (context.hasActiveReactInstance()) {
-                context.getJSModule(RCTDeviceEventEmitter::class.java)
-                        .emit(eventName, data)
+                context.emitDeviceEvent(eventName, data)
             }
         }
 
