@@ -1,11 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {
-    type EmitterSubscription,
-    NativeEventEmitter,
-    NativeModules,
-} from "react-native";
+import { type EmitterSubscription, NativeEventEmitter } from "react-native";
 import isURL from "validator/es/lib/isURL";
 
 import {
@@ -27,10 +23,15 @@ import type {
     UploadRequestOptions,
 } from "@mattermost/react-native-network-client";
 
-const { APIClient: NativeAPIClient } = NativeModules;
-const Emitter = new NativeEventEmitter(NativeAPIClient);
-const { EVENTS } = NativeAPIClient.getConstants();
+import {
+    ApiClientEvents,
+    type RequestOptions as NativeRequestOptions,
+    type Spec as NativeApiClientSpec,
+} from "./NativeApiClient";
 
+const NativeApiClient: NativeApiClientSpec =
+    require("./NativeApiClient").default;
+const Emitter = new NativeEventEmitter(NativeApiClient);
 const CLIENTS: { [key: string]: APIClient } = {};
 
 const DEFAULT_API_CLIENT_CONFIG: APIClientConfiguration = {
@@ -66,7 +67,7 @@ class APIClient implements APIClientInterface {
         }
 
         this.onClientErrorSubscription = Emitter.addListener(
-            EVENTS.CLIENT_ERROR,
+            ApiClientEvents.CLIENT_ERROR,
             (event: APIClientErrorEvent) => {
                 if (event.serverUrl === this.baseUrl && callback) {
                     callback(event);
@@ -75,24 +76,27 @@ class APIClient implements APIClientInterface {
         );
     };
 
-    getHeaders = (): Promise<ClientHeaders> =>
-        NativeAPIClient.getClientHeadersFor(this.baseUrl);
+    getHeaders = (): Promise<ClientHeaders> => {
+        return NativeApiClient.getClientHeadersFor(
+            this.baseUrl,
+        ) as Promise<ClientHeaders>;
+    };
     addHeaders = (headers: ClientHeaders): Promise<void> => {
         this.config.headers = {
-            ...(this.config.headers as Record<string, string>),
+            ...(this.config.headers as ClientHeaders),
             ...headers,
         };
 
-        return NativeAPIClient.addClientHeadersFor(this.baseUrl, headers);
+        return NativeApiClient.addClientHeadersFor(this.baseUrl, headers);
     };
     importClientP12 = (path: string, password?: string): Promise<void> => {
-        return NativeAPIClient.importClientP12For(this.baseUrl, path, password);
+        return NativeApiClient.importClientP12For(this.baseUrl, path, password);
     };
     invalidate = (): Promise<void> => {
         this.onClientErrorSubscription?.remove();
         delete CLIENTS[this.baseUrl];
 
-        return NativeAPIClient.invalidateClientFor(this.baseUrl);
+        return NativeApiClient.invalidateClientFor(this.baseUrl);
     };
 
     head = (
@@ -100,42 +104,65 @@ class APIClient implements APIClientInterface {
         options?: RequestOptions,
     ): Promise<ClientResponse> => {
         validateRequestOptions(options);
-        return NativeAPIClient.head(this.baseUrl, endpoint);
+        return NativeApiClient.head(
+            this.baseUrl,
+            endpoint,
+        ) as Promise<ClientResponse>;
     };
     get = (
         endpoint: string,
         options?: RequestOptions,
     ): Promise<ClientResponse> => {
         validateRequestOptions(options);
-        return NativeAPIClient.get(this.baseUrl, endpoint, options);
+        return NativeApiClient.get(
+            this.baseUrl,
+            endpoint,
+            options as NativeRequestOptions,
+        ) as Promise<ClientResponse>;
     };
     put = (
         endpoint: string,
         options?: RequestOptions,
     ): Promise<ClientResponse> => {
         validateRequestOptions(options);
-        return NativeAPIClient.put(this.baseUrl, endpoint, options);
+        return NativeApiClient.put(
+            this.baseUrl,
+            endpoint,
+            options as NativeRequestOptions,
+        ) as Promise<ClientResponse>;
     };
     post = (
         endpoint: string,
         options?: RequestOptions,
     ): Promise<ClientResponse> => {
         validateRequestOptions(options);
-        return NativeAPIClient.post(this.baseUrl, endpoint, options);
+        return NativeApiClient.post(
+            this.baseUrl,
+            endpoint,
+            options as NativeRequestOptions,
+        ) as Promise<ClientResponse>;
     };
     patch = (
         endpoint: string,
         options?: RequestOptions,
     ): Promise<ClientResponse> => {
         validateRequestOptions(options);
-        return NativeAPIClient.patch(this.baseUrl, endpoint, options);
+        return NativeApiClient.patch(
+            this.baseUrl,
+            endpoint,
+            options as NativeRequestOptions,
+        ) as Promise<ClientResponse>;
     };
     delete = (
         endpoint: string,
         options?: RequestOptions,
     ): Promise<ClientResponse> => {
         validateRequestOptions(options);
-        return NativeAPIClient.delete(this.baseUrl, endpoint, options);
+        return NativeApiClient.methodDelete(
+            this.baseUrl,
+            endpoint,
+            options as NativeRequestOptions,
+        ) as Promise<ClientResponse>;
     };
     upload = (
         endpoint: string,
@@ -147,7 +174,7 @@ class APIClient implements APIClientInterface {
         const promise: ProgressPromise<ClientResponse> = new Promise(
             (resolve, reject) => {
                 const uploadSubscription = Emitter.addListener(
-                    EVENTS.UPLOAD_PROGRESS,
+                    ApiClientEvents.UPLOAD_PROGRESS,
                     (e: ProgressEvent) => {
                         if (e.taskId === taskId && promise.onProgress) {
                             promise.onProgress(
@@ -158,15 +185,15 @@ class APIClient implements APIClientInterface {
                     },
                 );
 
-                NativeAPIClient.upload(
+                NativeApiClient.upload(
                     this.baseUrl,
                     endpoint,
                     fileUrl,
                     taskId,
-                    options,
+                    options as NativeRequestOptions,
                 )
-                    .then((response) => resolve(response))
-                    .catch((error) => reject(error))
+                    .then((response) => resolve(response as ClientResponse))
+                    .catch((error: unknown) => reject(error))
                     .finally(() => {
                         uploadSubscription.remove();
                         delete promise.progress;
@@ -179,7 +206,7 @@ class APIClient implements APIClientInterface {
             return promise;
         };
 
-        promise.cancel = () => NativeAPIClient.cancelRequest(taskId);
+        promise.cancel = () => NativeApiClient.cancelRequest(taskId);
 
         return promise;
     };
@@ -193,7 +220,7 @@ class APIClient implements APIClientInterface {
         const promise: ProgressPromise<ClientResponse> = new Promise(
             (resolve, reject) => {
                 const downloadSubscription = Emitter.addListener(
-                    EVENTS.DOWNLOAD_PROGRESS,
+                    ApiClientEvents.DOWNLOAD_PROGRESS,
                     (e: ProgressEvent) => {
                         if (e.taskId === taskId && promise.onProgress) {
                             promise.onProgress(
@@ -204,15 +231,15 @@ class APIClient implements APIClientInterface {
                     },
                 );
 
-                NativeAPIClient.download(
+                NativeApiClient.download(
                     this.baseUrl,
                     endpoint,
                     filePath,
                     taskId,
-                    options,
+                    options as NativeRequestOptions,
                 )
-                    .then((response) => resolve(response))
-                    .catch((error) => reject(error))
+                    .then((response) => resolve(response as ClientResponse))
+                    .catch((error: unknown) => reject(error))
                     .finally(() => {
                         downloadSubscription.remove();
                         delete promise.progress;
@@ -225,7 +252,7 @@ class APIClient implements APIClientInterface {
             return promise;
         };
 
-        promise.cancel = () => NativeAPIClient.cancelRequest(taskId);
+        promise.cancel = () => NativeApiClient.cancelRequest(taskId);
 
         return promise;
     };
@@ -247,7 +274,7 @@ async function getOrCreateAPIClient(
         if (clientErrorEventHandler) {
             client.onClientError(clientErrorEventHandler);
         }
-        await NativeAPIClient.createClientFor(client.baseUrl, client.config);
+        await NativeApiClient.createClientFor(client.baseUrl, client.config);
         CLIENTS[baseUrl] = client;
         created = true;
     }

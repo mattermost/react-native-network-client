@@ -1,12 +1,3 @@
-//
-//  NetworkClient.swift
-//  NetworkClient
-//
-//  Created by Miguel Alatzar on 11/30/20.
-//  Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-//  See LICENSE.txt for license information.
-//
-
 import Alamofire
 import SwiftyJSON
 
@@ -173,7 +164,7 @@ extension NetworkClient {
                 "code": responseCode,
                 "retriesExhausted": retriesExhausted
             ]
-            if let redirectUrls = getRedirectUrls(for: request!) {
+            if let request = request, let redirectUrls = getRedirectUrls(for: request) {
                 response["redirectUrls"] = redirectUrls
             }
             

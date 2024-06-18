@@ -9,7 +9,7 @@ import { sampleImageContent } from "./files/SampleImage";
 import { sampleTextContent } from "./files/SampleText";
 
 import GenericClient, {
-    Constants,
+    RetryTypes,
     getOrCreateAPIClient,
     getOrCreateWebSocketClient,
 } from "@mattermost/react-native-network-client";
@@ -82,7 +82,7 @@ const buildDefaultApiClientConfiguration = (
         cancelRequestsOnUnauthorized: true,
     };
     const retryPolicyConfiguration = {
-        type: Constants.RETRY_TYPES.EXPONENTIAL_RETRY,
+        type: RetryTypes.EXPONENTIAL_RETRY,
         retryLimit: 2,
         retryInterval: 2000,
         exponentialBackoffBase: 2,
@@ -150,7 +150,7 @@ const createAPIClient = async (
 
 const createMattermostAPIClient = async (): Promise<APIClientItem | null> => {
     const name = "Mattermost API";
-    const baseUrl = "http://192.168.0.32:8065";
+    const baseUrl = Platform.OS === 'ios' ? "http://127.0.0.1:8065" : "http://10.0.2.2:8065";
     const userAgent = await DeviceInfo.getUserAgent();
     const headers = {
         "X-Requested-With": "XMLHttpRequest",
@@ -187,23 +187,6 @@ const createFileDownloadServerAPIClient = async (): Promise<APIClientItem | null
             "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEyMyIsImlhdCI6MTYxNTI0MDUwNn0.-FLR4NUPTuBGLXd082MvNmJemoqfLqQi8-sJhCCaNf0",
     };
     const configuration = buildDefaultApiClientConfiguration(headers);
-
-    return createAPIClient(name, baseUrl, configuration, false, false);
-};
-
-const createSecureFileDownloadServerAPIClient = async (): Promise<APIClientItem | null> => {
-    const name = "Secure File Download Server API";
-    const baseUrl = "http://192.168.0.32:8008";
-    const headers = {
-        "header-1-key": "header-1-value",
-        "header-2-key": "header-2-value",
-        Authorization:
-            "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEyMyIsImlhdCI6MTYxNTI0MDUwNn0.-FLR4NUPTuBGLXd082MvNmJemoqfLqQi8-sJhCCaNf0",
-    };
-    const configuration = buildDefaultApiClientConfiguration(headers);
-    if (configuration.sessionConfiguration) {
-        configuration.sessionConfiguration.trustSelfSignedServerCertificate = true;
-    }
 
     return createAPIClient(name, baseUrl, configuration, false, false);
 };
@@ -338,7 +321,7 @@ const createWebSocketClient = async (
 
 const createMattermostWebSocketClient = async (): Promise<WebSocketClientItem | null> => {
     const name = "Mattermost WebSocket";
-    const host = "192.168.0.32:8065";
+    const host = Platform.OS == "ios" ? "127.0.0.1:8065" : "10.0.2.2:8065";
     const url = `ws://${host}/api/v4/websocket`;
     const origin = `https://${host}`;
     const configuration: WebSocketClientConfiguration = {
@@ -371,15 +354,14 @@ export const createTestClients = async (): Promise<NetworkClientItem[]> => {
     return [
         { name: "Generic", client: GenericClient, type: ClientType.GENERIC },
         await createMattermostAPIClient(),
+        await createMattermostWebSocketClient(),
         await createJSONPlaceholderAPIClient(),
         await createFileDownloadServerAPIClient(),
-        await createSecureFileDownloadServerAPIClient(),
         await createFileUploadServerAPIClient(),
         await createSecureFileUploadServerAPIClient(),
         await createMockserverAPIClient(),
         await createSecureMockserverAPIClient(),
         await createRequestBinAPIClient(),
-        await createMattermostWebSocketClient(),
         await createSimpleWebSocketClient(),
     ].reduce((clients: NetworkClientItem[], client) => {
         if (client) {

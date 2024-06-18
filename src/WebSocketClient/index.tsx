@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import { NativeEventEmitter, NativeModules } from "react-native";
+import { NativeEventEmitter, type EmitterSubscription } from "react-native";
 import isURL from "validator/es/lib/isURL";
 
 import type {
@@ -11,12 +11,13 @@ import type {
     WebSocketClientInterface,
     WebSocketEvent,
     WebSocketEventHandler,
-    WebSocketReadyState,
 } from "@mattermost/react-native-network-client";
+import NativeWebSocketClient, {
+    WebSocketReadyState,
+    WebSocketEvents,
+} from "./NativeWebSocketClient";
 
-const { WebSocketClient: NativeWebSocketClient } = NativeModules;
 const Emitter = new NativeEventEmitter(NativeWebSocketClient);
-const { EVENTS, READY_STATE } = NativeWebSocketClient.getConstants();
 
 const CLIENTS: { [key: string]: WebSocketClient } = {};
 const CREATING_CLIENT: { [key: string]: boolean } = {};
@@ -36,9 +37,9 @@ class WebSocketClient implements WebSocketClientInterface {
 
     constructor(url: string) {
         this.url = url;
-        this.readyState = READY_STATE.CLOSED;
+        this.readyState = WebSocketReadyState.CLOSED;
         this.onReadyStateSubscription = Emitter.addListener(
-            EVENTS.READY_STATE_EVENT,
+            WebSocketEvents.READY_STATE_EVENT,
             (event: WebSocketEvent) => {
                 if (event.url === this.url) {
                     this.readyState = event.message as WebSocketReadyState;
@@ -49,7 +50,7 @@ class WebSocketClient implements WebSocketClientInterface {
 
     open = () => NativeWebSocketClient.connectFor(this.url);
     close = () => {
-        this.readyState = READY_STATE.CLOSED;
+        this.readyState = WebSocketReadyState.CLOSED;
         return NativeWebSocketClient.disconnectFor(this.url);
     };
     send = (data: string) => NativeWebSocketClient.sendDataFor(this.url, data);
@@ -60,7 +61,7 @@ class WebSocketClient implements WebSocketClientInterface {
         }
 
         this.onWebSocketOpenSubscription = Emitter.addListener(
-            EVENTS.OPEN_EVENT,
+            WebSocketEvents.OPEN_EVENT,
             (event: WebSocketEvent) => {
                 if (event.url === this.url && callback) {
                     callback(event);
@@ -75,7 +76,7 @@ class WebSocketClient implements WebSocketClientInterface {
         }
 
         this.onWebSocketCloseSubscription = Emitter.addListener(
-            EVENTS.CLOSE_EVENT,
+            WebSocketEvents.CLOSE_EVENT,
             (event: WebSocketEvent) => {
                 if (event.url === this.url && callback) {
                     callback(event);
@@ -90,7 +91,7 @@ class WebSocketClient implements WebSocketClientInterface {
         }
 
         this.onWebSocketErrorSubscription = Emitter.addListener(
-            EVENTS.ERROR_EVENT,
+            WebSocketEvents.ERROR_EVENT,
             (event: WebSocketEvent) => {
                 if (event.url === this.url && callback) {
                     callback(event);
@@ -105,7 +106,7 @@ class WebSocketClient implements WebSocketClientInterface {
         }
 
         this.onWebSocketMessageSubscription = Emitter.addListener(
-            EVENTS.MESSAGE_EVENT,
+            WebSocketEvents.MESSAGE_EVENT,
             (event: WebSocketEvent) => {
                 if (event.url === this.url && callback) {
                     callback(event);
@@ -120,7 +121,7 @@ class WebSocketClient implements WebSocketClientInterface {
         }
 
         this.onWebSocketClientErrorSubscription = Emitter.addListener(
-            EVENTS.ERROR_EVENT,
+            WebSocketEvents.ERROR_EVENT,
             (event: WebSocketClientErrorEvent) => {
                 if (event.url === this.url) {
                     callback(event);

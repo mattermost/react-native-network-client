@@ -1,14 +1,14 @@
 package com.mattermost.networkclient.helpers
 
-import com.mattermost.networkclient.enums.APIClientEvents
+import com.mattermost.networkclient.enums.ApiClientEvents
 import okhttp3.MediaType
 import okhttp3.ResponseBody
 import okio.*
 
 
-class ProgressResponseBody(private val responseBody: ResponseBody, private val taskId: String, private val uncompressBytes: Long?): ResponseBody() {
+class ProgressResponseBody(private val responseBody: ResponseBody, taskId: String, private val uncompressBytes: Long?): ResponseBody() {
     private var bufferedSource: BufferedSource? = null
-    private val progressListener = ProgressListener(taskId, APIClientEvents.DOWNLOAD_PROGRESS.event)
+    private val progressListener = ProgressListener(taskId, ApiClientEvents.DOWNLOAD_PROGRESS.event)
 
     override fun contentLength(): Long {
         if (uncompressBytes != null) {
@@ -26,10 +26,6 @@ class ProgressResponseBody(private val responseBody: ResponseBody, private val t
         if (bufferedSource == null)
             bufferedSource = getForwardSource(responseBody.source()).buffer()
         return bufferedSource!!
-    }
-
-    override fun close() {
-        super.close()
     }
 
     private fun getForwardSource(source: Source): Source =

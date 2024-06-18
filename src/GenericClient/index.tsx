@@ -1,11 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import { NativeModules } from "react-native";
-
 import { validateRequestOptions } from "../schemas";
 
-const { GenericClient: NativeGenericClient } = NativeModules;
+const NativeGenericClient = require("./NativeGenericClient").default;
 
 import type {
     GenericClientInterface,
@@ -45,7 +43,7 @@ class GenericClient implements GenericClientInterface {
         options?: RequestOptions,
     ): Promise<ClientResponse> => {
         validateRequestOptions(options);
-        return NativeGenericClient.delete(url, options);
+        return NativeGenericClient.methodDelete(url, options);
     };
 }
 

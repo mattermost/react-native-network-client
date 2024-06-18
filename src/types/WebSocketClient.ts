@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type { EmitterSubscription } from "react-native";
 import type { ClientHeaders, ClientP12Configuration } from "./APIClient";
-import type { WebSocketReadyState } from "./NativeWebSocketClient";
+import type { WebSocketReadyState } from "../WebSocketClient/NativeWebSocketClient";
 
 export type WebSocketClientConfiguration = {
     headers?: ClientHeaders;

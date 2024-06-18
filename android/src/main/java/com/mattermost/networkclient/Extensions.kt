@@ -10,7 +10,7 @@ import org.json.JSONTokener
 import java.security.MessageDigest
 
 
-var Response.retriesExhausted: Boolean? by NetworkClientBase.RequestRetriesExhausted
+var Response.retriesExhausted: Boolean? by NetworkClient.RequestRetriesExhausted
 
 /**
  * Composes an array of redirect URLs from all prior responses
@@ -99,11 +99,11 @@ fun Response.toDownloadMap(path: String): WritableMap {
  *
  * @param headers ReadableMap of headers from the App
  */
-fun Request.Builder.applyHeaders(headers: Map<String, String>?): Request.Builder {
+fun Request.Builder.applyHeaders(headers: Map<String, Any>?): Request.Builder {
     if (headers != null){
         for ((k, v) in headers) {
             this.removeHeader(k)
-            this.addHeader(k, v)
+            this.addHeader(k, v.toString())
         }
     }
 
@@ -138,7 +138,7 @@ fun String.sha256(): String {
     return MessageDigest
             .getInstance("SHA-256")
             .digest(toByteArray())
-            .fold("", { str, it -> str + "%02x".format(it) })
+            .fold("") { str, it -> str + "%02x".format(it) }
 }
 
 /**
@@ -173,7 +173,7 @@ fun JSONObject.toWritableMap(): WritableMap {
             }
             else -> {
                 if (value.equals(JSONObject.NULL)) {
-                    map.putNull(key);
+                    map.putNull(key)
                 } else {
                     map.putString(key, value.toString())
                 }
@@ -224,6 +224,7 @@ fun JSONArray.toWritableArray(): WritableArray {
     return array
 }
 
+@Suppress("UNCHECKED_CAST")
 fun Array<Any?>.toWritableArray(): WritableArray? {
     val writableArray = Arguments.createArray()
     for (value in this) {
@@ -248,9 +249,9 @@ fun Array<Any?>.toWritableArray(): WritableArray? {
     return writableArray
 }
 
+@Suppress("UNCHECKED_CAST")
 fun Map<String?, Any?>.toWritableMap(): WritableMap? {
     val writableMap = Arguments.createMap()
-    val iterator = this.iterator()
     for ((key, value) in this) {
         if (value == null) {
             writableMap.putNull(key!!)
@@ -269,6 +270,7 @@ fun Map<String?, Any?>.toWritableMap(): WritableMap? {
     return writableMap
 }
 
+@Suppress("UNCHECKED_CAST")
 fun ReadableMap.toWritableMap(): WritableMap {
     val writableMap = Arguments.createMap()
     val iterator = toHashMap().iterator()
@@ -277,15 +279,15 @@ fun ReadableMap.toWritableMap(): WritableMap {
         if (value == null) {
             writableMap.putNull(key)
         } else if (value is Boolean) {
-            writableMap.putBoolean(key, (value as Boolean)!!)
+            writableMap.putBoolean(key, (value))
         } else if (value is Double) {
-            writableMap.putDouble(key, (value as Double)!!)
+            writableMap.putDouble(key, (value))
         } else if (value is Int) {
-            writableMap.putInt(key, (value as Int)!!)
+            writableMap.putInt(key, (value))
         } else if (value is String) {
-            writableMap.putString(key, value as String)
-        } else if (value is Map<*, *>) writableMap.putMap(key, (value as Map<String?, Any?>)?.toWritableMap()) else if (value.javaClass.isArray) {
-            writableMap.putArray(key, (value as Array<Any?>)?.toWritableArray())
+            writableMap.putString(key, value)
+        } else if (value is Map<*, *>) writableMap.putMap(key, (value as Map<String?, Any?>).toWritableMap()) else if (value.javaClass.isArray) {
+            writableMap.putArray(key, (value as Array<Any?>).toWritableArray())
         }
         iterator.remove()
     }

@@ -6,17 +6,21 @@ buildscript {
         minSdkVersion = 23
         compileSdkVersion = 34
         targetSdkVersion = 34
-        kotlinVersion = "1.8.21"
-        ndkVersion = "25.1.8937393"
+        ndkVersion = "26.1.10909125"
+        kotlinVersion = "1.9.22"
     }
     repositories {
-        google()
+        maven {
+            // All of React Native (JS, Obj-C sources, Android binaries) is installed from npm
+            url "$projectDir/../node_modules/react-native/android"
+        }
         mavenCentral()
+        google()
     }
     dependencies {
         classpath("com.android.tools.build:gradle")
         classpath("com.facebook.react:react-native-gradle-plugin")
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin")
     }
 }
 

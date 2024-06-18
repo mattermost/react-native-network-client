@@ -1,7 +1,7 @@
 package com.mattermost.networkclient.enums
 
-enum class APIClientEvents(val event: String) {
-    DOWNLOAD_PROGRESS("APIClient-DownloadProgress"),
-    UPLOAD_PROGRESS("APIClient-UploadProgress"),
-    CLIENT_ERROR("APIClient-Error"),
+enum class ApiClientEvents(val event: String) {
+    DOWNLOAD_PROGRESS("ApiClient-DownloadProgress"),
+    UPLOAD_PROGRESS("ApiClient-UploadProgress"),
+    CLIENT_ERROR("ApiClient-Error"),
 }

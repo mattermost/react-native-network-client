@@ -4,7 +4,7 @@ import android.content.Context
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.util.Base64
-import com.mattermost.networkclient.APIClientModule
+import com.mattermost.networkclient.ApiClientModuleImpl
 import okhttp3.tls.HeldCertificate
 import java.io.FileInputStream
 import java.security.Key
@@ -84,9 +84,9 @@ object KeyStoreHelper {
     }
 
     fun getClientCertificates(p12Alias: String): Pair<HeldCertificate?, Array<X509Certificate>?> {
-        val password = APIClientModule.retrieveValue(p12Alias)
+        val password = ApiClientModuleImpl.retrieveValue(p12Alias)
         if (password != null) {
-            val p12File = APIClientModule.context.openFileInput(p12Alias)
+            val p12File = ApiClientModuleImpl.context.openFileInput(p12Alias)
             val p12Store = KeyStore.getInstance("PKCS12").apply {
                 load(p12File, password.toCharArray())
             }
@@ -111,7 +111,7 @@ object KeyStoreHelper {
     }
 
     fun deleteClientCertificates(p12Alias: String) {
-        APIClientModule.context.deleteFile(p12Alias)
+        ApiClientModuleImpl.context.deleteFile(p12Alias)
     }
 
     private fun loadAndroidKeyStore() {
@@ -160,9 +160,9 @@ object KeyStoreHelper {
         p12Store.setKeyEntry(keyAlias, key, null, intermediates)
         p12Store.setCertificateEntry(certificateAlias, certificate)
 
-        val p12File = APIClientModule.context.openFileOutput(p12Alias, Context.MODE_PRIVATE)
+        val p12File = ApiClientModuleImpl.context.openFileOutput(p12Alias, Context.MODE_PRIVATE)
         p12Store.store(p12File, password.toCharArray())
 
-        APIClientModule.storeValue(password, p12Alias)
+        ApiClientModuleImpl.storeValue(password, p12Alias)
     }
 }

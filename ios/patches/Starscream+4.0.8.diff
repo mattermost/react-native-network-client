@@ -1,0 +1,197 @@
+diff --git a/Pods/Starscream/Sources/Engine/NativeEngine.swift b/Pods/Starscream/Sources/Engine/NativeEngine.swift
+index a1cb4a4..779ee0d 100644
+--- a/Pods/Starscream/Sources/Engine/NativeEngine.swift
++++ b/Pods/Starscream/Sources/Engine/NativeEngine.swift
+@@ -25,8 +25,13 @@ import Foundation
+ @available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *)
+ public class NativeEngine: NSObject, Engine, URLSessionDataDelegate, URLSessionWebSocketDelegate {
+     private var task: URLSessionWebSocketTask?
++    private var clientCredential: URLCredential?
+     weak var delegate: EngineDelegate?
+ 
++    public init(clientCredential: URLCredential? = nil) {
++        self.clientCredential = clientCredential
++    }
++
+     public func register(delegate: EngineDelegate) {
+         self.delegate = delegate
+     }
+@@ -108,6 +113,19 @@ public class NativeEngine: NSObject, Engine, URLSessionDataDelegate, URLSessionW
+         }
+         broadcast(event: .disconnected(r, UInt16(closeCode.rawValue)))
+     }
++
++    public func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
++        var credential: URLCredential? = nil
++        var disposition: URLSession.AuthChallengeDisposition = .performDefaultHandling
++
++        let authMethod = challenge.protectionSpace.authenticationMethod
++        if authMethod == NSURLAuthenticationMethodClientCertificate && self.clientCredential != nil {
++            credential = self.clientCredential
++            disposition = .useCredential
++        }
++
++        completionHandler(disposition, credential)
++    }
+     
+     public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
+         broadcast(event: .error(error))
+diff --git a/Pods/Starscream/Sources/Engine/WSEngine.swift b/Pods/Starscream/Sources/Engine/WSEngine.swift
+index 4add12a..ccf4c58 100644
+--- a/Pods/Starscream/Sources/Engine/WSEngine.swift
++++ b/Pods/Starscream/Sources/Engine/WSEngine.swift
+@@ -29,6 +29,7 @@ FrameCollectorDelegate, HTTPHandlerDelegate {
+     private let httpHandler: HTTPHandler
+     private let compressionHandler: CompressionHandler?
+     private let certPinner: CertificatePinning?
++    private let clientCredential: URLCredential?
+     private let headerChecker: HeaderValidator
+     private var request: URLRequest!
+     
+@@ -45,6 +46,7 @@ FrameCollectorDelegate, HTTPHandlerDelegate {
+     
+     public init(transport: Transport,
+                 certPinner: CertificatePinning? = nil,
++                clientCredential: URLCredential? = nil,
+                 headerValidator: HeaderValidator = FoundationSecurity(),
+                 httpHandler: HTTPHandler = FoundationHTTPHandler(),
+                 framer: Framer = WSFramer(),
+@@ -53,6 +55,7 @@ FrameCollectorDelegate, HTTPHandlerDelegate {
+         self.framer = framer
+         self.httpHandler = httpHandler
+         self.certPinner = certPinner
++        self.clientCredential = clientCredential
+         self.headerChecker = headerValidator
+         self.compressionHandler = compressionHandler
+         framer.updateCompression(supports: compressionHandler != nil)
+@@ -83,7 +86,7 @@ FrameCollectorDelegate, HTTPHandlerDelegate {
+         mutex.wait()
+         self.isConnecting = true
+         mutex.signal()
+-        transport.connect(url: url, timeout: request.timeoutInterval, certificatePinning: certPinner)
++        transport.connect(url: url, timeout: request.timeoutInterval, certificatePinning: certPinner, clientCredential: clientCredential)
+     }
+     
+     public func stop(closeCode: UInt16 = CloseCode.normal.rawValue) {
+diff --git a/Pods/Starscream/Sources/Framer/HTTPHandler.swift b/Pods/Starscream/Sources/Framer/HTTPHandler.swift
+index 488dd03..a756afa 100644
+--- a/Pods/Starscream/Sources/Framer/HTTPHandler.swift
++++ b/Pods/Starscream/Sources/Framer/HTTPHandler.swift
+@@ -80,7 +80,8 @@ public struct HTTPWSHeader {
+             let val = "permessage-deflate; client_max_window_bits; server_max_window_bits=15"
+             req.setValue(val, forHTTPHeaderField: HTTPWSHeader.extensionName)
+         }
+-        let hostValue = req.allHTTPHeaderFields?[HTTPWSHeader.hostName] ?? "\(parts.host):\(parts.port)"
++        let hostname = request.url?.port != nil ? "\(parts.host):\(parts.port)" : parts.host
++        let hostValue = req.allHTTPHeaderFields?[HTTPWSHeader.hostName] ?? hostname
+         req.setValue(hostValue, forHTTPHeaderField: HTTPWSHeader.hostName)
+         return req
+     }
+diff --git a/Pods/Starscream/Sources/Starscream/WebSocket.swift b/Pods/Starscream/Sources/Starscream/WebSocket.swift
+index 2f529a5..2a03e26 100644
+--- a/Pods/Starscream/Sources/Starscream/WebSocket.swift
++++ b/Pods/Starscream/Sources/Starscream/WebSocket.swift
+@@ -44,6 +44,7 @@ public struct WSError: Error {
+ public protocol WebSocketClient: AnyObject {
+     func connect()
+     func disconnect(closeCode: UInt16)
++    func url() -> String?
+     func write(string: String, completion: (() -> ())?)
+     func write(stringData: Data, completion: (() -> ())?)
+     func write(data: Data, completion: (() -> ())?)
+@@ -116,13 +117,13 @@ open class WebSocket: WebSocketClient, EngineDelegate {
+         self.engine = engine
+     }
+     
+-    public convenience init(request: URLRequest, certPinner: CertificatePinning? = FoundationSecurity(), compressionHandler: CompressionHandler? = nil, useCustomEngine: Bool = true) {
++    public convenience init(request: URLRequest, certPinner: CertificatePinning? = FoundationSecurity(), clientCredential: URLCredential? = nil, compressionHandler: CompressionHandler? = nil, useCustomEngine: Bool = true) {
+         if #available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *), !useCustomEngine {
+-            self.init(request: request, engine: NativeEngine())
++            self.init(request: request, engine: NativeEngine(clientCredential: clientCredential))
+         } else if #available(macOS 10.14, iOS 12.0, watchOS 5.0, tvOS 12.0, *) {
+-            self.init(request: request, engine: WSEngine(transport: TCPTransport(), certPinner: certPinner, compressionHandler: compressionHandler))
++            self.init(request: request, engine: WSEngine(transport: TCPTransport(), certPinner: certPinner, clientCredential: clientCredential, compressionHandler: compressionHandler))
+         } else {
+-            self.init(request: request, engine: WSEngine(transport: FoundationTransport(), certPinner: certPinner, compressionHandler: compressionHandler))
++            self.init(request: request, engine: WSEngine(transport: FoundationTransport(), certPinner: certPinner, clientCredential: clientCredential, compressionHandler: compressionHandler))
+         }
+     }
+     
+@@ -134,6 +135,10 @@ open class WebSocket: WebSocketClient, EngineDelegate {
+     public func disconnect(closeCode: UInt16 = CloseCode.normal.rawValue) {
+         engine.stop(closeCode: closeCode)
+     }
++
++    public func url() -> String? {
++        self.request.url?.absoluteString
++    }
+     
+     public func forceDisconnect() {
+         engine.forceStop()
+diff --git a/Pods/Starscream/Sources/Transport/FoundationTransport.swift b/Pods/Starscream/Sources/Transport/FoundationTransport.swift
+index 8d304f8..972b28b 100644
+--- a/Pods/Starscream/Sources/Transport/FoundationTransport.swift
++++ b/Pods/Starscream/Sources/Transport/FoundationTransport.swift
+@@ -52,7 +52,7 @@ public class FoundationTransport: NSObject, Transport, StreamDelegate {
+         outputStream?.delegate = nil
+     }
+     
+-    public func connect(url: URL, timeout: Double = 10, certificatePinning: CertificatePinning? = nil) {
++    public func connect(url: URL, timeout: Double = 10, certificatePinning: CertificatePinning? = nil, clientCredential: URLCredential? = nil) {
+         guard let parts = url.getParts() else {
+             delegate?.connectionChanged(state: .failed(FoundationTransportError.invalidRequest))
+             return
+@@ -75,6 +75,14 @@ public class FoundationTransport: NSObject, Transport, StreamDelegate {
+             let key = CFStreamPropertyKey(rawValue: kCFStreamPropertySocketSecurityLevel)
+             CFReadStreamSetProperty(inStream, key, kCFStreamSocketSecurityLevelNegotiatedSSL)
+             CFWriteStreamSetProperty(outStream, key, kCFStreamSocketSecurityLevelNegotiatedSSL)
++            
++            if let clientCredential = clientCredential {
++                let certificates = [clientCredential.identity] + clientCredential.certificates
++                let sslSettings = [kCFStreamSSLCertificates: certificates] as CFDictionary
++                let sslSettingsKey = CFStreamPropertyKey(rawValue: kCFStreamPropertySSLSettings)
++                CFReadStreamSetProperty(inStream, sslSettingsKey, sslSettings)
++                CFWriteStreamSetProperty(outStream, sslSettingsKey, sslSettings)
++            }
+         }
+         
+         onConnect?(inStream, outStream)
+diff --git a/Pods/Starscream/Sources/Transport/TCPTransport.swift b/Pods/Starscream/Sources/Transport/TCPTransport.swift
+index 27e951c..8851506 100644
+--- a/Pods/Starscream/Sources/Transport/TCPTransport.swift
++++ b/Pods/Starscream/Sources/Transport/TCPTransport.swift
+@@ -53,7 +53,7 @@ public class TCPTransport: Transport {
+         //normal connection, will use the "connect" method below
+     }
+     
+-    public func connect(url: URL, timeout: Double = 10, certificatePinning: CertificatePinning? = nil) {
++    public func connect(url: URL, timeout: Double = 10, certificatePinning: CertificatePinning? = nil, clientCredential: URLCredential? = nil) {
+         guard let parts = url.getParts() else {
+             delegate?.connectionChanged(state: .failed(TCPTransportError.invalidRequest))
+             return
+@@ -79,6 +79,12 @@ public class TCPTransport: Transport {
+                     }
+                 })
+             }, queue)
++            
++            if let clientCredential = clientCredential {
++                sec_protocol_options_set_challenge_block(tlsOpts.securityProtocolOptions, { (_, completionHandler) in
++                    completionHandler(sec_identity_create(clientCredential.identity!)!)
++                }, queue)
++            }
+         }
+         let parameters = NWParameters(tls: tlsOptions, tcp: options)
+         let conn = NWConnection(host: NWEndpoint.Host.name(parts.host, nil), port: NWEndpoint.Port(rawValue: UInt16(parts.port))!, using: parameters)
+diff --git a/Pods/Starscream/Sources/Transport/Transport.swift b/Pods/Starscream/Sources/Transport/Transport.swift
+index 8a101a4..ec40050 100644
+--- a/Pods/Starscream/Sources/Transport/Transport.swift
++++ b/Pods/Starscream/Sources/Transport/Transport.swift
+@@ -56,7 +56,7 @@ public protocol TransportEventClient: AnyObject {
+ 
+ public protocol Transport: AnyObject {
+     func register(delegate: TransportEventClient)
+-    func connect(url: URL, timeout: Double, certificatePinning: CertificatePinning?)
++    func connect(url: URL, timeout: Double, certificatePinning: CertificatePinning?, clientCredential: URLCredential?)
+     func disconnect()
+     func write(data: Data, completion: @escaping ((Error?) -> ()))
+     var usingTLS: Bool { get }
