@@ -6,13 +6,15 @@ class WebSocketEngine: SessionDelegate, Engine {
     private var task: URLSessionWebSocketTask?
     private var clientCredential: URLCredential?
     private var allowSelfSign: Bool
+    private var serverTrustManager: ServerTrustManager?
     weak var delegate: EngineDelegate?
     
     typealias ChallengeEvaluation = (disposition: URLSession.AuthChallengeDisposition, credential: URLCredential?)
 
-    public init(clientCredential: URLCredential? = nil, allowSelfSignCertificate: Bool = false) {
+    public init(forHost host: String?, clientCredential: URLCredential? = nil, allowSelfSignCertificate: Bool = false) {
         self.clientCredential = clientCredential
         self.allowSelfSign = allowSelfSignCertificate
+        self.serverTrustManager = SessionManager.default.loadCertificates(forDomain: host)
     }
 
     public func register(delegate: EngineDelegate) {
@@ -144,7 +146,7 @@ class WebSocketEngine: SessionDelegate, Engine {
         }
         
         do {
-            guard let serverTrustManager = SessionManager.default.serverTrustManager else {
+            guard let serverTrustManager = self.serverTrustManager else {
                 return (.performDefaultHandling, nil)
             }
             

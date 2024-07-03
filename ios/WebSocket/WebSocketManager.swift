@@ -56,7 +56,7 @@ class WebSocketManager: NSObject {
             }
         }
 
-        let webSocket = WebSocket(request: request, engine: WebSocketEngine(clientCredential: clientCredential, allowSelfSignCertificate: allowSelfSign))
+        let webSocket = WebSocket(request: request, engine: WebSocketEngine(forHost: url.host, clientCredential: clientCredential, allowSelfSignCertificate: allowSelfSign))
         webSocket.delegate = delegate
         
         webSockets[url] = webSocket

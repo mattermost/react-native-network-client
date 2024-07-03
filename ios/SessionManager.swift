@@ -7,14 +7,8 @@ public class SessionManager: NSObject {
 
     @objc public static let `default` = SessionManager()
     internal var sessions: [URL: Session] = [:]
-    public var serverTrustManager: ServerTrustManager? = nil
     
-    private override init() {
-        super.init()
-        self.loadCertificates()
-    }
-    
-    public func loadCertificates() {
+    public func loadCertificates(forDomain domain: String? = nil) -> ServerTrustManager? {
         if let certsPath = Bundle.main.resourceURL?.appendingPathComponent("certs") {
             let fileManager = FileManager.default
             do {
@@ -22,18 +16,19 @@ public class SessionManager: NSObject {
                 let certsArray = try fileManager.contentsOfDirectory(at: certsPath, includingPropertiesForKeys: nil, options: .skipsHiddenFiles)
                 let certs = certsArray.filter{ $0.pathExtension == "crt" || $0.pathExtension == "cer"}
                 for cert in certs {
-                    if let domain = URL(string: cert.absoluteString)?.deletingPathExtension().lastPathComponent,
+                    if let certDomain = URL(string: cert.absoluteString)?.deletingPathExtension().lastPathComponent,
+                       certDomain == domain || domain == nil,
                        let certData = try? Data(contentsOf: cert),
                        let certificate = SecCertificateCreateWithData(nil, certData as CFData){
-                        if certificates[domain] != nil {
-                            certificates[domain]?.append(certificate)
+                        if certificates[certDomain] != nil {
+                            certificates[certDomain]?.append(certificate)
                         } else {
-                            certificates[domain] = [certificate]
+                            certificates[certDomain] = [certificate]
                         }
                         os_log("Mattermost: loaded certificate %{public}@ for domain %{public}@",
                                log: .default,
                                type: .info,
-                               cert.lastPathComponent, domain
+                               cert.lastPathComponent, certDomain
                         )
                     }
                 }
@@ -46,7 +41,7 @@ public class SessionManager: NSObject {
                                                                                   performDefaultValidation: true,
                                                                                   validateHost: true)
                     }
-                    self.serverTrustManager = ServerTrustManager(allHostsMustBeEvaluated: true, evaluators: evaluators)
+                    return ServerTrustManager(allHostsMustBeEvaluated: true, evaluators: evaluators)
                 }
             } catch {
                 os_log(
@@ -55,8 +50,11 @@ public class SessionManager: NSObject {
                     type: .error,
                     String(describing: error)
                 )
+                return nil
             }
         }
+        
+        return nil
     }
     
     func sessionCount() -> Int {
@@ -79,11 +77,14 @@ public class SessionManager: NSObject {
             return
         }
 
-        if self.serverTrustManager != nil {
-            session = Session(configuration: configuration, delegate: delegate, rootQueue: rootQueue, interceptor: interceptor, serverTrustManager: self.serverTrustManager, redirectHandler: redirectHandler)
-        } else {
-            session = Session(configuration: configuration, delegate: delegate, rootQueue: rootQueue, interceptor: interceptor, redirectHandler: redirectHandler)
-        }
+        session = Session(
+            configuration: configuration,
+            delegate: delegate,
+            rootQueue: rootQueue,
+            interceptor: interceptor,
+            serverTrustManager: loadCertificates(forDomain: baseUrl.host),
+            redirectHandler: redirectHandler)
+        
         session?.baseUrl = baseUrl
         session?.retryPolicy = retryPolicy
         session?.cancelRequestsOnUnauthorized = cancelRequestsOnUnauthorized
