@@ -13,8 +13,8 @@ fileprivate var trustSelfSignedServerCertificate_FILEPRIVATE : [ObjectIdentifier
 fileprivate var retryPolicy_FILEPRIVATE : [ObjectIdentifier:RetryPolicy] = [:]
 
 extension Session {
-    var baseUrl: URL {
-        get { return baseUrl_FILEPRIVATE[ObjectIdentifier(self)]!}
+    var baseUrl: URL? {
+        get { return baseUrl_FILEPRIVATE[ObjectIdentifier(self)]}
         set { baseUrl_FILEPRIVATE[ObjectIdentifier(self)] = newValue}
     }
 

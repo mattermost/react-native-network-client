@@ -180,7 +180,7 @@ var READY_STATE = [
                 delegate?.sendEvent(name: WSEvents.CLOSE_EVENT.rawValue, result: ["url": url, "message": ["reason": error?.localizedDescription as Any, "code": errorCode as Any]])
             } else {
                 let errorDetails: [String: Any] = [
-                    "message": nsError!.description,
+                    "message": nsError?.description,
                 ]
                 delegate?.sendEvent(name: WSEvents.ERROR_EVENT.rawValue, result: ["url": url, "message": ["error": errorDetails]])
             }

@@ -9,7 +9,7 @@ import Alamofire
                 urlRequest.headers.add(.authorization(bearerToken: bearerToken))
             }
         } catch {
-            NotificationCenter.default.post(name: Notification.Name(API_CLIENT_EVENTS["CLIENT_ERROR"]!),
+            NotificationCenter.default.post(name: Notification.Name(ApiEvents.CLIENT_ERROR.rawValue),
                                             object: nil,
                                             userInfo: ["serverUrl": sessionBaseUrlString, "errorCode": error._code, "errorDescription": error.localizedDescription])
         }
@@ -18,8 +18,12 @@ import Alamofire
     }
 
     public func adapt(_ urlRequest: URLRequest, for session: Session, completion: @escaping (Result<URLRequest, Error>) -> Void) {
-        let urlRequest = BearerAuthenticationAdapter.addAuthorizationBearerToken(to: urlRequest, withSessionBaseUrlString: session.baseUrl.absoluteString)
-
-        completion(.success(urlRequest))
+        if let baseUrl = session.baseUrl {
+            let urlRequest = BearerAuthenticationAdapter.addAuthorizationBearerToken(to: urlRequest, withSessionBaseUrlString: baseUrl.absoluteString)
+            
+            completion(.success(urlRequest))
+        } else {
+            completion(.failure(BaseURLError.missingBaseURL))
+        }
     }
 }
