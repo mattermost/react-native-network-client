@@ -25,7 +25,7 @@ class ApiClientModuleImpl(reactApplicationContext: ReactApplicationContext) {
     companion object {
         const val NAME = "ApiClient"
 
-        internal lateinit var context: ReactApplicationContext
+        public lateinit var context: ReactApplicationContext
         private val clients = mutableMapOf<HttpUrl, NetworkClient>()
         private val calls = mutableMapOf<String, Call>()
         private lateinit var sharedPreferences: SharedPreferences
