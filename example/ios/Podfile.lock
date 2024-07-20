@@ -977,7 +977,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-network-client (1.5.1):
+  - react-native-network-client (1.6.0):
     - Alamofire (~> 5.9.1)
     - DoubleConversion
     - glog
@@ -1707,7 +1707,7 @@ SPEC CHECKSUMS:
   React-Mapbuffer: 11029dcd47c5c9e057a4092ab9c2a8d10a496a33
   react-native-document-picker: 9ad9b2bd3a5fd478e86314152f7592a1facc7a91
   react-native-image-picker: f5e7af75efb813aa7239e94310167d2b69b606d6
-  react-native-network-client: 81bb55fac84426ecf328322e03ca187cc9c6f469
+  react-native-network-client: da6ec94fb7099597087c8e7c5519327913af59c7
   react-native-safe-area-context: 7f54ad0a774de306ab790c70d9d950321e5c5449
   React-nativeconfig: b0073a590774e8b35192fead188a36d1dca23dec
   React-NativeModulesApple: df46ff3e3de5b842b30b4ca8a6caae6d7c8ab09f

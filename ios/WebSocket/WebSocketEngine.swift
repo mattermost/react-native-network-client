@@ -1,6 +1,7 @@
 import Foundation
 import Alamofire
 import Starscream
+import os.log
 
 class WebSocketEngine: SessionDelegate, Engine {
     private var task: URLSessionWebSocketTask?
@@ -57,6 +58,11 @@ class WebSocketEngine: SessionDelegate, Engine {
                 completion?()
             })
         default:
+            os_log("Mattermost: WebSocket write operation opcode %@ is not supported",
+                   log: .default,
+                   type: .info,
+                   opcode.rawValue
+            )
             break //unsupported
         }
     }
@@ -71,6 +77,10 @@ class WebSocketEngine: SessionDelegate, Engine {
                 case .data(let data):
                     self?.broadcast(event: .binary(data))
                 @unknown default:
+                    os_log("Mattermost: WebSocket read operation is not of type string or data",
+                           log: .default,
+                           type: .info
+                    )
                     break
                 }
                 break

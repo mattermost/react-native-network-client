@@ -18,12 +18,13 @@ import Alamofire
     }
 
     public func adapt(_ urlRequest: URLRequest, for session: Session, completion: @escaping (Result<URLRequest, Error>) -> Void) {
-        if let baseUrl = session.baseUrl {
-            let urlRequest = BearerAuthenticationAdapter.addAuthorizationBearerToken(to: urlRequest, withSessionBaseUrlString: baseUrl.absoluteString)
-            
-            completion(.success(urlRequest))
-        } else {
+        guard let baseUrl = session.baseUrl else {
             completion(.failure(BaseURLError.missingBaseURL))
+            return
         }
+        
+        let urlRequest = BearerAuthenticationAdapter.addAuthorizationBearerToken(to: urlRequest, withSessionBaseUrlString: baseUrl.absoluteString)
+        
+        completion(.success(urlRequest))
     }
 }

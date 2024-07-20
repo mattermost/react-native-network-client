@@ -11,6 +11,7 @@ import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.ReadableType
 import com.mattermost.networkclient.enums.ApiClientEvents
 import com.mattermost.networkclient.enums.RetryTypes
+import com.mattermost.networkclient.enums.SslErrors
 import com.mattermost.networkclient.helpers.DocumentHelper
 import com.mattermost.networkclient.helpers.KeyStoreHelper
 import com.mattermost.networkclient.helpers.UploadFileRequestBody
@@ -22,6 +23,7 @@ import okhttp3.internal.EMPTY_REQUEST
 import okhttp3.tls.HandshakeCertificates
 import org.json.JSONArray
 import org.json.JSONObject
+import java.io.File
 import java.io.IOException
 import java.io.InputStream
 import java.net.URI
@@ -35,6 +37,8 @@ import javax.net.ssl.HttpsURLConnection
 import javax.net.ssl.SSLContext
 import javax.net.ssl.X509TrustManager
 import kotlin.reflect.KProperty
+
+const val CERTIFICATES_PATH = "certs"
 
 internal class NetworkClient(private val context: ReactApplicationContext, private val baseUrl: HttpUrl? = null, options: ReadableMap? = null, cookieJar: CookieJar? = null) {
     private var okHttpClient: OkHttpClient
@@ -481,7 +485,7 @@ internal class NetworkClient(private val context: ReactApplicationContext, priva
     internal fun emitInvalidPinnedCertificateError() {
         val data = Arguments.createMap()
         data.putString("serverUrl", baseUrlString)
-        data.putInt("errorCode", -298)
+        data.putInt("errorCode", SslErrors.SERVER_TRUST_EVALUATION_FAILED.event)
         data.putString("errorDescription", "Server trust evaluation failed due to reason: Certificate pinning failed for host ${URI(baseUrlString).host}")
         ApiClientModuleImpl.sendJSEvent(ApiClientEvents.CLIENT_ERROR.event, data)
     }
@@ -718,14 +722,15 @@ internal class NetworkClient(private val context: ReactApplicationContext, priva
     private fun getCertificatesFingerPrints(): Map<String, List<String>> {
         val fingerprintsMap = mutableMapOf<String, MutableList<String>>()
         val assetsManager = context.assets
-        val certFiles = assetsManager.list("certs")?.filter { it.endsWith(".cer") || it.endsWith(".crt") } ?: return emptyMap()
+        val certFiles = assetsManager.list(CERTIFICATES_PATH)?.filter { it.endsWith(".cer") || it.endsWith(".crt") } ?: return emptyMap()
 
         for (fileName in certFiles) {
-            val domain = fileName.substringBeforeLast(".")
+            val file = File(fileName).normalize()
+            val domain = file.nameWithoutExtension
             if (baseUrl != null && baseUrl.host != domain) {
                 continue
             }
-            val certInputStream = assetsManager.open("certs/$fileName")
+            val certInputStream = assetsManager.open("$CERTIFICATES_PATH/${file.name}")
             certInputStream.use {
                 val fingerprint = getCertificateFingerPrint(it)
                 if (fingerprintsMap.containsKey(domain)) {

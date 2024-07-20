@@ -9,52 +9,56 @@ public class SessionManager: NSObject {
     internal var sessions: [URL: Session] = [:]
     
     public func loadCertificates(forDomain domain: String? = nil) -> ServerTrustManager? {
-        if let certsPath = Bundle.main.resourceURL?.appendingPathComponent("certs") {
-            let fileManager = FileManager.default
-            do {
-                var certificates: [String: [SecCertificate]] = [:]
-                let certsArray = try fileManager.contentsOfDirectory(at: certsPath, includingPropertiesForKeys: nil, options: .skipsHiddenFiles)
-                let certs = certsArray.filter{ $0.pathExtension == "crt" || $0.pathExtension == "cer"}
-                for cert in certs {
-                    if let certDomain = URL(string: cert.absoluteString)?.deletingPathExtension().lastPathComponent,
-                       certDomain == domain || domain == nil,
-                       let certData = try? Data(contentsOf: cert),
-                       let certificate = SecCertificateCreateWithData(nil, certData as CFData){
-                        if certificates[certDomain] != nil {
-                            certificates[certDomain]?.append(certificate)
-                        } else {
-                            certificates[certDomain] = [certificate]
-                        }
-                        os_log("Mattermost: loaded certificate %{public}@ for domain %{public}@",
-                               log: .default,
-                               type: .info,
-                               cert.lastPathComponent, certDomain
-                        )
+        guard let certsPath = Bundle.main.resourceURL?.appendingPathComponent("certs") {
+            return nil
+        }
+    
+        let fileManager = FileManager.default
+        do {
+            var certificates: [String: [SecCertificate]] = [:]
+            let certsArray = try fileManager.contentsOfDirectory(at: certsPath, includingPropertiesForKeys: nil, options: .skipsHiddenFiles)
+            let certs = certsArray.filter{ $0.pathExtension == "crt" || $0.pathExtension == "cer"}
+            for cert in certs {
+                if let certDomain = URL(string: cert.absoluteString)?.deletingPathExtension().lastPathComponent,
+                   certDomain == domain || domain == nil,
+                   let certData = try? Data(contentsOf: cert),
+                   let certificate = SecCertificateCreateWithData(nil, certData as CFData)
+                {
+                    if certificates[certDomain] != nil {
+                        certificates[certDomain]?.append(certificate)
+                    } else {
+                        certificates[certDomain] = [certificate]
                     }
+                    os_log("Mattermost: loaded certificate %{public}@ for domain %{public}@",
+                           log: .default,
+                           type: .info,
+                           cert.lastPathComponent, certDomain
+                    )
                 }
-                
-                if !certificates.isEmpty {
-                    var evaluators: [String: ServerTrustEvaluating] = [:]
-                    for domain in certificates {
-                        evaluators[domain.key] = PinnedCertificatesTrustEvaluator(certificates: domain.value,
-                                                                                  acceptSelfSignedCertificates: false,
-                                                                                  performDefaultValidation: true,
-                                                                                  validateHost: true)
-                    }
-                    return ServerTrustManager(allHostsMustBeEvaluated: true, evaluators: evaluators)
-                }
-            } catch {
-                os_log(
-                    "Mattermost: Error loading pinned certificates -- %{public}@",
-                    log: .default,
-                    type: .error,
-                    String(describing: error)
-                )
+            }
+            
+            if certificates.isEmpty {
                 return nil
             }
+            
+            var evaluators: [String: ServerTrustEvaluating] = [:]
+            for domain in certificates {
+                evaluators[domain.key] = PinnedCertificatesTrustEvaluator(certificates: domain.value,
+                                                                          acceptSelfSignedCertificates: false,
+                                                                          performDefaultValidation: true,
+                                                                          validateHost: true)
+            }
+
+            return ServerTrustManager(allHostsMustBeEvaluated: true, evaluators: evaluators)
+        } catch {
+            os_log(
+                "Mattermost: Error loading pinned certificates -- %{public}@",
+                log: .default,
+                type: .error,
+                String(describing: error)
+            )
+            return nil
         }
-        
-        return nil
     }
     
     func sessionCount() -> Int {
