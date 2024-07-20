@@ -25,7 +25,7 @@ extension SessionManager {
                 throw APIClientError.ClientCertificateMissing
             }
         } catch {
-            NotificationCenter.default.post(name: Notification.Name(API_CLIENT_EVENTS["CLIENT_ERROR"]!),
+            NotificationCenter.default.post(name: Notification.Name(ApiEvents.CLIENT_ERROR.rawValue),
                                             object: nil,
                                             userInfo: ["serverUrl": baseUrl.absoluteString,
                                                        "errorCode": error._code,

@@ -2,12 +2,6 @@ import Alamofire
 import SwiftyJSON
 import React
 
-let API_CLIENT_EVENTS = [
-    "UPLOAD_PROGRESS": "APIClient-UploadProgress",
-    "DOWNLOAD_PROGRESS": "APIClient-DownloadProgress",
-    "CLIENT_ERROR": "APIClient-Error"
-]
-
 @objc public class ApiClientWrapper: NSObject, NetworkClient {
     @objc public weak var delegate: ApiClientDelegate? = nil
     let requestsTable = NSMapTable<NSString, Request>.strongToWeakObjects()
@@ -119,7 +113,8 @@ let API_CLIENT_EVENTS = [
         }
 
         do {
-            try resolve(Keychain.importClientP12(withPath: path, withPassword: password, forHost: session.baseUrl.host!))
+            guard let baseUrl = session.baseUrl else { throw BaseURLError.missingBaseURL}
+            try resolve(Keychain.importClientP12(withPath: path, withPassword: password, forHost: baseUrl.host!))
         } catch {
             reject("\(error._code)", error.localizedDescription, error)
         }
@@ -289,7 +284,7 @@ let API_CLIENT_EVENTS = [
             self.delegate?.sendEvent(name: ApiEvents.UPLOAD_PROGRESS.rawValue, result: ["taskId": taskId, "fractionCompleted": progress.fractionCompleted, "bytesRead": progress.completedUnitCount])
         }
         .responseJSON { json in
-                self.resolveOrRejectJSONResponse(json, for:request, withResolver: resolve, withRejecter: reject)
+                self.resolveOrRejectJSONResponse(json, for: session, with: request, withResolver: resolve, withRejecter: reject)
         }
 
         self.requestsTable.setObject(request, forKey: taskId as NSString)
@@ -322,7 +317,7 @@ let API_CLIENT_EVENTS = [
                 self.delegate?.sendEvent(name: ApiEvents.UPLOAD_PROGRESS.rawValue, result: ["taskId": taskId, "fractionCompleted": fractionCompleted])
             }
             .responseJSON { json in
-                self.resolveOrRejectJSONResponse(json, withResolver: resolve, withRejecter: reject)
+                self.resolveOrRejectJSONResponse(json, for: session, withResolver: resolve, withRejecter: reject)
             }
 
         self.requestsTable.setObject(request, forKey: taskId as NSString)
@@ -366,11 +361,11 @@ let API_CLIENT_EVENTS = [
                             data.response?.allHeaderFields[tokenHeader.lowercased()] ??
                             data.response?.allHeaderFields[tokenHeader.firstUppercased]) as? String
             }
-            if let token = token {
+            if let token = token, let baseUrl = session.baseUrl {
                 do {
-                    try Keychain.setToken(token, forServerUrl: session.baseUrl.absoluteString)
+                    try Keychain.setToken(token, forServerUrl: baseUrl.absoluteString)
                 } catch {
-                    sendErrorEvent(for: session.baseUrl.absoluteString, withErrorCode: error._code, withErrorDescription: error.localizedDescription)
+                    sendErrorEvent(for: baseUrl.absoluteString, withErrorCode: error._code, withErrorDescription: error.localizedDescription)
                 }
             }
         }

@@ -1,12 +1,65 @@
 import Foundation
 import Alamofire
 import SwiftyJSON
+import os.log
 
 public class SessionManager: NSObject {
 
     @objc public static let `default` = SessionManager()
-    private override init() {}
     internal var sessions: [URL: Session] = [:]
+    
+    public func loadCertificates(forDomain domain: String? = nil) -> ServerTrustManager? {
+        guard let certsPath = Bundle.main.resourceURL?.appendingPathComponent("certs") {
+            return nil
+        }
+    
+        let fileManager = FileManager.default
+        do {
+            var certificates: [String: [SecCertificate]] = [:]
+            let certsArray = try fileManager.contentsOfDirectory(at: certsPath, includingPropertiesForKeys: nil, options: .skipsHiddenFiles)
+            let certs = certsArray.filter{ $0.pathExtension == "crt" || $0.pathExtension == "cer"}
+            for cert in certs {
+                if let certDomain = URL(string: cert.absoluteString)?.deletingPathExtension().lastPathComponent,
+                   certDomain == domain || domain == nil,
+                   let certData = try? Data(contentsOf: cert),
+                   let certificate = SecCertificateCreateWithData(nil, certData as CFData)
+                {
+                    if certificates[certDomain] != nil {
+                        certificates[certDomain]?.append(certificate)
+                    } else {
+                        certificates[certDomain] = [certificate]
+                    }
+                    os_log("Mattermost: loaded certificate %{public}@ for domain %{public}@",
+                           log: .default,
+                           type: .info,
+                           cert.lastPathComponent, certDomain
+                    )
+                }
+            }
+            
+            if certificates.isEmpty {
+                return nil
+            }
+            
+            var evaluators: [String: ServerTrustEvaluating] = [:]
+            for domain in certificates {
+                evaluators[domain.key] = PinnedCertificatesTrustEvaluator(certificates: domain.value,
+                                                                          acceptSelfSignedCertificates: false,
+                                                                          performDefaultValidation: true,
+                                                                          validateHost: true)
+            }
+
+            return ServerTrustManager(allHostsMustBeEvaluated: true, evaluators: evaluators)
+        } catch {
+            os_log(
+                "Mattermost: Error loading pinned certificates -- %{public}@",
+                log: .default,
+                type: .error,
+                String(describing: error)
+            )
+            return nil
+        }
+    }
     
     func sessionCount() -> Int {
         return sessions.count
@@ -28,19 +81,27 @@ public class SessionManager: NSObject {
             return
         }
 
-        session = Session(configuration: configuration, delegate: delegate, rootQueue: rootQueue, interceptor: interceptor, redirectHandler: redirectHandler)
+        session = Session(
+            configuration: configuration,
+            delegate: delegate,
+            rootQueue: rootQueue,
+            interceptor: interceptor,
+            serverTrustManager: loadCertificates(forDomain: baseUrl.host),
+            redirectHandler: redirectHandler)
+        
         session?.baseUrl = baseUrl
         session?.retryPolicy = retryPolicy
         session?.cancelRequestsOnUnauthorized = cancelRequestsOnUnauthorized
         session?.bearerAuthTokenResponseHeader = bearerAuthTokenResponseHeader
         session?.trustSelfSignedServerCertificate = trustSelfSignedServerCertificate
+
         if let clientP12Configuration = clientP12Configuration {
             let path = clientP12Configuration["path"]
             let password = clientP12Configuration["password"]
             do {
                 try Keychain.importClientP12(withPath: path!, withPassword: password, forHost: baseUrl.host!)
             } catch {
-                NotificationCenter.default.post(name: Notification.Name(API_CLIENT_EVENTS["CLIENT_ERROR"]!),
+                NotificationCenter.default.post(name: Notification.Name(ApiEvents.CLIENT_ERROR.rawValue),
                                                 object: nil,
                                                 userInfo: ["serverUrl": baseUrl.absoluteString, "errorCode": error._code, "errorDescription": error.localizedDescription])
             }
@@ -137,7 +198,7 @@ public class SessionManager: NSObject {
                     try Keychain.deleteAll(for: baseUrl.absoluteString)
                     URLCache.shared.removeAllCachedResponses()
                 } catch {
-                    NotificationCenter.default.post(name: Notification.Name(API_CLIENT_EVENTS["CLIENT_ERROR"]!),
+                    NotificationCenter.default.post(name: Notification.Name(ApiEvents.CLIENT_ERROR.rawValue),
                                                     object: nil,
                                                     userInfo: ["serverUrl": baseUrl.absoluteString, "errorCode": error._code, "errorDescription": error.localizedDescription])
                 }

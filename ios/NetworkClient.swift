@@ -28,7 +28,8 @@ protocol NetworkClient {
                                          withRejecter reject: @escaping RCTPromiseRejectBlock)
     
     func resolveOrRejectJSONResponse(_ json: AFDataResponse<Any>,
-                                     for request: Request?,
+                                     for session: Session,
+                                     with request: Request?,
                                      withResolver resolve: @escaping RCTPromiseResolveBlock,
                                      withRejecter reject: @escaping RCTPromiseRejectBlock)
     
@@ -67,7 +68,7 @@ extension NetworkClient {
         request.validate(statusCode: 200...409)
             .responseJSON { json in
                 self.handleResponse(for: session, withUrl: url, withData: json)
-                self.resolveOrRejectJSONResponse(json, for: request, withResolver: resolve, withRejecter: reject)
+                self.resolveOrRejectJSONResponse(json, for: session, with: request, withResolver: resolve, withRejecter: reject)
         }
     }
     
@@ -125,7 +126,8 @@ extension NetworkClient {
     }
     
     func resolveOrRejectJSONResponse(_ json: AFDataResponse<Any>,
-                                     for request: Request? = nil,
+                                     for session: Session,
+                                     with request: Request? = nil,
                                      withResolver resolve: @escaping RCTPromiseResolveBlock,
                                      withRejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
 
@@ -152,9 +154,23 @@ extension NetworkClient {
         case .failure(let error):
             var responseCode = error.responseCode
             var retriesExhausted = false
+
             if error.isRequestRetryError, let underlyingError = error.underlyingError {
                 responseCode = underlyingError.asAFError?.responseCode
                 retriesExhausted = true
+            }
+            
+            if error.isServerTrustEvaluationError {
+                session.cancelAllRequests()
+                if let baseUrl = session.baseUrl {
+                    NotificationCenter.default.post(name: Notification.Name(ApiEvents.CLIENT_ERROR.rawValue),
+                                                    object: nil,
+                                                    userInfo: [
+                                                        "serverUrl": baseUrl.absoluteString,
+                                                        "errorCode": APIClientError.ServerTrustEvaluationFailed.errorCode,
+                                                        "errorDescription": error.localizedDescription])
+                }
+                
             }
             
             var response = [

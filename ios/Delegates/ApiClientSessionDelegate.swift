@@ -15,25 +15,31 @@ class ApiClientSessionDelegate: SessionDelegate {
                 if session.trustSelfSignedServerCertificate {
                     credential = URLCredential(trust: challenge.protectionSpace.serverTrust!)
                     disposition = .useCredential
+                    completionHandler(disposition, credential)
+                    return
                 }
             }
         } else if authMethod == NSURLAuthenticationMethodClientCertificate {
-            if let session = SessionManager.default.getSession(for: urlSession) {
-                credential = SessionManager.default.getCredential(for: session.baseUrl)
+            if let session = SessionManager.default.getSession(for: urlSession),
+               let baseUrl = session.baseUrl {
+                credential = SessionManager.default.getCredential(for: baseUrl)
             }
             disposition = .useCredential
+            completionHandler(disposition, credential)
+            return
         }
 
-        completionHandler(disposition, credential)
+        super.urlSession(urlSession, task: task, didReceive: challenge, completionHandler: completionHandler)
     }
     
     override open func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
         if let err = error as? NSError,
            let urlSession = SessionManager.default.getSession(for: session),
+           let baseUrl = urlSession.baseUrl,
            err.domain == NSURLErrorDomain && err.code == NSURLErrorServerCertificateUntrusted {
-            NotificationCenter.default.post(name: Notification.Name(API_CLIENT_EVENTS["CLIENT_ERROR"]!),
+            NotificationCenter.default.post(name: Notification.Name(ApiEvents.CLIENT_ERROR.rawValue),
                                             object: nil,
-                                            userInfo: ["serverUrl": urlSession.baseUrl.absoluteString, "errorCode": APIClientError.ServerCertificateInvalid.errorCode, "errorDescription": err.localizedDescription])
+                                            userInfo: ["serverUrl": baseUrl.absoluteString, "errorCode": APIClientError.ServerCertificateInvalid.errorCode, "errorDescription": err.localizedDescription])
         }
         super.urlSession(session, task: task, didCompleteWithError: error)
     }

@@ -2,8 +2,8 @@ import Alamofire
 import SwiftyJSON
 
 @objc public class GenericClientWrapper: NSObject, NetworkClient {
-    var session = Session(redirectHandler: Redirector(behavior: .follow))
-
+    let session: Session = Session(serverTrustManager: SessionManager.default.loadCertificates(), redirectHandler: Redirector(behavior: .follow))
+    
     @objc public func head(url: String, options: Dictionary<String, Any>, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
         handleRequest(for: url, withMethod: .head, withSession: session, withOptions: JSON(options), withResolver: resolve, withRejecter: reject)
     }

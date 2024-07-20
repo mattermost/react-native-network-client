@@ -2,6 +2,7 @@ package com.mattermost.networkclient
 
 import android.annotation.SuppressLint
 import android.net.Uri
+import android.util.Base64
 import android.webkit.CookieManager
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.Promise
@@ -10,6 +11,7 @@ import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.ReadableType
 import com.mattermost.networkclient.enums.ApiClientEvents
 import com.mattermost.networkclient.enums.RetryTypes
+import com.mattermost.networkclient.enums.SslErrors
 import com.mattermost.networkclient.helpers.DocumentHelper
 import com.mattermost.networkclient.helpers.KeyStoreHelper
 import com.mattermost.networkclient.helpers.UploadFileRequestBody
@@ -21,17 +23,22 @@ import okhttp3.internal.EMPTY_REQUEST
 import okhttp3.tls.HandshakeCertificates
 import org.json.JSONArray
 import org.json.JSONObject
+import java.io.File
 import java.io.IOException
+import java.io.InputStream
 import java.net.URI
+import java.security.MessageDigest
 import java.security.SecureRandom
 import java.security.cert.CertificateException
+import java.security.cert.CertificateFactory
 import java.security.cert.X509Certificate
 import java.util.Locale
 import javax.net.ssl.HttpsURLConnection
 import javax.net.ssl.SSLContext
 import javax.net.ssl.X509TrustManager
-import kotlin.collections.HashMap
 import kotlin.reflect.KProperty
+
+const val CERTIFICATES_PATH = "certs"
 
 internal class NetworkClient(private val context: ReactApplicationContext, private val baseUrl: HttpUrl? = null, options: ReadableMap? = null, cookieJar: CookieJar? = null) {
     private var okHttpClient: OkHttpClient
@@ -73,6 +80,18 @@ internal class NetworkClient(private val context: ReactApplicationContext, priva
             applyGenericClientBuilderConfiguration()
         } else {
             applyClientBuilderConfiguration(options, cookieJar)
+        }
+
+        val fingerprintsMap = getCertificatesFingerPrints()
+        if (fingerprintsMap.isNotEmpty()) {
+            val pinner = CertificatePinner.Builder()
+            for ((domain, fingerprints) in fingerprintsMap) {
+                for (fingerprint in fingerprints) {
+                    pinner.add(domain, "sha256/$fingerprint")
+                }
+            }
+            val certificatePinner = pinner.build()
+            builder.certificatePinner(certificatePinner)
         }
 
         okHttpClient = builder.build()
@@ -186,6 +205,12 @@ internal class NetworkClient(private val context: ReactApplicationContext, priva
         val call = okHttpClient.newCall(request)
         call.enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
+                if (e is javax.net.ssl.SSLPeerUnverifiedException) {
+                    cancelAllRequests()
+                    emitInvalidPinnedCertificateError()
+                    promise.reject(Exception("Server trust evaluation failed due to reason: Certificate pinning failed for host ${request.url.host}"))
+                    return
+                }
                 promise.reject(e)
             }
 
@@ -457,6 +482,14 @@ internal class NetworkClient(private val context: ReactApplicationContext, priva
         ApiClientModuleImpl.sendJSEvent(ApiClientEvents.CLIENT_ERROR.event, data)
     }
 
+    internal fun emitInvalidPinnedCertificateError() {
+        val data = Arguments.createMap()
+        data.putString("serverUrl", baseUrlString)
+        data.putInt("errorCode", SslErrors.SERVER_TRUST_EVALUATION_FAILED.event)
+        data.putString("errorDescription", "Server trust evaluation failed due to reason: Certificate pinning failed for host ${URI(baseUrlString).host}")
+        ApiClientModuleImpl.sendJSEvent(ApiClientEvents.CLIENT_ERROR.event, data)
+    }
+
     private fun buildHandshakeCertificates(options: ReadableMap?): HandshakeCertificates? {
         if (options != null) {
             // `trustSelfSignedServerCertificate` can be in `options.sessionConfiguration` for
@@ -676,5 +709,38 @@ internal class NetworkClient(private val context: ReactApplicationContext, priva
             val cookieParts = cookies[i].split("=").toTypedArray()
             cookieManager.setCookie(domain, cookieParts[0].trim { it <= ' ' } + "=; Expires=Thurs, 1 Jan 1970 12:00:00 GMT")
         }
+    }
+
+    private fun getCertificateFingerPrint(certInputStream: InputStream): String {
+        val certFactory = CertificateFactory.getInstance("X.509")
+        val certificate = certFactory.generateCertificate(certInputStream) as X509Certificate
+        val sha256 = MessageDigest.getInstance("SHA-256")
+        val fingerprintBytes = sha256.digest(certificate.publicKey.encoded)
+        return Base64.encodeToString(fingerprintBytes, Base64.NO_WRAP)
+    }
+
+    private fun getCertificatesFingerPrints(): Map<String, List<String>> {
+        val fingerprintsMap = mutableMapOf<String, MutableList<String>>()
+        val assetsManager = context.assets
+        val certFiles = assetsManager.list(CERTIFICATES_PATH)?.filter { it.endsWith(".cer") || it.endsWith(".crt") } ?: return emptyMap()
+
+        for (fileName in certFiles) {
+            val file = File(fileName).normalize()
+            val domain = file.nameWithoutExtension
+            if (baseUrl != null && baseUrl.host != domain) {
+                continue
+            }
+            val certInputStream = assetsManager.open("$CERTIFICATES_PATH/${file.name}")
+            certInputStream.use {
+                val fingerprint = getCertificateFingerPrint(it)
+                if (fingerprintsMap.containsKey(domain)) {
+                    fingerprintsMap[domain]?.add(fingerprint)
+                } else {
+                    fingerprintsMap[domain] = mutableListOf(fingerprint)
+                }
+            }
+        }
+
+        return fingerprintsMap
     }
 }
