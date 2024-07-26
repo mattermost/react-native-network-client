@@ -9,7 +9,7 @@ public class SessionManager: NSObject {
     internal var sessions: [URL: Session] = [:]
     
     public func loadCertificates(forDomain domain: String? = nil) -> ServerTrustManager? {
-        guard let certsPath = Bundle.main.resourceURL?.appendingPathComponent("certs") {
+        guard let certsPath = Bundle.main.resourceURL?.appendingPathComponent("certs") else {
             return nil
         }
     
