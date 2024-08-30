@@ -207,8 +207,17 @@ internal class NetworkClient(private val context: ReactApplicationContext, priva
             override fun onFailure(call: Call, e: IOException) {
                 if (e is javax.net.ssl.SSLPeerUnverifiedException) {
                     cancelAllRequests()
-                    emitInvalidPinnedCertificateError()
-                    promise.reject(Exception("Server trust evaluation failed due to reason: Certificate pinning failed for host ${request.url.host}"))
+                    val fingerPrintsMap = getCertificatesFingerPrints()
+                    if (fingerPrintsMap.containsKey(request.url.host)) {
+                        emitInvalidPinnedCertificateError()
+                        promise.reject(Exception("Server trust evaluation failed due to reason: Certificate pinning failed for host ${request.url.host}"))
+                        return
+                    } else {
+                        rejectInvalidCertificate(promise, request.url.host)
+                        return
+                    }
+                } else if (e is javax.net.ssl.SSLHandshakeException) {
+                    rejectInvalidCertificate(promise, request.url.host)
                     return
                 }
                 promise.reject(e)
@@ -742,5 +751,10 @@ internal class NetworkClient(private val context: ReactApplicationContext, priva
         }
 
         return fingerprintsMap
+    }
+
+    private fun rejectInvalidCertificate(promise: Promise, host: String) {
+        emitInvalidCertificateError()
+        promise.reject(Exception("The certificate for this server is invalid.\nYou might be connecting to a server that is pretending to be “${host}” which could put your confidential information at risk."))
     }
 }
