@@ -25,12 +25,13 @@ class ApiClientModuleImpl(reactApplicationContext: ReactApplicationContext) {
     companion object {
         const val NAME = "ApiClient"
 
-        public lateinit var context: ReactApplicationContext
+        lateinit var context: ReactApplicationContext
         private val clients = mutableMapOf<HttpUrl, NetworkClient>()
         private val calls = mutableMapOf<String, Call>()
         private lateinit var sharedPreferences: SharedPreferences
         private const val SHARED_PREFERENCES_NAME = "APIClientPreferences"
         internal val cookieJar = ReactCookieJarContainer()
+        private val aliasTokenCache = mutableMapOf<String, String?>()
 
         internal fun getClientForRequest(request: Request): NetworkClient? {
             var urlParts = request.url.toString().split("/")
@@ -54,9 +55,16 @@ class ApiClientModuleImpl(reactApplicationContext: ReactApplicationContext) {
         }
 
         internal fun retrieveValue(alias: String): String? {
+            val cacheData = this.aliasTokenCache[alias]
+            if (cacheData != null) {
+                return cacheData
+            }
+
             val encryptedData = sharedPreferences.getString(alias, null)
             if (encryptedData != null) {
-                return KeyStoreHelper.decryptData(encryptedData)
+                val data = KeyStoreHelper.decryptData(encryptedData)
+                this.aliasTokenCache[alias] = data
+                return data
             }
 
             return null
@@ -66,6 +74,7 @@ class ApiClientModuleImpl(reactApplicationContext: ReactApplicationContext) {
             sharedPreferences.edit()
                     .remove(alias)
                     .apply()
+            this.aliasTokenCache.remove(alias)
         }
 
         internal fun sendJSEvent(eventName: String, data: WritableMap?) {
