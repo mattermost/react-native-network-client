@@ -17,6 +17,9 @@ import com.mattermost.networkclient.helpers.KeyStoreHelper
 import com.mattermost.networkclient.helpers.UploadFileRequestBody
 import com.mattermost.networkclient.interceptors.*
 import com.mattermost.networkclient.interfaces.RetryInterceptor
+import com.mattermost.networkclient.metrics.MetricsEventFactory
+import com.mattermost.networkclient.metrics.RequestMetadata
+import com.mattermost.networkclient.metrics.getNetworkType
 import okhttp3.*
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.internal.EMPTY_REQUEST
@@ -53,6 +56,8 @@ internal class NetworkClient(private val context: ReactApplicationContext, priva
 
     private var trustSelfSignedServerCertificate = false
     private val builder: OkHttpClient.Builder = OkHttpClient().newBuilder()
+    private var shouldCollectMetrics: Boolean = false
+    private var metricsEventFactory: MetricsEventFactory? = null
 
     private val baseUrlString = baseUrl.toString().trimTrailingSlashes()
     private val baseUrlHash = baseUrlString.sha256()
@@ -76,6 +81,12 @@ internal class NetworkClient(private val context: ReactApplicationContext, priva
     }
 
     init {
+        initCollectMetrics(options)
+
+        if (shouldCollectMetrics) {
+            builder.addNetworkInterceptor(CompressedResponseSizeInterceptor())
+        }
+
         if (baseUrl == null) {
             applyGenericClientBuilderConfiguration()
         } else {
@@ -94,7 +105,23 @@ internal class NetworkClient(private val context: ReactApplicationContext, priva
             builder.certificatePinner(certificatePinner)
         }
 
+        if (metricsEventFactory != null) {
+            builder.eventListenerFactory(metricsEventFactory!!)
+        }
+
         okHttpClient = builder.build()
+    }
+
+    private fun initCollectMetrics(options: ReadableMap?) {
+        if (options != null && options.hasKey("sessionConfiguration")) {
+            val sessionConfiguration = options.getMap("sessionConfiguration")!!
+            if (sessionConfiguration.hasKey("collectMetrics")) {
+                shouldCollectMetrics = sessionConfiguration.getBoolean("collectMetrics")
+                if (shouldCollectMetrics) {
+                    metricsEventFactory = MetricsEventFactory()
+                }
+            }
+        }
     }
 
     private fun applyGenericClientBuilderConfiguration() {
@@ -205,6 +232,7 @@ internal class NetworkClient(private val context: ReactApplicationContext, priva
         val call = okHttpClient.newCall(request)
         call.enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
+                metricsEventFactory?.removeMetadata(call)
                 if (e is javax.net.ssl.SSLPeerUnverifiedException) {
                     cancelAllRequests()
                     val fingerPrintsMap = getCertificatesFingerPrints()
@@ -224,7 +252,13 @@ internal class NetworkClient(private val context: ReactApplicationContext, priva
             }
 
             override fun onResponse(call: Call, response: Response) {
-                promise.resolve(response.toWritableMap())
+                var metadata: RequestMetadata? = null
+                if (shouldCollectMetrics) {
+                    metadata = metricsEventFactory?.getMetadata(call)
+                    metadata?.networkType = getNetworkType(context)
+                    metricsEventFactory?.removeMetadata(call)
+                }
+                promise.resolve(response.toWritableMap(metadata))
                 cleanUpAfter(response)
             }
         })

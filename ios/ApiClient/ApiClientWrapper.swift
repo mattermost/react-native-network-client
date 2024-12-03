@@ -17,6 +17,10 @@ import React
         NotificationCenter.default.removeObserver(self,
                                                   name: Notification.Name(ApiEvents.CLIENT_ERROR.rawValue),
                                                   object: nil)
+        let sessions = SessionManager.default.getAllSessions()
+        for session in sessions {
+            SessionManager.default.invalidateSession(for: session.key, withReset: false)
+        }
     }
 
     @objc public func createClientFor(baseUrlString: String, options: Dictionary<String, Any> = [:], resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
@@ -41,6 +45,7 @@ import React
             let bearerAuthTokenResponseHeader = options["requestAdapterConfiguration"]["bearerAuthTokenResponseHeader"].string
             let clientP12Configuration = options["clientP12Configuration"].dictionaryObject as? [String:String]
             let trustSelfSignedServerCertificate = options["sessionConfiguration"]["trustSelfSignedServerCertificate"].boolValue
+            let collectMetrics = options["sessionConfiguration"]["collectMetrics"].boolValue
 
             resolve(
                 SessionManager.default.createSession(for: baseUrl,
@@ -53,7 +58,8 @@ import React
                                                      withCancelRequestsOnUnauthorized: cancelRequestsOnUnauthorized,
                                                      withBearerAuthTokenResponseHeader: bearerAuthTokenResponseHeader,
                                                      withClientP12Configuration: clientP12Configuration,
-                                                     withTrustSelfSignedServerCertificate: trustSelfSignedServerCertificate)
+                                                     withTrustSelfSignedServerCertificate: trustSelfSignedServerCertificate,
+                                                     withCollectMetrics: collectMetrics)
             )
 
             return
@@ -283,8 +289,8 @@ import React
         .uploadProgress { progress in
             self.delegate?.sendEvent(name: ApiEvents.UPLOAD_PROGRESS.rawValue, result: ["taskId": taskId, "fractionCompleted": progress.fractionCompleted, "bytesRead": progress.completedUnitCount])
         }
-        .responseJSON { json in
-                self.resolveOrRejectJSONResponse(json, for: session, with: request, withResolver: resolve, withRejecter: reject)
+        .response { response in
+                self.resolveOrRejectResponse(response, for: session, with: request, withResolver: resolve, withRejecter: reject)
         }
 
         self.requestsTable.setObject(request, forKey: taskId as NSString)
@@ -316,8 +322,8 @@ import React
                 let fractionCompleted = initialFractionCompleted + (Double(progress.completedUnitCount) / fileSize)
                 self.delegate?.sendEvent(name: ApiEvents.UPLOAD_PROGRESS.rawValue, result: ["taskId": taskId, "fractionCompleted": fractionCompleted])
             }
-            .responseJSON { json in
-                self.resolveOrRejectJSONResponse(json, for: session, withResolver: resolve, withRejecter: reject)
+            .response { response in
+                self.resolveOrRejectResponse(response, for: session, withResolver: resolve, withRejecter: reject)
             }
 
         self.requestsTable.setObject(request, forKey: taskId as NSString)

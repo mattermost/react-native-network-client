@@ -294,7 +294,7 @@ class ApiClientModuleImpl(reactApplicationContext: ReactApplicationContext) {
                 }
 
                 override fun onResponse(call: Call, response: Response) {
-                    promise.resolve(response.toWritableMap())
+                    promise.resolve(response.toWritableMap(null))
                     client.cleanUpAfter(response)
                     calls.remove(taskId)
                 }
