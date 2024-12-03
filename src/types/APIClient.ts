@@ -124,6 +124,7 @@ export type SessionConfiguration = {
     httpMaximumConnectionsPerHost?: number;
     cancelRequestsOnUnauthorized?: boolean;
     trustSelfSignedServerCertificate?: boolean;
+    collectMetrics?: boolean;
 };
 
 export type RetryPolicyConfiguration = {
