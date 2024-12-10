@@ -157,9 +157,10 @@ extension NetworkClient {
             
             if let metrics = response.metrics?.transactionMetrics {
                 let compressedSize = metrics.compactMap { transaction in
-                    (transaction.countOfResponseBodyBytesReceived)
+                    guard transaction.resourceFetchType == .networkLoad else { return nil }
+                    return transaction.countOfResponseBodyBytesReceived
                 }.reduce(0, +)
-                metricsData!["compressedSize"] = compressedSize
+                metricsData!["compressedSize"] = metrics.last?.countOfResponseBodyBytesReceived ?? compressedSize
 
                 let totalLatency = metrics.compactMap { transaction in
                     (transaction.responseStartDate?.timeIntervalSince(transaction.fetchStartDate ?? Date()) ?? 0) * 1000
@@ -170,6 +171,21 @@ extension NetworkClient {
                     (transaction.connectEndDate?.timeIntervalSince(transaction.connectStartDate ?? Date()) ?? 0) * 1000
                 }.reduce(0, +)
                 metricsData!["connectionTime"] = totalConnectionTime
+                
+                if let fetchStart = metrics.first?.fetchStartDate,
+                   let responseEnd = metrics.last?.responseEndDate {
+                    var timeTaken = responseEnd.timeIntervalSince(fetchStart)
+
+                    
+                    // Ensure timeTaken is reasonable
+                    if timeTaken < 0.001 { // Cap minimum duration to avoid unrealistic speeds
+                        timeTaken = 0.001
+                    }
+                    
+                    metricsData!["startTime"] = fetchStart.timeIntervalSince1970
+                    metricsData!["endTime"] = responseEnd.timeIntervalSince1970
+                    metricsData!["speedInMbps"] = Double(metricsData!["compressedSize"] as! Int64 * 8) / (timeTaken * 1_000_000)
+                }
                 
                 if let lastTransaction = metrics.last {
                     metricsData!["httpVersion"] = lastTransaction.networkProtocolName ?? "Unknown"

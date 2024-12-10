@@ -46,8 +46,11 @@ export type ClientResponseMetrics = {
     isCached: boolean;
     compressedSize: number;
     size: number;
+    startTime: number;
+    endTime: number;
     connectionTime: number;
     latency: number;
+    speedInMbps: number;
 };
 
 export type ClientResponse = {

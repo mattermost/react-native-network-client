@@ -58,8 +58,14 @@ fun Response.toWritableMap(metadata: RequestMetadata?): WritableMap {
 
         if (metadata != null) {
             val compressedSize = header("X-Compressed-Size")?.toDoubleOrNull() ?: header("Content-Length")?.toDoubleOrNull() ?: 0.0
+            val startTime = header("X-Start-Time")?.toDoubleOrNull() ?: 0.0
+            val endTime = header("X-End-Time")?.toDoubleOrNull() ?: 0.0
+            val mbps = header("X-Speed-Mbps")?.toDoubleOrNull() ?: 0.0
             metrics.putDouble("compressedSize", compressedSize)
             metrics.putDouble("size", buffer.size.toDouble())
+            metrics.putDouble("startTime", startTime)
+            metrics.putDouble("endTime", endTime)
+            metrics.putDouble("speedInMbps", mbps)
         }
 
         val bodyString = buffer.readUtf8()
