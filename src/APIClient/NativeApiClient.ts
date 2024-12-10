@@ -14,8 +14,11 @@ type ClientResponseMetrics = {
     isCached: boolean;
     compressedSize: Double;
     size: Double;
+    startTime: Double;
+    endTime: Double;
     connectionTime: Double;
     latency: Double;
+    speedInMbps: Double;
 };
 
 type ClientResponse = Readonly<{
