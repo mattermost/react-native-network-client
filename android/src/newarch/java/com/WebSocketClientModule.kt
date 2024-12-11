@@ -19,7 +19,7 @@ internal class WebSocketClientModule(reactContext: ReactApplicationContext) : Na
         // Keep: Required for RN built in Event Emitter Calls
     }
 
-    override fun removeListeners(count: Int) {
+    override fun removeListeners(count: Double) {
         // Keep: Required for RN built in Event Emitter Calls
     }
 

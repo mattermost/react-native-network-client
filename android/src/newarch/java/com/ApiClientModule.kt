@@ -12,7 +12,7 @@ class ApiClientModule(reactContext: ReactApplicationContext) : NativeApiClientSp
         // Keep: Required for RN built in Event Emitter Calls
     }
 
-    override fun removeListeners(count: Int) {
+    override fun removeListeners(count: Double) {
         // Keep: Required for RN built in Event Emitter Calls
     }
 
