@@ -1,5 +1,5 @@
 PODS:
-  - Alamofire (5.9.1)
+  - Alamofire (5.10.2)
   - BEMCheckBox (1.4.1)
   - boost (1.84.0)
   - DoubleConversion (1.1.6)
@@ -1299,7 +1299,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - Yoga
   - react-native-network-client (1.7.3):
-    - Alamofire (~> 5.9.1)
+    - Alamofire (~> 5.10.2)
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1320,7 +1320,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Starscream (~> 4.0.8)
-    - SwiftyJSON (~> 5.0)
+    - SwiftyJSON (~> 5.0.2)
     - Yoga
   - react-native-safe-area-context (5.0.0):
     - DoubleConversion
@@ -2124,7 +2124,7 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
-  Alamofire: f36a35757af4587d8e4f4bfa223ad10be2422b8c
+  Alamofire: 7193b3b92c74a07f85569e1a6c4f4237291e7496
   BEMCheckBox: 5ba6e37ade3d3657b36caecc35c8b75c6c2b1a4e
   boost: 1dca942403ed9342f98334bf4c3621f011aa7946
   DoubleConversion: f16ae600a246532c4020132d54af21d0ddb2a385
@@ -2164,7 +2164,7 @@ SPEC CHECKSUMS:
   React-microtasksnativemodule: 01dd998649ff5f8814846b7eee84c4d57f5d3671
   react-native-document-picker: 0ec4f0abaa488744e6c1d73ef7f47dc6a6861fc1
   react-native-image-picker: 91f4e8dd458db2acdb278479e960bc224cbf0217
-  react-native-network-client: bedf0bf0dfe5ab7d9dc6f7c1bb9616072da26ec9
+  react-native-network-client: a2e7207f946a7353265338cd90beff949a45d6ce
   react-native-safe-area-context: f145b8906585d648f9f9c7dfa3885bac54f38fcc
   React-nativeconfig: f7ab6c152e780b99a8c17448f2d99cf5f69a2311
   React-NativeModulesApple: 9aeb901b9bfcc9235e912445fb3cf4780a99baf4
