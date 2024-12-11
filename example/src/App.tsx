@@ -28,7 +28,7 @@ const Stack = createStackNavigator();
 function App() {
     return (
         <NavigationContainer>
-            <Stack.Navigator initialRouteName="ClientListScreen">
+            <Stack.Navigator initialRouteName="ClientList">
                 <Stack.Screen name="ClientList" component={ClientListScreen} />
                 <Stack.Screen
                     name="CreateAPIClient"
