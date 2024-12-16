@@ -11,6 +11,7 @@ fileprivate var bearerAuthTokenResponseHeader_FILEPRIVATE : [ObjectIdentifier:St
 fileprivate var cancelRequestsOnUnauthorized_FILEPRIVATE : [ObjectIdentifier:Bool] = [:]
 fileprivate var trustSelfSignedServerCertificate_FILEPRIVATE : [ObjectIdentifier:Bool] = [:]
 fileprivate var retryPolicy_FILEPRIVATE : [ObjectIdentifier:RetryPolicy] = [:]
+fileprivate var collectMetrics_FILEPRIVATE : [ObjectIdentifier:Bool] = [:]
 
 extension Session {
     var baseUrl: URL? {
@@ -36,5 +37,10 @@ extension Session {
     var retryPolicy: RetryPolicy? {
         get { return retryPolicy_FILEPRIVATE[ObjectIdentifier(self)] }
         set { retryPolicy_FILEPRIVATE[ObjectIdentifier(self)] = newValue }
+    }
+    
+    var collectMetrics: Bool {
+        get { return collectMetrics_FILEPRIVATE[ObjectIdentifier(self)] ?? false }
+        set { collectMetrics_FILEPRIVATE[ObjectIdentifier(self)] = newValue }
     }
 }

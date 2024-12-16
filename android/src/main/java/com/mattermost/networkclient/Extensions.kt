@@ -1,6 +1,10 @@
 package com.mattermost.networkclient
 
-import com.facebook.react.bridge.*
+import com.facebook.react.bridge.Arguments
+import com.facebook.react.bridge.ReadableMap
+import com.facebook.react.bridge.WritableArray
+import com.facebook.react.bridge.WritableMap
+import com.mattermost.networkclient.metrics.RequestMetadata
 import okhttp3.Headers
 import okhttp3.Request
 import okhttp3.Response
@@ -40,14 +44,31 @@ fun Response.getRedirectUrls(): WritableArray? {
  *
  * @return WriteableMap for passing back to App
  */
-fun Response.toWritableMap(): WritableMap {
+fun Response.toWritableMap(metadata: RequestMetadata?): WritableMap {
     val map = Arguments.createMap()
+    val metrics = Arguments.createMap()
     map.putMap("headers", headers.toWritableMap())
     map.putInt("code", code)
     map.putBoolean("ok", isSuccessful)
 
-    if (body !== null) {
-        val bodyString = body!!.string()
+    body?.let { responseBody ->
+        val source = responseBody.source()
+        source.request(Long.MAX_VALUE)
+        val buffer = source.buffer.clone()
+
+        if (metadata != null) {
+            val compressedSize = header("X-Compressed-Size")?.toDoubleOrNull() ?: header("Content-Length")?.toDoubleOrNull() ?: 0.0
+            val startTime = header("X-Start-Time")?.toDoubleOrNull() ?: 0.0
+            val endTime = header("X-End-Time")?.toDoubleOrNull() ?: 0.0
+            val mbps = header("X-Speed-Mbps")?.toDoubleOrNull() ?: 0.0
+            metrics.putDouble("compressedSize", compressedSize)
+            metrics.putDouble("size", buffer.size.toDouble())
+            metrics.putDouble("startTime", startTime)
+            metrics.putDouble("endTime", endTime)
+            metrics.putDouble("speedInMbps", mbps)
+        }
+
+        val bodyString = buffer.readUtf8()
         try {
             when (val json = JSONTokener(bodyString).nextValue()) {
                 is JSONArray -> {
@@ -72,6 +93,17 @@ fun Response.toWritableMap(): WritableMap {
     val redirectUrls = getRedirectUrls()
     if (redirectUrls != null) {
         map.putArray("redirectUrls", redirectUrls)
+    }
+
+    if (metadata != null) {
+        metrics.putDouble("latency", metadata.getLatency().toDouble())
+        metrics.putDouble("connectionTime", metadata.getConnectionTime().toDouble())
+        metrics.putString("httpVersion", metadata.httpVersion)
+        metrics.putString("tlsVersion", metadata.sslVersion ?: "None")
+        metrics.putString("tlsCipherSuite", metadata.sslCipher ?: "None")
+        metrics.putBoolean("isCached", metadata.isCached)
+        metrics.putString("networkType", metadata.networkType)
+        map.putMap("metrics", metrics)
     }
 
     return map

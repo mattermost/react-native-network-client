@@ -6,6 +6,21 @@ import type {
     WithDefault,
 } from "react-native/Libraries/Types/CodegenTypes";
 
+type ClientResponseMetrics = {
+    networkType: string;
+    tlsCipherSuite: string;
+    tlsVersion: string;
+    httpVersion: string;
+    isCached: boolean;
+    compressedSize: Double;
+    size: Double;
+    startTime: Double;
+    endTime: Double;
+    connectionTime: Double;
+    latency: Double;
+    speedInMbps: Double;
+};
+
 type ClientResponse = Readonly<{
     headers?: UnsafeObject;
     data?: UnsafeObject;
@@ -14,6 +29,7 @@ type ClientResponse = Readonly<{
     ok: boolean;
     retriesExhausted?: boolean;
     path?: string;
+    metrics?: ClientResponseMetrics;
 }>;
 
 export enum RetryTypes {

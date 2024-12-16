@@ -64,6 +64,10 @@ public class SessionManager: NSObject {
     func sessionCount() -> Int {
         return sessions.count
     }
+    
+    func getAllSessions() -> [URL: Session] {
+        return sessions
+    }
 
     func createSession(for baseUrl:URL,
                        withRootQueue rootQueue: DispatchQueue,
@@ -75,7 +79,8 @@ public class SessionManager: NSObject {
                        withCancelRequestsOnUnauthorized cancelRequestsOnUnauthorized: Bool = false,
                        withBearerAuthTokenResponseHeader bearerAuthTokenResponseHeader: String? = nil,
                        withClientP12Configuration clientP12Configuration: [String:String]? = nil,
-                       withTrustSelfSignedServerCertificate trustSelfSignedServerCertificate: Bool = false) -> Void {
+                       withTrustSelfSignedServerCertificate trustSelfSignedServerCertificate: Bool = false,
+                       withCollectMetrics collectMetrics: Bool = false) -> Void {
         var session = getSession(for: baseUrl)
         if (session != nil) {
             return
@@ -94,6 +99,7 @@ public class SessionManager: NSObject {
         session?.cancelRequestsOnUnauthorized = cancelRequestsOnUnauthorized
         session?.bearerAuthTokenResponseHeader = bearerAuthTokenResponseHeader
         session?.trustSelfSignedServerCertificate = trustSelfSignedServerCertificate
+        session?.collectMetrics = collectMetrics
 
         if let clientP12Configuration = clientP12Configuration {
             let path = clientP12Configuration["path"]

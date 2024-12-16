@@ -38,6 +38,21 @@ export type UploadRequestOptions = RequestOptions & {
     multipart?: MultipartUploadConfig;
 };
 
+export type ClientResponseMetrics = {
+    networkType: string;
+    tlsCipherSuite: string;
+    tlsVersion: string;
+    httpVersion: string;
+    isCached: boolean;
+    compressedSize: number;
+    size: number;
+    startTime: number;
+    endTime: number;
+    connectionTime: number;
+    latency: number;
+    speedInMbps: number;
+};
+
 export type ClientResponse = {
     headers?: ClientHeaders;
     data?: Record<string, unknown>;
@@ -46,6 +61,7 @@ export type ClientResponse = {
     ok: boolean;
     retriesExhausted?: boolean;
     path?: string;
+    metrics?: ClientResponseMetrics;
 };
 
 export type ClientResponseError = {
@@ -111,6 +127,7 @@ export type SessionConfiguration = {
     httpMaximumConnectionsPerHost?: number;
     cancelRequestsOnUnauthorized?: boolean;
     trustSelfSignedServerCertificate?: boolean;
+    collectMetrics?: boolean;
 };
 
 export type RetryPolicyConfiguration = {

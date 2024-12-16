@@ -113,7 +113,7 @@ class WebSocketClientModuleImpl(reactApplicationContext: ReactApplicationContext
         }
 
         try {
-            clients[wsUri]!!.webSocket!!.close(1000, "manual")
+            clients[wsUri]!!.webSocket!!.cancel()
         } catch (error: Exception) {
             promise.reject(error)
         }
