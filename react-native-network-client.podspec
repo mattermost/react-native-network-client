@@ -36,7 +36,7 @@ Pod::Spec.new do |s|
 
   install_modules_dependencies(s)
 
-  s.dependency "Alamofire", "~> 5.9.1"
-  s.dependency "SwiftyJSON", "~> 5.0"
+  s.dependency "Alamofire", "~> 5.10.2"
+  s.dependency "SwiftyJSON", "~> 5.0.2"
   s.dependency "Starscream", "~> 4.0.8"
 end

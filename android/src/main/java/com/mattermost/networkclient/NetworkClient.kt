@@ -410,8 +410,12 @@ internal class NetworkClient(private val context: ReactApplicationContext, priva
                         requestBody = jsonBody.toString().toRequestBody()
                     }
                     ReadableType.Map -> {
-                        val jsonBody = JSONObject(options.getMap("body")!!.toHashMap())
-                        requestBody = jsonBody.toString().toRequestBody()
+                        val jsonBody = (options.getMap("body")!!.toHashMap() as Map<*, *>?)?.let {
+                            JSONObject(
+                                it
+                            )
+                        }
+                        requestBody = jsonBody?.toString()?.toRequestBody()
                     }
                     ReadableType.String -> {
                         requestBody = options.getString("body")!!.toRequestBody()
@@ -477,7 +481,7 @@ internal class NetworkClient(private val context: ReactApplicationContext, priva
 
     private fun setClientHeaders(options: ReadableMap?) {
         if (options != null && options.hasKey(("headers"))) {
-            addClientHeaders(options.getMap("headers")?.toHashMap()?.toWritableMap())
+            addClientHeaders(options.getMap("headers")?.toWritableMap())
         }
     }
 

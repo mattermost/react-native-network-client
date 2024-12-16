@@ -35,5 +35,6 @@
     "metro.config.js",
     "jest.config.js",
     "example/detox/**/*",
+    "example/node_modules"
   ]
 }

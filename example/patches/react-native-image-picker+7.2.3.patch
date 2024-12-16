@@ -1,0 +1,156 @@
+diff --git a/node_modules/react-native-image-picker/src/index.ts b/node_modules/react-native-image-picker/src/index.ts
+index 906b6a1..8b02b22 100644
+--- a/node_modules/react-native-image-picker/src/index.ts
++++ b/node_modules/react-native-image-picker/src/index.ts
+@@ -1,6 +1,6 @@
+ import {Platform} from 'react-native';
+ 
+-import {CameraOptions, ImageLibraryOptions, Callback} from './types';
++import type {CameraOptions, ImageLibraryOptions, Callback} from './types';
+ import {
+   imageLibrary as nativeImageLibrary,
+   camera as nativeCamera,
+diff --git a/node_modules/react-native-image-picker/src/platforms/native.ts b/node_modules/react-native-image-picker/src/platforms/native.ts
+index e2c293f..150dc74 100644
+--- a/node_modules/react-native-image-picker/src/platforms/native.ts
++++ b/node_modules/react-native-image-picker/src/platforms/native.ts
+@@ -1,6 +1,6 @@
+ import {NativeModules} from 'react-native';
+ 
+-import {
++import type {
+   CameraOptions,
+   ImageLibraryOptions,
+   Callback,
+diff --git a/node_modules/react-native-image-picker/src/platforms/web.ts b/node_modules/react-native-image-picker/src/platforms/web.ts
+index 9f609cb..22aacdf 100644
+--- a/node_modules/react-native-image-picker/src/platforms/web.ts
++++ b/node_modules/react-native-image-picker/src/platforms/web.ts
+@@ -1,4 +1,4 @@
+-import {
++import type {
+   CameraOptions,
+   ImageLibraryOptions,
+   Callback,
+@@ -32,33 +32,50 @@ export function camera(
+     return Promise.resolve(result);
+   }
+ 
++  // @ts-expect-error definition
+   const container = document.createElement('div');
++  // @ts-expect-error definition
+   const wrapper = document.createElement('div');
++  // @ts-expect-error definition
+   const content = document.createElement('div');
++  // @ts-expect-error definition
+   const buttons = document.createElement('div');
++  // @ts-expect-error definition
+   const btnCapture = document.createElement('button');
++  // @ts-expect-error definition
+   const btnBack = document.createElement('button');
++  // @ts-expect-error definition
+   const btnSave = document.createElement('button');
++  // @ts-expect-error definition
+   const btnCancel = document.createElement('button');
++  // @ts-expect-error definition
+   const video = document.createElement('video');
++  // @ts-expect-error definition
+   const canvas = document.createElement('canvas');
+ 
+   // init video
++  // @ts-expect-error definition
+   navigator.mediaDevices.getUserMedia({ audio: false, video: true })
++  // @ts-expect-error definition
+     .then(stream => {
+       video.srcObject = stream;
+       video.play();
++      // @ts-expect-error definition
+     }).catch(err => {
+       console.log(err);
+     })
+ 
++    // @ts-expect-error definition
+   const isAlreadyUsingFontAwesome = !!document.getElementsByClassName('fa').length;
+ 
+   if (!isAlreadyUsingFontAwesome) {
++    // @ts-expect-error definition
+     const isAlreadyInjectedFontAwesome = !!document.getElementById('injected-font-awesome');
+     if (!isAlreadyInjectedFontAwesome) { 
+       // inject font-awesome
++      // @ts-expect-error definition
+       const head = document.getElementsByTagName('HEAD')[0];
++      // @ts-expect-error definition
+       const link = document.createElement('link');
+       link.id = 'injected-font-awesome';
+       link.rel = 'stylesheet';
+@@ -136,6 +153,7 @@ export function camera(
+   content.append(buttons);
+   container.append(content);
+ 
++  // @ts-expect-error definition
+   document.body.appendChild(container);
+ 
+   let hasPhoto = false;
+@@ -176,6 +194,7 @@ export function camera(
+       if (callback) callback(result);
+       resolve(result);
+ 
++      // @ts-expect-error definition
+       document.body.removeChild(container);
+     })
+     
+@@ -188,6 +207,7 @@ export function camera(
+       if (callback) callback(result);
+       resolve(result);
+ 
++      // @ts-expect-error definition
+       document.body.removeChild(container);
+     })
+   })
+@@ -209,6 +229,7 @@ export function imageLibrary(
+     return Promise.resolve(result);
+   }
+ 
++  // @ts-expect-error definition
+   const input = document.createElement('input');
+   input.style.display = 'none';
+   input.setAttribute('type', 'file');
+@@ -218,6 +239,7 @@ export function imageLibrary(
+     input.setAttribute('multiple', 'multiple');
+   }
+ 
++  // @ts-expect-error definition
+   document.body.appendChild(input);
+ 
+   return new Promise((resolve) => {
+@@ -236,6 +258,7 @@ export function imageLibrary(
+         } else {
+           const imgs = await Promise.all(
+             Array.from(input.files).map((file) =>
++              // @ts-expect-error definition
+               readFile(file, {includeBase64: options.includeBase64}),
+             ),
+           );
+@@ -261,12 +284,14 @@ export function imageLibrary(
+     const cleanup = () => {
+       input.removeEventListener('change', inputChangeHandler);
+       input.removeEventListener('cancel', inputCancelHandler);
++      // @ts-expect-error definition
+       document.body.removeChild(input);
+     };
+ 
+     input.addEventListener('change', inputChangeHandler);
+     input.addEventListener('cancel', inputCancelHandler);
+ 
++    // @ts-expect-error definition
+     const event = new MouseEvent('click');
+     input.dispatchEvent(event);
+   });
+@@ -296,6 +321,7 @@ function readFile(
+         });
+ 
+       if (typeof uri === 'string') {
++        // @ts-expect-error definition
+         const image = new Image();
+         image.src = uri;
+         image.onload = () =>
