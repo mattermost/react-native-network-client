@@ -2,6 +2,11 @@ package com.mattermost.networkclient
 
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.preferencesDataStore
+import androidx.datastore.preferences.core.edit
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableMap
@@ -9,6 +14,8 @@ import com.facebook.react.bridge.WritableMap
 import com.facebook.react.modules.network.ForwardingCookieHandler
 import com.facebook.react.modules.network.ReactCookieJarContainer
 import com.mattermost.networkclient.helpers.KeyStoreHelper
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 import okhttp3.Call
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
@@ -30,8 +37,11 @@ class ApiClientModuleImpl(reactApplicationContext: ReactApplicationContext) {
         private val calls = mutableMapOf<String, Call>()
         private lateinit var sharedPreferences: SharedPreferences
         private const val SHARED_PREFERENCES_NAME = "APIClientPreferences"
+        private const val DATASTORE_NAME = "APIClientDataStore"
         internal val cookieJar = ReactCookieJarContainer()
         private val aliasTokenCache = mutableMapOf<String, String?>()
+
+        private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = DATASTORE_NAME)
 
         internal fun getClientForRequest(request: Request): NetworkClient? {
             var urlParts = request.url.toString().split("/")
@@ -49,9 +59,11 @@ class ApiClientModuleImpl(reactApplicationContext: ReactApplicationContext) {
 
         internal fun storeValue(value: String, alias: String) {
             val encryptedValue = KeyStoreHelper.encryptData(value)
-            sharedPreferences.edit()
-                    .putString(alias, encryptedValue)
-                    .apply()
+            runBlocking {
+                context.dataStore.edit { preferences ->
+                    preferences[stringPreferencesKey(alias)] = encryptedValue
+                }
+            }
         }
 
         internal fun retrieveValue(alias: String): String? {
@@ -60,21 +72,24 @@ class ApiClientModuleImpl(reactApplicationContext: ReactApplicationContext) {
                 return cacheData
             }
 
-            val encryptedData = sharedPreferences.getString(alias, null)
-            if (encryptedData != null) {
-                val data = KeyStoreHelper.decryptData(encryptedData)
-                this.aliasTokenCache[alias] = data
-                return data
+            return runBlocking {
+                val encryptedData = context.dataStore.data.first()[stringPreferencesKey(alias)]
+                if (encryptedData != null) {
+                    val data = KeyStoreHelper.decryptData(encryptedData)
+                    aliasTokenCache[alias] = data
+                    return@runBlocking data
+                }
+                null
             }
-
-            return null
         }
 
         internal fun deleteValue(alias: String) {
-            sharedPreferences.edit()
-                    .remove(alias)
-                    .apply()
-            this.aliasTokenCache.remove(alias)
+            runBlocking {
+                context.dataStore.edit { preferences ->
+                    preferences.remove(stringPreferencesKey(alias))
+                }
+                aliasTokenCache.remove(alias)
+            }
         }
 
         internal fun sendJSEvent(eventName: String, data: WritableMap?) {
@@ -88,8 +103,23 @@ class ApiClientModuleImpl(reactApplicationContext: ReactApplicationContext) {
             context = reactContext
         }
 
-        private fun setSharedPreferences(reactContext: ReactApplicationContext) {
-            sharedPreferences = reactContext.getSharedPreferences(SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE)
+        private fun migrateSharedPreferences(reactContext: ReactApplicationContext) {
+            val sharedPreferences = reactContext.getSharedPreferences(SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE)
+
+            if (sharedPreferences.all.isNotEmpty()) {
+                runBlocking {
+                    reactContext.dataStore.edit { preferences ->
+                        sharedPreferences.all.forEach { entry ->
+                            val key = stringPreferencesKey(entry.key)
+                            when (val value = entry.value) {
+                                is String -> preferences[key] = value
+                            }
+                        }
+                    }
+
+                    sharedPreferences.edit().clear().apply()
+                }
+            }
         }
 
         private fun setCookieJar(reactContext: ReactApplicationContext) {
@@ -100,7 +130,7 @@ class ApiClientModuleImpl(reactApplicationContext: ReactApplicationContext) {
 
     init {
         setCtx(reactApplicationContext)
-        setSharedPreferences(reactApplicationContext)
+        migrateSharedPreferences(reactApplicationContext)
         setCookieJar(reactApplicationContext)
     }
 
