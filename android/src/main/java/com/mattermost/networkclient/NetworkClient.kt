@@ -1,6 +1,7 @@
 package com.mattermost.networkclient
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.net.Uri
 import android.util.Base64
 import android.webkit.CookieManager
@@ -43,7 +44,7 @@ import kotlin.reflect.KProperty
 
 const val CERTIFICATES_PATH = "certs"
 
-internal class NetworkClient(private val context: ReactApplicationContext, private val baseUrl: HttpUrl? = null, options: ReadableMap? = null, cookieJar: CookieJar? = null) {
+internal class NetworkClient(private val context: Context, private val baseUrl: HttpUrl? = null, options: ReadableMap? = null, cookieJar: CookieJar? = null) {
     private var okHttpClient: OkHttpClient
     private var webSocketUri: URI? = null
 
