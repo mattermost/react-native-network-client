@@ -4,9 +4,9 @@ import android.content.Context
 import android.content.SharedPreferences
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
-import androidx.datastore.preferences.core.edit
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableMap
@@ -28,11 +28,11 @@ import java.io.FileOutputStream
 import java.io.IOException
 import java.io.InputStream
 
-class ApiClientModuleImpl(reactApplicationContext: ReactApplicationContext) {
+class ApiClientModuleImpl(appContext: Context) {
     companion object {
         const val NAME = "ApiClient"
 
-        lateinit var context: ReactApplicationContext
+        lateinit var context: Context
         private val clients = mutableMapOf<HttpUrl, NetworkClient>()
         private val calls = mutableMapOf<String, Call>()
         private lateinit var sharedPreferences: SharedPreferences
@@ -93,17 +93,18 @@ class ApiClientModuleImpl(reactApplicationContext: ReactApplicationContext) {
         }
 
         internal fun sendJSEvent(eventName: String, data: WritableMap?) {
-            if (context.hasActiveReactInstance()) {
-                context.emitDeviceEvent(eventName, data)
+            val reactApplicationContext = context as? ReactApplicationContext
+            if (reactApplicationContext?.hasActiveReactInstance() == true) {
+                reactApplicationContext.emitDeviceEvent(eventName, data)
 
             }
         }
 
-        private fun setCtx(reactContext: ReactApplicationContext) {
+        private fun setCtx(reactContext: Context) {
             context = reactContext
         }
 
-        private fun migrateSharedPreferences(reactContext: ReactApplicationContext) {
+        private fun migrateSharedPreferences(reactContext: Context) {
             val sharedPreferences = reactContext.getSharedPreferences(SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE)
 
             if (sharedPreferences.all.isNotEmpty()) {
@@ -122,16 +123,19 @@ class ApiClientModuleImpl(reactApplicationContext: ReactApplicationContext) {
             }
         }
 
-        private fun setCookieJar(reactContext: ReactApplicationContext) {
-            val cookieHandler = ForwardingCookieHandler(reactContext)
-            cookieJar.setCookieJar(JavaNetCookieJar(cookieHandler))
+        private fun setCookieJar(reactContext: Context) {
+            val reactApplicationContext = reactContext as? ReactApplicationContext
+            if (reactApplicationContext?.hasActiveReactInstance() == true) {
+                val cookieHandler = ForwardingCookieHandler(reactApplicationContext)
+                cookieJar.setCookieJar(JavaNetCookieJar(cookieHandler))
+            }
         }
     }
 
     init {
-        setCtx(reactApplicationContext)
-        migrateSharedPreferences(reactApplicationContext)
-        setCookieJar(reactApplicationContext)
+        setCtx(appContext)
+        migrateSharedPreferences(appContext)
+        setCookieJar(appContext)
     }
 
     fun createClientFor(baseUrl: String, options: ReadableMap, promise: Promise) {
