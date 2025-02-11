@@ -125,10 +125,8 @@ class ApiClientModuleImpl(appContext: Context) {
 
         private fun setCookieJar(reactContext: Context) {
             val reactApplicationContext = reactContext as? ReactApplicationContext
-            if (reactApplicationContext?.hasActiveReactInstance() == true) {
-                val cookieHandler = ForwardingCookieHandler(reactApplicationContext)
-                cookieJar.setCookieJar(JavaNetCookieJar(cookieHandler))
-            }
+            val cookieHandler = ForwardingCookieHandler(reactApplicationContext)
+            cookieJar.setCookieJar(JavaNetCookieJar(cookieHandler))
         }
     }
 
