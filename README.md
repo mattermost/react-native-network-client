@@ -20,7 +20,7 @@ You will also need to update your applications Podfile to use our fork of Starsc
 import GenericClient, {
   getOrCreateAPIClient,
   getOrCreateWebSocketClient,
-} from "react-native-network-client";
+} from "@mattermost/react-native-network-client";
 
 // ...
 
