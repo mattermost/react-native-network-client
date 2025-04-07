@@ -20,15 +20,15 @@ You will also need to update your applications Podfile to use our fork of Starsc
 import GenericClient, {
   getOrCreateAPIClient,
   getOrCreateWebSocketClient,
-} from "react-native-network-client";
+} from "@mattermost/react-native-network-client";
 
 // ...
 
 const response = await GenericClient.get("https://community.mattermost.com");
-const { client: apiClient, created } = await getOrCreateAPIClient(
+const { client: apiClient, created: apiCreated } = await getOrCreateAPIClient(
   "https://community.mattermost.com"
 );
-const { client: wsClient, created } = await getOrCreateWebSocketClient(
+const { client: wsClient, created: wsCreated } = await getOrCreateWebSocketClient(
   "wss://community.mattermost.com"
 );
 ```
