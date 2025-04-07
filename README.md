@@ -25,10 +25,10 @@ import GenericClient, {
 // ...
 
 const response = await GenericClient.get("https://community.mattermost.com");
-const { client: apiClient, created } = await getOrCreateAPIClient(
+const { client: apiClient, created: apiCreated } = await getOrCreateAPIClient(
   "https://community.mattermost.com"
 );
-const { client: wsClient, created } = await getOrCreateWebSocketClient(
+const { client: wsClient, created: wsCreated } = await getOrCreateWebSocketClient(
   "wss://community.mattermost.com"
 );
 ```
