@@ -1,21 +1,20 @@
 diff --git a/Pods/Alamofire/Source/Core/SessionDelegate.swift b/Pods/Alamofire/Source/Core/SessionDelegate.swift
-index de0fcbb..5ebacfa 100644
+index 1d120e6..fe8f5b9 100644
 --- a/Pods/Alamofire/Source/Core/SessionDelegate.swift
 +++ b/Pods/Alamofire/Source/Core/SessionDelegate.swift
-@@ -343,8 +343,15 @@ extension SessionDelegate: URLSessionDownloadDelegate {
+@@ -343,6 +343,15 @@ extension SessionDelegate: URLSessionDownloadDelegate {
              return
          }
  
--        downloadRequest.updateDownloadProgress(bytesWritten: bytesWritten,
-+        let sizeString = ((downloadTask.response as? HTTPURLResponse)?.allHeaderFields["X-Uncompressed-Content-Length"]) as? String
++        let allHeaders = (downloadRequest.response)?.allHeaderFields as? NSDictionary ?? NSDictionary()
++        let sizeString = (allHeaders["X-Uncompressed-Content-Length"] ?? allHeaders["x-uncompressed-content-length"]) as? String
 +        if (sizeString != nil) {
 +            let size = Int64(sizeString!)
 +            downloadRequest.updateDownloadProgress(bytesWritten: bytesWritten,
-                                                totalBytesExpectedToWrite: totalBytesExpectedToWrite)
-+        } else {
-+            downloadRequest.updateDownloadProgress(bytesWritten: bytesWritten,
-+                                                   totalBytesExpectedToWrite: totalBytesExpectedToWrite)
++                                               totalBytesExpectedToWrite: size!)
++            return
 +        }
++
+         downloadRequest.updateDownloadProgress(bytesWritten: bytesWritten,
+                                                totalBytesExpectedToWrite: totalBytesExpectedToWrite)
      }
- 
-     open func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
