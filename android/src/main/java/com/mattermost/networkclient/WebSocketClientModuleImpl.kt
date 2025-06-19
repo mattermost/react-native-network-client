@@ -99,11 +99,11 @@ class WebSocketClientModuleImpl(reactApplicationContext: ReactApplicationContext
 
         try {
             clients[wsUri]!!.createWebSocket()
+            promise.resolve(null)
         } catch (error: Exception) {
             promise.reject(error)
         }
 
-        promise.resolve(null)
     }
 
     fun disconnectFor(wsUrl: String, promise: Promise) {
@@ -116,11 +116,10 @@ class WebSocketClientModuleImpl(reactApplicationContext: ReactApplicationContext
 
         try {
             clients[wsUri]!!.webSocket!!.cancel()
+            promise.resolve(null)
         } catch (error: Exception) {
             promise.reject(error)
         }
-
-        promise.resolve(null)
     }
 
     fun sendDataFor(wsUrl: String, data: String, promise: Promise) {
@@ -134,11 +133,11 @@ class WebSocketClientModuleImpl(reactApplicationContext: ReactApplicationContext
 
         try {
             clients[wsUri]!!.webSocket!!.send(data)
+            promise.resolve(null)
         } catch (error: Exception) {
             promise.reject(error)
         }
 
-        promise.resolve(null)
     }
 
     /**
