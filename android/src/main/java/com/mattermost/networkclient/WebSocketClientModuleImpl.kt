@@ -102,6 +102,8 @@ class WebSocketClientModuleImpl(reactApplicationContext: ReactApplicationContext
         } catch (error: Exception) {
             promise.reject(error)
         }
+
+        promise.resolve(null)
     }
 
     fun disconnectFor(wsUrl: String, promise: Promise) {
@@ -117,6 +119,8 @@ class WebSocketClientModuleImpl(reactApplicationContext: ReactApplicationContext
         } catch (error: Exception) {
             promise.reject(error)
         }
+
+        promise.resolve(null)
     }
 
     fun sendDataFor(wsUrl: String, data: String, promise: Promise) {
@@ -133,6 +137,8 @@ class WebSocketClientModuleImpl(reactApplicationContext: ReactApplicationContext
         } catch (error: Exception) {
             promise.reject(error)
         }
+
+        promise.resolve(null)
     }
 
     /**
