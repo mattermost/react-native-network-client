@@ -137,7 +137,7 @@ internal class NetworkClient(private val context: Context, private val baseUrl: 
 
         builder.followRedirects(false)
         builder.followSslRedirects(false)
-        builder.retryOnConnectionFailure(false)
+        builder.retryOnConnectionFailure(true)
         builder.addInterceptor(RuntimeInterceptor(this, "retry"))
         builder.addInterceptor(RuntimeInterceptor(this, "timeout"))
 
