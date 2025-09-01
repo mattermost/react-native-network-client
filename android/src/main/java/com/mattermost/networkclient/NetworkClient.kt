@@ -310,7 +310,7 @@ internal class NetworkClient(private val context: Context, private val baseUrl: 
             }
 
             if (options.hasKey("headers")) {
-                requestHeaders = options.getMap("headers")?.toHashMap()
+                requestHeaders = options.getMap("headers")?.toHashMap()?.filterValues { it != null }?.mapValues { it.value!! }
             }
 
             if (options.hasKey("multipart")) {
@@ -352,7 +352,7 @@ internal class NetworkClient(private val context: Context, private val baseUrl: 
             }
 
             if (options.hasKey("headers")) {
-                requestHeaders = options.getMap("headers")?.toHashMap()
+                requestHeaders = options.getMap("headers")?.toHashMap()?.filterValues { it != null }?.mapValues { it.value!! }
             }
         }
 
@@ -393,7 +393,7 @@ internal class NetworkClient(private val context: Context, private val baseUrl: 
 
         if (options != null) {
             if (options.hasKey("headers")) {
-                requestHeaders = options.getMap("headers")?.toHashMap()
+                requestHeaders = options.getMap("headers")?.toHashMap()?.filterValues { it != null }?.mapValues { it.value!! }
             }
         }
 
