@@ -245,9 +245,6 @@ internal class NetworkClient(private val context: Context, private val baseUrl: 
                         rejectInvalidCertificate(promise, request.url.host)
                         return
                     }
-                } else if (e is javax.net.ssl.SSLHandshakeException) {
-                    rejectInvalidCertificate(promise, request.url.host)
-                    return
                 }
                 promise.reject(e)
             }
