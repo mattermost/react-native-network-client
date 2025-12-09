@@ -50,7 +50,7 @@
   },
   "homepage": "https://github.com/mattermost/react-native-network-client#readme",
   "dependencies": {
-    "validator": "13.12.0",
+    "validator": "13.15.23",
     "zod": "3.24.0"
   },
   "devDependencies": {
@@ -60,7 +60,7 @@
     "@release-it/conventional-changelog": "9.0.3",
     "@types/jest": "29.5.14",
     "@types/react": "18.3.2",
-    "@types/validator": "13.12.2",
+    "@types/validator": "13.15.10",
     "@typescript-eslint/eslint-plugin": "7.14.1",
     "@typescript-eslint/parser": "7.14.1",
     "commitlint": "19.6.0",
