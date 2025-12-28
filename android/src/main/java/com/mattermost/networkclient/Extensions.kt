@@ -131,7 +131,7 @@ fun Response.toDownloadMap(path: String): WritableMap {
  *
  * @param headers ReadableMap of headers from the App
  */
-fun Request.Builder.applyHeaders(headers: Map<String, Any>?): Request.Builder {
+fun Request.Builder.applyHeaders(headers: Map<String, Any?>?): Request.Builder {
     if (headers != null){
         for ((k, v) in headers) {
             this.removeHeader(k)
