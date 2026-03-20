@@ -12,9 +12,15 @@ class BearerTokenInterceptor(private val alias: String, private val bearerAuthTo
 
         var token = ApiClientModuleImpl.retrieveValue(alias)
         if (token !== null) {
-            request = request.newBuilder()
-                    .header("Authorization", "Bearer $token")
-                    .build()
+            // Sanitize token to ASCII printable characters only.
+            // Corrupted tokens with control characters (e.g. 0x02) cause OkHttp to throw
+            // IllegalArgumentException when setting the Authorization header.
+            val sanitizedToken = token.replace(Regex("[^\\x20-\\x7E]"), "")
+            if (sanitizedToken.isNotEmpty()) {
+                request = request.newBuilder()
+                        .header("Authorization", "Bearer $sanitizedToken")
+                        .build()
+            }
         }
 
         val response = chain.proceed(request)
