@@ -5,6 +5,10 @@ executors:
     docker:
       - image: circleci/node:14
     working_directory: ~/project
+  android:
+    docker:
+      - image: cimg/android:2024.01
+    working_directory: ~/project
 
 commands:
   attach_project:
@@ -62,6 +66,21 @@ jobs:
           path: coverage
           destination: coverage
 
+  kotlin-tests:
+    executor: android
+    steps:
+      - checkout
+      - run:
+          name: Run Kotlin unit tests
+          command: |
+            cd test-runner
+            ./gradlew test
+      - store_test_results:
+          path: test-runner/build/test-results
+      - store_artifacts:
+          path: test-runner/build/reports/tests
+          destination: kotlin-test-reports
+
   build-package:
     executor: default
     steps:
@@ -105,12 +124,14 @@ workflows:
       - unit-tests:
           requires:
             - install-dependencies
+      - kotlin-tests
       - build-package:
           requires:
             - install-dependencies
             - lint
             - typescript
             - unit-tests
+            - kotlin-tests
       - release:
           context: mattermost-rn-libraries
           requires:
