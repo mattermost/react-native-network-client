@@ -14,19 +14,19 @@ import org.junit.Test
 class SmokeTest {
     @Test
     fun mockWebServer_basicRequestResponse() {
-        val server = MockWebServer()
-        server.enqueue(MockResponse().setBody("ok").setResponseCode(200))
-        server.start()
+        MockWebServer().use { server ->
+            server.enqueue(MockResponse().setBody("ok").setResponseCode(200))
+            server.start()
 
-        val client = OkHttpClient()
-        val request = Request.Builder()
-            .url(server.url("/test"))
-            .build()
+            val client = OkHttpClient()
+            val request = Request.Builder()
+                .url(server.url("/test"))
+                .build()
 
-        val response = client.newCall(request).execute()
-        Assert.assertEquals(200, response.code)
-        Assert.assertEquals("ok", response.body?.string())
-
-        server.shutdown()
+            client.newCall(request).execute().use { response ->
+                Assert.assertEquals(200, response.code)
+                Assert.assertEquals("ok", response.body?.string())
+            }
+        }
     }
 }
