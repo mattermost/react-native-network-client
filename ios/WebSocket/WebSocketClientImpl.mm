@@ -67,6 +67,10 @@ RCT_EXPORT_METHOD(sendDataFor:(NSString *)url withData:(NSString *)data withReso
     [wrapper sendDataForUrlString:url data:data resolve:resolve reject:reject];
 }
 
+RCT_EXPORT_METHOD(sendBinaryDataFor:(NSString *)url withData:(NSString *)data withResolver:(RCTPromiseResolveBlock)resolve withRejecter:(RCTPromiseRejectBlock)reject) {
+    [wrapper sendBinaryDataForUrlString:url data:data resolve:resolve reject:reject];
+}
+
 RCT_EXPORT_METHOD(invalidateClientFor:(NSString *)url withResolver:(RCTPromiseResolveBlock)resolve withRejecter:(RCTPromiseRejectBlock)reject) {
     [wrapper invalidateClientForUrlString:url resolve:resolve reject:reject];
 }
@@ -164,8 +168,12 @@ RCT_EXPORT_METHOD(invalidateClientFor:(NSString *)url withResolver:(RCTPromiseRe
     [wrapper invalidateClientForUrlString:url resolve:resolve reject:reject];
 }
 
-- (void)sendDataFor:(NSString *)url data:(NSString *)data resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject { 
+- (void)sendDataFor:(NSString *)url data:(NSString *)data resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {
     [wrapper sendDataForUrlString:url data:data resolve:resolve reject:reject];
+}
+
+- (void)sendBinaryDataFor:(NSString *)url data:(NSString *)data resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {
+    [wrapper sendBinaryDataForUrlString:url data:data resolve:resolve reject:reject];
 }
 
 @end

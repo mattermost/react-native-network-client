@@ -107,6 +107,28 @@ var READY_STATE = [
         resolve(webSocket.write(string: data))    
     }
 
+    @objc public func sendBinaryDataFor(urlString: String, data: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
+        guard let url = URL(string: urlString) else {
+            rejectMalformed(url: urlString, withRejecter: reject)
+            return
+        }
+
+        guard let webSocket = WebSocketManager.default.getWebSocket(for: url) else {
+            rejectInvalidWebSocket(for: url, withRejecter: reject)
+            return
+        }
+
+        guard let binaryData = Data(base64Encoded: data) else {
+            let err = NSError(domain: NSCocoaErrorDomain, code: NSCoderValueNotFoundError,
+                              userInfo: [NSLocalizedDescriptionKey: "Invalid base64 data"])
+            reject("\(err.code)", "Invalid base64 data", err)
+            return
+        }
+
+        webSocket.write(data: binaryData)
+        resolve(nil)
+    }
+
     @objc public func invalidateClientFor(urlString: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
         guard let url = URL(string: urlString) else {
             rejectMalformed(url: urlString, withRejecter: reject)
