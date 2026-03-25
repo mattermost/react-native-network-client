@@ -3,6 +3,7 @@ package com.mattermost.networkclient.interceptors
 import okhttp3.Interceptor
 import okhttp3.Response
 import okhttp3.ResponseBody.Companion.toResponseBody
+import java.util.Locale
 
 class CompressedResponseSizeInterceptor: Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
@@ -37,7 +38,9 @@ class CompressedResponseSizeInterceptor: Interceptor {
             .header("X-Compressed-Size", compressedSize.toString())
             .header("X-Start-Time", startTime.toString())
             .header("X-End-Time", endTime.toString())
-            .header("X-Speed-Mbps", "%.4f".format(speedMbps)) // Format to 4 decimal places
+            // Use Locale.US to ensure ASCII digits in header values.
+            // System locale formatting (e.g. Arabic) produces non-ASCII digits that OkHttp rejects.
+            .header("X-Speed-Mbps", String.format(Locale.US, "%.4f", speedMbps))
             .build()
     }
 }
