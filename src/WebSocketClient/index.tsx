@@ -54,7 +54,8 @@ class WebSocketClient implements WebSocketClientInterface {
         return NativeWebSocketClient.disconnectFor(this.url);
     };
     send = (data: string) => NativeWebSocketClient.sendDataFor(this.url, data);
-    sendBinary = (data: string) => NativeWebSocketClient.sendBinaryDataFor(this.url, data);
+    sendBinary = (data: string) =>
+        NativeWebSocketClient.sendBinaryDataFor(this.url, data);
 
     onOpen = (callback: WebSocketEventHandler) => {
         if (this.onWebSocketOpenSubscription) {
