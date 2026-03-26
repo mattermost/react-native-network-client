@@ -41,6 +41,7 @@ export interface WebSocketClientInterface {
     onWebSocketClientErrorSubscription?: EmitterSubscription;
 
     send(data: string): void;
+    sendBinary?(data: string): void;
     open(): void;
     close(): void;
     onOpen(callback: WebSocketEventHandler): void;

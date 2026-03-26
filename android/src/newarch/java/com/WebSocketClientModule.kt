@@ -71,4 +71,12 @@ internal class WebSocketClientModule(reactContext: ReactApplicationContext) : Na
         implementation.invalidateClientFor(url, promise)
     }
 
+    override fun sendBinaryDataFor(url: String?, data: String?, promise: Promise?) {
+        if (url.isNullOrEmpty() || data.isNullOrEmpty() || promise == null) {
+            promise?.reject(Exception("missing parameter to send binary data"))
+            return
+        }
+        implementation.sendBinaryDataFor(url, data, promise)
+    }
+
 }
