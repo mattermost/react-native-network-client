@@ -13,6 +13,15 @@ class WebSocketManager: NSObject {
     }
 
     func createWebSocket(for url:URL, withOptions options: Dictionary<String, Any>, withDelegate delegate: WebSocketWrapper) throws -> Void {
+        let reused: Bool = queue.sync {
+            if let existing = webSockets[url] {
+                existing.delegate = delegate
+                return true
+            }
+            return false
+        }
+        if reused { return }
+
         var request = URLRequest(url: url)
         var compressionHandler: CompressionHandler? = nil
         var clientCredential: URLCredential? = nil
@@ -69,10 +78,7 @@ class WebSocketManager: NSObject {
     }
 
     func invalidateClient(for url:URL) -> Void {
-        let webSocket: WebSocket? = queue.sync {
-            return webSockets.removeValue(forKey: url)
-        }
-        guard let webSocket = webSocket else {
+        guard let webSocket = getWebSocket(for: url) else {
             return
         }
 
@@ -87,6 +93,7 @@ class WebSocketManager: NSObject {
         }
         webSocket.forceDisconnect()
         webSocket.delegate = nil
+        queue.sync { webSockets.removeValue(forKey: url) }
     }
 
     func invalidateContext() -> Void {

@@ -149,25 +149,26 @@ var READY_STATE = [
     // MARK: WebSocketDelegate methods
     
     public func didReceive(event: WebSocketEvent, client: Starscream.WebSocketClient) {
-        guard let url = client.url(), let delegate = self.delegate else { return }
+        guard let url = client.url() else { return }
+        let delegate = self.delegate
 
         switch event {
         case .connected(let headers):
-            delegate.sendEvent(name: WSEvents.READY_STATE_EVENT.rawValue, result: ["url": url, "message": READY_STATE["OPEN"]!])
-            delegate.sendEvent(name: WSEvents.OPEN_EVENT.rawValue, result: ["url": url, "message": ["headers": headers]])
+            delegate?.sendEvent(name: WSEvents.READY_STATE_EVENT.rawValue, result: ["url": url, "message": READY_STATE["OPEN"]!])
+            delegate?.sendEvent(name: WSEvents.OPEN_EVENT.rawValue, result: ["url": url, "message": ["headers": headers]])
             errorCounter.removeValue(forKey: url)
         case .disconnected(let reason, let code):
-            delegate.sendEvent(name: WSEvents.READY_STATE_EVENT.rawValue, result: ["url": url, "message": READY_STATE["CLOSED"]!])
-            delegate.sendEvent(name: WSEvents.CLOSE_EVENT.rawValue, result: ["url": url, "message": ["reason": reason, "code": code]])
+            delegate?.sendEvent(name: WSEvents.READY_STATE_EVENT.rawValue, result: ["url": url, "message": READY_STATE["CLOSED"]!])
+            delegate?.sendEvent(name: WSEvents.CLOSE_EVENT.rawValue, result: ["url": url, "message": ["reason": reason, "code": code]])
         case .text(let text):
             if let data = text.data(using: .utf16), let json = JSON(data).dictionaryObject {
-                delegate.sendEvent(name: WSEvents.MESSAGE_EVENT.rawValue, result: ["url": url, "message": json])
+                delegate?.sendEvent(name: WSEvents.MESSAGE_EVENT.rawValue, result: ["url": url, "message": json])
             } else {
-                delegate.sendEvent(name: WSEvents.MESSAGE_EVENT.rawValue, result: ["url": url, "message": text])
+                delegate?.sendEvent(name: WSEvents.MESSAGE_EVENT.rawValue, result: ["url": url, "message": text])
             }
         case .cancelled:
-            delegate.sendEvent(name: WSEvents.READY_STATE_EVENT.rawValue, result: ["url": url, "message": READY_STATE["CLOSED"]!])
-            delegate.sendEvent(name: WSEvents.CLOSE_EVENT.rawValue, result: ["url": url])
+            delegate?.sendEvent(name: WSEvents.READY_STATE_EVENT.rawValue, result: ["url": url, "message": READY_STATE["CLOSED"]!])
+            delegate?.sendEvent(name: WSEvents.CLOSE_EVENT.rawValue, result: ["url": url])
             client.disconnect(closeCode: 1001)
         case .error(let error):
             let nsError = error as NSError?
@@ -175,13 +176,13 @@ var READY_STATE = [
             if ((errorCode == 61 || errorCode == 57) && (errorCounter[url] ?? 0) % 2 == 0) {
                 let count = errorCounter[url] ?? 0
                 errorCounter[url] = count + 1
-                delegate.sendEvent(name: WSEvents.READY_STATE_EVENT.rawValue, result: ["url": url, "message": READY_STATE["CLOSED"]!])
-                delegate.sendEvent(name: WSEvents.CLOSE_EVENT.rawValue, result: ["url": url, "message": ["reason": error?.localizedDescription as Any, "code": errorCode as Any]])
+                delegate?.sendEvent(name: WSEvents.READY_STATE_EVENT.rawValue, result: ["url": url, "message": READY_STATE["CLOSED"]!])
+                delegate?.sendEvent(name: WSEvents.CLOSE_EVENT.rawValue, result: ["url": url, "message": ["reason": error?.localizedDescription as Any, "code": errorCode as Any]])
             } else {
                 let errorDetails: [String: Any] = [
                     "message": nsError?.description,
                 ]
-                delegate.sendEvent(name: WSEvents.ERROR_EVENT.rawValue, result: ["url": url, "message": ["error": errorDetails]])
+                delegate?.sendEvent(name: WSEvents.ERROR_EVENT.rawValue, result: ["url": url, "message": ["error": errorDetails]])
             }
         case .viabilityChanged(let viable):
             print("Websocket viable \(viable)")
