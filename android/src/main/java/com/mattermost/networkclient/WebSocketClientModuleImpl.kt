@@ -6,6 +6,7 @@ import com.facebook.react.bridge.ReadableMap
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import java.net.URI
+import java.net.URISyntaxException
 
 class WebSocketClientModuleImpl(reactApplicationContext: ReactApplicationContext) {
     private val clients = mutableMapOf<URI, NetworkClient>()
@@ -132,6 +133,23 @@ class WebSocketClientModuleImpl(reactApplicationContext: ReactApplicationContext
 
         try {
             clients[wsUri]!!.webSocket!!.send(data)
+            promise.resolve(null)
+        } catch (error: Exception) {
+            promise.reject(error)
+        }
+    }
+
+    fun sendBinaryDataFor(wsUrl: String, data: String, promise: Promise) {
+        val wsUri: URI
+        try {
+            wsUri = URI(wsUrl)
+        } catch (error: URISyntaxException) {
+            return promise.reject(error)
+        }
+
+        try {
+            val bytes = android.util.Base64.decode(data, android.util.Base64.DEFAULT)
+            clients[wsUri]!!.webSocket!!.send(okio.ByteString.of(*bytes))
             promise.resolve(null)
         } catch (error: Exception) {
             promise.reject(error)

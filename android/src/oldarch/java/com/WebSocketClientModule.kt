@@ -47,6 +47,11 @@ internal class WebSocketClientModule(reactContext: ReactApplicationContext) : Re
     }
 
     @ReactMethod
+    fun sendBinaryDataFor(wsUrl: String, data: String, promise: Promise) {
+        implementation.sendBinaryDataFor(wsUrl, data, promise)
+    }
+
+    @ReactMethod
     fun addListener(eventName: String) {
         // Keep: Required for RN built in Event Emitter Calls
     }

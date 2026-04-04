@@ -1,5 +1,6 @@
 package com.mattermost.networkclient
 
+import android.util.Log
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableArray
@@ -134,8 +135,17 @@ fun Response.toDownloadMap(path: String): WritableMap {
 fun Request.Builder.applyHeaders(headers: Map<String, Any?>?): Request.Builder {
     if (headers != null){
         for ((k, v) in headers) {
-            this.removeHeader(k)
-            this.addHeader(k, v.toString())
+            try {
+                this.removeHeader(k)
+                this.addHeader(k, v.toString())
+            } catch (e: IllegalArgumentException) {
+                // OkHttp validates header values and rejects non-ASCII characters
+                // (e.g. control chars like 0x02 in corrupted auth tokens, or
+                // Arabic-Indic digits from locale-dependent formatting).
+                // Skip the invalid header and let the request proceed — the server
+                // will reject it with a 4xx that the JS layer can handle gracefully.
+                Log.w("NetworkClient", "Skipping header '$k': ${e.message}")
+            }
         }
     }
 
