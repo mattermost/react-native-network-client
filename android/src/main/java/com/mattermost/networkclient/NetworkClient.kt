@@ -22,6 +22,7 @@ import com.mattermost.networkclient.metrics.MetricsEventFactory
 import com.mattermost.networkclient.metrics.RequestMetadata
 import com.mattermost.networkclient.metrics.getNetworkType
 import okhttp3.*
+import okhttp3.brotli.BrotliInterceptor
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.internal.EMPTY_REQUEST
 import okhttp3.tls.HandshakeCertificates
@@ -83,6 +84,8 @@ internal class NetworkClient(private val context: Context, private val baseUrl: 
 
     init {
         initCollectMetrics(options)
+
+        builder.addInterceptor(BrotliInterceptor)
 
         if (shouldCollectMetrics) {
             builder.addNetworkInterceptor(CompressedResponseSizeInterceptor())
