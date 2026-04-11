@@ -3,8 +3,8 @@ package com.mattermost.networkclient
 import com.mattermost.networkclient.interceptors.ExponentialRetryInterceptor
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import okhttp3.mockwebserver.MockResponse
-import okhttp3.mockwebserver.MockWebServer
+import mockwebserver3.MockResponse
+import mockwebserver3.MockWebServer
 import org.junit.Assert
 import org.junit.Test
 import org.mockito.Mockito.*
