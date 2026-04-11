@@ -212,6 +212,7 @@ RCT_EXPORT_METHOD(cancelRequest:(NSString *)taskId withResolver:(RCTPromiseResol
         sessionDictionary[@"waitsForConnectivity"] = [self processBooleanValue:session.waitsForConnectivity()];
         sessionDictionary[@"cancelRequestsOnUnauthorized"] = [self processBooleanValue:session.cancelRequestsOnUnauthorized()];
         sessionDictionary[@"trustSelfSignedServerCertificate"] = [self processBooleanValue:session.trustSelfSignedServerCertificate()];
+        sessionDictionary[@"collectMetrics"] = [self processBooleanValue:session.collectMetrics()];
         
         if (session.timeoutIntervalForRequest().has_value()) {
             sessionDictionary[@"timeoutIntervalForRequest"] = @(session.timeoutIntervalForRequest().value());
