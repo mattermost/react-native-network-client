@@ -408,7 +408,7 @@ internal class NetworkClient(private val context: Context, private val baseUrl: 
                 when (options.getType("body")) {
                     ReadableType.Array -> {
                         val jsonBody = JSONArray(options.getArray("body")!!.toArrayList())
-                        requestBody = jsonBody.toString().toRequestBody()
+                        requestBody = jsonBody.toString().toRequestBody(MediaType.parse("application/json; charset=utf-8"))
                     }
                     ReadableType.Map -> {
                         val jsonBody = (options.getMap("body")!!.toHashMap() as Map<*, *>?)?.let {
@@ -416,19 +416,19 @@ internal class NetworkClient(private val context: Context, private val baseUrl: 
                                 it
                             )
                         }
-                        requestBody = jsonBody?.toString()?.toRequestBody()
+                        requestBody = jsonBody?.toString()?.toRequestBody(MediaType.parse("application/json; charset=utf-8"))
                     }
                     ReadableType.String -> {
-                        requestBody = options.getString("body")!!.toRequestBody()
+                        requestBody = options.getString("body")!!.toRequestBody(MediaType.parse("text/plain; charset=utf-8"))
                     }
                     ReadableType.Null -> {
                         requestBody = EMPTY_REQUEST
                     }
                     ReadableType.Boolean -> {
-                        requestBody = options.getBoolean("body").toString().toRequestBody()
+                        requestBody = options.getBoolean("body").toString().toRequestBody(MediaType.parse("text/plain; charset=utf-8"))
                     }
                     ReadableType.Number -> {
-                        requestBody = options.getDouble("body").toString().toRequestBody()
+                        requestBody = options.getDouble("body").toString().toRequestBody(MediaType.parse("text/plain; charset=utf-8"))
                     }
                 }
             } else if (method.uppercase(Locale.ENGLISH) == "POST") {
