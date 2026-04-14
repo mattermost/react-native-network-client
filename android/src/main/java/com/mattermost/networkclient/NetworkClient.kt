@@ -23,7 +23,6 @@ import com.mattermost.networkclient.metrics.RequestMetadata
 import com.mattermost.networkclient.metrics.getNetworkType
 import okhttp3.*
 import okhttp3.RequestBody.Companion.toRequestBody
-import okhttp3.internal.EMPTY_REQUEST
 import okhttp3.tls.HandshakeCertificates
 import org.json.JSONArray
 import org.json.JSONObject
@@ -422,7 +421,7 @@ internal class NetworkClient(private val context: Context, private val baseUrl: 
                         requestBody = options.getString("body")!!.toRequestBody(MediaType.parse("text/plain; charset=utf-8"))
                     }
                     ReadableType.Null -> {
-                        requestBody = EMPTY_REQUEST
+                        requestBody = "".toRequestBody(MediaType.parse("text/plain; charset=utf-8"))
                     }
                     ReadableType.Boolean -> {
                         requestBody = options.getBoolean("body").toString().toRequestBody(MediaType.parse("text/plain; charset=utf-8"))
@@ -432,7 +431,7 @@ internal class NetworkClient(private val context: Context, private val baseUrl: 
                     }
                 }
             } else if (method.uppercase(Locale.ENGLISH) == "POST") {
-                requestBody = EMPTY_REQUEST
+                requestBody = "".toRequestBody(MediaType.parse("text/plain; charset=utf-8"))
             }
         }
 
