@@ -23,6 +23,7 @@ import com.mattermost.networkclient.metrics.RequestMetadata
 import com.mattermost.networkclient.metrics.getNetworkType
 import okhttp3.*
 import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.tls.HandshakeCertificates
 import org.json.JSONArray
 import org.json.JSONObject
@@ -46,6 +47,8 @@ const val CERTIFICATES_PATH = "certs"
 internal class NetworkClient(private val context: Context, private val baseUrl: HttpUrl? = null, options: ReadableMap? = null, cookieJar: CookieJar? = null) {
     private var okHttpClient: OkHttpClient
     private var webSocketUri: URI? = null
+    private val jsonUtf8MediaType = "application/json; charset=utf-8".toMediaType()
+    private val textUtf8MediaType = "text/plain; charset=utf-8".toMediaType()
 
     var clientHeaders: HashMap<String, Any?> = hashMapOf()
     var clientRetryInterceptor: Interceptor? = null
@@ -407,7 +410,7 @@ internal class NetworkClient(private val context: Context, private val baseUrl: 
                 when (options.getType("body")) {
                     ReadableType.Array -> {
                         val jsonBody = JSONArray(options.getArray("body")!!.toArrayList())
-                        requestBody = jsonBody.toString().toRequestBody(MediaType.parse("application/json; charset=utf-8"))
+                        requestBody = jsonBody.toString().toRequestBody(jsonUtf8MediaType)
                     }
                     ReadableType.Map -> {
                         val jsonBody = (options.getMap("body")!!.toHashMap() as Map<*, *>?)?.let {
@@ -415,23 +418,23 @@ internal class NetworkClient(private val context: Context, private val baseUrl: 
                                 it
                             )
                         }
-                        requestBody = jsonBody?.toString()?.toRequestBody(MediaType.parse("application/json; charset=utf-8"))
+                        requestBody = jsonBody?.toString()?.toRequestBody(jsonUtf8MediaType)
                     }
                     ReadableType.String -> {
-                        requestBody = options.getString("body")!!.toRequestBody(MediaType.parse("text/plain; charset=utf-8"))
+                        requestBody = options.getString("body")!!.toRequestBody(textUtf8MediaType)
                     }
                     ReadableType.Null -> {
-                        requestBody = "".toRequestBody(MediaType.parse("text/plain; charset=utf-8"))
+                        requestBody = "".toRequestBody(textUtf8MediaType)
                     }
                     ReadableType.Boolean -> {
-                        requestBody = options.getBoolean("body").toString().toRequestBody(MediaType.parse("text/plain; charset=utf-8"))
+                        requestBody = options.getBoolean("body").toString().toRequestBody(textUtf8MediaType)
                     }
                     ReadableType.Number -> {
-                        requestBody = options.getDouble("body").toString().toRequestBody(MediaType.parse("text/plain; charset=utf-8"))
+                        requestBody = options.getDouble("body").toString().toRequestBody(textUtf8MediaType)
                     }
                 }
             } else if (method.uppercase(Locale.ENGLISH) == "POST") {
-                requestBody = "".toRequestBody(MediaType.parse("text/plain; charset=utf-8"))
+                requestBody = "".toRequestBody(textUtf8MediaType)
             }
         }
 
