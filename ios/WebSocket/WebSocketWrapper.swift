@@ -171,8 +171,8 @@ var READY_STATE = [
     // MARK: WebSocketDelegate methods
     
     public func didReceive(event: WebSocketEvent, client: Starscream.WebSocketClient) {
-        
         guard let url = client.url() else { return }
+        let delegate = self.delegate
 
         switch event {
         case .connected(let headers):
