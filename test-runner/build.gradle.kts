@@ -9,6 +9,7 @@ repositories {
 dependencies {
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     testImplementation("junit:junit:4.13.2")
+    testImplementation("org.mockito:mockito-core:5.11.0")
     testImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")
 }
 
