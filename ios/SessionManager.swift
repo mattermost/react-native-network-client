@@ -209,10 +209,12 @@ public class SessionManager: NSObject {
                                                     userInfo: ["serverUrl": baseUrl.absoluteString, "errorCode": error._code, "errorDescription": error.localizedDescription])
                 }
                 session.session.invalidateAndCancel()
+                session.cleanupExtensionProperties()
                 self.sessions.removeValue(forKey: baseUrl)
             }
         } else {
             session.session.invalidateAndCancel()
+            session.cleanupExtensionProperties()
             self.sessions.removeValue(forKey: baseUrl)
         }
     }

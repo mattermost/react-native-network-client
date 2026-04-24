@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import { useRoute } from "@react-navigation/native";
-import React, { useState } from "react";
+import { useState } from "react";
 import { Alert, ScrollView } from "react-native";
 import { Button, Input } from "react-native-elements";
 import { SafeAreaView } from "react-native-safe-area-context";

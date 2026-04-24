@@ -2,8 +2,9 @@
 // See LICENSE.txt for license information.
 
 import { useRoute } from "@react-navigation/native";
-import React, { useState } from "react";
-import { ActivityIndicator, SafeAreaView, View } from "react-native";
+import { useState } from "react";
+import { ActivityIndicator, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Input } from "react-native-elements";
 import FastImage from "react-native-fast-image";
 import Icon from "react-native-vector-icons/MaterialIcons";

@@ -12,6 +12,8 @@ fileprivate var cancelRequestsOnUnauthorized_FILEPRIVATE : [ObjectIdentifier:Boo
 fileprivate var trustSelfSignedServerCertificate_FILEPRIVATE : [ObjectIdentifier:Bool] = [:]
 fileprivate var retryPolicy_FILEPRIVATE : [ObjectIdentifier:RetryPolicy] = [:]
 fileprivate var collectMetrics_FILEPRIVATE : [ObjectIdentifier:Bool] = [:]
+fileprivate var certErrorEmitted_FILEPRIVATE : [ObjectIdentifier:Bool] = [:]
+fileprivate var lastServerCertSummary_FILEPRIVATE : [ObjectIdentifier:String] = [:]
 
 extension Session {
     var baseUrl: URL? {
@@ -42,5 +44,29 @@ extension Session {
     var collectMetrics: Bool {
         get { return collectMetrics_FILEPRIVATE[ObjectIdentifier(self)] ?? false }
         set { collectMetrics_FILEPRIVATE[ObjectIdentifier(self)] = newValue }
+    }
+
+    var certErrorEmitted: Bool {
+        get { return certErrorEmitted_FILEPRIVATE[ObjectIdentifier(self)] ?? false }
+        set { certErrorEmitted_FILEPRIVATE[ObjectIdentifier(self)] = newValue }
+    }
+
+    var lastServerCertSummary: String? {
+        get { return lastServerCertSummary_FILEPRIVATE[ObjectIdentifier(self)] }
+        set { lastServerCertSummary_FILEPRIVATE[ObjectIdentifier(self)] = newValue }
+    }
+
+    /// Removes all extension-stored properties for this Session. Call when the Session is
+    /// being invalidated so the global dictionaries don't retain data for deallocated sessions.
+    func cleanupExtensionProperties() {
+        let key = ObjectIdentifier(self)
+        baseUrl_FILEPRIVATE.removeValue(forKey: key)
+        bearerAuthTokenResponseHeader_FILEPRIVATE.removeValue(forKey: key)
+        cancelRequestsOnUnauthorized_FILEPRIVATE.removeValue(forKey: key)
+        trustSelfSignedServerCertificate_FILEPRIVATE.removeValue(forKey: key)
+        retryPolicy_FILEPRIVATE.removeValue(forKey: key)
+        collectMetrics_FILEPRIVATE.removeValue(forKey: key)
+        certErrorEmitted_FILEPRIVATE.removeValue(forKey: key)
+        lastServerCertSummary_FILEPRIVATE.removeValue(forKey: key)
     }
 }

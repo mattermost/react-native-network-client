@@ -2,8 +2,9 @@
 // See LICENSE.txt for license information.
 
 import { useRoute } from "@react-navigation/native";
-import React, { useState } from "react";
-import { SafeAreaView, StyleSheet, Text } from "react-native";
+import { useState } from "react";
+import { StyleSheet, Text } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Button } from "react-native-elements";
 
 import P12Inputs from "../components/P12Inputs";

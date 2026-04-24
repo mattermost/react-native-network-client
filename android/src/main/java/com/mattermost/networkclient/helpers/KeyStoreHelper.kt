@@ -5,12 +5,9 @@ import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.util.Base64
 import com.mattermost.networkclient.ApiClientModuleImpl
-import okhttp3.tls.HeldCertificate
 import java.io.FileInputStream
 import java.security.Key
-import java.security.KeyPair
 import java.security.KeyStore
-import java.security.PrivateKey
 import java.security.cert.Certificate
 import java.security.cert.X509Certificate
 import javax.crypto.Cipher
@@ -83,31 +80,18 @@ object KeyStoreHelper {
         }
     }
 
-    fun getClientCertificates(p12Alias: String): Pair<HeldCertificate?, Array<X509Certificate>?> {
-        val password = ApiClientModuleImpl.retrieveValue(p12Alias)
-        if (password != null) {
-            val p12File = ApiClientModuleImpl.context.openFileInput(p12Alias)
-            val p12Store = KeyStore.getInstance("PKCS12").apply {
-                load(p12File, password.toCharArray())
-            }
-
-            val keyAlias = getKeyEntryAlias(p12Alias)
-            if (p12Store.containsAlias(keyAlias)) {
-                val certificateAlias = getCertificateEntryAlias(p12Alias)
-
-                val key = p12Store.getKey(keyAlias, null) as PrivateKey
-                val certificate = p12Store.getCertificate(certificateAlias) as X509Certificate
-                val heldCertificate = HeldCertificate(KeyPair(certificate.publicKey, key), certificate)
-
-                val intermediates = p12Store.getCertificateChain(keyAlias)
-                        .map { it as X509Certificate }
-                        .toTypedArray()
-
-                return Pair(heldCertificate, intermediates)
-            }
+    /**
+     * Returns the PKCS12 KeyStore and its password for use with KeyManagerFactory (mTLS),
+     * or null if no client certificate has been imported for this alias.
+     */
+    fun getClientCertKeyStore(p12Alias: String): Pair<KeyStore, CharArray>? {
+        val password = ApiClientModuleImpl.retrieveValue(p12Alias) ?: return null
+        val p12File = ApiClientModuleImpl.context.openFileInput(p12Alias)
+        val p12Store = KeyStore.getInstance("PKCS12").apply {
+            load(p12File, password.toCharArray())
         }
-
-        return Pair(null, null)
+        if (!p12Store.containsAlias(getKeyEntryAlias(p12Alias))) return null
+        return Pair(p12Store, password.toCharArray())
     }
 
     fun deleteClientCertificates(p12Alias: String) {

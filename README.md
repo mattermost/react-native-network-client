@@ -118,7 +118,6 @@ For Android, we provide the interceptor [android/src/main/java/com/mattermost/ne
 configurations.all {
     resolutionStrategy {
         force "com.squareup.okhttp3:okhttp:5.3.2"
-        force "com.squareup.okhttp3:okhttp-tls:5.3.2"
         force "com.squareup.okhttp3:okhttp-urlconnection:5.3.2"
         force "com.squareup.okhttp3:okhttp-brotli:5.3.2"
         force "com.squareup.okio:okio:3.16.4"

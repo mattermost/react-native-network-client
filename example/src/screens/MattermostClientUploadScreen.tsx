@@ -1,6 +1,7 @@
 import { useRoute } from "@react-navigation/native";
-import React, { useState } from "react";
-import { Alert, SafeAreaView, ScrollView, Text, View } from "react-native";
+import { useState } from "react";
+import { Alert, ScrollView, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Button, Input } from "react-native-elements";
 
 import FilePickerButtonGroup from "../components/FilePickerButtonGroup";
