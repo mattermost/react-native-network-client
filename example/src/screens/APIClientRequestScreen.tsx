@@ -3,8 +3,9 @@
 
 import { useRoute } from "@react-navigation/native";
 import React, { useState } from "react";
-import { Alert, SafeAreaView, ScrollView } from "react-native";
+import { Alert, ScrollView } from "react-native";
 import { Button, Input } from "react-native-elements";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import AddHeaders from "../components/AddHeaders";
 import NumericInput from "../components/NumericInput";
@@ -95,6 +96,7 @@ const APIClientRequestScreen = () => {
             }
             var response = await clientMethod(endpoint, options);
             setResponse(response);
+            console.log('RESPONSE', response)
             setError(undefined);
             setResponseSuccessVisible(true);
             setResponseErrorVisible(false);
@@ -107,7 +109,7 @@ const APIClientRequestScreen = () => {
     };
 
     return (
-        <SafeAreaView style={{ flex: 1 }}>
+        <SafeAreaView style={{ flex: 1}}>
             <ScrollView
                 style={{
                     backgroundColor: "#fff",

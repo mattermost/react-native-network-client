@@ -40,7 +40,7 @@ const ClientP12ConfigurationSchema = z.object({
 });
 
 const APIClientConfigurationSchema = z.object({
-    headers: z.record(z.string()).optional(),
+    headers: z.record(z.string(), z.string()).optional(),
     sessionConfiguration: SessionConfigurationSchema.optional(),
     retryPolicyConfiguration: RetryPolicyConfigurationSchema.optional(),
     requestAdapterConfiguration: RequestAdapterConfigurationSchema.optional(),
@@ -48,9 +48,13 @@ const APIClientConfigurationSchema = z.object({
 });
 
 const RequestOptionsSchema = z.object({
-    headers: z.record(z.string()).optional(),
+    headers: z.record(z.string(), z.string()).optional(),
     body: z
-        .union([z.record(z.unknown()), z.array(z.unknown()), z.string()])
+        .union([
+            z.record(z.string(), z.unknown()),
+            z.array(z.unknown()),
+            z.string(),
+        ])
         .optional(),
     timeoutInterval: z.number().optional(),
     retryPolicyConfiguration: RetryPolicyConfigurationSchema.optional(),
@@ -58,7 +62,7 @@ const RequestOptionsSchema = z.object({
 
 const MultipartUploadConfigSchema = z.object({
     fileKey: z.string().optional(),
-    data: z.record(z.string()).optional(),
+    data: z.record(z.string(), z.string()).optional(),
 });
 
 const UploadRequestOptionsSchema = RequestOptionsSchema.extend({
@@ -72,7 +76,7 @@ export const validateAPIClientConfiguration = (
 ) => {
     const result = APIClientConfigurationSchema.safeParse(config);
     if (!result.success) {
-        console.warn(result.error); // eslint-disable-line no-console
+        console.warn(result.error);
     }
 };
 
@@ -80,7 +84,7 @@ export const validateRequestOptions = (options?: RequestOptions) => {
     if (options) {
         const result = RequestOptionsSchema.safeParse(options);
         if (!result.success) {
-            console.warn(result.error); // eslint-disable-line no-console
+            console.warn(result.error);
         }
     }
 };
@@ -91,7 +95,7 @@ export const validateUploadRequestOptions = (
     if (options) {
         const result = UploadRequestOptionsSchema.safeParse(options);
         if (!result.success) {
-            console.warn(result.error); // eslint-disable-line no-console
+            console.warn(result.error);
         }
     }
 };

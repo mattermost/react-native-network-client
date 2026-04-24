@@ -2,8 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React from "react";
-import { ScrollView } from "react-native";
-import { Button, Divider, Overlay, Text } from "react-native-elements";
+import { ScrollView, Text } from "react-native";
+import { Button, Divider, Overlay } from "react-native-elements";
 
 import type { ClientResponse } from "@mattermost/react-native-network-client";
 

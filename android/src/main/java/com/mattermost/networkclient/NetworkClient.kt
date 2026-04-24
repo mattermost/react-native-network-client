@@ -85,7 +85,12 @@ internal class NetworkClient(private val context: Context, private val baseUrl: 
     init {
         initCollectMetrics(options)
 
+        // Application interceptor: sets Accept-Encoding: br,gzip before BridgeInterceptor
+        // so BridgeInterceptor skips adding its own gzip-only header.
         builder.addInterceptor(BrotliInterceptor)
+        // Network interceptor: decompresses brotli responses at the network layer,
+        // before CompressedResponseSizeInterceptor reads the body.
+        builder.addNetworkInterceptor(BrotliInterceptor)
 
         if (shouldCollectMetrics) {
             builder.addNetworkInterceptor(CompressedResponseSizeInterceptor())

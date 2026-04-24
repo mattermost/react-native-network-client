@@ -378,10 +378,12 @@ import React
     }
     
     func getURLSessionConfiguration(from options: JSON) -> URLSessionConfiguration {
-        let config = URLSessionConfiguration.default
-        
+        let config = URLSessionConfiguration.af.default
+
         if let headers = options["headers"].dictionaryObject {
-            config.httpAdditionalHeaders = headers
+            var mergedHeaders = config.httpAdditionalHeaders as? [String: Any] ?? [:]
+            mergedHeaders.merge(headers) { _, new in new }
+            config.httpAdditionalHeaders = mergedHeaders
         }
         
         let sessionOptions = options["sessionConfiguration"]

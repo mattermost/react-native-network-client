@@ -10,19 +10,26 @@ module Pod
         def apply_patch(file)
             repo_root = `git rev-parse --show-toplevel`.strip
             directory_arg = Dir.glob(Pathname(repo_root).join("**/**/Pods")).first.sub("#{repo_root}/", "")
-            puts "HEY #{file}"
-        
+
             Dir.chdir(repo_root) {
-                check_cmd = "git apply --check '#{file}' --directory='#{directory_arg}' -p2 2> /dev/null"
-                can_apply = system(check_cmd)
+                base_args = "'#{file}' --directory='#{directory_arg}' -p2 2> /dev/null"
+
+                already_applied = system("git apply --check --reverse #{base_args}")
+                if already_applied
+                    Pod::UI.puts "Skipping #{file} (already applied)"
+                    next
+                end
+
+                can_apply = system("git apply --check #{base_args}")
                 if can_apply
-                    apply_cmd = check_cmd.gsub('--check ', '')
-                    did_apply = system(apply_cmd)
+                    did_apply = system("git apply #{base_args}")
                     if did_apply
-                        Pod::UI.puts "Successfully applied #{file} 🎉"
+                        Pod::UI.puts "Successfully applied #{file}"
                     else
                         Pod::UI.warn "Error: failed to apply #{file}"
                     end
+                else
+                    Pod::UI.warn "Warning: #{file} cannot be applied and does not appear to be already applied"
                 end
             }
         end

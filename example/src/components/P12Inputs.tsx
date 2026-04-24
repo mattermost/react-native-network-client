@@ -4,7 +4,7 @@
 import React, { useState } from "react";
 import { Platform, View } from "react-native";
 import { Button, ButtonGroup, Input, Text } from "react-native-elements";
-import DocumentPicker from "react-native-document-picker";
+import {pick, keepLocalCopy, types, isErrorWithCode} from "@react-native-documents/picker";
 import { check, request, PERMISSIONS, RESULTS } from "react-native-permissions";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { downloadToNativeFile, clientCertP12 } from "../utils";
@@ -45,15 +45,25 @@ const P12Inputs = (props: P12InputsProps) => {
         const hasPermission = await hasPhotoLibraryPermissions();
         if (hasPermission) {
             try {
-                const result = await DocumentPicker.pickSingle({
-                    type: [DocumentPicker.types.allFiles],
+                const [selectedFile] = await pick({
+                    allowMultipleSelection: false,
+                    type: [types.allFiles],
+                });
+                const [result] = await keepLocalCopy({
+                    files: [
+                        {
+                            uri: selectedFile.uri,
+                            fileName: selectedFile.name ?? 'fallbackName'
+                        }
+                    ],
+                    destination: "cachesDirectory",
                 });
 
                 if (result.fileCopyUri) {
                     props.onSelectP12(result.fileCopyUri);
                 }
             } catch (err) {
-                if (DocumentPicker.isCancel(err as Error)) {
+                if (isErrorWithCode(err)) {
                     // User cancelled the picker, exit any dialogs or menus and move on
                 } else {
                     throw err;
