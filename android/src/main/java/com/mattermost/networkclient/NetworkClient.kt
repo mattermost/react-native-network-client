@@ -24,7 +24,7 @@ import com.mattermost.networkclient.metrics.getNetworkType
 import okhttp3.*
 import okhttp3.brotli.BrotliInterceptor
 import okhttp3.RequestBody.Companion.toRequestBody
-import okhttp3.internal.EMPTY_REQUEST
+
 import okhttp3.tls.HandshakeCertificates
 import org.json.JSONArray
 import org.json.JSONObject
@@ -430,7 +430,7 @@ internal class NetworkClient(private val context: Context, private val baseUrl: 
                         requestBody = options.getString("body")!!.toRequestBody()
                     }
                     ReadableType.Null -> {
-                        requestBody = EMPTY_REQUEST
+                        requestBody = RequestBody.EMPTY
                     }
                     ReadableType.Boolean -> {
                         requestBody = options.getBoolean("body").toString().toRequestBody()
@@ -440,7 +440,7 @@ internal class NetworkClient(private val context: Context, private val baseUrl: 
                     }
                 }
             } else if (method.uppercase(Locale.ENGLISH) == "POST") {
-                requestBody = EMPTY_REQUEST
+                requestBody = RequestBody.EMPTY
             }
         }
 
