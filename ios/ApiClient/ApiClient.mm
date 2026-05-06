@@ -238,6 +238,7 @@ RCT_EXPORT_METHOD(cancelRequest:(NSString *)taskId withResolver:(RCTPromiseResol
     if (config.requestAdapterConfiguration().has_value()) {
         NSMutableDictionary *adapterDictionary = [[NSMutableDictionary alloc] init];
         adapterDictionary[@"bearerAuthTokenResponseHeader"] = config.requestAdapterConfiguration().value().bearerAuthTokenResponseHeader();
+        dict[@"requestAdapterConfiguration"] = adapterDictionary;
     }
     
     if (config.clientP12Configuration().has_value()) {
