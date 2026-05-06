@@ -9,11 +9,13 @@ import com.mattermost.networkclient.metrics.RequestMetadata
 import okhttp3.Headers
 import okhttp3.Request
 import okhttp3.Response
-import okio.Buffer
 import org.json.JSONArray
 import org.json.JSONObject
 import org.json.JSONTokener
+import java.io.FilterInputStream
 import java.io.IOException
+import java.io.InputStream
+import java.io.InputStreamReader
 import java.security.MessageDigest
 import java.nio.charset.StandardCharsets
 
@@ -21,27 +23,24 @@ import java.nio.charset.StandardCharsets
 var Response.retriesExhausted: Boolean? by NetworkClient.RequestRetriesExhausted
 
 /**
- * Reads a large buffer in chunks to avoid OutOfMemoryError.
- * Converts the buffer to a UTF-8 string by reading in manageable chunks.
- *
- * @param buffer The okio Buffer containing the response data
- * @param totalSize Total size of the buffer in bytes
- * @return The complete response as a UTF-8 string
+ * Wraps an InputStream and counts the bytes read through it. Used to compute the
+ * uncompressed body size for the metrics payload without buffering the body up front.
  */
-private fun readBufferInChunks(buffer: Buffer, totalSize: Long): String {
-    // Read in 8MB chunks to avoid memory spikes
-    val CHUNK_SIZE = 8L * 1024 * 1024
-    val result = StringBuilder(totalSize.toInt())
+private class CountingInputStream(stream: InputStream) : FilterInputStream(stream) {
+    var count: Long = 0
+        private set
 
-    var remaining = totalSize
-    while (remaining > 0) {
-        val toRead = minOf(remaining, CHUNK_SIZE)
-        val chunk = buffer.readString(toRead, StandardCharsets.UTF_8)
-        result.append(chunk)
-        remaining -= toRead
+    override fun read(): Int {
+        val b = super.read()
+        if (b != -1) count++
+        return b
     }
 
-    return result.toString()
+    override fun read(b: ByteArray, off: Int, len: Int): Int {
+        val n = super.read(b, off, len)
+        if (n > 0) count += n
+        return n
+    }
 }
 
 /**
@@ -80,11 +79,21 @@ fun Response.toWritableMap(metadata: RequestMetadata?): WritableMap {
     map.putBoolean("ok", isSuccessful)
 
     body?.let { responseBody ->
-        val source = responseBody.source()
-        source.request(Long.MAX_VALUE)
-
-        // Check buffer size before attempting to read into memory
-        val bufferSize = source.buffer.size
+        // Stream-decode the body so peak memory is the resulting String (plus a small
+        // rolling char buffer), not the full body buffered in Okio segments first.
+        // CountingInputStream tracks the byte count for the size metric, which stays
+        // accurate when Content-Length is missing (chunked) or stale (compression).
+        val countingStream = CountingInputStream(responseBody.source().inputStream())
+        val bodyString = InputStreamReader(countingStream, StandardCharsets.UTF_8).use { reader ->
+            val sb = StringBuilder()
+            val charBuffer = CharArray(64 * 1024)
+            var read = reader.read(charBuffer)
+            while (read != -1) {
+                sb.append(charBuffer, 0, read)
+                read = reader.read(charBuffer)
+            }
+            sb.toString()
+        }
 
         if (metadata != null) {
             val compressedSize = header("X-Compressed-Size")?.toDoubleOrNull() ?: header("Content-Length")?.toDoubleOrNull() ?: 0.0
@@ -92,26 +101,10 @@ fun Response.toWritableMap(metadata: RequestMetadata?): WritableMap {
             val endTime = header("X-End-Time")?.toDoubleOrNull() ?: 0.0
             val mbps = header("X-Speed-Mbps")?.toDoubleOrNull() ?: 0.0
             metrics.putDouble("compressedSize", compressedSize)
-            metrics.putDouble("size", bufferSize.toDouble())
+            metrics.putDouble("size", countingStream.count.toDouble())
             metrics.putDouble("startTime", startTime)
             metrics.putDouble("endTime", endTime)
             metrics.putDouble("speedInMbps", mbps)
-        }
-
-        // Maximum size to attempt loading into memory as a single string (50MB)
-        // This prevents OutOfMemoryError on Android when reading large responses.
-        // String allocation requires ~2x memory (original bytes + String object),
-        // so 50MB response needs ~100MB heap space during conversion.
-        val MAX_IN_MEMORY_SIZE = 50L * 1024 * 1024
-
-        val buffer = source.buffer.clone()
-
-        val bodyString = if (bufferSize > MAX_IN_MEMORY_SIZE) {
-            // For large responses, read in chunks to avoid OOM
-            readBufferInChunks(buffer, bufferSize)
-        } else {
-            // Small responses can be read directly
-            buffer.readUtf8()
         }
 
         try {

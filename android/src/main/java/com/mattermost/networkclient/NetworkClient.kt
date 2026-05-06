@@ -143,9 +143,6 @@ internal class NetworkClient(private val context: Context, private val baseUrl: 
     private fun applyGenericClientBuilderConfiguration() {
         builder.followRedirects(true)
         builder.followSslRedirects(true)
-        // Apply user-CA trust and OCSP soft-fail for the generic client too.
-        val (sslSocketFactory, trustManager) = TrustManagerHelper.buildSslSocketFactory(null, null)
-        builder.sslSocketFactory(sslSocketFactory, trustManager)
     }
 
     private fun applyClientBuilderConfiguration(options: ReadableMap?, cookieJar: CookieJar?) {
@@ -420,7 +417,7 @@ internal class NetworkClient(private val context: Context, private val baseUrl: 
                         requestBody = options.getString("body")!!.toRequestBody(MEDIA_TYPE_TEXT)
                     }
                     ReadableType.Null -> {
-                        requestBody = RequestBody.EMPTY
+                        requestBody = null
                     }
                     ReadableType.Boolean -> {
                         requestBody = options.getBoolean("body").toString().toRequestBody(MEDIA_TYPE_JSON)
@@ -508,6 +505,7 @@ internal class NetworkClient(private val context: Context, private val baseUrl: 
 
             @Throws(CertificateException::class)
             override fun checkServerTrusted(chain: Array<X509Certificate>, authType: String) {
+                if (trustSelfSignedServerCertificate && isSelfSigned(chain.firstOrNull())) return
                 try {
                     defaultTrustManager.checkServerTrusted(chain, authType)
                 } catch (ce: CertificateException) {
@@ -531,6 +529,20 @@ internal class NetworkClient(private val context: Context, private val baseUrl: 
             override fun getAcceptedIssuers(): Array<X509Certificate> {
                 return defaultTrustManager.acceptedIssuers
             }
+        }
+    }
+
+    // A cert is self-signed when its subject equals its issuer AND the signature verifies
+    // against its own public key. The signature check is what stops an attacker from
+    // forging self-signed status by copying subject/issuer fields.
+    private fun isSelfSigned(cert: X509Certificate?): Boolean {
+        if (cert == null) return false
+        if (cert.subjectX500Principal != cert.issuerX500Principal) return false
+        return try {
+            cert.verify(cert.publicKey)
+            true
+        } catch (_: Exception) {
+            false
         }
     }
 
@@ -615,15 +627,19 @@ internal class NetworkClient(private val context: Context, private val baseUrl: 
         builder.sslSocketFactory(sslSocketFactory, trustManager)
     }
 
-    // Builds SSLSocketFactory + X509TrustManager using TrustManagerHelper (user CAs + OCSP
-    // soft-fail) and wires in the client certificate via KeyManagerFactory when present.
+    // The SSLContext is initialized with the *wrapped* trust manager so that AIA chain
+    // completion, the self-signed bypass and dedup error emission run during the handshake.
+    // Initializing with the raw trust manager would leave the wrapper unused.
     private fun buildSslConfig(): Pair<javax.net.ssl.SSLSocketFactory, X509TrustManager> {
         val clientCertKeyStore = KeyStoreHelper.getClientCertKeyStore(p12Alias)
-        val (factory, trustManager) = TrustManagerHelper.buildSslSocketFactory(
+        val keyManagers = TrustManagerHelper.buildKeyManagers(
             clientCertKeyStore?.first,
             clientCertKeyStore?.second
         )
-        return Pair(factory, getTrustManager(trustManager))
+        val trustManager = getTrustManager(TrustManagerHelper.buildTrustManager())
+        val sslContext = javax.net.ssl.SSLContext.getInstance("TLS")
+        sslContext.init(keyManagers, arrayOf(trustManager), java.security.SecureRandom())
+        return Pair(sslContext.socketFactory, trustManager)
     }
 
     private fun buildHostnameVerifier() {

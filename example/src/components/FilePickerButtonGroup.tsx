@@ -47,8 +47,10 @@ const FilePickerButtonGroup = (props: FilePickerButtonGroupProps) => {
                     destination: "cachesDirectory",
                 });
 
-                const file: NativeFile = { ...result, uri: result.fileCopyUri };
-                props.onFilePicked(file);
+                if (result.status === 'success') {
+                    const file: NativeFile = { ...result, uri: result.localUri };
+                    props.onFilePicked(file);
+                }
             } catch (err) {
                 if (isErrorWithCode(err)) {
                     // User cancelled the picker, exit any dialogs or menus and move on

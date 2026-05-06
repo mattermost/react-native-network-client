@@ -10,6 +10,9 @@ import okhttp3.mockwebserver.MockWebServer
 import okhttp3.mockwebserver.SocketPolicy
 import org.junit.Assert
 import org.junit.Test
+import org.mockito.ArgumentMatchers.anyInt
+import org.mockito.ArgumentMatchers.anyLong
+import org.mockito.Mockito.never
 import org.mockito.Mockito.spy
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
@@ -132,8 +135,8 @@ class RetryInterceptorTest {
 
             client.newCall(request).execute()
 
-            verify(retryInterceptor, times(0)).getWaitInterval(0)
-            verify(retryInterceptor, times(0)).waitForMilliseconds(0)
+            verify(retryInterceptor, never()).getWaitInterval(anyInt())
+            verify(retryInterceptor, never()).waitForMilliseconds(anyLong())
         }
     }
 
@@ -150,8 +153,8 @@ class RetryInterceptorTest {
 
             client.newCall(request).execute()
 
-            verify(retryInterceptor, times(0)).getWaitInterval(0)
-            verify(retryInterceptor, times(0)).waitForMilliseconds(0)
+            verify(retryInterceptor, never()).getWaitInterval(anyInt())
+            verify(retryInterceptor, never()).waitForMilliseconds(anyLong())
         }
     }
 
@@ -229,8 +232,8 @@ class RetryInterceptorTest {
                 client.newCall(request).execute()
             }
 
-            verify(retryInterceptor, times(0)).getWaitInterval(0)
-            verify(retryInterceptor, times(0)).waitForMilliseconds(0)
+            verify(retryInterceptor, never()).getWaitInterval(anyInt())
+            verify(retryInterceptor, never()).waitForMilliseconds(anyLong())
         }
     }
 }

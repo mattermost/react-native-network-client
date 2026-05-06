@@ -1,5 +1,6 @@
 import Foundation
 import Security
+import os
 
 /// AIA (Authority Information Access) certificate chain completion for iOS.
 ///
@@ -151,17 +152,47 @@ enum AiaCertHelper {
         return nil
     }
 
+    // Real intermediate CA certs are a few KB; 64 KB is a generous ceiling that rejects
+    // a hostile AIA endpoint trying to OOM us during the TLS handshake.
+    private static let maxAiaResponseBytes = 64 * 1024
+
     private static func fetchCertificate(from url: URL) -> SecCertificate? {
-        var result: SecCertificate?
         let semaphore = DispatchSemaphore(value: 0)
-        URLSession.shared.dataTask(with: url) { data, _, _ in
-            if let data = data {
-                result = SecCertificateCreateWithData(nil, data as CFData)
+        let resultBox = AtomicCertBox()
+
+        var request = URLRequest(url: url, timeoutInterval: 5)
+        request.setValue("bytes=0-\(maxAiaResponseBytes - 1)", forHTTPHeaderField: "Range")
+
+        let task = URLSession.shared.dataTask(with: request) { data, _, _ in
+            if let data = data, data.count <= maxAiaResponseBytes {
+                resultBox.set(SecCertificateCreateWithData(nil, data as CFData))
             }
             semaphore.signal()
-        }.resume()
-        _ = semaphore.wait(timeout: .now() + 5)
-        return result
+        }
+        task.resume()
+
+        if semaphore.wait(timeout: .now() + 5) == .timedOut {
+            // Cancel the in-flight task so it doesn't accumulate in URLSession.shared
+            // and so its callback can't race with our return.
+            task.cancel()
+            return nil
+        }
+        return resultBox.get()
+    }
+
+    /// Tiny lock-protected box for the cert result so the timeout path and the data-task
+    /// callback can never read/write `result` concurrently.
+    private final class AtomicCertBox {
+        private var value: SecCertificate?
+        private var lock = os_unfair_lock()
+        func set(_ v: SecCertificate?) {
+            os_unfair_lock_lock(&lock); defer { os_unfair_lock_unlock(&lock) }
+            value = v
+        }
+        func get() -> SecCertificate? {
+            os_unfair_lock_lock(&lock); defer { os_unfair_lock_unlock(&lock) }
+            return value
+        }
     }
 
     /// Finds the first occurrence of `pattern` bytes within `data`. Returns the start index or nil.

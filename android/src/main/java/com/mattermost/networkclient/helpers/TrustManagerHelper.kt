@@ -2,10 +2,8 @@ package com.mattermost.networkclient.helpers
 
 import android.os.Build
 import java.security.KeyStore
-import java.security.SecureRandom
+import javax.net.ssl.KeyManager
 import javax.net.ssl.KeyManagerFactory
-import javax.net.ssl.SSLContext
-import javax.net.ssl.SSLSocketFactory
 import javax.net.ssl.TrustManagerFactory
 import javax.net.ssl.X509TrustManager
 
@@ -35,26 +33,16 @@ object TrustManagerHelper {
     }
 
     /**
-     * Builds an SSLSocketFactory paired with an X509TrustManager. When a client certificate
-     * KeyStore is provided it is wired in via KeyManagerFactory for mTLS support.
+     * Returns the KeyManagers for a client-cert PKCS12 KeyStore (mTLS), or null if no
+     * client certificate has been imported.
      */
-    fun buildSslSocketFactory(
+    fun buildKeyManagers(
         clientCertKeyStore: KeyStore?,
         clientCertPassword: CharArray?
-    ): Pair<SSLSocketFactory, X509TrustManager> {
-        val trustManager = buildTrustManager()
-
-        val keyManagers = if (clientCertKeyStore != null) {
-            val kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm())
-            kmf.init(clientCertKeyStore, clientCertPassword ?: CharArray(0))
-            kmf.keyManagers
-        } else {
-            null
-        }
-
-        val sslContext = SSLContext.getInstance("TLS")
-        sslContext.init(keyManagers, arrayOf(trustManager), SecureRandom())
-
-        return Pair(sslContext.socketFactory, trustManager)
+    ): Array<KeyManager>? {
+        if (clientCertKeyStore == null) return null
+        val kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm())
+        kmf.init(clientCertKeyStore, clientCertPassword ?: CharArray(0))
+        return kmf.keyManagers
     }
 }

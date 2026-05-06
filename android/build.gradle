@@ -64,7 +64,7 @@ configurations.all {
     force "com.squareup.okhttp3:okhttp-urlconnection:5.3.2"
     force "com.squareup.okhttp3:okhttp-brotli:5.3.2"
     force "com.squareup.okio:okio:3.16.4"
-    force "org.jetbrains.kotlin:kotlin-stdlib:2.2.21"
+    force "org.jetbrains.kotlin:kotlin-stdlib:${getKotlinVersion()}"
   }
 }
 

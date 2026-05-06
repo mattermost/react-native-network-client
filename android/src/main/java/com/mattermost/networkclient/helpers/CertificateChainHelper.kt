@@ -1,6 +1,7 @@
 package com.mattermost.networkclient.helpers
 
 import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
 import java.net.URL
 import java.security.cert.CertificateFactory
 import java.security.cert.X509Certificate
@@ -84,21 +85,24 @@ object CertificateChainHelper {
             val seqLenSize = lengthSize(der, pos)
             pos += seqLenSize
             val seqEnd = pos + seqLen
+            if (seqEnd > der.size) return null
 
             // accessMethod OID
             if (pos >= der.size || der[pos].toInt() and 0xFF != 0x06) { pos = seqEnd; continue }
             pos++
             val oidLen = lengthAt(der, pos)
             pos += lengthSize(der, pos)
+            if (oidLen > seqEnd - pos) return null
             val oidBytes = der.copyOfRange(pos, pos + oidLen)
             pos += oidLen
 
             if (oidBytes.contentEquals(CA_ISSUERS_OID)) {
                 // accessLocation: GeneralName [6] IMPLICIT IA5String = uniformResourceIdentifier
-                if (pos < der.size && der[pos].toInt() and 0xFF == 0x86) {
+                if (pos < seqEnd && der[pos].toInt() and 0xFF == 0x86) {
                     pos++
                     val uriLen = lengthAt(der, pos)
                     pos += lengthSize(der, pos)
+                    if (uriLen > seqEnd - pos) return null
                     return String(der, pos, uriLen, Charsets.US_ASCII)
                 }
             }
@@ -109,13 +113,29 @@ object CertificateChainHelper {
         return null
     }
 
+    // Real intermediate CA certs are a few KB; 64 KB is a generous ceiling that rejects
+    // a hostile AIA endpoint trying to OOM us during the TLS handshake.
+    private const val MAX_AIA_RESPONSE_BYTES = 64 * 1024
+
     private fun fetchCertificate(url: String): X509Certificate? {
         return try {
             val conn = URL(url).openConnection()
             conn.connectTimeout = 5_000
             conn.readTimeout = 5_000
             conn.connect()
-            val bytes = conn.getInputStream().use { it.readBytes() }
+            val bytes = conn.getInputStream().use { stream ->
+                val out = ByteArrayOutputStream()
+                val buf = ByteArray(8 * 1024)
+                var total = 0
+                var read = stream.read(buf)
+                while (read != -1) {
+                    total += read
+                    if (total > MAX_AIA_RESPONSE_BYTES) return null
+                    out.write(buf, 0, read)
+                    read = stream.read(buf)
+                }
+                out.toByteArray()
+            }
             val factory = CertificateFactory.getInstance("X.509")
             factory.generateCertificate(ByteArrayInputStream(bytes)) as X509Certificate
         } catch (_: Exception) {

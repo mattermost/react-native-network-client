@@ -59,8 +59,8 @@ const P12Inputs = (props: P12InputsProps) => {
                     destination: "cachesDirectory",
                 });
 
-                if (result.fileCopyUri) {
-                    props.onSelectP12(result.fileCopyUri);
+                if (result.status === 'success') {
+                    props.onSelectP12(result.localUri);
                 }
             } catch (err) {
                 if (isErrorWithCode(err)) {

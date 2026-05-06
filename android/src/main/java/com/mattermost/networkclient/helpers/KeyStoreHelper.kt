@@ -6,6 +6,7 @@ import android.security.keystore.KeyProperties
 import android.util.Base64
 import com.mattermost.networkclient.ApiClientModuleImpl
 import java.io.FileInputStream
+import java.io.FileNotFoundException
 import java.security.Key
 import java.security.KeyStore
 import java.security.cert.Certificate
@@ -86,9 +87,12 @@ object KeyStoreHelper {
      */
     fun getClientCertKeyStore(p12Alias: String): Pair<KeyStore, CharArray>? {
         val password = ApiClientModuleImpl.retrieveValue(p12Alias) ?: return null
-        val p12File = ApiClientModuleImpl.context.openFileInput(p12Alias)
-        val p12Store = KeyStore.getInstance("PKCS12").apply {
-            load(p12File, password.toCharArray())
+        val p12Store = try {
+            ApiClientModuleImpl.context.openFileInput(p12Alias).use { p12File ->
+                KeyStore.getInstance("PKCS12").apply { load(p12File, password.toCharArray()) }
+            }
+        } catch (_: FileNotFoundException) {
+            return null
         }
         if (!p12Store.containsAlias(getKeyEntryAlias(p12Alias))) return null
         return Pair(p12Store, password.toCharArray())
@@ -96,6 +100,7 @@ object KeyStoreHelper {
 
     fun deleteClientCertificates(p12Alias: String) {
         ApiClientModuleImpl.context.deleteFile(p12Alias)
+        ApiClientModuleImpl.deleteValue(p12Alias)
     }
 
     private fun loadAndroidKeyStore() {

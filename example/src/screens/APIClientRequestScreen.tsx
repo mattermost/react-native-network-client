@@ -96,7 +96,6 @@ const APIClientRequestScreen = () => {
             }
             var response = await clientMethod(endpoint, options);
             setResponse(response);
-            console.log('RESPONSE', response)
             setError(undefined);
             setResponseSuccessVisible(true);
             setResponseErrorVisible(false);
