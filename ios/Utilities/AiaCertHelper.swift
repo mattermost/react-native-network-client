@@ -107,6 +107,7 @@ enum AiaCertHelper {
         guard pos < der.count && der[pos] == 0x04 else { return nil }
         pos += 1
         let (octetLen, octetLenSize) = lengthAt(der, pos)
+        guard octetLenSize > 0 else { return nil }
         pos += octetLenSize
 
         // Now at the AIA SEQUENCE contents
@@ -114,9 +115,10 @@ enum AiaCertHelper {
         guard aiaEnd <= der.count else { return nil }
 
         // Expect outer SEQUENCE (0x30)
-        guard der[pos] == 0x30 else { return nil }
+        guard pos < aiaEnd && der[pos] == 0x30 else { return nil }
         pos += 1
         let (_, seqLenSize) = lengthAt(der, pos)
+        guard seqLenSize > 0 else { return nil }
         pos += seqLenSize
 
         // Walk each AccessDescription SEQUENCE
@@ -124,24 +126,29 @@ enum AiaCertHelper {
             guard der[pos] == 0x30 else { break }
             pos += 1
             let (descLen, descLenSize) = lengthAt(der, pos)
+            guard descLenSize > 0 else { return nil }
             pos += descLenSize
             let descEnd = pos + descLen
+            guard descEnd <= aiaEnd else { return nil }
 
             // accessMethod OID
-            guard pos < der.count && der[pos] == 0x06 else { pos = descEnd; continue }
+            guard pos < descEnd && der[pos] == 0x06 else { pos = descEnd; continue }
             pos += 1
             let (oidLen, oidLenSize) = lengthAt(der, pos)
+            guard oidLenSize > 0 else { return nil }
             pos += oidLenSize
-            let oidBytes = Array(der[pos..<min(pos + oidLen, der.count)])
+            guard pos + oidLen <= descEnd else { return nil }
+            let oidBytes = Array(der[pos..<pos + oidLen])
             pos += oidLen
 
             if oidBytes == caIssuersOID {
                 // accessLocation: [6] IMPLICIT IA5String = uniformResourceIdentifier (tag 0x86)
-                guard pos < der.count && der[pos] == 0x86 else { pos = descEnd; continue }
+                guard pos < descEnd && der[pos] == 0x86 else { pos = descEnd; continue }
                 pos += 1
                 let (uriLen, uriLenSize) = lengthAt(der, pos)
+                guard uriLenSize > 0 else { return nil }
                 pos += uriLenSize
-                guard pos + uriLen <= der.count else { return nil }
+                guard pos + uriLen <= descEnd else { return nil }
                 let uriString = String(bytes: der[pos..<pos + uriLen], encoding: .ascii)
                 return uriString.flatMap { URL(string: $0) }
             }
@@ -213,16 +220,19 @@ enum AiaCertHelper {
     }
 
     /// Returns (length value, bytes consumed by length field) for a DER length at `pos`.
+    /// Returns (length value, bytes consumed) for the DER length field at `pos`. Returns
+    /// (0, 0) on any malformed input — out-of-bounds, truncated multi-byte length, or the
+    /// BER-only indefinite-length form (0x80) which isn't legal in DER. Callers must treat
+    /// lenSize == 0 as a parse failure and abort.
     private static func lengthAt(_ der: [UInt8], _ pos: Int) -> (Int, Int) {
-        guard pos < der.count else { return (0, 1) }
+        guard pos < der.count else { return (0, 0) }
         let first = Int(der[pos])
         if first < 0x80 { return (first, 1) }
         let numBytes = first & 0x7F
-        // 0x80 means BER indefinite-length, which isn't valid in DER. Treat as malformed.
-        guard numBytes > 0 else { return (0, 1) }
+        guard numBytes > 0 else { return (0, 0) }
+        guard pos + numBytes < der.count else { return (0, 0) }
         var len = 0
         for i in 1...numBytes {
-            guard pos + i < der.count else { break }
             len = (len << 8) | Int(der[pos + i])
         }
         return (len, 1 + numBytes)
