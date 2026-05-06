@@ -75,23 +75,26 @@ object CertificateChainHelper {
     private fun parseAiaCaIssuersUrl(der: ByteArray): String? {
         // Skip the outer SEQUENCE tag and length to reach the contents.
         if (der.isEmpty() || der[0].toInt() and 0xFF != 0x30) return null
-        var pos = 1 + lengthSize(der, 1)
+        val (_, outerLenSize) = lengthAt(der, 1)
+        if (outerLenSize == 0) return null
+        var pos = 1 + outerLenSize
 
         while (pos < der.size) {
             // Each entry is an AccessDescription SEQUENCE.
             if (der[pos].toInt() and 0xFF != 0x30) break
             pos++
-            val seqLen = lengthAt(der, pos)
-            val seqLenSize = lengthSize(der, pos)
+            val (seqLen, seqLenSize) = lengthAt(der, pos)
+            if (seqLenSize == 0) return null
             pos += seqLenSize
             val seqEnd = pos + seqLen
             if (seqEnd > der.size) return null
 
             // accessMethod OID
-            if (pos >= der.size || der[pos].toInt() and 0xFF != 0x06) { pos = seqEnd; continue }
+            if (pos >= seqEnd || der[pos].toInt() and 0xFF != 0x06) { pos = seqEnd; continue }
             pos++
-            val oidLen = lengthAt(der, pos)
-            pos += lengthSize(der, pos)
+            val (oidLen, oidLenSize) = lengthAt(der, pos)
+            if (oidLenSize == 0) return null
+            pos += oidLenSize
             if (oidLen > seqEnd - pos) return null
             val oidBytes = der.copyOfRange(pos, pos + oidLen)
             pos += oidLen
@@ -100,8 +103,9 @@ object CertificateChainHelper {
                 // accessLocation: GeneralName [6] IMPLICIT IA5String = uniformResourceIdentifier
                 if (pos < seqEnd && der[pos].toInt() and 0xFF == 0x86) {
                     pos++
-                    val uriLen = lengthAt(der, pos)
-                    pos += lengthSize(der, pos)
+                    val (uriLen, uriLenSize) = lengthAt(der, pos)
+                    if (uriLenSize == 0) return null
+                    pos += uriLenSize
                     if (uriLen > seqEnd - pos) return null
                     return String(der, pos, uriLen, Charsets.US_ASCII)
                 }
@@ -152,31 +156,30 @@ object CertificateChainHelper {
     // Unwraps a DER OCTET STRING (tag 0x04) to return its contents.
     private fun unwrapOctetString(der: ByteArray): ByteArray? {
         if (der.isEmpty() || der[0].toInt() and 0xFF != 0x04) return null
-        val len = lengthAt(der, 1)
-        val pos = 1 + lengthSize(der, 1)
+        val (len, lenSize) = lengthAt(der, 1)
+        if (lenSize == 0) return null
+        val pos = 1 + lenSize
+        if (pos + len > der.size) return null
         return der.copyOfRange(pos, pos + len)
     }
 
-    // Returns the integer value encoded in the DER length field at der[pos].
-    private fun lengthAt(der: ByteArray, pos: Int): Int {
-        if (pos >= der.size) return 0
+    /**
+     * Returns (length value, bytes consumed) for the DER length field at `pos`. Returns
+     * (0, 0) on any malformed input — out-of-bounds, truncated multi-byte length, or the
+     * BER-only indefinite-length form (0x80) which isn't legal in DER. Callers must treat
+     * lenSize == 0 as a parse failure and abort.
+     */
+    private fun lengthAt(der: ByteArray, pos: Int): Pair<Int, Int> {
+        if (pos >= der.size) return Pair(0, 0)
         val first = der[pos].toInt() and 0xFF
-        if (first < 0x80) return first
+        if (first < 0x80) return Pair(first, 1)
         val numBytes = first and 0x7F
-        // 0x80 means BER indefinite-length, which isn't valid in DER. Treat as malformed.
-        if (numBytes == 0) return 0
+        if (numBytes == 0) return Pair(0, 0)
+        if (pos + numBytes >= der.size) return Pair(0, 0)
         var len = 0
         for (i in 1..numBytes) {
-            if (pos + i >= der.size) return 0
             len = (len shl 8) or (der[pos + i].toInt() and 0xFF)
         }
-        return len
-    }
-
-    // Returns the byte count of the DER length field at der[pos].
-    private fun lengthSize(der: ByteArray, pos: Int): Int {
-        if (pos >= der.size) return 1
-        val first = der[pos].toInt() and 0xFF
-        return if (first < 0x80) 1 else 1 + (first and 0x7F)
+        return Pair(len, 1 + numBytes)
     }
 }

@@ -400,37 +400,38 @@ internal class NetworkClient(private val context: Context, private val baseUrl: 
     private fun prepareRequestBody(method: String, options: ReadableMap?): RequestBody? {
         var requestBody: RequestBody? = null
 
-        if (options != null) {
-            if (options.hasKey("body")) {
-                when (options.getType("body")) {
-                    ReadableType.Array -> {
-                        val jsonBody = JSONArray(options.getArray("body")!!.toArrayList())
-                        requestBody = jsonBody.toString().toRequestBody(MEDIA_TYPE_JSON)
-                    }
-                    ReadableType.Map -> {
-                        val jsonBody = (options.getMap("body")!!.toHashMap() as Map<*, *>?)?.let {
-                            JSONObject(it)
-                        }
-                        requestBody = jsonBody?.toString()?.toRequestBody(MEDIA_TYPE_JSON)
-                    }
-                    ReadableType.String -> {
-                        requestBody = options.getString("body")!!.toRequestBody(MEDIA_TYPE_TEXT)
-                    }
-                    ReadableType.Null -> {
-                        requestBody = null
-                    }
-                    ReadableType.Boolean -> {
-                        requestBody = options.getBoolean("body").toString().toRequestBody(MEDIA_TYPE_JSON)
-                    }
-                    ReadableType.Number -> {
-                        requestBody = options.getDouble("body").toString().toRequestBody(MEDIA_TYPE_JSON)
-                    }
+        if (options != null && options.hasKey("body")) {
+            when (options.getType("body")) {
+                ReadableType.Array -> {
+                    val jsonBody = JSONArray(options.getArray("body")!!.toArrayList())
+                    requestBody = jsonBody.toString().toRequestBody(MEDIA_TYPE_JSON)
                 }
-            } else if (method.uppercase(Locale.ENGLISH) == "POST") {
-                // Explicit Content-Type ensures WAFs don't reject bodyless POSTs (#9689).
-                // Caller can override by including Content-Type in the request headers.
-                requestBody = "".toRequestBody(MEDIA_TYPE_JSON)
+                ReadableType.Map -> {
+                    val jsonBody = (options.getMap("body")!!.toHashMap() as Map<*, *>?)?.let {
+                        JSONObject(it)
+                    }
+                    requestBody = jsonBody?.toString()?.toRequestBody(MEDIA_TYPE_JSON)
+                }
+                ReadableType.String -> {
+                    requestBody = options.getString("body")!!.toRequestBody(MEDIA_TYPE_TEXT)
+                }
+                ReadableType.Null -> {
+                    requestBody = null
+                }
+                ReadableType.Boolean -> {
+                    requestBody = options.getBoolean("body").toString().toRequestBody(MEDIA_TYPE_JSON)
+                }
+                ReadableType.Number -> {
+                    requestBody = options.getDouble("body").toString().toRequestBody(MEDIA_TYPE_JSON)
+                }
             }
+        }
+
+        // Bodyless POST fallback (#9689): WAFs reject POSTs without a Content-Type, and
+        // OkHttp also requires POST to have a body. Apply for null options, missing "body"
+        // key, and explicit ReadableType.Null. Caller can override Content-Type via headers.
+        if (requestBody == null && method.uppercase(Locale.ENGLISH) == "POST") {
+            requestBody = "".toRequestBody(MEDIA_TYPE_JSON)
         }
 
         return requestBody
