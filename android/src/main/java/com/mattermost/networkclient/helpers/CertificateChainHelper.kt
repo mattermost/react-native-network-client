@@ -119,7 +119,13 @@ object CertificateChainHelper {
 
     private fun fetchCertificate(url: String): X509Certificate? {
         return try {
-            val conn = URL(url).openConnection()
+            val parsed = URL(url)
+            // The URL came from a peer certificate we have not yet trusted. Reject anything
+            // that isn't plain HTTP so a hostile cert can't turn AIA chasing into a file://
+            // / jar:// SSRF primitive, and so HTTPS doesn't recurse into another TLS handshake
+            // from inside this one. RFC 5280 expects AIA fetches over HTTP.
+            if (parsed.protocol.lowercase() != "http") return null
+            val conn = parsed.openConnection()
             conn.connectTimeout = 5_000
             conn.readTimeout = 5_000
             conn.connect()
@@ -157,6 +163,8 @@ object CertificateChainHelper {
         val first = der[pos].toInt() and 0xFF
         if (first < 0x80) return first
         val numBytes = first and 0x7F
+        // 0x80 means BER indefinite-length, which isn't valid in DER. Treat as malformed.
+        if (numBytes == 0) return 0
         var len = 0
         for (i in 1..numBytes) {
             if (pos + i >= der.size) return 0

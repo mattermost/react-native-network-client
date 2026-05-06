@@ -157,6 +157,12 @@ enum AiaCertHelper {
     private static let maxAiaResponseBytes = 64 * 1024
 
     private static func fetchCertificate(from url: URL) -> SecCertificate? {
+        // The URL came from a peer certificate we have not yet trusted. Reject anything
+        // that isn't plain HTTP so a hostile cert can't turn AIA chasing into a file://
+        // SSRF primitive, and so HTTPS doesn't recurse into another TLS handshake from
+        // inside this one. RFC 5280 expects AIA fetches over HTTP.
+        guard url.scheme?.lowercased() == "http" else { return nil }
+
         let semaphore = DispatchSemaphore(value: 0)
         let resultBox = AtomicCertBox()
 
@@ -212,6 +218,8 @@ enum AiaCertHelper {
         let first = Int(der[pos])
         if first < 0x80 { return (first, 1) }
         let numBytes = first & 0x7F
+        // 0x80 means BER indefinite-length, which isn't valid in DER. Treat as malformed.
+        guard numBytes > 0 else { return (0, 1) }
         var len = 0
         for i in 1...numBytes {
             guard pos + i < der.count else { break }

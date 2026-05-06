@@ -603,6 +603,7 @@ internal class NetworkClient(private val context: Context, private val baseUrl: 
 
         if (options.hasKey("clientP12Configuration")) {
             val clientP12Configuration = options.getMap("clientP12Configuration")!!
+            KeyStoreHelper.deleteClientCertificates(p12Alias)
             val path = clientP12Configuration.getString("path")!!
             val password = if (clientP12Configuration.hasKey("password")) {
                 clientP12Configuration.getString("password")!!
