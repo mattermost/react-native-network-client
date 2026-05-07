@@ -12,10 +12,36 @@ import okhttp3.Response
 import org.json.JSONArray
 import org.json.JSONObject
 import org.json.JSONTokener
+import java.io.FilterInputStream
+import java.io.IOException
+import java.io.InputStream
+import java.io.InputStreamReader
 import java.security.MessageDigest
+import java.nio.charset.StandardCharsets
 
 
 var Response.retriesExhausted: Boolean? by NetworkClient.RequestRetriesExhausted
+
+/**
+ * Wraps an InputStream and counts the bytes read through it. Used to compute the
+ * uncompressed body size for the metrics payload without buffering the body up front.
+ */
+private class CountingInputStream(stream: InputStream) : FilterInputStream(stream) {
+    var count: Long = 0
+        private set
+
+    override fun read(): Int {
+        val b = super.read()
+        if (b != -1) count++
+        return b
+    }
+
+    override fun read(b: ByteArray, off: Int, len: Int): Int {
+        val n = super.read(b, off, len)
+        if (n > 0) count += n
+        return n
+    }
+}
 
 /**
  * Composes an array of redirect URLs from all prior responses
@@ -53,9 +79,21 @@ fun Response.toWritableMap(metadata: RequestMetadata?): WritableMap {
     map.putBoolean("ok", isSuccessful)
 
     body?.let { responseBody ->
-        val source = responseBody.source()
-        source.request(Long.MAX_VALUE)
-        val buffer = source.buffer.clone()
+        // Stream-decode the body so peak memory is the resulting String (plus a small
+        // rolling char buffer), not the full body buffered in Okio segments first.
+        // CountingInputStream tracks the byte count for the size metric, which stays
+        // accurate when Content-Length is missing (chunked) or stale (compression).
+        val countingStream = CountingInputStream(responseBody.source().inputStream())
+        val bodyString = InputStreamReader(countingStream, StandardCharsets.UTF_8).use { reader ->
+            val sb = StringBuilder()
+            val charBuffer = CharArray(64 * 1024)
+            var read = reader.read(charBuffer)
+            while (read != -1) {
+                sb.append(charBuffer, 0, read)
+                read = reader.read(charBuffer)
+            }
+            sb.toString()
+        }
 
         if (metadata != null) {
             val compressedSize = header("X-Compressed-Size")?.toDoubleOrNull() ?: header("Content-Length")?.toDoubleOrNull() ?: 0.0
@@ -63,13 +101,12 @@ fun Response.toWritableMap(metadata: RequestMetadata?): WritableMap {
             val endTime = header("X-End-Time")?.toDoubleOrNull() ?: 0.0
             val mbps = header("X-Speed-Mbps")?.toDoubleOrNull() ?: 0.0
             metrics.putDouble("compressedSize", compressedSize)
-            metrics.putDouble("size", buffer.size.toDouble())
+            metrics.putDouble("size", countingStream.count.toDouble())
             metrics.putDouble("startTime", startTime)
             metrics.putDouble("endTime", endTime)
             metrics.putDouble("speedInMbps", mbps)
         }
 
-        val bodyString = buffer.readUtf8()
         try {
             when (val json = JSONTokener(bodyString).nextValue()) {
                 is JSONArray -> {

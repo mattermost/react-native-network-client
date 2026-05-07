@@ -10,7 +10,7 @@ Pod::Spec.new do |s|
   s.license      = package["license"]
   s.authors      = package["author"]
 
-  s.platforms    = { :ios => "12.4" }
+  s.platforms    = { :ios => "15.1" }
   s.source       = { :git => "https://github.com/mattermost/react-native-network-client.git", :tag => "#{s.version}" }
 
   
@@ -36,7 +36,7 @@ Pod::Spec.new do |s|
 
   install_modules_dependencies(s)
 
-  s.dependency "Alamofire", "~> 5.10.2"
+  s.dependency "Alamofire", "~> 5.11.2"
   s.dependency "SwiftyJSON", "~> 5.0.2"
   s.dependency "Starscream", "~> 4.0.8"
 end

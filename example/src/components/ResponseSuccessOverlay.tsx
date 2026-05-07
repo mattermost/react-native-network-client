@@ -3,7 +3,7 @@
 
 import React from "react";
 import { ScrollView } from "react-native";
-import { Button, Divider, Overlay, Text } from "react-native-elements";
+import { Button, Divider, Text, Overlay } from "react-native-elements";
 
 import type { ClientResponse } from "@mattermost/react-native-network-client";
 

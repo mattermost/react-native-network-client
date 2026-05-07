@@ -18,6 +18,7 @@ import APIClientFastImageScreen from "./screens/APIClientFastImageScreen";
 import APIClientImportP12Screen from "./screens/APIClientImportP12Screen";
 import MattermostClientUploadScreen from "./screens/MattermostClientUploadScreen";
 import WebSocketClientScreen from "./screens/WebSocketClientScreen";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
 if (__DEV__) {
     LogBox.ignoreLogs(["Require cycle: ../node_modules/zod/lib/src/index.js"]);
@@ -27,6 +28,7 @@ const Stack = createStackNavigator();
 
 function App() {
     return (
+        <SafeAreaProvider>
         <NavigationContainer>
             <Stack.Navigator initialRouteName="ClientList">
                 <Stack.Screen name="ClientList" component={ClientListScreen} />
@@ -73,6 +75,7 @@ function App() {
                 />
             </Stack.Navigator>
         </NavigationContainer>
+        </SafeAreaProvider>
     );
 }
 

@@ -76,6 +76,7 @@ export type SessionConfiguration = {
     httpMaximumConnectionsPerHost?: Int32;
     cancelRequestsOnUnauthorized?: boolean;
     trustSelfSignedServerCertificate?: boolean;
+    collectMetrics?: boolean;
 };
 
 export type RequestAdapterConfiguration = {

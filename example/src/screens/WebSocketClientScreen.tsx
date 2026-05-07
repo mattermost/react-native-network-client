@@ -2,8 +2,9 @@
 // See LICENSE.txt for license information.
 
 import { useRoute } from "@react-navigation/native";
-import React, { useState, useEffect } from "react";
-import { SafeAreaView, ScrollView } from "react-native";
+import { useState, useEffect } from "react";
+import { ScrollView } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Button, Input, Text } from "react-native-elements";
 
 import type { WebSocketEvent } from "@mattermost/react-native-network-client";

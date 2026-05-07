@@ -2,9 +2,10 @@
 // See LICENSE.txt for license information.
 
 import { useRoute } from "@react-navigation/native";
-import React, { useState } from "react";
-import { Alert, SafeAreaView, ScrollView } from "react-native";
+import { useState } from "react";
+import { Alert, ScrollView } from "react-native";
 import { Button, Input } from "react-native-elements";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import AddHeaders from "../components/AddHeaders";
 import NumericInput from "../components/NumericInput";
@@ -107,7 +108,7 @@ const APIClientRequestScreen = () => {
     };
 
     return (
-        <SafeAreaView style={{ flex: 1 }}>
+        <SafeAreaView style={{ flex: 1}}>
             <ScrollView
                 style={{
                     backgroundColor: "#fff",

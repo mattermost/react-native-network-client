@@ -1,5 +1,5 @@
 def getKotlinVersion() {
-    return rootProject.ext.has('kotlinVersion') ? rootProject.ext.get('kotlinVersion') : "1.9.22"
+    return rootProject.ext.has('kotlinVersion') ? rootProject.ext.get('kotlinVersion') : "2.2.21"
 }
 
 buildscript {
@@ -11,7 +11,7 @@ buildscript {
     gradlePluginPortal()
   }
 
-  def kotlin_version = rootProject.ext.has('kotlinVersion') ? rootProject.ext.get('kotlinVersion') : "1.9.22"
+  def kotlin_version = rootProject.ext.has('kotlinVersion') ? rootProject.ext.get('kotlinVersion') : "2.2.21"
   dependencies {
     classpath("com.android.tools.build:gradle:7.3.1")
     classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version")
@@ -58,15 +58,23 @@ repositories {
   google()
 }
 
+configurations.all {
+  resolutionStrategy {
+    force "com.squareup.okhttp3:okhttp:5.3.2"
+    force "com.squareup.okhttp3:okhttp-urlconnection:5.3.2"
+    force "com.squareup.okhttp3:okhttp-brotli:5.3.2"
+    force "com.squareup.okio:okio:3.16.4"
+    force "org.jetbrains.kotlin:kotlin-stdlib:${getKotlinVersion()}"
+  }
+}
+
 dependencies {
   implementation 'com.facebook.react:react-native'
   implementation "org.jetbrains.kotlin:kotlin-stdlib:${getKotlinVersion()}"
-  implementation "com.squareup.okhttp3:okhttp:4.12.0"
-  implementation "com.squareup.okhttp3:okhttp-tls:4.12.0"
-  implementation "com.squareup.okhttp3:okhttp-urlconnection:4.12.0"
+  implementation "com.squareup.okhttp3:okhttp:5.3.2"
+  implementation "com.squareup.okhttp3:okhttp-urlconnection:5.3.2"
+  implementation "com.squareup.okhttp3:okhttp-brotli:5.3.2"
   implementation "androidx.datastore:datastore-preferences:1.1.1"
 
   testImplementation "junit:junit:4.13.2"
-  testImplementation "org.mockito:mockito-core:5.11.0"
-  testImplementation "com.squareup.okhttp3:mockwebserver:4.12.0"
 }

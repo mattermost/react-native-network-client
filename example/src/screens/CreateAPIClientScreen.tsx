@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, { useState } from "react";
-import { Alert, SafeAreaView, ScrollView, StyleSheet } from "react-native";
+import { useState } from "react";
+import { Alert, ScrollView, StyleSheet } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Button, CheckBox, Input } from "react-native-elements";
 
 import { getOrCreateAPIClient } from "@mattermost/react-native-network-client";
@@ -122,7 +123,7 @@ export default function CreateAPIClientScreen() {
     };
 
     return (
-        <SafeAreaView>
+        <SafeAreaView style={{ flex: 1 }}>
             <ScrollView testID="create_api_client.scroll_view">
                 <Input
                     label="Name"

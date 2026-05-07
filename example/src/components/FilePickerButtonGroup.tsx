@@ -1,5 +1,5 @@
 import React from "react";
-import DocumentPicker from "react-native-document-picker";
+import {pick, keepLocalCopy, isErrorWithCode, types} from "@react-native-documents/picker";
 import { check, request, PERMISSIONS, RESULTS } from "react-native-permissions";
 import { launchImageLibrary } from "react-native-image-picker/src";
 import { ButtonGroup } from "react-native-elements";
@@ -33,15 +33,26 @@ const FilePickerButtonGroup = (props: FilePickerButtonGroupProps) => {
         const hasPermission = await hasPhotoLibraryPermissions();
         if (hasPermission) {
             try {
-                const result = await DocumentPicker.pickSingle({
-                    type: [DocumentPicker.types.allFiles],
-                    copyTo: "cachesDirectory",
+                const [selectedFile] = await pick({
+                    allowMultipleSelection: false,
+                    type: [types.allFiles],
+                });
+                const [result] = await keepLocalCopy({
+                    files: [
+                        {
+                            uri: selectedFile.uri,
+                            fileName: selectedFile.name ?? 'fallbackName'
+                        }
+                    ],
+                    destination: "cachesDirectory",
                 });
 
-                const file: NativeFile = { ...result, uri: result.fileCopyUri };
-                props.onFilePicked(file);
+                if (result.status === 'success') {
+                    const file: NativeFile = { ...result, uri: result.localUri };
+                    props.onFilePicked(file);
+                }
             } catch (err) {
-                if (DocumentPicker.isCancel(err as Error)) {
+                if (isErrorWithCode(err)) {
                     // User cancelled the picker, exit any dialogs or menus and move on
                 } else {
                     throw err;

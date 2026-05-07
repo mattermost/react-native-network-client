@@ -111,37 +111,29 @@ While there might be a cleaner solution to this, we've opted for method swizzlin
 ### Android: 
 For Android, we provide the interceptor [android/src/main/java/com/mattermost/networkclient/interceptors/RCTClientRequestInterceptor.kt](https://github.com/mattermost/react-native-network-client/blob/master/android/src/main/java/com/mattermost/networkclient/interceptors/RCTClientRequestInterceptor.kt) that adapts the request if an APIClient is found for the request. To make this interceptor active you need to do two things:
 
-1. Add `OkHttpClientProvider.setOkHttpClientFactory(new RCTOkHttpClientFactory());` to your `MainApplication`'s `onCreate` function (see [example/android/app/src/main/java/com/example/reactnativenetworkclient/MainApplication.java](https://github.com/mattermost/react-native-network-client/blob/master/example/android/app/src/main/java/com/example/reactnativenetworkclient/MainApplication.java#L58)).
-2. Ensure that all dependencies use the same version of okhttp3 by adding the following to the dependencies block of your application's `android/app/build.gradle` file (see [example/android/app/build.gradle](https://github.com/mattermost/react-native-network-client/blob/master/example/android/app/build.gradle##L213-L214)):
+1. Add `OkHttpClientProvider.setOkHttpClientFactory(RCTOkHttpClientFactory())` to your `MainApplication`'s `onCreate` function (see [example/android/app/src/main/java/com/example/reactnativenetworkclient/MainApplication.kt](https://github.com/mattermost/react-native-network-client/blob/master/example/android/app/src/main/java/com/example/reactnativenetworkclient/MainApplication.kt)).
+2. Ensure that all dependencies use the same version of OkHttp 5, Okio, and Kotlin by adding a resolution strategy to your application's `android/app/build.gradle` file (see [example/android/app/build.gradle](https://github.com/mattermost/react-native-network-client/blob/master/example/android/app/build.gradle)):
 
+```groovy
+configurations.all {
+    resolutionStrategy {
+        force "com.squareup.okhttp3:okhttp:5.3.2"
+        force "com.squareup.okhttp3:okhttp-urlconnection:5.3.2"
+        force "com.squareup.okhttp3:okhttp-brotli:5.3.2"
+        force "com.squareup.okio:okio:3.16.4"
+        force "org.jetbrains.kotlin:kotlin-stdlib:2.2.21"
+    }
+}
 ```
-implementation "com.squareup.okhttp3:okhttp:4.9.2"
-implementation "com.squareup.okhttp3:okhttp-urlconnection:4.9.2"
-```
 
-### Enable Flipper on Android
+3. Set the Kotlin version to `2.2.21` or higher in your root `android/build.gradle`:
 
-```diff
---- a/android/app/src/debug/java/com/RNDiff/flipper/ReactNativeFlipper.java
-+++ b/android/app/src/debug/java/com/RNDiff/flipper/ReactNativeFlipper.java
-@@ -22,6 +22,8 @@ import com.facebook.react.ReactInstanceEventListener;
- import com.facebook.react.ReactInstanceManager;
- import com.facebook.react.bridge.ReactContext;
- import com.facebook.react.modules.network.NetworkingModule;
-+import com.mattermost.networkclient.RCTOkHttpClientFactory;
-+
- import okhttp3.OkHttpClient;
- 
- /**
-@@ -37,6 +39,8 @@ public class ReactNativeFlipper {
-       client.addPlugin(new SharedPreferencesFlipperPlugin(context));
-       client.addPlugin(CrashReporterPlugin.getInstance());
-       NetworkFlipperPlugin networkFlipperPlugin = new NetworkFlipperPlugin();
-+      RCTOkHttpClientFactory.Companion.setFlipperPlugin(networkFlipperPlugin);
-+
-       NetworkingModule.setCustomClientBuilder(
-           new NetworkingModule.CustomClientBuilder() {
-             @Override
+```groovy
+buildscript {
+    ext {
+        kotlinVersion = "2.2.21"
+    }
+}
 ```
 
 ## Troubleshooting

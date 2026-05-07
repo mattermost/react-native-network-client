@@ -1,6 +1,7 @@
 import { useRoute } from "@react-navigation/native";
-import React, { useState } from "react";
-import { SafeAreaView, ScrollView, View } from "react-native";
+import { useState } from "react";
+import { ScrollView, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Button, Input } from "react-native-elements";
 import RFNS from "react-native-fs";
 import { Bar as ProgressBar } from "react-native-progress";

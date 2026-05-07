@@ -26,24 +26,39 @@ interface RetryInterceptor : Interceptor {
     @Throws(IOException::class)
     override fun intercept(chain: Interceptor.Chain): Response {
         val request = chain.request()
-        var response = chain.proceed(request)
         var attempts = 1
+        var lastException: IOException? = null
 
-        while (!response.isSuccessful
-                && attempts <= retryLimit
-                && retryStatusCodes.contains(response.code)
-                && retryMethods.contains(request.method.uppercase())) {
-            runCatching { response.close() }
-            waitForMilliseconds(getWaitInterval(attempts))
-            attempts++
+        while (attempts <= retryLimit + 1) {
+            try {
+                val response = chain.proceed(request)
 
-            response = chain.proceed(request)
+                if (!response.isSuccessful
+                        && attempts <= retryLimit
+                        && retryStatusCodes.contains(response.code)
+                        && retryMethods.contains(request.method.uppercase())) {
+                    runCatching { response.close() }
+                    waitForMilliseconds(getWaitInterval(attempts))
+                    attempts++
+                    continue
+                }
+
+                if (!response.isSuccessful && attempts > retryLimit) {
+                    response.retriesExhausted = true
+                }
+
+                return response
+            } catch (e: IOException) {
+                if (attempts <= retryLimit && retryMethods.contains(request.method.uppercase())) {
+                    lastException = e
+                    waitForMilliseconds(getWaitInterval(attempts))
+                    attempts++
+                } else {
+                    throw e
+                }
+            }
         }
 
-        if (!response.isSuccessful && attempts >= retryLimit) {
-            response.retriesExhausted = true
-        }
-
-        return response
+        throw lastException!!
     }
 }

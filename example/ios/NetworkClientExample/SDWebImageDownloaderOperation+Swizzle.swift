@@ -1,5 +1,6 @@
 import Foundation
 import ObjectiveC
+import SDWebImage
 import react_native_network_client
 
 extension SDWebImageDownloaderOperation {

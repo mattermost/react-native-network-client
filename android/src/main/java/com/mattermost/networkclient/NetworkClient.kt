@@ -13,8 +13,10 @@ import com.facebook.react.bridge.ReadableType
 import com.mattermost.networkclient.enums.ApiClientEvents
 import com.mattermost.networkclient.enums.RetryTypes
 import com.mattermost.networkclient.enums.SslErrors
+import com.mattermost.networkclient.helpers.CertificateChainHelper
 import com.mattermost.networkclient.helpers.DocumentHelper
 import com.mattermost.networkclient.helpers.KeyStoreHelper
+import com.mattermost.networkclient.helpers.TrustManagerHelper
 import com.mattermost.networkclient.helpers.UploadFileRequestBody
 import com.mattermost.networkclient.interceptors.*
 import com.mattermost.networkclient.interfaces.RetryInterceptor
@@ -22,9 +24,10 @@ import com.mattermost.networkclient.metrics.MetricsEventFactory
 import com.mattermost.networkclient.metrics.RequestMetadata
 import com.mattermost.networkclient.metrics.getNetworkType
 import okhttp3.*
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.brotli.BrotliInterceptor
 import okhttp3.RequestBody.Companion.toRequestBody
-import okhttp3.internal.EMPTY_REQUEST
-import okhttp3.tls.HandshakeCertificates
+
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
@@ -32,13 +35,12 @@ import java.io.IOException
 import java.io.InputStream
 import java.net.URI
 import java.security.MessageDigest
-import java.security.SecureRandom
 import java.security.cert.CertificateException
 import java.security.cert.CertificateFactory
 import java.security.cert.X509Certificate
+import java.util.Collections
 import java.util.Locale
 import javax.net.ssl.HttpsURLConnection
-import javax.net.ssl.SSLContext
 import javax.net.ssl.X509TrustManager
 import kotlin.reflect.KProperty
 
@@ -57,6 +59,7 @@ internal class NetworkClient(private val context: Context, private val baseUrl: 
 
     private var trustSelfSignedServerCertificate = false
     private val builder: OkHttpClient.Builder = OkHttpClient().newBuilder()
+    private val emittedCertErrorHosts: MutableSet<String> = Collections.synchronizedSet(mutableSetOf())
     private var shouldCollectMetrics: Boolean = false
     private var metricsEventFactory: MetricsEventFactory? = null
 
@@ -67,6 +70,11 @@ internal class NetworkClient(private val context: Context, private val baseUrl: 
 
     companion object RequestRetriesExhausted {
         private val requestRetriesExhausted: HashMap<Response, Boolean?> = hashMapOf()
+
+        // Default media types for request bodies. If the caller also sets a Content-Type header,
+        // OkHttp uses the header value and ignores the body media type — no conflict.
+        val MEDIA_TYPE_JSON = "application/json; charset=utf-8".toMediaType()
+        val MEDIA_TYPE_TEXT = "text/plain; charset=utf-8".toMediaType()
 
         operator fun getValue(response: Response, property: KProperty<*>): Boolean? {
             return requestRetriesExhausted[response]
@@ -83,6 +91,13 @@ internal class NetworkClient(private val context: Context, private val baseUrl: 
 
     init {
         initCollectMetrics(options)
+
+        // Application interceptor: sets Accept-Encoding: br,gzip before BridgeInterceptor
+        // so BridgeInterceptor skips adding its own gzip-only header.
+        builder.addInterceptor(BrotliInterceptor)
+        // Network interceptor: decompresses brotli responses at the network layer,
+        // before CompressedResponseSizeInterceptor reads the body.
+        builder.addNetworkInterceptor(BrotliInterceptor)
 
         if (shouldCollectMetrics) {
             builder.addNetworkInterceptor(CompressedResponseSizeInterceptor())
@@ -146,18 +161,8 @@ internal class NetworkClient(private val context: Context, private val baseUrl: 
             builder.addInterceptor(bearerTokenInterceptor)
         }
 
-        val handshakeCertificates = buildHandshakeCertificates(options)
-        if (handshakeCertificates != null) {
-            val sslContext = SSLContext.getInstance("TLS")
-            val trustManager = getTrustManager(handshakeCertificates.trustManager)
-            val trustManagers = arrayOf(trustManager)
-            sslContext.init(null, trustManagers, SecureRandom())
-
-            builder.sslSocketFactory(
-                    sslContext.socketFactory,
-                    getTrustManager(handshakeCertificates.trustManager)
-            )
-        }
+        applyClientSslConfiguration(options)
+        configureSsl()
 
         if (cookieJar != null) {
             builder.cookieJar(cookieJar)
@@ -191,19 +196,11 @@ internal class NetworkClient(private val context: Context, private val baseUrl: 
     fun importClientP12AndRebuildClient(p12FilePath: String, password: String) {
         importClientP12(p12FilePath, password)
 
-        val handshakeCertificates = buildHandshakeCertificates()
-        if (handshakeCertificates != null) {
-            val sslContext = SSLContext.getInstance("TLS")
-            val trustManager = getTrustManager(handshakeCertificates.trustManager)
-            val trustManagers = arrayOf(trustManager)
-            sslContext.init(null, trustManagers, SecureRandom())
-
+        if (baseUrl != null) {
+            val (sslSocketFactory, trustManager) = buildSslConfig()
             okHttpClient = okHttpClient.newBuilder()
-                    .sslSocketFactory(
-                            sslContext.socketFactory,
-                            getTrustManager(handshakeCertificates.trustManager)
-                    )
-                    .hostnameVerifier {hostname, session ->
+                    .sslSocketFactory(sslSocketFactory, trustManager)
+                    .hostnameVerifier { hostname, session ->
                         val hv = HttpsURLConnection.getDefaultHostnameVerifier()
                         val result = hv.verify(hostname, session)
                         if (!result) {
@@ -403,37 +400,38 @@ internal class NetworkClient(private val context: Context, private val baseUrl: 
     private fun prepareRequestBody(method: String, options: ReadableMap?): RequestBody? {
         var requestBody: RequestBody? = null
 
-        if (options != null) {
-            if (options.hasKey("body")) {
-                when (options.getType("body")) {
-                    ReadableType.Array -> {
-                        val jsonBody = JSONArray(options.getArray("body")!!.toArrayList())
-                        requestBody = jsonBody.toString().toRequestBody()
-                    }
-                    ReadableType.Map -> {
-                        val jsonBody = (options.getMap("body")!!.toHashMap() as Map<*, *>?)?.let {
-                            JSONObject(
-                                it
-                            )
-                        }
-                        requestBody = jsonBody?.toString()?.toRequestBody()
-                    }
-                    ReadableType.String -> {
-                        requestBody = options.getString("body")!!.toRequestBody()
-                    }
-                    ReadableType.Null -> {
-                        requestBody = EMPTY_REQUEST
-                    }
-                    ReadableType.Boolean -> {
-                        requestBody = options.getBoolean("body").toString().toRequestBody()
-                    }
-                    ReadableType.Number -> {
-                        requestBody = options.getDouble("body").toString().toRequestBody()
-                    }
+        if (options != null && options.hasKey("body")) {
+            when (options.getType("body")) {
+                ReadableType.Array -> {
+                    val jsonBody = JSONArray(options.getArray("body")!!.toArrayList())
+                    requestBody = jsonBody.toString().toRequestBody(MEDIA_TYPE_JSON)
                 }
-            } else if (method.uppercase(Locale.ENGLISH) == "POST") {
-                requestBody = EMPTY_REQUEST
+                ReadableType.Map -> {
+                    val jsonBody = (options.getMap("body")!!.toHashMap() as Map<*, *>?)?.let {
+                        JSONObject(it)
+                    }
+                    requestBody = jsonBody?.toString()?.toRequestBody(MEDIA_TYPE_JSON)
+                }
+                ReadableType.String -> {
+                    requestBody = options.getString("body")!!.toRequestBody(MEDIA_TYPE_TEXT)
+                }
+                ReadableType.Null -> {
+                    requestBody = null
+                }
+                ReadableType.Boolean -> {
+                    requestBody = options.getBoolean("body").toString().toRequestBody(MEDIA_TYPE_JSON)
+                }
+                ReadableType.Number -> {
+                    requestBody = options.getDouble("body").toString().toRequestBody(MEDIA_TYPE_JSON)
+                }
             }
+        }
+
+        // Bodyless POST fallback (#9689): WAFs reject POSTs without a Content-Type, and
+        // OkHttp also requires POST to have a body. Apply for null options, missing "body"
+        // key, and explicit ReadableType.Null. Caller can override Content-Type via headers.
+        if (requestBody == null && method.uppercase(Locale.ENGLISH) == "POST") {
+            requestBody = "".toRequestBody(MEDIA_TYPE_JSON)
         }
 
         return requestBody
@@ -508,10 +506,23 @@ internal class NetworkClient(private val context: Context, private val baseUrl: 
 
             @Throws(CertificateException::class)
             override fun checkServerTrusted(chain: Array<X509Certificate>, authType: String) {
+                if (trustSelfSignedServerCertificate && isSelfSigned(chain.firstOrNull())) return
                 try {
                     defaultTrustManager.checkServerTrusted(chain, authType)
                 } catch (ce: CertificateException) {
-                    emitInvalidCertificateError()
+                    // Attempt AIA chain completion before giving up. Servers that send only
+                    // the leaf certificate (missing intermediates) will pass after fetching
+                    // the intermediate from the AIA caIssuers URL in the leaf cert (#9701).
+                    val augmented = CertificateChainHelper.completeChain(chain)
+                    if (augmented.size > chain.size) {
+                        try {
+                            defaultTrustManager.checkServerTrusted(augmented, authType)
+                            return
+                        } catch (_: CertificateException) {
+                            // augmented chain still invalid — fall through to emit the error
+                        }
+                    }
+                    emitInvalidCertificateError(chain, ce)
                     throw ce
                 }
             }
@@ -522,11 +533,38 @@ internal class NetworkClient(private val context: Context, private val baseUrl: 
         }
     }
 
-    internal fun emitInvalidCertificateError() {
+    // A cert is self-signed when its subject equals its issuer AND the signature verifies
+    // against its own public key. The signature check is what stops an attacker from
+    // forging self-signed status by copying subject/issuer fields.
+    private fun isSelfSigned(cert: X509Certificate?): Boolean {
+        if (cert == null) return false
+        if (cert.subjectX500Principal != cert.issuerX500Principal) return false
+        return try {
+            cert.verify(cert.publicKey)
+            true
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    internal fun emitInvalidCertificateError(
+        chain: Array<X509Certificate>? = null,
+        cause: CertificateException? = null
+    ) {
+        val host = URI(baseUrlString).host
+        // Emit only once per client instance — retries would otherwise flood the JS layer (#7658).
+        if (!emittedCertErrorHosts.add(host)) return
+
+        val certInfo = chain?.firstOrNull()?.let { cert ->
+            " Subject: ${cert.subjectDN.name}. Issuer: ${cert.issuerDN.name}. Expires: ${cert.notAfter}."
+        } ?: ""
+        val reason = cause?.message?.let { " Reason: $it." } ?: ""
+
         val data = Arguments.createMap()
         data.putString("serverUrl", baseUrlString)
         data.putInt("errorCode", -299)
-        data.putString("errorDescription", "The certificate for this server is invalid.\nYou might be connecting to a server that is pretending to be “${URI(baseUrlString).host}” which could put your confidential information at risk.")
+        data.putString("errorDescription",
+            "The certificate for this server is invalid.\nYou might be connecting to a server that is pretending to be \"$host\" which could put your confidential information at risk.$certInfo$reason")
         ApiClientModuleImpl.sendJSEvent(ApiClientEvents.CLIENT_ERROR.event, data)
     }
 
@@ -538,52 +576,76 @@ internal class NetworkClient(private val context: Context, private val baseUrl: 
         ApiClientModuleImpl.sendJSEvent(ApiClientEvents.CLIENT_ERROR.event, data)
     }
 
-    private fun buildHandshakeCertificates(options: ReadableMap?): HandshakeCertificates? {
-        if (options != null) {
-            // `trustSelfSignedServerCertificate` can be in `options.sessionConfiguration` for
-            // an APIClient or just in `options` for a WebSocketClient
-            if (options.hasKey("sessionConfiguration")) {
-                val sessionConfiguration = options.getMap("sessionConfiguration")!!
-                if (sessionConfiguration.hasKey("trustSelfSignedServerCertificate") &&
-                        sessionConfiguration.getBoolean("trustSelfSignedServerCertificate")) {
-                    trustSelfSignedServerCertificate = true
-                    builder.hostnameVerifier { _, _ -> true }
-                } else {
-                    buildHostnameVerifier()
-                }
-            } else if (options.hasKey("trustSelfSignedServerCertificate") &&
-                    options.getBoolean("trustSelfSignedServerCertificate")) {
-                trustSelfSignedServerCertificate = true
-                builder.hostnameVerifier { _, _ -> true }
-            } else {
-                buildHostnameVerifier()
-            }
-
-            if (options.hasKey("clientP12Configuration")) {
-                val clientP12Configuration = options.getMap("clientP12Configuration")!!
-                val path = clientP12Configuration.getString("path")!!
-                val password = if (clientP12Configuration.hasKey("password")) {
-                    clientP12Configuration.getString("password")!!
-                } else {
-                    ""
-                }
-
-                try {
-                    importClientP12(path, password)
-                } catch (error: Exception) {
-                    val data = Arguments.createMap()
-                    data.putString("serverUrl", baseUrlString)
-                    data.putString("errorDescription", error.localizedMessage)
-                    ApiClientModuleImpl.sendJSEvent(ApiClientEvents.CLIENT_ERROR.event, data)
-                }
-            }
+    // Reads trust/hostname/client-cert options and configures the OkHttp builder accordingly.
+    // Must be called before configureSsl() so that trustSelfSignedServerCertificate is set.
+    private fun applyClientSslConfiguration(options: ReadableMap?) {
+        if (options == null) {
+            buildHostnameVerifier()
+            return
         }
 
-        return buildHandshakeCertificates()
+        // trustSelfSignedServerCertificate can be nested under sessionConfiguration (APIClient)
+        // or at the top level (WebSocketClient).
+        val trustSelf = if (options.hasKey("sessionConfiguration")) {
+            val cfg = options.getMap("sessionConfiguration")!!
+            cfg.hasKey("trustSelfSignedServerCertificate") &&
+                    cfg.getBoolean("trustSelfSignedServerCertificate")
+        } else {
+            options.hasKey("trustSelfSignedServerCertificate") &&
+                    options.getBoolean("trustSelfSignedServerCertificate")
+        }
+
+        if (trustSelf) {
+            trustSelfSignedServerCertificate = true
+            builder.hostnameVerifier { _, _ -> true }
+        } else {
+            buildHostnameVerifier()
+        }
+
+        if (options.hasKey("clientP12Configuration")) {
+            val clientP12Configuration = options.getMap("clientP12Configuration")!!
+            KeyStoreHelper.deleteClientCertificates(p12Alias)
+            val path = clientP12Configuration.getString("path")!!
+            val password = if (clientP12Configuration.hasKey("password")) {
+                clientP12Configuration.getString("password")!!
+            } else {
+                ""
+            }
+
+            try {
+                importClientP12(path, password)
+            } catch (error: Exception) {
+                val data = Arguments.createMap()
+                data.putString("serverUrl", baseUrlString)
+                data.putString("errorDescription", error.localizedMessage)
+                ApiClientModuleImpl.sendJSEvent(ApiClientEvents.CLIENT_ERROR.event, data)
+            }
+        }
+    }
+
+    // Applies the SSL socket factory to the builder. Call after applyClientSslConfiguration().
+    private fun configureSsl() {
+        val (sslSocketFactory, trustManager) = buildSslConfig()
+        builder.sslSocketFactory(sslSocketFactory, trustManager)
+    }
+
+    // The SSLContext is initialized with the *wrapped* trust manager so that AIA chain
+    // completion, the self-signed bypass and dedup error emission run during the handshake.
+    // Initializing with the raw trust manager would leave the wrapper unused.
+    private fun buildSslConfig(): Pair<javax.net.ssl.SSLSocketFactory, X509TrustManager> {
+        val clientCertKeyStore = KeyStoreHelper.getClientCertKeyStore(p12Alias)
+        val keyManagers = TrustManagerHelper.buildKeyManagers(
+            clientCertKeyStore?.first,
+            clientCertKeyStore?.second
+        )
+        val trustManager = getTrustManager(TrustManagerHelper.buildTrustManager())
+        val sslContext = javax.net.ssl.SSLContext.getInstance("TLS")
+        sslContext.init(keyManagers, arrayOf(trustManager), java.security.SecureRandom())
+        return Pair(sslContext.socketFactory, trustManager)
     }
 
     private fun buildHostnameVerifier() {
-        builder.hostnameVerifier {hostname, session ->
+        builder.hostnameVerifier { hostname, session ->
             val hv = HttpsURLConnection.getDefaultHostnameVerifier()
             val result = hv.verify(hostname, session)
             if (!result) {
@@ -591,26 +653,6 @@ internal class NetworkClient(private val context: Context, private val baseUrl: 
             }
             result
         }
-    }
-
-    private fun buildHandshakeCertificates(): HandshakeCertificates? {
-        if (baseUrl == null)
-            return null
-
-        val (heldCertificate, intermediates) = KeyStoreHelper.getClientCertificates(p12Alias)
-
-        val builder = HandshakeCertificates.Builder()
-                .addPlatformTrustedCertificates()
-
-        if (trustSelfSignedServerCertificate) {
-            builder.addInsecureHost(baseUrl.host)
-        }
-
-        if (heldCertificate != null) {
-            builder.heldCertificate(heldCertificate, *intermediates!!)
-        }
-
-        return builder.build()
     }
 
     /**
@@ -794,6 +836,6 @@ internal class NetworkClient(private val context: Context, private val baseUrl: 
 
     private fun rejectInvalidCertificate(promise: Promise, host: String) {
         emitInvalidCertificateError()
-        promise.reject(Exception("The certificate for this server is invalid.\nYou might be connecting to a server that is pretending to be “${host}” which could put your confidential information at risk."))
+        promise.reject(Exception("The certificate for this server is invalid.\nYou might be connecting to a server that is pretending to be \"$host\" which could put your confidential information at risk."))
     }
 }
