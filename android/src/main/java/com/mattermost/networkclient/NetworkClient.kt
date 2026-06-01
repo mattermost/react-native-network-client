@@ -551,7 +551,12 @@ internal class NetworkClient(private val context: Context, private val baseUrl: 
         chain: Array<X509Certificate>? = null,
         cause: CertificateException? = null
     ) {
-        val host = URI(baseUrlString).host
+        // Prefer the host from HttpUrl (non-null by contract). Fall back to URI parsing
+        // and then to the raw baseUrlString so the message never contains "null" and
+        // emittedCertErrorHosts.add() never gets a null key (#9789).
+        val host = baseUrl?.host
+            ?: runCatching { URI(baseUrlString).host }.getOrNull()
+            ?: baseUrlString
         // Emit only once per client instance — retries would otherwise flood the JS layer (#7658).
         if (!emittedCertErrorHosts.add(host)) return
 
