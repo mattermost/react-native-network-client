@@ -20,6 +20,12 @@ module Pod
         # target file in the diff (every patch here touches a single file) and is
         # wrapped so any parsing failure falls through to the normal apply path —
         # it can only ADD a skip, never block a legitimate first application.
+        #
+        # The signature is the largest CONTIGUOUS block of added lines (in order,
+        # with original indentation preserved), not a single line: a lone line
+        # could coincidentally already exist elsewhere in the file and cause a
+        # false skip on a genuine first apply. An ordered multi-line block is a
+        # far stronger "already applied" signal.
         def patch_additions_present?(file, repo_root, directory_arg)
             diff = File.read(file)
             target_rel = diff[/^\+\+\+\sb\/(.+?)\s*$/, 1]
@@ -33,13 +39,27 @@ module Pod
             target = File.join(repo_root, directory_arg, stripped)
             return false unless File.exist?(target)
 
-            added = diff.each_line
-                        .select { |l| l.start_with?('+') && !l.start_with?('+++') }
-                        .map { |l| l[1..].to_s.strip }
-                        .reject(&:empty?)
-            return false if added.empty?
+            # Group added (`+`) lines into contiguous runs, preserving each line's
+            # original indentation (only the leading '+' marker is removed). A run
+            # is broken by any context/removed/hunk line.
+            runs = []
+            current = []
+            diff.each_line do |line|
+                chomped = line.chomp
+                if chomped.start_with?('+') && !chomped.start_with?('+++')
+                    current << chomped[1..].to_s
+                else
+                    runs << current unless current.empty?
+                    current = []
+                end
+            end
+            runs << current unless current.empty?
+            return false if runs.empty?
 
-            signature = added.max_by(&:length)
+            # Largest contiguous block (most lines) = strongest ordered anchor.
+            signature = runs.max_by(&:length).join("\n")
+            return false if signature.strip.empty?
+
             File.read(target).include?(signature)
         rescue StandardError => e
             Pod::UI.warn "Idempotency check skipped for #{file}: #{e}"
