@@ -9,25 +9,15 @@ class CompressedResponseSizeInterceptor(private val metricsEventFactory: Metrics
     override fun intercept(chain: Interceptor.Chain): Response {
         val startTime = System.nanoTime()
         val response = chain.proceed(chain.request())
-        val endTime = System.nanoTime()
-
-        val compressedSize = response.header("Content-Length")?.toLongOrNull()
-            ?: response.header("content-length")?.toLongOrNull()
-
-        if (compressedSize != null) {
-            val metadata = metricsEventFactory?.getMetadata(chain.call())
-            metadata?.compressedSize = compressedSize
-            metadata?.requestStartNanos = startTime
-            metadata?.requestEndNanos = endTime
-            return response
-        }
 
         val body = response.body ?: return response
         val call = chain.call()
+        val expectedSize = response.header("Content-Length")?.toLongOrNull()
+            ?: response.header("content-length")?.toLongOrNull()
 
         val countingBody = CountingResponseBody(body) { bytesRead ->
             val metadata = metricsEventFactory?.getMetadata(call)
-            metadata?.compressedSize = bytesRead
+            metadata?.compressedSize = expectedSize ?: bytesRead
             metadata?.requestStartNanos = startTime
             metadata?.requestEndNanos = System.nanoTime()
         }
