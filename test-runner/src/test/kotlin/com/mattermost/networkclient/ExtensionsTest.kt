@@ -86,7 +86,6 @@ internal fun sniffIsJson(stream: InputStream): Pair<Boolean, java.io.PushbackInp
 internal fun readCappedString(stream: InputStream): String {
     val sb = StringBuilder()
     val charBuffer = CharArray(64 * 1024)
-    val drainBuffer = ByteArray(64 * 1024)
     var totalChars = 0
     java.io.InputStreamReader(stream, StandardCharsets.UTF_8).use { reader ->
         var read = reader.read(charBuffer)
@@ -95,6 +94,7 @@ internal fun readCappedString(stream: InputStream): String {
             if (toAppend > 0) sb.append(charBuffer, 0, toAppend)
             totalChars += read
             if (totalChars >= MAX_STRING_BODY_CHARS) {
+                val drainBuffer = ByteArray(64 * 1024)
                 while (stream.read(drainBuffer) != -1) { /* drain */ }
                 break
             }

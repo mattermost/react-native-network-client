@@ -144,7 +144,6 @@ internal fun sniffIsJson(stream: InputStream): Pair<Boolean, PushbackInputStream
 internal fun readCappedString(stream: InputStream): String {
     val sb = StringBuilder()
     val charBuffer = CharArray(64 * 1024)
-    val drainBuffer = ByteArray(64 * 1024)
     var totalChars = 0
     InputStreamReader(stream, StandardCharsets.UTF_8).use { reader ->
         var read = reader.read(charBuffer)
@@ -155,6 +154,7 @@ internal fun readCappedString(stream: InputStream): String {
             if (totalChars >= MAX_STRING_BODY_CHARS) {
                 // Drain remaining bytes via the raw stream to release Okio segments
                 // without accumulating any more data in heap.
+                val drainBuffer = ByteArray(64 * 1024)
                 while (stream.read(drainBuffer) != -1) { /* drain */ }
                 break
             }
@@ -326,8 +326,10 @@ fun Response.toWritableMap(metadata: RequestMetadata?): WritableMap {
                 } finally {
                     // Drain any remaining bytes before the reader closes the stream so
                     // OkHttp can reuse the connection and countingStream.count is accurate.
-                    val drainBuffer = ByteArray(64 * 1024)
-                    try { while (pushback.read(drainBuffer) != -1) { /* drain */ } } catch (_: Exception) { }
+                    try {
+                        val drainBuffer = ByteArray(64 * 1024)
+                        while (pushback.read(drainBuffer) != -1) { /* drain */ }
+                    } catch (_: Exception) { }
                 }
             }
         } else {
