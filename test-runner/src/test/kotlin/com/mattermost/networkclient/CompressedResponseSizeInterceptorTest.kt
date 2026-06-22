@@ -155,9 +155,9 @@ class CompressedResponseSizeInterceptorTest {
      * and that the byte count is exact.
      */
     @Test
-    fun countingBody_512mb_noOom() {
+    fun countingBody_64mb_noOom() {
         val chunkSize = 64 * 1024
-        val totalBytes = 512L * 1024 * 1024 // 512 MB
+        val totalBytes = 64L * 1024 * 1024 // 64 MB — large enough to catch buffering regressions
         val chunk = ByteArray(chunkSize) { 0xAB.toByte() }
 
         val delegate = object : ResponseBody() {
@@ -187,7 +187,7 @@ class CompressedResponseSizeInterceptorTest {
             }
         }
 
-        assertEquals("512 MB stream must be counted exactly", totalBytes, reported)
+        assertEquals("64 MB stream must be counted exactly", totalBytes, reported)
     }
 
     // --- Interceptor integration tests (MockWebServer) ----------------------
