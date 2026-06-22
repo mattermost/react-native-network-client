@@ -100,7 +100,7 @@ internal class NetworkClient(private val context: Context, private val baseUrl: 
         builder.addNetworkInterceptor(BrotliInterceptor)
 
         if (shouldCollectMetrics) {
-            builder.addNetworkInterceptor(CompressedResponseSizeInterceptor())
+            builder.addNetworkInterceptor(CompressedResponseSizeInterceptor(metricsEventFactory))
         }
 
         if (baseUrl == null) {

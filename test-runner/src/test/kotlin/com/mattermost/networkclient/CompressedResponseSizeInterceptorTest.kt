@@ -1,176 +1,316 @@
 package com.mattermost.networkclient
 
+import okhttp3.Interceptor
+import okhttp3.MediaType
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.Response
+import okhttp3.ResponseBody
+import okhttp3.ResponseBody.Companion.toResponseBody
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
-import okhttp3.Interceptor
-import okhttp3.Response
-import okhttp3.ResponseBody.Companion.toResponseBody
-import org.junit.Assert
+import okio.Buffer
+import okio.BufferedSource
+import okio.ForwardingSource
+import okio.buffer
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
-import java.util.Locale
+import java.util.concurrent.atomic.AtomicLong
 
-/**
- * Standalone test for CompressedResponseSizeInterceptor locale behavior.
- *
- * Reproduces MATTERMOST-MOBILE-ANDROID-AZ02: on Arabic-locale devices,
- * String.format() produces Arabic-Indic digits (U+0660 range) in the
- * X-Speed-Mbps header, which OkHttp rejects as invalid header characters.
- */
+// ---------------------------------------------------------------------------
+// Inline copy of CountingResponseBody (no Android deps in test-runner)
+// ---------------------------------------------------------------------------
+
+class CountingResponseBody(
+    private val delegate: ResponseBody,
+    private val onComplete: (Long) -> Unit,
+) : ResponseBody() {
+    private var totalBytesRead = 0L
+    private var completed = false
+
+    override fun contentType(): MediaType? = delegate.contentType()
+    override fun contentLength(): Long = delegate.contentLength()
+
+    override fun source(): BufferedSource {
+        val countingSource = object : ForwardingSource(delegate.source()) {
+            override fun read(sink: Buffer, byteCount: Long): Long {
+                val read = super.read(sink, byteCount)
+                if (read != -1L) {
+                    totalBytesRead += read
+                } else {
+                    notifyComplete()
+                }
+                return read
+            }
+
+            override fun close() {
+                notifyComplete()
+                super.close()
+            }
+        }
+        return countingSource.buffer()
+    }
+
+    private fun notifyComplete() {
+        if (!completed) {
+            completed = true
+            onComplete(totalBytesRead)
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Interceptor that mirrors CompressedResponseSizeInterceptor logic,
+// writing results into a shared AtomicLong instead of RequestMetadata
+// (no Android deps in test-runner).
+// ---------------------------------------------------------------------------
+
+class TestCompressedResponseSizeInterceptor(
+    private val compressedSizeOut: AtomicLong,
+) : Interceptor {
+    override fun intercept(chain: Interceptor.Chain): Response {
+        val response = chain.proceed(chain.request())
+
+        val contentLength = response.header("Content-Length")?.toLongOrNull()
+            ?: response.header("content-length")?.toLongOrNull()
+
+        if (contentLength != null) {
+            compressedSizeOut.set(contentLength)
+            return response
+        }
+
+        val body = response.body ?: return response
+
+        val countingBody = CountingResponseBody(body) { bytesRead ->
+            compressedSizeOut.set(bytesRead)
+        }
+        return response.newBuilder().body(countingBody).build()
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Tests
+// ---------------------------------------------------------------------------
+
 class CompressedResponseSizeInterceptorTest {
 
-    companion object {
-        /**
-         * Lock to prevent parallel tests from racing on Locale.setDefault().
-         * JVM locale is global state — concurrent mutation causes flaky tests.
-         */
-        private val LOCALE_LOCK = Any()
+    // --- CountingResponseBody unit tests ------------------------------------
+
+    @Test
+    fun countingBody_reportsCorrectSizeAtEof() {
+        val payload = "Hello, World!".toByteArray()
+        val delegate = payload.toResponseBody("text/plain".toMediaType())
+
+        var reported = -1L
+        val body = CountingResponseBody(delegate) { reported = it }
+
+        body.source().use { src ->
+            val sink = Buffer()
+            while (src.read(sink, 8192) != -1L) { /* drain */ }
+        }
+
+        assertEquals(payload.size.toLong(), reported)
+    }
+
+    @Test
+    fun countingBody_reportsOnCloseBeforeEof() {
+        val payload = ByteArray(1024) { it.toByte() }
+        val delegate = payload.toResponseBody("application/octet-stream".toMediaType())
+
+        var reported = -1L
+        val body = CountingResponseBody(delegate) { reported = it }
+
+        body.source().use { src ->
+            val sink = Buffer()
+            // Read only half then close — close() must still fire onComplete
+            src.read(sink, 512)
+        }
+
+        assertTrue("onComplete should have fired on early close", reported >= 0)
+        assertTrue("reported count should be <= total", reported <= payload.size.toLong())
+    }
+
+    @Test
+    fun countingBody_onCompleteFiresExactlyOnce() {
+        val payload = "data".toByteArray()
+        val delegate = payload.toResponseBody("text/plain".toMediaType())
+
+        var callCount = 0
+        val body = CountingResponseBody(delegate) { callCount++ }
+
+        body.source().use { src ->
+            val sink = Buffer()
+            // Read to EOF (fires onComplete via read returning -1)…
+            while (src.read(sink, 8192) != -1L) { /* drain */ }
+            // …then close() runs — must NOT fire again
+        }
+
+        assertEquals("onComplete must fire exactly once", 1, callCount)
     }
 
     /**
-     * Interceptor using the BROKEN locale-dependent formatting.
-     * This is what the code did before the fix.
+     * Streams a 512 MB synthetic response through CountingResponseBody using a
+     * on-the-fly source that never allocates more than one 64 KB chunk at a time.
+     * Peak heap is ~64 KB regardless of total size — this test proves no OOM occurs
+     * and that the byte count is exact.
      */
-    class BrokenInterceptor : Interceptor {
-        override fun intercept(chain: Interceptor.Chain): Response {
-            val startTime = System.nanoTime()
-            val response = chain.proceed(chain.request())
-            val endTime = System.nanoTime()
-            val elapsedTimeSeconds = (endTime - startTime) / 1_000_000_000.0
-            val compressedSize = response.header("Content-Length")?.toLongOrNull() ?: 0L
-            val speedMbps = if (elapsedTimeSeconds > 0 && compressedSize > 0) {
-                (compressedSize * 8 / elapsedTimeSeconds) / 1_000_000.0
-            } else {
-                0.0
-            }
-            return response.newBuilder()
-                .header("X-Speed-Mbps", "%.4f".format(speedMbps)) // locale-dependent!
-                .build()
-        }
-    }
-
-    /**
-     * Interceptor using the FIXED locale-independent formatting.
-     */
-    class FixedInterceptor : Interceptor {
-        override fun intercept(chain: Interceptor.Chain): Response {
-            val startTime = System.nanoTime()
-            val response = chain.proceed(chain.request())
-            val endTime = System.nanoTime()
-            val elapsedTimeSeconds = (endTime - startTime) / 1_000_000_000.0
-            val compressedSize = response.header("Content-Length")?.toLongOrNull() ?: 0L
-            val speedMbps = if (elapsedTimeSeconds > 0 && compressedSize > 0) {
-                (compressedSize * 8 / elapsedTimeSeconds) / 1_000_000.0
-            } else {
-                0.0
-            }
-            return response.newBuilder()
-                .header("X-Speed-Mbps", String.format(Locale.US, "%.4f", speedMbps))
-                .build()
-        }
-    }
-
     @Test
-    fun brokenInterceptor_failsWithArabicLocale() {
-        synchronized(LOCALE_LOCK) {
-            val originalLocale = Locale.getDefault()
-            try {
-                // Set Arabic locale — causes String.format to use Arabic-Indic digits
-                Locale.setDefault(Locale("ar"))
+    fun countingBody_512mb_noOom() {
+        val chunkSize = 64 * 1024
+        val totalBytes = 512L * 1024 * 1024 // 512 MB
+        val chunk = ByteArray(chunkSize) { 0xAB.toByte() }
 
-                MockWebServer().use { server ->
-                    server.enqueue(MockResponse()
-                        .setBody("hello")
-                        .setHeader("Content-Length", "5"))
-                    server.start()
-
-                    val client = OkHttpClient.Builder()
-                        .addInterceptor(BrokenInterceptor())
-                        .build()
-
-                    val request = Request.Builder()
-                        .url(server.url("/test"))
-                        .build()
-
-                    // The broken interceptor produces Arabic-Indic digits in the header value.
-                    // OkHttp's header validation rejects non-ASCII characters.
-                    try {
-                        client.newCall(request).execute().use { /* auto-close */ }
-                        Assert.fail("Expected IllegalArgumentException from OkHttp header validation")
-                    } catch (e: IllegalArgumentException) {
-                        Assert.assertTrue(
-                            "Expected error about unexpected char in header value",
-                            e.message?.contains("Unexpected char") == true
-                        )
-                    }
+        val delegate = object : ResponseBody() {
+            private val src: BufferedSource = object : ForwardingSource(Buffer()) {
+                private var remaining = totalBytes
+                override fun read(sink: Buffer, byteCount: Long): Long {
+                    if (remaining <= 0L) return -1L
+                    val toWrite = minOf(byteCount, remaining, chunkSize.toLong())
+                    sink.write(chunk, 0, toWrite.toInt())
+                    remaining -= toWrite
+                    return toWrite
                 }
-            } finally {
-                Locale.setDefault(originalLocale)
+            }.buffer()
+
+            override fun contentType() = "application/octet-stream".toMediaType()
+            override fun contentLength() = totalBytes
+            override fun source() = src
+        }
+
+        var reported = -1L
+        val body = CountingResponseBody(delegate) { reported = it }
+
+        body.source().use { src ->
+            val sink = Buffer()
+            while (src.read(sink, chunkSize.toLong()) != -1L) {
+                sink.clear() // discard immediately — never accumulate in heap
             }
         }
+
+        assertEquals("512 MB stream must be counted exactly", totalBytes, reported)
     }
 
-    @Test
-    fun fixedInterceptor_succeedsWithArabicLocale() {
-        synchronized(LOCALE_LOCK) {
-            val originalLocale = Locale.getDefault()
-            try {
-                Locale.setDefault(Locale("ar"))
-
-                MockWebServer().use { server ->
-                    server.enqueue(MockResponse()
-                        .setBody("hello")
-                        .setHeader("Content-Length", "5"))
-                    server.start()
-
-                    val client = OkHttpClient.Builder()
-                        .addInterceptor(FixedInterceptor())
-                        .build()
-
-                    val request = Request.Builder()
-                        .url(server.url("/test"))
-                        .build()
-
-                    client.newCall(request).execute().use { response ->
-                        // Should succeed without throwing
-                        val speedHeader = response.header("X-Speed-Mbps")
-                        Assert.assertNotNull("X-Speed-Mbps header should be present", speedHeader)
-
-                        // Verify the value contains only ASCII characters
-                        Assert.assertTrue(
-                            "Header value should contain only ASCII: $speedHeader",
-                            speedHeader!!.all { it.code in 0x20..0x7E }
-                        )
-                    }
-                }
-            } finally {
-                Locale.setDefault(originalLocale)
-            }
-        }
-    }
+    // --- Interceptor integration tests (MockWebServer) ----------------------
 
     @Test
-    fun fixedInterceptor_succeedsWithUSLocale() {
+    fun interceptor_usesContentLengthWhenPresent() {
         MockWebServer().use { server ->
-            server.enqueue(MockResponse()
-                .setBody("hello")
-                .setHeader("Content-Length", "5"))
+            server.enqueue(
+                MockResponse()
+                    .setBody("hello")
+                    .setHeader("Content-Length", "5")
+            )
             server.start()
 
+            val sizeOut = AtomicLong(-1)
             val client = OkHttpClient.Builder()
-                .addInterceptor(FixedInterceptor())
+                .addNetworkInterceptor(TestCompressedResponseSizeInterceptor(sizeOut))
                 .build()
 
-            val request = Request.Builder()
-                .url(server.url("/test"))
+            client.newCall(Request.Builder().url(server.url("/")).build())
+                .execute().use { it.body?.string() }
+
+            assertEquals("Should use Content-Length directly", 5L, sizeOut.get())
+        }
+    }
+
+    @Test
+    fun interceptor_countsChunkedBodyCorrectly() {
+        val body = "chunked response body"
+        MockWebServer().use { server ->
+            server.enqueue(MockResponse().setChunkedBody(body, 4))
+            server.start()
+
+            val sizeOut = AtomicLong(-1)
+            val client = OkHttpClient.Builder()
+                .addNetworkInterceptor(TestCompressedResponseSizeInterceptor(sizeOut))
                 .build()
 
-            client.newCall(request).execute().use { response ->
-                val speedHeader = response.header("X-Speed-Mbps")
-                Assert.assertNotNull(speedHeader)
-                Assert.assertTrue(speedHeader!!.all { it.code in 0x20..0x7E })
-            }
+            client.newCall(Request.Builder().url(server.url("/")).build())
+                .execute().use { it.body?.string() }
+
+            assertEquals(
+                "Should count chunked body bytes correctly",
+                body.toByteArray().size.toLong(),
+                sizeOut.get()
+            )
+        }
+    }
+
+    /**
+     * 8 MB chunked response via MockWebServer — the largest safe size since
+     * MockWebServer buffers the full body before serving. Verifies that the
+     * interceptor streams without OOM and reports the exact byte count.
+     */
+    @Test
+    fun interceptor_8mb_chunkedBody_noOom() {
+        val payloadSize = 8 * 1024 * 1024
+        val payload = ByteArray(payloadSize) { (it % 256).toByte() }
+
+        MockWebServer().use { server ->
+            server.enqueue(MockResponse().setChunkedBody(okio.Buffer().write(payload), 32768))
+            server.start()
+
+            val sizeOut = AtomicLong(-1)
+            val client = OkHttpClient.Builder()
+                .addNetworkInterceptor(TestCompressedResponseSizeInterceptor(sizeOut))
+                .build()
+
+            client.newCall(Request.Builder().url(server.url("/")).build())
+                .execute().use { response ->
+                    response.body?.source()?.use { src ->
+                        val sink = Buffer()
+                        while (src.read(sink, 32768) != -1L) sink.clear()
+                    }
+                }
+
+            assertEquals(payloadSize.toLong(), sizeOut.get())
+        }
+    }
+
+    @Test
+    fun interceptor_reportsZeroForEmptyBody() {
+        MockWebServer().use { server ->
+            server.enqueue(MockResponse().setBody(""))
+            server.start()
+
+            val sizeOut = AtomicLong(-1)
+            val client = OkHttpClient.Builder()
+                .addNetworkInterceptor(TestCompressedResponseSizeInterceptor(sizeOut))
+                .build()
+
+            client.newCall(Request.Builder().url(server.url("/")).build())
+                .execute().use { it.body?.string() }
+
+            assertTrue("Size should be >= 0 for empty body", sizeOut.get() >= 0)
+        }
+    }
+
+    @Test
+    fun interceptor_reportsCorrectly_whenBodyClosedEarly() {
+        val body = "abcdefghijklmnopqrstuvwxyz"
+        MockWebServer().use { server ->
+            server.enqueue(MockResponse().setChunkedBody(body, 4))
+            server.start()
+
+            val sizeOut = AtomicLong(-1)
+            val client = OkHttpClient.Builder()
+                .addNetworkInterceptor(TestCompressedResponseSizeInterceptor(sizeOut))
+                .build()
+
+            client.newCall(Request.Builder().url(server.url("/")).build())
+                .execute().use { response ->
+                    response.body?.source()?.use { src ->
+                        val sink = Buffer()
+                        src.read(sink, 10) // read only first 10 bytes then close
+                    }
+                }
+
+            // onComplete must have fired via close() even without reading to EOF
+            assertTrue("onComplete should fire on early close", sizeOut.get() >= 0)
+            assertTrue("Partial read should be <= total body size", sizeOut.get() <= body.length.toLong())
         }
     }
 }
