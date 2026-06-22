@@ -9,18 +9,18 @@ import java.io.InputStream
 import java.nio.charset.StandardCharsets
 
 /**
- * Pure-JVM tests for the internal helper functions extracted from Extensions.kt.
- * These call the real production functions — no substitutions.
+ * Pure-JVM tests for the internal helper functions from Extensions.kt.
+ *
+ * The test-runner has no Android SDK, so the helpers are duplicated below
+ * rather than imported. These copies MUST be kept in sync with Extensions.kt
+ * whenever the originals change.
  *
  * Functions under test:
  *   isMimeTypeJson, isJsonNumberFloat, stripBom, sniffIsJson, readCappedString
  */
 
 // ---------------------------------------------------------------------------
-// Inline copies of the internal production functions.
-// These must stay byte-for-byte identical to the originals in Extensions.kt.
-// The test-runner is a plain JVM module with no Android SDK — the functions
-// themselves have no Android deps so they compile and run here as-is.
+// Inline copies of the internal production functions (no Android deps).
 // ---------------------------------------------------------------------------
 
 private val SNIFF_BYTES = 1024

@@ -180,11 +180,14 @@ private fun JsonReader.readWritableMap(): WritableMap {
             JsonToken.NUMBER -> {
                 val raw = nextString()
                 if (isJsonNumberFloat(raw)) {
-                    map.putDouble(key, raw.toDouble())
+                    raw.toDoubleOrNull()?.let { map.putDouble(key, it) } ?: map.putString(key, raw)
                 } else {
-                    val l = raw.toLong()
-                    if (l in Int.MIN_VALUE..Int.MAX_VALUE) map.putInt(key, l.toInt())
-                    else map.putDouble(key, l.toDouble())
+                    val l = raw.toLongOrNull()
+                    when {
+                        l == null -> raw.toDoubleOrNull()?.let { map.putDouble(key, it) } ?: map.putString(key, raw)
+                        l in Int.MIN_VALUE..Int.MAX_VALUE -> map.putInt(key, l.toInt())
+                        else -> map.putDouble(key, l.toDouble())
+                    }
                 }
             }
             JsonToken.NULL -> { nextNull(); map.putNull(key) }
@@ -210,11 +213,14 @@ private fun JsonReader.readWritableArray(): WritableArray {
             JsonToken.NUMBER -> {
                 val raw = nextString()
                 if (isJsonNumberFloat(raw)) {
-                    array.pushDouble(raw.toDouble())
+                    raw.toDoubleOrNull()?.let { array.pushDouble(it) } ?: array.pushString(raw)
                 } else {
-                    val l = raw.toLong()
-                    if (l in Int.MIN_VALUE..Int.MAX_VALUE) array.pushInt(l.toInt())
-                    else array.pushDouble(l.toDouble())
+                    val l = raw.toLongOrNull()
+                    when {
+                        l == null -> raw.toDoubleOrNull()?.let { array.pushDouble(it) } ?: array.pushString(raw)
+                        l in Int.MIN_VALUE..Int.MAX_VALUE -> array.pushInt(l.toInt())
+                        else -> array.pushDouble(l.toDouble())
+                    }
                 }
             }
             JsonToken.NULL -> { nextNull(); array.pushNull() }
@@ -290,11 +296,14 @@ fun Response.toWritableMap(metadata: RequestMetadata?): WritableMap {
                         JsonToken.NUMBER -> {
                             val raw = reader.nextString()
                             if (isJsonNumberFloat(raw)) {
-                                map.putDouble("data", raw.toDouble())
+                                raw.toDoubleOrNull()?.let { map.putDouble("data", it) } ?: map.putString("data", raw)
                             } else {
-                                val l = raw.toLong()
-                                if (l in Int.MIN_VALUE..Int.MAX_VALUE) map.putInt("data", l.toInt())
-                                else map.putDouble("data", l.toDouble())
+                                val l = raw.toLongOrNull()
+                                when {
+                                    l == null -> raw.toDoubleOrNull()?.let { map.putDouble("data", it) } ?: map.putString("data", raw)
+                                    l in Int.MIN_VALUE..Int.MAX_VALUE -> map.putInt("data", l.toInt())
+                                    else -> map.putDouble("data", l.toDouble())
+                                }
                             }
                         }
                         JsonToken.NULL -> { reader.nextNull(); map.putNull("data") }

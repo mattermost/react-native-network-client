@@ -34,8 +34,10 @@ class CountingResponseBody(
     override fun contentType(): MediaType? = delegate.contentType()
     override fun contentLength(): Long = delegate.contentLength()
 
-    override fun source(): BufferedSource {
-        val countingSource = object : ForwardingSource(delegate.source()) {
+    override fun source(): BufferedSource = bufferedSource
+
+    private val bufferedSource: BufferedSource by lazy {
+        object : ForwardingSource(delegate.source()) {
             override fun read(sink: Buffer, byteCount: Long): Long {
                 val read = super.read(sink, byteCount)
                 if (read != -1L) {
@@ -50,8 +52,7 @@ class CountingResponseBody(
                 notifyComplete()
                 super.close()
             }
-        }
-        return countingSource.buffer()
+        }.buffer()
     }
 
     private fun notifyComplete() {

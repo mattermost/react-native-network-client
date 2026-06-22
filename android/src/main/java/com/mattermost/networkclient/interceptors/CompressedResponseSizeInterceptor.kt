@@ -15,9 +15,10 @@ class CompressedResponseSizeInterceptor(private val metricsEventFactory: Metrics
         val expectedSize = response.header("Content-Length")?.toLongOrNull()
             ?: response.header("content-length")?.toLongOrNull()
 
+        metadata?.requestStartNanos = startTime
+
         val countingBody = CountingResponseBody(body) { bytesRead ->
             metadata?.compressedSize = expectedSize ?: bytesRead
-            metadata?.requestStartNanos = startTime
             metadata?.requestEndNanos = System.nanoTime()
         }
 
