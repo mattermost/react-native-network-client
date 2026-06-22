@@ -286,8 +286,8 @@ fun Response.toWritableMap(metadata: RequestMetadata?): WritableMap {
             // Stream-parse JSON token by token directly from the InputStream.
             // No intermediate String or StringBuilder — the Okio segment buffer
             // drains at token-read speed and peak heap is the WritableMap tree only.
-            try {
-                JsonReader(InputStreamReader(pushback, StandardCharsets.UTF_8)).use { reader ->
+            JsonReader(InputStreamReader(pushback, StandardCharsets.UTF_8)).use { reader ->
+                try {
                     when (reader.peek()) {
                         JsonToken.BEGIN_OBJECT -> map.putMap("data", reader.readWritableMap())
                         JsonToken.BEGIN_ARRAY -> map.putArray("data", reader.readWritableArray())
@@ -309,13 +309,14 @@ fun Response.toWritableMap(metadata: RequestMetadata?): WritableMap {
                         JsonToken.NULL -> { reader.nextNull(); map.putNull("data") }
                         else -> map.putString("data", "")
                     }
+                } catch (_: Exception) {
+                    map.putString("data", "")
+                } finally {
+                    // Drain any remaining bytes before the reader closes the stream so
+                    // OkHttp can reuse the connection and countingStream.count is accurate.
+                    val drainBuffer = ByteArray(64 * 1024)
+                    try { while (pushback.read(drainBuffer) != -1) { /* drain */ } } catch (_: Exception) { }
                 }
-            } catch (_: Exception) {
-                // Drain remaining bytes so OkHttp can reuse the connection and
-                // countingStream.count reflects the full wire size.
-                val drainBuffer = ByteArray(64 * 1024)
-                try { while (pushback.read(drainBuffer) != -1) { /* drain */ } } catch (_: Exception) { }
-                map.putString("data", "")
             }
         } else {
             // Non-JSON body — read into a string with a hard cap to prevent OOM.
@@ -324,7 +325,9 @@ fun Response.toWritableMap(metadata: RequestMetadata?): WritableMap {
         }
 
         if (metadata != null) {
-            metrics.putDouble("compressedSize", metadata.compressedSize.toDouble())
+            val compressedSize = if (metadata.compressedSize >= 0) metadata.compressedSize
+                else header("Content-Length")?.toLongOrNull() ?: 0L
+            metrics.putDouble("compressedSize", compressedSize.toDouble())
             metrics.putDouble("size", countingStream.count.toDouble())
             metrics.putDouble("startTime", metadata.requestStartNanos.toDouble())
             metrics.putDouble("endTime", metadata.requestEndNanos.toDouble())
