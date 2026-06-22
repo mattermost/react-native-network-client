@@ -149,7 +149,7 @@ class CompressedResponseSizeInterceptorTest {
     }
 
     /**
-     * Streams a 512 MB synthetic response through CountingResponseBody using a
+     * Streams a 64 MB synthetic response through CountingResponseBody using a
      * on-the-fly source that never allocates more than one 64 KB chunk at a time.
      * Peak heap is ~64 KB regardless of total size — this test proves no OOM occurs
      * and that the byte count is exact.
