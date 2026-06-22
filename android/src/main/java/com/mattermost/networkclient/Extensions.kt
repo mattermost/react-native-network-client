@@ -1,5 +1,7 @@
 package com.mattermost.networkclient
 
+import android.util.JsonReader
+import android.util.JsonToken
 import android.util.Log
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReadableMap
@@ -11,16 +13,25 @@ import okhttp3.Request
 import okhttp3.Response
 import org.json.JSONArray
 import org.json.JSONObject
-import org.json.JSONTokener
 import java.io.FilterInputStream
-import java.io.IOException
 import java.io.InputStream
 import java.io.InputStreamReader
-import java.security.MessageDigest
+import java.io.PushbackInputStream
 import java.nio.charset.StandardCharsets
+import java.security.MessageDigest
 
 
 var Response.retriesExhausted: Boolean? by NetworkClient.RequestRetriesExhausted
+
+// Number of bytes to peek for JSON sniffing. Large enough to skip any leading
+// whitespace or a UTF-8 BOM before the first meaningful character.
+private const val SNIFF_BYTES = 1024
+
+// Maximum number of UTF-16 chars retained for non-JSON string bodies.
+// Each char occupies 2 bytes in heap, so this caps heap usage at ~1 MB.
+// Bodies beyond this limit are drained and discarded — they are not valid
+// API payloads the app can use through the JS bridge.
+private const val MAX_STRING_BODY_CHARS = 512 * 1024
 
 /**
  * Wraps an InputStream and counts the bytes read through it. Used to compute the
@@ -41,6 +52,191 @@ private class CountingInputStream(stream: InputStream) : FilterInputStream(strea
         if (n > 0) count += n
         return n
     }
+}
+
+/**
+ * Returns true when the MIME type string declares a JSON content type,
+ * meaning we can skip body sniffing entirely.
+ */
+internal fun isMimeTypeJson(mimeType: String): Boolean =
+    mimeType == "application/json" ||
+        (mimeType.startsWith("application/") && mimeType.endsWith("+json")) ||
+        mimeType == "text/json"
+
+/**
+ * Returns true when the raw JSON number token should be routed to a
+ * floating-point parse rather than a long parse. Covers decimal points
+ * and both exponent indicator characters.
+ */
+internal fun isJsonNumberFloat(raw: String): Boolean =
+    raw.contains('.') || raw.contains('e') || raw.contains('E')
+
+/**
+ * Strips a UTF-8 BOM (EF BB BF) from the head of [stream] if present,
+ * then returns the stream ready for downstream parsing. When no BOM is
+ * found every byte is pushed back so the stream is unmodified.
+ *
+ * Uses a 3-byte PushbackInputStream internally; the caller receives the
+ * pushback stream directly so no extra wrapping is needed.
+ */
+internal fun stripBom(stream: InputStream): PushbackInputStream {
+    val pushback = PushbackInputStream(stream, 3)
+    val bom = ByteArray(3)
+    var bomRead = 0
+    while (bomRead < 3) {
+        val n = pushback.read(bom, bomRead, 3 - bomRead)
+        if (n == -1) break
+        bomRead += n
+    }
+    if (bomRead > 0) {
+        val hasBom = bomRead == 3 &&
+            bom[0] == 0xEF.toByte() &&
+            bom[1] == 0xBB.toByte() &&
+            bom[2] == 0xBF.toByte()
+        if (!hasBom) pushback.unread(bom, 0, bomRead)
+    }
+    return pushback
+}
+
+/**
+ * Sniffs up to [SNIFF_BYTES] from [stream] to find the first non-whitespace,
+ * non-BOM byte without buffering the full body. Returns true when that byte
+ * is '{' or '[', indicating a JSON object or array.
+ *
+ * The BOM (if present) is consumed and discarded. All other sniff bytes are
+ * pushed back so the returned stream begins at the first meaningful byte
+ * (preceded by any non-BOM whitespace that was part of the sniff window).
+ */
+internal fun sniffIsJson(stream: InputStream): Pair<Boolean, PushbackInputStream> {
+    val pushback = PushbackInputStream(stripBom(stream), SNIFF_BYTES)
+    val sniffBuf = ByteArray(SNIFF_BYTES)
+    var sniffRead = 0
+    while (sniffRead < SNIFF_BYTES) {
+        val n = pushback.read(sniffBuf, sniffRead, SNIFF_BYTES - sniffRead)
+        if (n == -1) break
+        sniffRead += n
+    }
+
+    var firstMeaningful: Byte = 0
+    for (i in 0 until sniffRead) {
+        val b = sniffBuf[i]
+        if (b != ' '.code.toByte() &&
+            b != '\t'.code.toByte() &&
+            b != '\n'.code.toByte() &&
+            b != '\r'.code.toByte()) {
+            firstMeaningful = b
+            break
+        }
+    }
+
+    if (sniffRead > 0) {
+        pushback.unread(sniffBuf, 0, sniffRead)
+    }
+
+    val isJson = firstMeaningful == '{'.code.toByte() || firstMeaningful == '['.code.toByte()
+    return Pair(isJson, pushback)
+}
+
+/**
+ * Reads at most MAX_STRING_BODY_CHARS from the stream into a String and then
+ * discards the remainder. Prevents unbounded heap allocation for non-JSON bodies.
+ */
+internal fun readCappedString(stream: InputStream): String {
+    val sb = StringBuilder()
+    val charBuffer = CharArray(64 * 1024)
+    var totalChars = 0
+    InputStreamReader(stream, StandardCharsets.UTF_8).use { reader ->
+        var read = reader.read(charBuffer)
+        while (read != -1) {
+            val toAppend = minOf(read, MAX_STRING_BODY_CHARS - totalChars)
+            if (toAppend > 0) sb.append(charBuffer, 0, toAppend)
+            totalChars += read
+            if (totalChars >= MAX_STRING_BODY_CHARS) {
+                // Drain remaining bytes via the raw stream to release Okio segments
+                // without accumulating any more data in heap.
+                val drainBuffer = ByteArray(64 * 1024)
+                while (stream.read(drainBuffer) != -1) { /* drain */ }
+                break
+            }
+            read = reader.read(charBuffer)
+        }
+    }
+    return sb.toString()
+}
+
+/**
+ * Recursively reads a JSON object from the JsonReader into a WritableMap.
+ */
+private fun JsonReader.readWritableMap(): WritableMap {
+    val map = Arguments.createMap()
+    beginObject()
+    while (hasNext()) {
+        val key = nextName()
+        when (peek()) {
+            JsonToken.BEGIN_OBJECT -> map.putMap(key, readWritableMap())
+            JsonToken.BEGIN_ARRAY -> map.putArray(key, readWritableArray())
+            JsonToken.STRING -> map.putString(key, nextString())
+            JsonToken.BOOLEAN -> map.putBoolean(key, nextBoolean())
+            JsonToken.NUMBER -> {
+                val raw = nextString()
+                if (isJsonNumberFloat(raw)) {
+                    val d = raw.toDoubleOrNull()
+                    if (d != null && d.isFinite()) map.putDouble(key, d) else map.putString(key, raw)
+                } else {
+                    val l = raw.toLongOrNull()
+                    when {
+                        l == null -> {
+                            val d = raw.toDoubleOrNull()
+                            if (d != null && d.isFinite()) map.putDouble(key, d) else map.putString(key, raw)
+                        }
+                        l in Int.MIN_VALUE..Int.MAX_VALUE -> map.putInt(key, l.toInt())
+                        else -> map.putDouble(key, l.toDouble())
+                    }
+                }
+            }
+            JsonToken.NULL -> { nextNull(); map.putNull(key) }
+            else -> skipValue()
+        }
+    }
+    endObject()
+    return map
+}
+
+/**
+ * Recursively reads a JSON array from the JsonReader into a WritableArray.
+ */
+private fun JsonReader.readWritableArray(): WritableArray {
+    val array = Arguments.createArray()
+    beginArray()
+    while (hasNext()) {
+        when (peek()) {
+            JsonToken.BEGIN_OBJECT -> array.pushMap(readWritableMap())
+            JsonToken.BEGIN_ARRAY -> array.pushArray(readWritableArray())
+            JsonToken.STRING -> array.pushString(nextString())
+            JsonToken.BOOLEAN -> array.pushBoolean(nextBoolean())
+            JsonToken.NUMBER -> {
+                val raw = nextString()
+                if (isJsonNumberFloat(raw)) {
+                    val d = raw.toDoubleOrNull()
+                    if (d != null && d.isFinite()) array.pushDouble(d) else array.pushString(raw)
+                } else {
+                    val l = raw.toLongOrNull()
+                    when {
+                        l == null -> {
+                            val d = raw.toDoubleOrNull()
+                            if (d != null && d.isFinite()) array.pushDouble(d) else array.pushString(raw)
+                        }
+                        l in Int.MIN_VALUE..Int.MAX_VALUE -> array.pushInt(l.toInt())
+                        else -> array.pushDouble(l.toDouble())
+                    }
+                }
+            }
+            JsonToken.NULL -> { nextNull(); array.pushNull() }
+            else -> skipValue()
+        }
+    }
+    endArray()
+    return array
 }
 
 /**
@@ -79,48 +275,77 @@ fun Response.toWritableMap(metadata: RequestMetadata?): WritableMap {
     map.putBoolean("ok", isSuccessful)
 
     body?.let { responseBody ->
-        // Stream-decode the body so peak memory is the resulting String (plus a small
-        // rolling char buffer), not the full body buffered in Okio segments first.
-        // CountingInputStream tracks the byte count for the size metric, which stays
-        // accurate when Content-Length is missing (chunked) or stale (compression).
         val countingStream = CountingInputStream(responseBody.source().inputStream())
-        val bodyString = InputStreamReader(countingStream, StandardCharsets.UTF_8).use { reader ->
-            val sb = StringBuilder()
-            val charBuffer = CharArray(64 * 1024)
-            var read = reader.read(charBuffer)
-            while (read != -1) {
-                sb.append(charBuffer, 0, read)
-                read = reader.read(charBuffer)
+
+        val mimeType = responseBody.contentType()?.let { "${it.type}/${it.subtype}" } ?: ""
+        val isJson: Boolean
+        val pushback: PushbackInputStream
+
+        if (isMimeTypeJson(mimeType)) {
+            isJson = true
+            pushback = stripBom(countingStream)
+        } else {
+            val (sniffed, sniffStream) = sniffIsJson(countingStream)
+            isJson = sniffed
+            pushback = sniffStream
+        }
+
+        if (isJson) {
+            // Stream-parse JSON token by token directly from the InputStream.
+            // No intermediate String or StringBuilder — the Okio segment buffer
+            // drains at token-read speed and peak heap is the WritableMap tree only.
+            JsonReader(InputStreamReader(pushback, StandardCharsets.UTF_8)).use { reader ->
+                try {
+                    when (reader.peek()) {
+                        JsonToken.BEGIN_OBJECT -> map.putMap("data", reader.readWritableMap())
+                        JsonToken.BEGIN_ARRAY -> map.putArray("data", reader.readWritableArray())
+                        JsonToken.STRING -> map.putString("data", reader.nextString())
+                        JsonToken.BOOLEAN -> map.putBoolean("data", reader.nextBoolean())
+                        JsonToken.NUMBER -> {
+                            val raw = reader.nextString()
+                            if (isJsonNumberFloat(raw)) {
+                                val d = raw.toDoubleOrNull()
+                                if (d != null && d.isFinite()) map.putDouble("data", d) else map.putString("data", raw)
+                            } else {
+                                val l = raw.toLongOrNull()
+                                when {
+                                    l == null -> {
+                                        val d = raw.toDoubleOrNull()
+                                        if (d != null && d.isFinite()) map.putDouble("data", d) else map.putString("data", raw)
+                                    }
+                                    l in Int.MIN_VALUE..Int.MAX_VALUE -> map.putInt("data", l.toInt())
+                                    else -> map.putDouble("data", l.toDouble())
+                                }
+                            }
+                        }
+                        JsonToken.NULL -> { reader.nextNull(); map.putNull("data") }
+                        else -> map.putString("data", "")
+                    }
+                } catch (_: Exception) {
+                    map.putNull("data")
+                } finally {
+                    // Drain any remaining bytes before the reader closes the stream so
+                    // OkHttp can reuse the connection and countingStream.count is accurate.
+                    try {
+                        val drainBuffer = ByteArray(64 * 1024)
+                        while (pushback.read(drainBuffer) != -1) { /* drain */ }
+                    } catch (_: Exception) { }
+                }
             }
-            sb.toString()
+        } else {
+            // Non-JSON body — read into a string with a hard cap to prevent OOM.
+            // Responses beyond the cap are not valid API payloads the app can use.
+            map.putString("data", readCappedString(pushback))
         }
 
         if (metadata != null) {
-            val compressedSize = header("X-Compressed-Size")?.toDoubleOrNull() ?: header("Content-Length")?.toDoubleOrNull() ?: 0.0
-            val startTime = header("X-Start-Time")?.toDoubleOrNull() ?: 0.0
-            val endTime = header("X-End-Time")?.toDoubleOrNull() ?: 0.0
-            val mbps = header("X-Speed-Mbps")?.toDoubleOrNull() ?: 0.0
-            metrics.putDouble("compressedSize", compressedSize)
+            val compressedSize = if (metadata.compressedSize >= 0) metadata.compressedSize
+                else header("Content-Length")?.toLongOrNull() ?: 0L
+            metrics.putDouble("compressedSize", compressedSize.toDouble())
             metrics.putDouble("size", countingStream.count.toDouble())
-            metrics.putDouble("startTime", startTime)
-            metrics.putDouble("endTime", endTime)
-            metrics.putDouble("speedInMbps", mbps)
-        }
-
-        try {
-            when (val json = JSONTokener(bodyString).nextValue()) {
-                is JSONArray -> {
-                    map.putArray("data", json.toWritableArray())
-                }
-                is JSONObject -> {
-                    map.putMap("data", json.toWritableMap())
-                }
-                else -> {
-                    map.putString("data", bodyString)
-                }
-            }
-        } catch (_: Exception) {
-            map.putString("data", bodyString)
+            metrics.putDouble("startTime", metadata.requestStartNanos.toDouble())
+            metrics.putDouble("endTime", metadata.requestEndNanos.toDouble())
+            metrics.putDouble("speedInMbps", metadata.getSpeedInMbps())
         }
     }
 

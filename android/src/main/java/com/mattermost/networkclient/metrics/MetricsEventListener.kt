@@ -64,8 +64,14 @@ class MetricsEventListener(
         }
     }
 
+    override fun callEnd(call: Call) {
+        super.callEnd(call)
+        factory.removeMetadata(call)
+    }
+
     override fun callFailed(call: Call, ioe: IOException) {
         super.callFailed(call, ioe)
+        factory.removeMetadata(call)
     }
 
     override fun canceled(call: Call) {

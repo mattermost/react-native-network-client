@@ -1,46 +1,28 @@
 package com.mattermost.networkclient.interceptors
 
+import com.mattermost.networkclient.helpers.CountingResponseBody
+import com.mattermost.networkclient.metrics.MetricsEventFactory
 import okhttp3.Interceptor
 import okhttp3.Response
-import okhttp3.ResponseBody.Companion.toResponseBody
-import java.util.Locale
 
-class CompressedResponseSizeInterceptor: Interceptor {
+class CompressedResponseSizeInterceptor(private val metricsEventFactory: MetricsEventFactory?) : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
-        // Record the start time
         val startTime = System.nanoTime()
-
         val response = chain.proceed(chain.request())
 
-        // Record the end time
-        val endTime = System.nanoTime()
+        val body = response.body ?: return response
+        val metadata = metricsEventFactory?.getMetadata(chain.call())
+            ?: return response  // no metrics tracking for this call, skip wrapping
 
-        // Calculate elapsed time in seconds
-        val elapsedTimeSeconds = (endTime - startTime) / 1_000_000_000.0
+        val expectedSize = response.header("Content-Length")?.toLongOrNull()
 
-        val modifiedResponse = response.newBuilder()
+        metadata.requestStartNanos = startTime
 
-        var compressedSize = response.header("Content-Length")?.toLongOrNull() ?: response.header("content-length")?.toLongOrNull()
-        if (compressedSize == null) {
-            val rawBytes = response.body?.byteStream()?.readBytes()
-            compressedSize = rawBytes?.size?.toLong() ?: -1L
-            modifiedResponse.body((rawBytes ?: ByteArray(0)).toResponseBody(response.body?.contentType()))
+        val countingBody = CountingResponseBody(body) { bytesRead ->
+            metadata.compressedSize = expectedSize ?: bytesRead
+            metadata.requestEndNanos = System.nanoTime()
         }
 
-        // Calculate speed in Mbps
-        val speedMbps = if (elapsedTimeSeconds > 0 && compressedSize > 0) {
-            (compressedSize * 8 / elapsedTimeSeconds) / 1_000_000.0
-        } else {
-            0.0
-        }
-
-        return modifiedResponse
-            .header("X-Compressed-Size", compressedSize.toString())
-            .header("X-Start-Time", startTime.toString())
-            .header("X-End-Time", endTime.toString())
-            // Use Locale.US to ensure ASCII digits in header values.
-            // System locale formatting (e.g. Arabic) produces non-ASCII digits that OkHttp rejects.
-            .header("X-Speed-Mbps", String.format(Locale.US, "%.4f", speedMbps))
-            .build()
+        return response.newBuilder().body(countingBody).build()
     }
 }
