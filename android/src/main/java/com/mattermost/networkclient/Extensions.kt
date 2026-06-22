@@ -310,7 +310,7 @@ fun Response.toWritableMap(metadata: RequestMetadata?): WritableMap {
                         else -> map.putString("data", "")
                     }
                 } catch (_: Exception) {
-                    map.putString("data", "")
+                    map.putNull("data")
                 } finally {
                     // Drain any remaining bytes before the reader closes the stream so
                     // OkHttp can reuse the connection and countingStream.count is accurate.
