@@ -285,6 +285,19 @@ fun Response.toWritableMap(metadata: RequestMetadata?): WritableMap {
                     when (reader.peek()) {
                         JsonToken.BEGIN_OBJECT -> map.putMap("data", reader.readWritableMap())
                         JsonToken.BEGIN_ARRAY -> map.putArray("data", reader.readWritableArray())
+                        JsonToken.STRING -> map.putString("data", reader.nextString())
+                        JsonToken.BOOLEAN -> map.putBoolean("data", reader.nextBoolean())
+                        JsonToken.NUMBER -> {
+                            val raw = reader.nextString()
+                            if (isJsonNumberFloat(raw)) {
+                                map.putDouble("data", raw.toDouble())
+                            } else {
+                                val l = raw.toLong()
+                                if (l in Int.MIN_VALUE..Int.MAX_VALUE) map.putInt("data", l.toInt())
+                                else map.putDouble("data", l.toDouble())
+                            }
+                        }
+                        JsonToken.NULL -> { reader.nextNull(); map.putNull("data") }
                         else -> map.putString("data", "")
                     }
                 }
