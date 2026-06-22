@@ -82,7 +82,12 @@ internal fun isJsonNumberFloat(raw: String): Boolean =
 internal fun stripBom(stream: InputStream): PushbackInputStream {
     val pushback = PushbackInputStream(stream, 3)
     val bom = ByteArray(3)
-    val bomRead = pushback.read(bom, 0, 3)
+    var bomRead = 0
+    while (bomRead < 3) {
+        val n = pushback.read(bom, bomRead, 3 - bomRead)
+        if (n == -1) break
+        bomRead += n
+    }
     if (bomRead > 0) {
         val hasBom = bomRead == 3 &&
             bom[0] == 0xEF.toByte() &&
@@ -103,20 +108,17 @@ internal fun stripBom(stream: InputStream): PushbackInputStream {
  * (preceded by any non-BOM whitespace that was part of the sniff window).
  */
 internal fun sniffIsJson(stream: InputStream): Pair<Boolean, PushbackInputStream> {
-    val pushback = PushbackInputStream(stream, SNIFF_BYTES)
+    val pushback = PushbackInputStream(stripBom(stream), SNIFF_BYTES)
     val sniffBuf = ByteArray(SNIFF_BYTES)
-    val sniffRead = pushback.read(sniffBuf, 0, SNIFF_BYTES)
-
-    var scanStart = 0
-    if (sniffRead >= 3 &&
-        sniffBuf[0] == 0xEF.toByte() &&
-        sniffBuf[1] == 0xBB.toByte() &&
-        sniffBuf[2] == 0xBF.toByte()) {
-        scanStart = 3
+    var sniffRead = 0
+    while (sniffRead < SNIFF_BYTES) {
+        val n = pushback.read(sniffBuf, sniffRead, SNIFF_BYTES - sniffRead)
+        if (n == -1) break
+        sniffRead += n
     }
 
     var firstMeaningful: Byte = 0
-    for (i in scanStart until sniffRead) {
+    for (i in 0 until sniffRead) {
         val b = sniffBuf[i]
         if (b != ' '.code.toByte() &&
             b != '\t'.code.toByte() &&
@@ -127,8 +129,8 @@ internal fun sniffIsJson(stream: InputStream): Pair<Boolean, PushbackInputStream
         }
     }
 
-    if (sniffRead > scanStart) {
-        pushback.unread(sniffBuf, scanStart, sniffRead - scanStart)
+    if (sniffRead > 0) {
+        pushback.unread(sniffBuf, 0, sniffRead)
     }
 
     val isJson = firstMeaningful == '{'.code.toByte() || firstMeaningful == '['.code.toByte()
