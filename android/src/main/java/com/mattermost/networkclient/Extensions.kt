@@ -311,6 +311,10 @@ fun Response.toWritableMap(metadata: RequestMetadata?): WritableMap {
                     }
                 }
             } catch (_: Exception) {
+                // Drain remaining bytes so OkHttp can reuse the connection and
+                // countingStream.count reflects the full wire size.
+                val drainBuffer = ByteArray(64 * 1024)
+                try { while (pushback.read(drainBuffer) != -1) { /* drain */ } } catch (_: Exception) { }
                 map.putString("data", "")
             }
         } else {

@@ -168,7 +168,7 @@ class ExtensionsTest {
         val payload = bytes("{\"k\":1}")
         val stream = stripBom(ByteArrayInputStream(UTF8_BOM + payload))
         val result = stream.readBytes()
-        assertEquals(String(payload), String(result, StandardCharsets.UTF_8))
+        assertEquals(String(payload, StandardCharsets.UTF_8), String(result, StandardCharsets.UTF_8))
     }
 
     @Test
@@ -176,7 +176,7 @@ class ExtensionsTest {
         val payload = bytes("{\"k\":1}")
         val stream = stripBom(ByteArrayInputStream(payload))
         val result = stream.readBytes()
-        assertEquals(String(payload), String(result, StandardCharsets.UTF_8))
+        assertEquals(String(payload, StandardCharsets.UTF_8), String(result, StandardCharsets.UTF_8))
     }
 
     @Test
@@ -185,7 +185,7 @@ class ExtensionsTest {
         val partial = byteArrayOf(0xEF.toByte(), 0xBB.toByte()) + bytes("{}")
         val stream = stripBom(ByteArrayInputStream(partial))
         val result = stream.readBytes()
-        assertEquals(String(partial), String(result, StandardCharsets.UTF_8))
+        assertEquals(String(partial, StandardCharsets.UTF_8), String(result, StandardCharsets.UTF_8))
     }
 
     @Test
@@ -243,7 +243,7 @@ class ExtensionsTest {
     fun sniff_pushbackPreservesFullStream() {
         val body = bytes("{\"key\":\"value\"}")
         val (_, stream) = sniffIsJson(ByteArrayInputStream(body))
-        assertEquals(String(body), String(stream.readBytes(), StandardCharsets.UTF_8))
+        assertEquals(String(body, StandardCharsets.UTF_8), String(stream.readBytes(), StandardCharsets.UTF_8))
     }
 
     @Test
@@ -265,7 +265,7 @@ class ExtensionsTest {
         val (isJson, stream) = sniffIsJson(slowStream)
         assertTrue("Short-read stream with '{' must still detect as JSON", isJson)
         val remaining = String(stream.readBytes(), StandardCharsets.UTF_8)
-        assertEquals(String(body), remaining)
+        assertEquals(String(body, StandardCharsets.UTF_8), remaining)
     }
 
     @Test
@@ -284,7 +284,7 @@ class ExtensionsTest {
         }
         val stream = stripBom(slowStream)
         val result = stream.readBytes()
-        assertEquals(String(payload), String(result, StandardCharsets.UTF_8))
+        assertEquals(String(payload, StandardCharsets.UTF_8), String(result, StandardCharsets.UTF_8))
     }
 
     // --- readCappedString ----------------------------------------------------
