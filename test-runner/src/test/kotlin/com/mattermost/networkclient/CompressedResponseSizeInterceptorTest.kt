@@ -18,6 +18,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.util.concurrent.atomic.AtomicLong
+import java.util.concurrent.atomic.AtomicReference
 
 // ---------------------------------------------------------------------------
 // Inline copy of CountingResponseBody (no Android deps in test-runner)
@@ -69,22 +70,18 @@ class CountingResponseBody(
 
 class TestCompressedResponseSizeInterceptor(
     private val compressedSizeOut: AtomicLong,
+    private val endNanosOut: AtomicReference<Long> = AtomicReference(-1L),
 ) : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
         val response = chain.proceed(chain.request())
 
-        val contentLength = response.header("Content-Length")?.toLongOrNull()
+        val body = response.body ?: return response
+        val expectedSize = response.header("Content-Length")?.toLongOrNull()
             ?: response.header("content-length")?.toLongOrNull()
 
-        if (contentLength != null) {
-            compressedSizeOut.set(contentLength)
-            return response
-        }
-
-        val body = response.body ?: return response
-
         val countingBody = CountingResponseBody(body) { bytesRead ->
-            compressedSizeOut.set(bytesRead)
+            compressedSizeOut.set(expectedSize ?: bytesRead)
+            endNanosOut.set(System.nanoTime())
         }
         return response.newBuilder().body(countingBody).build()
     }
@@ -212,7 +209,48 @@ class CompressedResponseSizeInterceptorTest {
             client.newCall(Request.Builder().url(server.url("/")).build())
                 .execute().use { it.body?.string() }
 
-            assertEquals("Should use Content-Length directly", 5L, sizeOut.get())
+            assertEquals("Should report Content-Length value", 5L, sizeOut.get())
+        }
+    }
+
+    @Test
+    fun interceptor_endTimeSetAfterBodyConsumption_notHeaderReceipt() {
+        // Inserts a 100 ms delay into the body source to simulate a slow transfer.
+        // endNanos must be captured after that delay, not at header receipt time.
+        val payload = "slow body".toByteArray()
+        val delayMs = 100L
+
+        MockWebServer().use { server ->
+            server.enqueue(
+                MockResponse()
+                    .setBody("slow body")
+                    .setHeader("Content-Length", payload.size.toString())
+                    .setBodyDelay(delayMs, java.util.concurrent.TimeUnit.MILLISECONDS)
+            )
+            server.start()
+
+            val sizeOut = AtomicLong(-1)
+            val endNanosOut = AtomicReference(-1L)
+            val interceptorStartNanos = AtomicLong(0)
+
+            val timingInterceptor = Interceptor { chain ->
+                interceptorStartNanos.set(System.nanoTime())
+                chain.proceed(chain.request())
+            }
+
+            val client = OkHttpClient.Builder()
+                .addNetworkInterceptor(timingInterceptor)
+                .addNetworkInterceptor(TestCompressedResponseSizeInterceptor(sizeOut, endNanosOut))
+                .build()
+
+            client.newCall(Request.Builder().url(server.url("/")).build())
+                .execute().use { it.body?.string() }
+
+            val elapsed = endNanosOut.get() - interceptorStartNanos.get()
+            assertTrue(
+                "endNanos must be captured after body is consumed (>= ${delayMs}ms delay), got ${elapsed / 1_000_000}ms",
+                elapsed >= delayMs * 1_000_000
+            )
         }
     }
 
