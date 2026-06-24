@@ -160,8 +160,13 @@ class ApiClientModuleImpl(appContext: Context) {
             return promise.reject(error)
         }
 
+        val client = clients[url]
+        if (client == null) {
+            return promise.reject(Error("Client not found for baseUrl: $url"))
+        }
+
         try {
-            promise.resolve(clients[url]!!.clientHeaders)
+            promise.resolve(client.clientHeaders)
         } catch (error: Exception) {
             promise.reject(error)
         }
@@ -175,8 +180,13 @@ class ApiClientModuleImpl(appContext: Context) {
             return promise.reject(error)
         }
 
+        val client = clients[url]
+        if (client == null) {
+            return promise.reject(Error("Client not found for baseUrl: $url"))
+        }
+
         try {
-            clients[url]!!.addClientHeaders(headers)
+            client.addClientHeaders(headers)
             promise.resolve(null)
         } catch (error: Exception) {
             promise.reject(error)
@@ -191,8 +201,13 @@ class ApiClientModuleImpl(appContext: Context) {
             return promise.reject(error)
         }
 
+        val client = clients[url]
+        if (client == null) {
+            return promise.reject(Error("Client not found for baseUrl: $url"))
+        }
+
         try {
-            clients[url]!!.importClientP12AndRebuildClient(path, password)
+            client.importClientP12AndRebuildClient(path, password)
             promise.resolve(null)
         } catch (error: Exception) {
             promise.reject(error)
@@ -207,8 +222,13 @@ class ApiClientModuleImpl(appContext: Context) {
             return promise.reject(error)
         }
 
+        val client = clients[url]
+        if (client == null) {
+            return promise.reject(Error("Client not found for baseUrl: $url"))
+        }
+
         try {
-            clients[url]!!.invalidate()
+            client.invalidate()
             clients.remove(url)
             promise.resolve(null)
         } catch (error: Exception) {
@@ -254,7 +274,11 @@ class ApiClientModuleImpl(appContext: Context) {
             return promise.reject(Error("Couldn't create dir: " + parent.path))
         }
 
-        val client = clients[url]!!
+        val client = clients[url]
+        if (client == null) {
+            return promise.reject(Error("Client not found for baseUrl: $url"))
+        }
+
         val downloadCall = client.buildDownloadCall(endpoint, taskId, options)
         calls[taskId] = downloadCall
 
@@ -314,7 +338,11 @@ class ApiClientModuleImpl(appContext: Context) {
             return promise.reject(error)
         }
 
-        val client = clients[url]!!
+        val client = clients[url]
+        if (client == null) {
+            return promise.reject(Error("Client not found for baseUrl: $url"))
+        }
+
         val uploadCall = client.buildUploadCall(endpoint, filePath, taskId, options)
         calls[taskId] = uploadCall
 
