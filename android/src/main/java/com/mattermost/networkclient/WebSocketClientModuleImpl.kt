@@ -147,8 +147,12 @@ class WebSocketClientModuleImpl(reactApplicationContext: ReactApplicationContext
         }
 
         try {
-            client.webSocket?.send(data)
-            promise.resolve(null)
+            val sent = client.webSocket?.send(data)
+            if (sent == true) {
+                promise.resolve(null)
+            } else {
+                promise.reject("WebSocket error", "websocket is not connected or failed to send data")
+            }
         } catch (error: Exception) {
             promise.reject(error)
         }
