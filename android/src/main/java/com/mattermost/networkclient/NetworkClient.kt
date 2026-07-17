@@ -161,6 +161,11 @@ internal class NetworkClient(private val context: Context, private val baseUrl: 
             builder.addInterceptor(bearerTokenInterceptor)
         }
 
+        // Runs after BearerTokenInterceptor so the Authorization header is present when the
+        // guard is evaluated. Also covers adaptRCTRequest() since RCT requests are executed
+        // through this same client's okHttpClient.
+        builder.addInterceptor(SessionAttributesInterceptor(context, baseUrlString))
+
         applyClientSslConfiguration(options)
         configureSsl()
 

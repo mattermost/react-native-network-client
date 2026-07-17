@@ -334,6 +334,34 @@ import React
             request.cancel()
         }
     }
+
+    @objc public func setSessionAttributesEnabled(_ serverUrl: String, enabled: Bool) {
+        SessionAttributesEngine.shared.setEnabled(serverUrl, enabled: enabled)
+    }
+
+    @objc public func removeSessionAttributesServer(_ serverUrl: String) {
+        SessionAttributesEngine.shared.removeServer(serverUrl)
+    }
+
+    @objc public func setSessionAttributesManifest(_ serverUrl: String, manifest: String) {
+        SessionAttributesEngine.shared.setManifest(serverUrl, manifestJson: manifest)
+    }
+
+    @objc public func upsertSessionAttributesField(_ serverUrl: String, field: String) {
+        SessionAttributesEngine.shared.upsertManifestField(serverUrl, fieldJson: field)
+    }
+
+    @objc public func removeSessionAttributesField(_ serverUrl: String, name: String) {
+        SessionAttributesEngine.shared.removeManifestField(serverUrl, name: name)
+    }
+
+    @objc public func setSessionAttributesStableValues(_ values: String) {
+        SessionAttributesEngine.shared.setStableValues(values)
+    }
+
+    @objc public func getSessionAttributesHeader(_ serverUrl: String) -> String? {
+        return SessionAttributesEngine.shared.getOutboundHeader(serverUrl)
+    }
     
     func handleRequest(for baseUrlString: String, withEndpoint endpoint: String, withMethod method: HTTPMethod, withOptions options: JSON, withResolver resolve: @escaping RCTPromiseResolveBlock, withRejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
         guard let baseUrl = URL(string: baseUrlString) else {

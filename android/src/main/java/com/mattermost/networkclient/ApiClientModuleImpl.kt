@@ -14,6 +14,7 @@ import com.facebook.react.bridge.WritableMap
 import com.facebook.react.modules.network.ForwardingCookieHandler
 import com.facebook.react.modules.network.ReactCookieJarContainer
 import com.mattermost.networkclient.helpers.KeyStoreHelper
+import com.mattermost.networkclient.sessionattributes.SessionAttributesEngine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import okhttp3.Call
@@ -358,6 +359,34 @@ class ApiClientModuleImpl(appContext: Context) {
         } catch (error: Exception) {
             return promise.reject(error)
         }
+    }
+
+    fun setSessionAttributesEnabled(serverUrl: String, enabled: Boolean) {
+        SessionAttributesEngine.getInstance(context).setEnabled(serverUrl, enabled)
+    }
+
+    fun removeSessionAttributesServer(serverUrl: String) {
+        SessionAttributesEngine.getInstance(context).removeServer(serverUrl)
+    }
+
+    fun setSessionAttributesManifest(serverUrl: String, manifest: String) {
+        SessionAttributesEngine.getInstance(context).setManifest(serverUrl, manifest)
+    }
+
+    fun upsertSessionAttributesField(serverUrl: String, field: String) {
+        SessionAttributesEngine.getInstance(context).upsertManifestField(serverUrl, field)
+    }
+
+    fun removeSessionAttributesField(serverUrl: String, name: String) {
+        SessionAttributesEngine.getInstance(context).removeManifestField(serverUrl, name)
+    }
+
+    fun setSessionAttributesStableValues(values: String) {
+        SessionAttributesEngine.getInstance(context).setStableValues(values)
+    }
+
+    fun getSessionAttributesHeader(serverUrl: String): String? {
+        return SessionAttributesEngine.getInstance(context).getOutboundHeader(serverUrl)
     }
 
     // Methods to use with native implementations

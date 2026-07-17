@@ -127,4 +127,53 @@ class ApiClientModule(reactContext: ReactApplicationContext) : NativeApiClientSp
         }
         implementation.invalidateClientFor(baseUrl, promise)
     }
+
+    override fun setSessionAttributesEnabled(serverUrl: String?, enabled: Boolean) {
+        if (serverUrl.isNullOrEmpty()) {
+            return
+        }
+        implementation.setSessionAttributesEnabled(serverUrl, enabled)
+    }
+
+    override fun removeSessionAttributesServer(serverUrl: String?) {
+        if (serverUrl.isNullOrEmpty()) {
+            return
+        }
+        implementation.removeSessionAttributesServer(serverUrl)
+    }
+
+    override fun setSessionAttributesManifest(serverUrl: String?, manifest: String?) {
+        if (serverUrl.isNullOrEmpty() || manifest == null) {
+            return
+        }
+        implementation.setSessionAttributesManifest(serverUrl, manifest)
+    }
+
+    override fun upsertSessionAttributesField(serverUrl: String?, field: String?) {
+        if (serverUrl.isNullOrEmpty() || field == null) {
+            return
+        }
+        implementation.upsertSessionAttributesField(serverUrl, field)
+    }
+
+    override fun removeSessionAttributesField(serverUrl: String?, name: String?) {
+        if (serverUrl.isNullOrEmpty() || name.isNullOrEmpty()) {
+            return
+        }
+        implementation.removeSessionAttributesField(serverUrl, name)
+    }
+
+    override fun setSessionAttributesStableValues(values: String?) {
+        if (values == null) {
+            return
+        }
+        implementation.setSessionAttributesStableValues(values)
+    }
+
+    override fun getSessionAttributesHeader(serverUrl: String?): String? {
+        if (serverUrl.isNullOrEmpty()) {
+            return null
+        }
+        return implementation.getSessionAttributesHeader(serverUrl)
+    }
 }
