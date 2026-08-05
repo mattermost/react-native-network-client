@@ -68,12 +68,7 @@ module Pod
 
         def apply_patch(file)
             repo_root = `git rev-parse --show-toplevel`.strip
-            pods_dir = Dir.glob(Pathname(repo_root).join("**/**/Pods")).first
-            unless pods_dir
-                Pod::UI.puts "Skipping #{file} (Pods directory not found yet)"
-                return
-            end
-            directory_arg = pods_dir.sub("#{repo_root}/", "")
+            directory_arg = Dir.glob(Pathname(repo_root).join("**/**/Pods")).first.sub("#{repo_root}/", "")
 
             Dir.chdir(repo_root) {
                 base_args = "'#{file}' --directory='#{directory_arg}' -p2 2> /dev/null"

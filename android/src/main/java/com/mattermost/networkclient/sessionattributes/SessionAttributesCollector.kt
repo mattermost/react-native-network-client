@@ -8,6 +8,7 @@ import android.net.NetworkCapabilities
 import android.net.Uri
 import android.net.wifi.WifiManager
 import android.os.Build
+import android.util.Log
 import java.net.Inet4Address
 import java.net.NetworkInterface
 import java.util.concurrent.ConcurrentHashMap
@@ -44,7 +45,8 @@ class SessionAttributesCollector(
         return fqdnCache.computeIfAbsent(serverUrl) { url ->
             try {
                 Uri.parse(url).host ?: ""
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+                Log.w("NetworkClient", "Failed to resolve server FQDN: ${e.message}")
                 ""
             }
         }
@@ -117,7 +119,8 @@ class SessionAttributesCollector(
                 }
             }
             ""
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            Log.w("NetworkClient", "Failed to resolve client IP address: ${e.message}")
             ""
         }
     }
@@ -133,7 +136,8 @@ class SessionAttributesCollector(
             } else {
                 ssid
             }
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            Log.w("NetworkClient", "Failed to resolve SSID: ${e.message}")
             ""
         }
     }

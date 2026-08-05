@@ -301,7 +301,9 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(getSessionAttributesHeader:(NSString *)se
     
     if (config.requestAdapterConfiguration().has_value()) {
         NSMutableDictionary *adapterDictionary = [[NSMutableDictionary alloc] init];
-        adapterDictionary[@"bearerAuthTokenResponseHeader"] = config.requestAdapterConfiguration().value().bearerAuthTokenResponseHeader();
+        JS::NativeApiClient::RequestAdapterConfiguration adapter = config.requestAdapterConfiguration().value();
+        adapterDictionary[@"bearerAuthTokenResponseHeader"] = adapter.bearerAuthTokenResponseHeader();
+        adapterDictionary[@"enableSessionAttributes"] = [self processBooleanValue:adapter.enableSessionAttributes()];
         dict[@"requestAdapterConfiguration"] = adapterDictionary;
     }
     

@@ -2,13 +2,21 @@ package com.mattermost.networkclient.sessionattributes
 
 import android.content.Context
 import android.util.Base64
+import android.util.Log
 import org.json.JSONArray
 import org.json.JSONObject
 
-class SessionAttributesEngine private constructor(context: Context) {
-    private val appContext = context.applicationContext
-    private val store = SessionAttributesStore(appContext)
-    private val collector = SessionAttributesCollector(appContext, store)
+object SessionAttributesEngine {
+    private lateinit var context: Context
+
+    private val store: SessionAttributesStore by lazy { SessionAttributesStore(context) }
+    private val collector: SessionAttributesCollector by lazy { SessionAttributesCollector(context, store) }
+
+    fun init(appContext: Context) {
+        if (!::context.isInitialized) {
+            context = appContext.applicationContext
+        }
+    }
 
     fun setEnabled(serverUrl: String, enabled: Boolean) {
         store.setEnabled(serverUrl, enabled)
@@ -21,7 +29,8 @@ class SessionAttributesEngine private constructor(context: Context) {
     fun setManifest(serverUrl: String, manifestJson: String) {
         val manifest = try {
             JSONArray(manifestJson)
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            Log.w("NetworkClient", "Discarding malformed manifest for $serverUrl: ${e.message}")
             null
         }
         val fields = mutableListOf<SAField>()
@@ -40,7 +49,8 @@ class SessionAttributesEngine private constructor(context: Context) {
     fun upsertManifestField(serverUrl: String, fieldJson: String) {
         val field = try {
             JSONObject(fieldJson)
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            Log.w("NetworkClient", "Ignoring malformed manifest field for $serverUrl: ${e.message}")
             return
         }
         SAField.fromJson(field)?.let { store.upsertField(serverUrl, it) }
@@ -53,7 +63,8 @@ class SessionAttributesEngine private constructor(context: Context) {
     fun setStableValues(valuesJson: String) {
         val json = try {
             JSONObject(valuesJson)
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            Log.w("NetworkClient", "Ignoring malformed stable values: ${e.message}")
             return
         }
         val values = mutableMapOf<String, String>()
@@ -64,6 +75,11 @@ class SessionAttributesEngine private constructor(context: Context) {
     }
 
     fun getOutboundHeader(serverUrl: String): String? {
+        if (!::context.isInitialized) {
+            Log.w("NetworkClient", "Session attributes requested before init")
+            return null
+        }
+
         val state = store.loadState(serverUrl) ?: return null
         if (!state.enabled || state.manifest.isEmpty()) {
             return null
@@ -96,16 +112,5 @@ class SessionAttributesEngine private constructor(context: Context) {
         store.saveState(serverUrl, state)
 
         return Base64.encodeToString(payload.toString().toByteArray(), Base64.NO_WRAP)
-    }
-
-    companion object {
-        @Volatile
-        private var instance: SessionAttributesEngine? = null
-
-        fun getInstance(context: Context): SessionAttributesEngine {
-            return instance ?: synchronized(this) {
-                instance ?: SessionAttributesEngine(context).also { instance = it }
-            }
-        }
     }
 }

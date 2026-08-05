@@ -142,6 +142,7 @@ export type RetryPolicyConfiguration = {
 
 export type RequestAdapterConfiguration = {
     bearerAuthTokenResponseHeader?: string;
+    enableSessionAttributes?: boolean;
 };
 
 export type APIClientConfiguration = {

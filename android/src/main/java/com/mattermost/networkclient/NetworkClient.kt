@@ -161,10 +161,13 @@ internal class NetworkClient(private val context: Context, private val baseUrl: 
             builder.addInterceptor(bearerTokenInterceptor)
         }
 
-        // Runs after BearerTokenInterceptor so the Authorization header is present when the
-        // guard is evaluated. Also covers adaptRCTRequest() since RCT requests are executed
-        // through this same client's okHttpClient.
-        builder.addInterceptor(SessionAttributesInterceptor(context, baseUrlString))
+        val sessionAttributesInterceptor = getSessionAttributesInterceptor(options)
+        if (sessionAttributesInterceptor != null) {
+            // Added after BearerTokenInterceptor so the Authorization header is present when the
+            // guard is evaluated. Also covers adaptRCTRequest() since RCT requests are executed
+            // through this same client's okHttpClient.
+            builder.addInterceptor(sessionAttributesInterceptor)
+        }
 
         applyClientSslConfiguration(options)
         configureSsl()
@@ -495,6 +498,19 @@ internal class NetworkClient(private val context: Context, private val baseUrl: 
             if (requestAdapterConfiguration.hasKey("bearerAuthTokenResponseHeader")) {
                 val bearerAuthTokenResponseHeader = requestAdapterConfiguration.getString("bearerAuthTokenResponseHeader")!!
                 return BearerTokenInterceptor(tokenAlias, bearerAuthTokenResponseHeader)
+            }
+        }
+
+        return null
+    }
+
+    private fun getSessionAttributesInterceptor(options: ReadableMap?): SessionAttributesInterceptor? {
+        if (options != null && options.hasKey("requestAdapterConfiguration")) {
+            val requestAdapterConfiguration = options.getMap("requestAdapterConfiguration")!!
+            if (requestAdapterConfiguration.hasKey("enableSessionAttributes") &&
+                requestAdapterConfiguration.getBoolean("enableSessionAttributes")
+            ) {
+                return SessionAttributesInterceptor(baseUrlString)
             }
         }
 

@@ -81,6 +81,7 @@ export type SessionConfiguration = {
 
 export type RequestAdapterConfiguration = {
     bearerAuthTokenResponseHeader?: string;
+    enableSessionAttributes?: boolean;
 };
 
 export type ClientP12Configuration = Readonly<{

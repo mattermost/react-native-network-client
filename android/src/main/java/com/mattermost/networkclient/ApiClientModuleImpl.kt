@@ -133,6 +133,7 @@ class ApiClientModuleImpl(appContext: Context) {
 
     init {
         setCtx(appContext)
+        SessionAttributesEngine.init(appContext)
         migrateSharedPreferences(appContext)
         setCookieJar(appContext)
     }
@@ -362,31 +363,31 @@ class ApiClientModuleImpl(appContext: Context) {
     }
 
     fun setSessionAttributesEnabled(serverUrl: String, enabled: Boolean) {
-        SessionAttributesEngine.getInstance(context).setEnabled(serverUrl, enabled)
+        SessionAttributesEngine.setEnabled(serverUrl, enabled)
     }
 
     fun removeSessionAttributesServer(serverUrl: String) {
-        SessionAttributesEngine.getInstance(context).removeServer(serverUrl)
+        SessionAttributesEngine.removeServer(serverUrl)
     }
 
     fun setSessionAttributesManifest(serverUrl: String, manifest: String) {
-        SessionAttributesEngine.getInstance(context).setManifest(serverUrl, manifest)
+        SessionAttributesEngine.setManifest(serverUrl, manifest)
     }
 
     fun upsertSessionAttributesField(serverUrl: String, field: String) {
-        SessionAttributesEngine.getInstance(context).upsertManifestField(serverUrl, field)
+        SessionAttributesEngine.upsertManifestField(serverUrl, field)
     }
 
     fun removeSessionAttributesField(serverUrl: String, name: String) {
-        SessionAttributesEngine.getInstance(context).removeManifestField(serverUrl, name)
+        SessionAttributesEngine.removeManifestField(serverUrl, name)
     }
 
     fun setSessionAttributesStableValues(values: String) {
-        SessionAttributesEngine.getInstance(context).setStableValues(values)
+        SessionAttributesEngine.setStableValues(values)
     }
 
     fun getSessionAttributesHeader(serverUrl: String): String? {
-        return SessionAttributesEngine.getInstance(context).getOutboundHeader(serverUrl)
+        return SessionAttributesEngine.getOutboundHeader(serverUrl)
     }
 
     // Methods to use with native implementations
