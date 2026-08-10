@@ -65,6 +65,35 @@ class SessionAttributesTest {
         }
     }
 
+    /**
+     * Read-through cache matching SessionAttributesStore: the encrypted backing store is
+     * only read on the first access for a server, writes update the cache in place, and
+     * removal evicts it.
+     */
+    private class InlineStateCache(private val backingStore: MutableMap<String, String>) {
+        private val cache = mutableMapOf<String, String>()
+        var backingReads = 0
+            private set
+
+        fun load(serverUrl: String): String? {
+            cache[serverUrl]?.let { return it }
+            backingReads++
+            val restored = backingStore[serverUrl] ?: return null
+            cache[serverUrl] = restored
+            return restored
+        }
+
+        fun save(serverUrl: String, state: String) {
+            cache[serverUrl] = state
+            backingStore[serverUrl] = state
+        }
+
+        fun remove(serverUrl: String) {
+            cache.remove(serverUrl)
+            backingStore.remove(serverUrl)
+        }
+    }
+
     // ---------------------------------------------------------------------------
     // Engine TTL logic
     // ---------------------------------------------------------------------------
@@ -212,5 +241,66 @@ class SessionAttributesTest {
             val recorded = server.takeRequest()
             Assert.assertNull(recorded.getHeader("X-MM-Session-Attributes"))
         }
+    }
+
+    // ---------------------------------------------------------------------------
+    // Store state cache
+    // ---------------------------------------------------------------------------
+
+    @Test
+    fun cache_readsBackingStoreOnlyOncePerServer() {
+        val cache = InlineStateCache(mutableMapOf("https://server.one" to "state-one"))
+
+        Assert.assertEquals("state-one", cache.load("https://server.one"))
+        Assert.assertEquals("state-one", cache.load("https://server.one"))
+
+        Assert.assertEquals(1, cache.backingReads)
+    }
+
+    @Test
+    fun cache_readsBackingStoreAgainWhenServerHasNoState() {
+        val cache = InlineStateCache(mutableMapOf())
+
+        Assert.assertNull(cache.load("https://server.one"))
+        Assert.assertNull(cache.load("https://server.one"))
+
+        Assert.assertEquals(2, cache.backingReads)
+    }
+
+    @Test
+    fun cache_writeServesSubsequentReadsWithoutBackingStore() {
+        val cache = InlineStateCache(mutableMapOf())
+
+        cache.save("https://server.one", "state-one")
+
+        Assert.assertEquals("state-one", cache.load("https://server.one"))
+        Assert.assertEquals(0, cache.backingReads)
+    }
+
+    @Test
+    fun cache_removeEvictsCachedState() {
+        val backingStore = mutableMapOf("https://server.one" to "state-one")
+        val cache = InlineStateCache(backingStore)
+
+        Assert.assertEquals("state-one", cache.load("https://server.one"))
+        cache.remove("https://server.one")
+
+        Assert.assertNull(cache.load("https://server.one"))
+        Assert.assertTrue(backingStore.isEmpty())
+    }
+
+    @Test
+    fun cache_keepsServersIsolated() {
+        val cache = InlineStateCache(
+            mutableMapOf(
+                "https://server.one" to "state-one",
+                "https://server.two" to "state-two",
+            ),
+        )
+
+        Assert.assertEquals("state-one", cache.load("https://server.one"))
+        cache.remove("https://server.one")
+
+        Assert.assertEquals("state-two", cache.load("https://server.two"))
     }
 }

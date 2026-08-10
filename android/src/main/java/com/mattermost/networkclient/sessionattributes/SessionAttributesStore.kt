@@ -1,6 +1,7 @@
 package com.mattermost.networkclient.sessionattributes
 
 import android.content.Context
+import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
@@ -50,6 +51,14 @@ data class ServerSessionAttributesState(
     var manifest: MutableList<SAField>,
     var lastSentAt: MutableMap<String, Long>,
 ) {
+    fun snapshot(): ServerSessionAttributesState {
+        return ServerSessionAttributesState(
+            enabled = enabled,
+            manifest = manifest.toMutableList(),
+            lastSentAt = lastSentAt.toMutableMap(),
+        )
+    }
+
     fun toJson(): JSONObject {
         val manifestArray = JSONArray()
         manifest.forEach { manifestArray.put(it.toJson()) }
@@ -93,7 +102,17 @@ private val Context.sessionAttributesDataStore: DataStore<Preferences> by prefer
 
 class SessionAttributesStore(context: Context) {
     private val appContext = context.applicationContext
-    private val lock = Any()
+
+    // Guards the in-memory caches only, so the request path never blocks on
+    // DataStore reads or KeyStore crypto while the lock is held.
+    private val cacheLock = Any()
+    private val stateCache = mutableMapOf<String, ServerSessionAttributesState>()
+    private var stableValues: Map<String, String>? = null
+
+    // Serializes persistence so cache updates reach disk in the order they were made.
+    // Only taken by persist()/delete(), which never re-enter it, so the blocking
+    // DataStore write cannot deadlock.
+    private val persistLock = Any()
 
     fun serverKey(serverUrl: String): String {
         val normalized = serverUrl.trimEnd('/')
@@ -101,114 +120,176 @@ class SessionAttributesStore(context: Context) {
         return digest.joinToString("") { "%02x".format(it) }
     }
 
+    fun loadState(serverUrl: String): ServerSessionAttributesState? {
+        val state = cachedState(serverUrl) ?: return null
+        return synchronized(cacheLock) { state.snapshot() }
+    }
+
+    fun saveState(serverUrl: String, state: ServerSessionAttributesState) {
+        val json = synchronized(cacheLock) {
+            val stored = state.snapshot()
+            stateCache[serverUrl] = stored
+            stored.toJson().toString()
+        }
+        persist(stateAlias(serverUrl), json)
+    }
+
+    fun removeState(serverUrl: String) {
+        synchronized(cacheLock) {
+            stateCache.remove(serverUrl)
+        }
+        delete(stateAlias(serverUrl))
+    }
+
+    fun setEnabled(serverUrl: String, enabled: Boolean) {
+        val existing = cachedState(serverUrl)
+        val json = synchronized(cacheLock) {
+            val state = existing ?: ServerSessionAttributesState(false, mutableListOf(), mutableMapOf())
+            state.enabled = enabled
+            if (!enabled) {
+                state.manifest.clear()
+                state.lastSentAt.clear()
+            }
+            stateCache[serverUrl] = state
+            state.toJson().toString()
+        }
+        persist(stateAlias(serverUrl), json)
+    }
+
+    fun setManifest(serverUrl: String, manifest: List<SAField>) {
+        val existing = cachedState(serverUrl)
+        val json = synchronized(cacheLock) {
+            val state = existing ?: ServerSessionAttributesState(true, mutableListOf(), mutableMapOf())
+            state.enabled = true
+            state.manifest = manifest.toMutableList()
+            state.lastSentAt.clear()
+            stateCache[serverUrl] = state
+            state.toJson().toString()
+        }
+        persist(stateAlias(serverUrl), json)
+    }
+
+    fun upsertField(serverUrl: String, field: SAField) {
+        val state = cachedState(serverUrl)?.takeIf { it.enabled } ?: return
+        val json = synchronized(cacheLock) {
+            val index = state.manifest.indexOfFirst { it.name == field.name }
+            if (index == -1) {
+                state.manifest.add(field)
+            } else {
+                state.manifest[index] = field
+            }
+            state.lastSentAt.remove(field.name)
+            state.toJson().toString()
+        }
+        persist(stateAlias(serverUrl), json)
+    }
+
+    fun removeField(serverUrl: String, name: String) {
+        val state = cachedState(serverUrl)?.takeIf { it.enabled } ?: return
+        val json = synchronized(cacheLock) {
+            state.manifest.removeAll { it.name == name }
+            state.lastSentAt.remove(name)
+            state.toJson().toString()
+        }
+        persist(stateAlias(serverUrl), json)
+    }
+
+    fun setStableValues(values: Map<String, String>) {
+        val json = JSONObject()
+        values.forEach { (key, value) -> json.put(key, value) }
+        synchronized(cacheLock) {
+            stableValues = values.toMap()
+        }
+        persist(SessionAttributesConstants.STABLE_VALUES_ALIAS, json.toString())
+    }
+
+    fun getStableValue(name: String): String? {
+        synchronized(cacheLock) {
+            stableValues?.let { values -> return values[name]?.takeIf { it.isNotEmpty() } }
+        }
+
+        val restored = readStableValues()
+        synchronized(cacheLock) {
+            val values = stableValues ?: restored.also { stableValues = it }
+            return values[name]?.takeIf { it.isNotEmpty() }
+        }
+    }
+
     private fun stateAlias(serverUrl: String): String {
         return "${SessionAttributesConstants.STORE_PREFIX}${serverKey(serverUrl)}-${SessionAttributesConstants.STATE_ALIAS_SUFFIX}"
     }
 
+    /**
+     * Returns the cached state for [serverUrl], restoring it from disk on the first
+     * access. The returned instance is the cached one, so callers that mutate it must
+     * do so while holding [cacheLock].
+     */
+    private fun cachedState(serverUrl: String): ServerSessionAttributesState? {
+        synchronized(cacheLock) {
+            stateCache[serverUrl]?.let { return it }
+        }
+
+        val restored = readState(serverUrl) ?: return null
+        synchronized(cacheLock) {
+            return stateCache.getOrPut(serverUrl) { restored }
+        }
+    }
+
+    private fun readState(serverUrl: String): ServerSessionAttributesState? {
+        val raw = readValue(stateAlias(serverUrl)) ?: return null
+        return try {
+            ServerSessionAttributesState.fromJson(JSONObject(raw))
+        } catch (e: Exception) {
+            Log.w("NetworkClient", "Discarding unreadable stored state: ${e.message}")
+            null
+        }
+    }
+
+    private fun readStableValues(): Map<String, String> {
+        val raw = readValue(SessionAttributesConstants.STABLE_VALUES_ALIAS) ?: return emptyMap()
+        return try {
+            val json = JSONObject(raw)
+            json.keys().asSequence().associateWith { json.optString(it, "") }
+        } catch (e: Exception) {
+            Log.w("NetworkClient", "Discarding unreadable stable values: ${e.message}")
+            emptyMap()
+        }
+    }
+
     private fun readValue(alias: String): String? {
-        val encrypted = runBlocking {
-            appContext.sessionAttributesDataStore.data.first()[stringPreferencesKey(alias)]
-        } ?: return null
         return try {
+            val encrypted = runBlocking {
+                appContext.sessionAttributesDataStore.data.first()[stringPreferencesKey(alias)]
+            } ?: return null
             KeyStoreHelper.decryptData(encrypted)
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            Log.w("NetworkClient", "Failed to read $alias: ${e.message}")
             null
         }
     }
 
-    private fun writeValue(alias: String, value: String) {
-        val encrypted = KeyStoreHelper.encryptData(value)
-        runBlocking {
-            appContext.sessionAttributesDataStore.edit { preferences ->
-                preferences[stringPreferencesKey(alias)] = encrypted
+    private fun persist(alias: String, value: String) = synchronized(persistLock) {
+        try {
+            val encrypted = KeyStoreHelper.encryptData(value)
+            runBlocking {
+                appContext.sessionAttributesDataStore.edit { preferences ->
+                    preferences[stringPreferencesKey(alias)] = encrypted
+                }
             }
+        } catch (e: Exception) {
+            Log.w("NetworkClient", "Failed to persist $alias: ${e.message}")
         }
     }
 
-    private fun deleteValue(alias: String) {
-        runBlocking {
-            appContext.sessionAttributesDataStore.edit { preferences ->
-                preferences.remove(stringPreferencesKey(alias))
+    private fun delete(alias: String) = synchronized(persistLock) {
+        try {
+            runBlocking {
+                appContext.sessionAttributesDataStore.edit { preferences ->
+                    preferences.remove(stringPreferencesKey(alias))
+                }
             }
-        }
-    }
-
-    fun loadState(serverUrl: String): ServerSessionAttributesState? = synchronized(lock) {
-        val raw = readValue(stateAlias(serverUrl)) ?: return null
-        return try {
-            ServerSessionAttributesState.fromJson(JSONObject(raw))
-        } catch (_: Exception) {
-            null
-        }
-    }
-
-    fun saveState(serverUrl: String, state: ServerSessionAttributesState) = synchronized(lock) {
-        writeValue(stateAlias(serverUrl), state.toJson().toString())
-    }
-
-    fun removeState(serverUrl: String) = synchronized(lock) {
-        deleteValue(stateAlias(serverUrl))
-    }
-
-    fun setEnabled(serverUrl: String, enabled: Boolean) = synchronized(lock) {
-        val state = loadStateLocked(serverUrl) ?: ServerSessionAttributesState(false, mutableListOf(), mutableMapOf())
-        state.enabled = enabled
-        if (!enabled) {
-            state.manifest.clear()
-            state.lastSentAt.clear()
-        }
-        writeValue(stateAlias(serverUrl), state.toJson().toString())
-    }
-
-    fun setManifest(serverUrl: String, manifest: List<SAField>) = synchronized(lock) {
-        val state = loadStateLocked(serverUrl) ?: ServerSessionAttributesState(true, mutableListOf(), mutableMapOf())
-        state.enabled = true
-        state.manifest = manifest.toMutableList()
-        state.lastSentAt.clear()
-        writeValue(stateAlias(serverUrl), state.toJson().toString())
-    }
-
-    fun upsertField(serverUrl: String, field: SAField) = synchronized(lock) {
-        val state = loadStateLocked(serverUrl)?.takeIf { it.enabled } ?: return
-        val index = state.manifest.indexOfFirst { it.name == field.name }
-        if (index == -1) {
-            state.manifest.add(field)
-        } else {
-            state.manifest[index] = field
-        }
-        state.lastSentAt.remove(field.name)
-        writeValue(stateAlias(serverUrl), state.toJson().toString())
-    }
-
-    fun removeField(serverUrl: String, name: String) = synchronized(lock) {
-        val state = loadStateLocked(serverUrl)?.takeIf { it.enabled } ?: return
-        state.manifest.removeAll { it.name == name }
-        state.lastSentAt.remove(name)
-        writeValue(stateAlias(serverUrl), state.toJson().toString())
-    }
-
-    fun setStableValues(values: Map<String, String>) = synchronized(lock) {
-        val json = JSONObject()
-        values.forEach { (key, value) -> json.put(key, value) }
-        writeValue(SessionAttributesConstants.STABLE_VALUES_ALIAS, json.toString())
-    }
-
-    fun getStableValue(name: String): String? = synchronized(lock) {
-        val raw = readValue(SessionAttributesConstants.STABLE_VALUES_ALIAS) ?: return null
-        return try {
-            val value = JSONObject(raw).optString(name, "")
-            if (value.isEmpty()) null else value
-        } catch (_: Exception) {
-            null
-        }
-    }
-
-    private fun loadStateLocked(serverUrl: String): ServerSessionAttributesState? {
-        val raw = readValue(stateAlias(serverUrl)) ?: return null
-        return try {
-            ServerSessionAttributesState.fromJson(JSONObject(raw))
-        } catch (_: Exception) {
-            null
+        } catch (e: Exception) {
+            Log.w("NetworkClient", "Failed to remove $alias: ${e.message}")
         }
     }
 
