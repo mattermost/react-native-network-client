@@ -72,6 +72,41 @@ class ApiClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         implementation.cancelRequest(taskId, promise)
     }
 
+    @ReactMethod(isBlockingSynchronousMethod = true)
+    fun setSessionAttributesEnabled(serverUrl: String, enabled: Boolean) {
+        implementation.setSessionAttributesEnabled(serverUrl, enabled)
+    }
+
+    @ReactMethod(isBlockingSynchronousMethod = true)
+    fun removeSessionAttributesServer(serverUrl: String) {
+        implementation.removeSessionAttributesServer(serverUrl)
+    }
+
+    @ReactMethod(isBlockingSynchronousMethod = true)
+    fun setSessionAttributesManifest(serverUrl: String, manifest: String) {
+        implementation.setSessionAttributesManifest(serverUrl, manifest)
+    }
+
+    @ReactMethod(isBlockingSynchronousMethod = true)
+    fun upsertSessionAttributesField(serverUrl: String, field: String) {
+        implementation.upsertSessionAttributesField(serverUrl, field)
+    }
+
+    @ReactMethod(isBlockingSynchronousMethod = true)
+    fun removeSessionAttributesField(serverUrl: String, name: String) {
+        implementation.removeSessionAttributesField(serverUrl, name)
+    }
+
+    @ReactMethod(isBlockingSynchronousMethod = true)
+    fun setSessionAttributesStableValues(values: String) {
+        implementation.setSessionAttributesStableValues(values)
+    }
+
+    @ReactMethod(isBlockingSynchronousMethod = true)
+    fun getSessionAttributesHeader(serverUrl: String): String? {
+        return implementation.getSessionAttributesHeader(serverUrl)
+    }
+
     @ReactMethod
     fun addListener(eventName: String) {
         // Keep: Required for RN built in Event Emitter Calls

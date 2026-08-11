@@ -81,6 +81,7 @@ export type SessionConfiguration = {
 
 export type RequestAdapterConfiguration = {
     bearerAuthTokenResponseHeader?: string;
+    enableSessionAttributes?: boolean;
 };
 
 export type ClientP12Configuration = Readonly<{
@@ -165,6 +166,14 @@ export interface Spec extends TurboModule {
         password?: string,
     ): Promise<void>;
     invalidateClientFor(baseUrl: string): Promise<void>;
+
+    setSessionAttributesEnabled(serverUrl: string, enabled: boolean): void;
+    removeSessionAttributesServer(serverUrl: string): void;
+    setSessionAttributesManifest(serverUrl: string, manifest: string): void;
+    upsertSessionAttributesField(serverUrl: string, field: string): void;
+    removeSessionAttributesField(serverUrl: string, name: string): void;
+    setSessionAttributesStableValues(values: string): void;
+    getSessionAttributesHeader(serverUrl: string): string | undefined;
 }
 
 export default TurboModuleRegistry.get<Spec>("ApiClient") as Spec;

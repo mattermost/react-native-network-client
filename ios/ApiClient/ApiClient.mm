@@ -97,6 +97,42 @@ RCT_EXPORT_METHOD(cancelRequest:(NSString *)taskId withResolver:(RCTPromiseResol
     [wrapper cancelRequest:taskId withResolver:resolve withRejecter:reject];
 }
 
+#ifndef RCT_NEW_ARCH_ENABLED
+RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(setSessionAttributesEnabled:(NSString *)serverUrl enabled:(BOOL)enabled) {
+    [wrapper setSessionAttributesEnabled:serverUrl enabled:enabled];
+    return nil;
+}
+
+RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(removeSessionAttributesServer:(NSString *)serverUrl) {
+    [wrapper removeSessionAttributesServer:serverUrl];
+    return nil;
+}
+
+RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(setSessionAttributesManifest:(NSString *)serverUrl manifest:(NSString *)manifest) {
+    [wrapper setSessionAttributesManifest:serverUrl manifest:manifest];
+    return nil;
+}
+
+RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(upsertSessionAttributesField:(NSString *)serverUrl field:(NSString *)field) {
+    [wrapper upsertSessionAttributesField:serverUrl field:field];
+    return nil;
+}
+
+RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(removeSessionAttributesField:(NSString *)serverUrl name:(NSString *)name) {
+    [wrapper removeSessionAttributesField:serverUrl name:name];
+    return nil;
+}
+
+RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(setSessionAttributesStableValues:(NSString *)values) {
+    [wrapper setSessionAttributesStableValues:values];
+    return nil;
+}
+
+RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(getSessionAttributesHeader:(NSString *)serverUrl) {
+    return [wrapper getSessionAttributesHeader:serverUrl];
+}
+#endif
+
 #ifdef RCT_NEW_ARCH_ENABLED
 - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:
     (const facebook::react::ObjCTurboModule::InitParams &)params
@@ -191,6 +227,34 @@ RCT_EXPORT_METHOD(cancelRequest:(NSString *)taskId withResolver:(RCTPromiseResol
     [wrapper uploadWithBaseUrlString:baseUrl endpoint:endpoint fileUrlString:fileUrl taskId:taskId options:opts resolve:resolve reject:reject];
 }
 
+- (void)setSessionAttributesEnabled:(NSString *)serverUrl enabled:(BOOL)enabled {
+    [wrapper setSessionAttributesEnabled:serverUrl enabled:enabled];
+}
+
+- (void)removeSessionAttributesServer:(NSString *)serverUrl {
+    [wrapper removeSessionAttributesServer:serverUrl];
+}
+
+- (void)setSessionAttributesManifest:(NSString *)serverUrl manifest:(NSString *)manifest {
+    [wrapper setSessionAttributesManifest:serverUrl manifest:manifest];
+}
+
+- (void)upsertSessionAttributesField:(NSString *)serverUrl field:(NSString *)field {
+    [wrapper upsertSessionAttributesField:serverUrl field:field];
+}
+
+- (void)removeSessionAttributesField:(NSString *)serverUrl name:(NSString *)name {
+    [wrapper removeSessionAttributesField:serverUrl name:name];
+}
+
+- (void)setSessionAttributesStableValues:(NSString *)values {
+    [wrapper setSessionAttributesStableValues:values];
+}
+
+- (NSString *)getSessionAttributesHeader:(NSString *)serverUrl {
+    return [wrapper getSessionAttributesHeader:serverUrl];
+}
+
 #pragma utils
 
 - (NSNumber *)processBooleanValue:(std::optional<bool>)optionalBoolValue {
@@ -237,7 +301,9 @@ RCT_EXPORT_METHOD(cancelRequest:(NSString *)taskId withResolver:(RCTPromiseResol
     
     if (config.requestAdapterConfiguration().has_value()) {
         NSMutableDictionary *adapterDictionary = [[NSMutableDictionary alloc] init];
-        adapterDictionary[@"bearerAuthTokenResponseHeader"] = config.requestAdapterConfiguration().value().bearerAuthTokenResponseHeader();
+        JS::NativeApiClient::RequestAdapterConfiguration adapter = config.requestAdapterConfiguration().value();
+        adapterDictionary[@"bearerAuthTokenResponseHeader"] = adapter.bearerAuthTokenResponseHeader();
+        adapterDictionary[@"enableSessionAttributes"] = [self processBooleanValue:adapter.enableSessionAttributes()];
         dict[@"requestAdapterConfiguration"] = adapterDictionary;
     }
     

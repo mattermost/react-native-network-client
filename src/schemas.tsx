@@ -32,6 +32,7 @@ const RetryPolicyConfigurationSchema = z.object({
 
 const RequestAdapterConfigurationSchema = z.object({
     bearerAuthTokenResponseHeader: z.string().optional(),
+    enableSessionAttributes: z.boolean().optional(),
 });
 
 const ClientP12ConfigurationSchema = z.object({

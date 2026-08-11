@@ -7,6 +7,7 @@ import { getOrCreateWebSocketClient } from "./WebSocketClient";
 
 export * from "./types/APIClient";
 export * from "./types/WebSocketClient";
+export * from "./SessionAttributes";
 export { getOrCreateAPIClient, getOrCreateWebSocketClient };
 export { RetryTypes } from "./APIClient/NativeApiClient";
 export {

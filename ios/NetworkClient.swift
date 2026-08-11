@@ -294,10 +294,15 @@ extension NetworkClient {
             adapters.append(BearerAuthenticationAdapter())
         }
 
+        if options["requestAdapterConfiguration"]["enableSessionAttributes"].boolValue {
+            // Added after BearerAuthenticationAdapter so the Authorization header is present.
+            adapters.append(SessionAttributesAdapter())
+        }
+
         if (adapters.isEmpty) {
             return Interceptor(retriers: retriers)
         }
-    
+
         return Interceptor(adapters: adapters, retriers: retriers)
     }
     
