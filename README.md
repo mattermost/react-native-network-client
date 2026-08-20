@@ -14,6 +14,17 @@ npm install @mattermost/react-native-network-client
 
 You will also need to update your applications Podfile to use our fork of Starscream. See the [example app's Podfile](https://github.com/mattermost/react-native-network-client/blob/master/example/ios/Podfile#L31).
 
+### iOS: session attributes pod
+
+On iOS this library depends on a companion pod, `react-native-network-client-session-attributes`, which ships in this same npm package. It is not published to the CocoaPods CDN, so autolinking cannot resolve it on its own — add it to your Podfile with an explicit path:
+
+```ruby
+pod 'react-native-network-client-session-attributes', :path => '../node_modules/@mattermost/react-native-network-client'
+```
+
+One such line anywhere in the Podfile is enough: CocoaPods resolves external sources per Podfile rather than per target, so any target that requires the pod (including the main app, which gets it transitively via `react-native-network-client`) will then find it. Without it, `pod install` fails with `Unable to find a specification for react-native-network-client-session-attributes`.
+
+
 ## Usage
 
 ```js
