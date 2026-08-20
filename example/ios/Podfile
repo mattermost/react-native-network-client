@@ -34,6 +34,11 @@ target 'NetworkClientExample' do
     :app_path => "#{Pod::Config.instance.installation_root}/.."
   )
 
+  # react-native-network-client depends on this sibling pod, which is not published
+  # to the CocoaPods CDN, so autolinking cannot resolve it on its own. Declaring it
+  # with an explicit path lets CocoaPods find it locally.
+  pod 'react-native-network-client-session-attributes', :path => '../../'
+
   post_install do |installer|
     react_native_post_install(
       installer,

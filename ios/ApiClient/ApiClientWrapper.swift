@@ -1,6 +1,7 @@
 import Alamofire
 import SwiftyJSON
 import React
+import react_native_network_client_session_attributes
 
 @objc public class ApiClientWrapper: NSObject, NetworkClient {
     @objc public weak var delegate: ApiClientDelegate? = nil

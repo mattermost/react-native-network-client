@@ -3,6 +3,7 @@
 
 import Foundation
 import Alamofire
+import react_native_network_client_session_attributes
 
 @objc public class SessionAttributesAdapter: NSObject, RequestAdapter {
     public func adapt(_ urlRequest: URLRequest, for session: Session, completion: @escaping (Result<URLRequest, Error>) -> Void) {
