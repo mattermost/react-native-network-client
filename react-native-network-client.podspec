@@ -14,41 +14,36 @@ Pod::Spec.new do |s|
   s.source       = { :git => "https://github.com/mattermost/react-native-network-client.git", :tag => "#{s.version}" }
   s.prepare_command = 'ruby ios/patches/apply_patches.rb'
 
-  # SessionAttributes lives in its own React-free subspec so it can be linked by
-  # app extensions / standalone native code without pulling in React.
-  s.subspec 'SessionAttributes' do |sa|
-    sa.source_files = 'ios/SessionAttributes/**/*.swift'
-    sa.pod_target_xcconfig = { 'BUILD_LIBRARY_FOR_DISTRIBUTION' => 'YES' }
+  s.source_files = "ios/**/*.{h,m,mm,swift}"
+
+  # SessionAttributes lives in the sibling React-free
+  # react-native-network-client-session-attributes podspec so app extensions and
+  # standalone native code can link it without pulling in React, and so it resolves
+  # to a single shared pod target (see that podspec for why it is not a subspec).
+  # Excluded here so those files are compiled exactly once, by that pod.
+  s.exclude_files = "ios/SessionAttributes/**/*"
+  s.dependency 'react-native-network-client-session-attributes'
+
+  fabric_enabled = ENV["RCT_NEW_ARCH_ENABLED"] == "1"
+
+  if fabric_enabled
+    s.pod_target_xcconfig    = {
+      "DEFINES_MODULE" => "YES",
+      "BUILD_LIBRARY_FOR_DISTRIBUTION" => "YES",
+      "OTHER_CPLUSPLUSFLAGS" => "-DRCT_NEW_ARCH_ENABLED=1",
+      "OTHER_SWIFT_FLAGS" => "-no-verify-emitted-module-interface"
+    }
+  else
+    s.pod_target_xcconfig    = {
+      "DEFINES_MODULE" => "YES",
+      "BUILD_LIBRARY_FOR_DISTRIBUTION" => "YES",
+      "OTHER_SWIFT_FLAGS" => "-no-verify-emitted-module-interface"
+    }
   end
 
-  s.subspec 'Core' do |core|
-    core.source_files = "ios/**/*.{h,m,mm,swift}"
-    core.exclude_files = "ios/SessionAttributes/**/*"
-    core.dependency 'react-native-network-client/SessionAttributes'
+  install_modules_dependencies(s)
 
-    fabric_enabled = ENV["RCT_NEW_ARCH_ENABLED"] == "1"
-
-    if fabric_enabled
-      core.pod_target_xcconfig    = {
-        "DEFINES_MODULE" => "YES",
-        "BUILD_LIBRARY_FOR_DISTRIBUTION" => "YES",
-        "OTHER_CPLUSPLUSFLAGS" => "-DRCT_NEW_ARCH_ENABLED=1",
-        "OTHER_SWIFT_FLAGS" => "-no-verify-emitted-module-interface"
-      }
-    else
-      core.pod_target_xcconfig    = {
-        "DEFINES_MODULE" => "YES",
-        "BUILD_LIBRARY_FOR_DISTRIBUTION" => "YES",
-        "OTHER_SWIFT_FLAGS" => "-no-verify-emitted-module-interface"
-      }
-    end
-
-    install_modules_dependencies(core)
-
-    core.dependency "Alamofire", "~> 5.11.2"
-    core.dependency "SwiftyJSON", "~> 5.0.2"
-    core.dependency "Starscream", "~> 4.0.8"
-  end
-
-  s.default_subspec = 'Core'
+  s.dependency "Alamofire", "~> 5.11.2"
+  s.dependency "SwiftyJSON", "~> 5.0.2"
+  s.dependency "Starscream", "~> 4.0.8"
 end
