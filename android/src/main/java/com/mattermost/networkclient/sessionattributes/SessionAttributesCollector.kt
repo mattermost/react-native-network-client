@@ -90,7 +90,9 @@ class SessionAttributesCollector(
         val capabilities = activeNetwork?.let { connectivityManager.getNetworkCapabilities(it) }
 
         val vpnActive = capabilities?.hasTransport(NetworkCapabilities.TRANSPORT_VPN) == true
-        val wifiActive = capabilities?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) == true
+        val wifiActive = connectivityManager.allNetworks.any { network ->
+            connectivityManager.getNetworkCapabilities(network)?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) == true
+        }
         val interfaceType = when {
             vpnActive -> "vpn"
             wifiActive -> "wifi"

@@ -27,8 +27,8 @@ public class SessionAttributesCollector: NSObject {
     private var wifiAvailable = false
     private var locationManager: CLLocationManager?
 
-    private static let ssidUnavailable = 
-        Bundle.main.bundleIdentifier?.contains("NotificationService") == true
+    private static let ssidUnavailable = Bundle.main.bundleURL.pathExtension == "appex" && 
+        Bundle.main.bundleIdentifier?.contains("NotificationService") ?? false
 
     private override init() {
         super.init()
