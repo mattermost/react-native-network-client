@@ -100,9 +100,8 @@ class SessionAttributesCollector(
         }
 
         val ipAddress = resolveIpAddress()
-        val ssid = if (interfaceType == "wifi") resolveSsid() else ""
 
-        return NetworkSnapshot(interfaceType, ipAddress, vpnActive, ssid)
+        return NetworkSnapshot(interfaceType, ipAddress, vpnActive, resolveSsid())
     }
 
     private fun resolveIpAddress(): String {

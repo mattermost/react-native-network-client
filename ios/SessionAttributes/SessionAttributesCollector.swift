@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import CoreLocation
 import Foundation
 import Network
 import NetworkExtension
@@ -13,7 +14,7 @@ struct NetworkSnapshot {
     let ssid: String
 }
 
-public class SessionAttributesCollector {
+public class SessionAttributesCollector: NSObject {
     public static let shared = SessionAttributesCollector()
 
     private let store = SessionAttributesStore.shared
@@ -23,11 +24,14 @@ public class SessionAttributesCollector {
     private let pathMonitor = NWPathMonitor()
     private var cachedInterfaceType = ""
     private var cachedSsid = ""
-    private let ssidUnavailable: Bool
+    private var wifiAvailable = false
+    private var locationManager: CLLocationManager?
 
-    private init() {
-        ssidUnavailable = Bundle.main.bundlePath.hasSuffix(".appex") &&
-            Bundle.main.bundleIdentifier?.contains("NotificationService") == true
+    private static let ssidUnavailable = Bundle.main.bundleURL.pathExtension == "appex" && 
+        Bundle.main.bundleIdentifier?.contains("NotificationService") ?? false
+
+    private override init() {
+        super.init()
 
         pathMonitor.pathUpdateHandler = { [weak self] path in
             guard let self else {
@@ -45,13 +49,22 @@ public class SessionAttributesCollector {
                 self.cachedInterfaceType = "other"
             }
 
-            if self.cachedInterfaceType == "wifi" {
+            self.wifiAvailable = path.availableInterfaces.contains { $0.type == .wifi }
+            if self.wifiAvailable {
                 self.refreshSsid()
             } else {
                 self.cachedSsid = ""
             }
         }
         pathMonitor.start(queue: monitorQueue)
+
+        if !Self.ssidUnavailable {
+            DispatchQueue.main.async {
+                let manager = CLLocationManager()
+                manager.delegate = self
+                self.locationManager = manager
+            }
+        }
     }
 
     func collect(_ name: String, serverUrl: String) -> String {
@@ -119,18 +132,17 @@ public class SessionAttributesCollector {
         let ipAddress = resolveIpAddress()
         return monitorQueue.sync {
             let interfaceType = vpnActive ? "vpn" : cachedInterfaceType
-            let ssid = interfaceType == "wifi" ? cachedSsid : ""
             return NetworkSnapshot(
                 interfaceType: interfaceType,
                 ipAddress: ipAddress,
                 vpnActive: vpnActive,
-                ssid: ssid
+                ssid: cachedSsid
             )
         }
     }
 
     private func refreshSsid() {
-        guard !ssidUnavailable else {
+        guard !Self.ssidUnavailable else {
             cachedSsid = ""
             return
         }
@@ -149,6 +161,9 @@ public class SessionAttributesCollector {
                     ssid = ""
                 }
                 self.monitorQueue.async {
+                    guard self.wifiAvailable else {
+                        return
+                    }
                     self.cachedSsid = ssid
                 }
             }
@@ -223,5 +238,16 @@ public class SessionAttributesCollector {
             ptr = next
         }
         return address
+    }
+}
+
+extension SessionAttributesCollector: CLLocationManagerDelegate {
+    public func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+        monitorQueue.async {
+            guard self.wifiAvailable else {
+                return
+            }
+            self.refreshSsid()
+        }
     }
 }

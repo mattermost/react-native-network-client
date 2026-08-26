@@ -18,8 +18,8 @@ package = JSON.parse(File.read(File.join(__dir__, "package.json")))
 # the collision cannot be fixed in place.
 #
 # The sources here depend only on system frameworks (Foundation, Network,
-# NetworkExtension, SystemConfiguration, CryptoKit), which is what makes them
-# safe to link into app extensions.
+# NetworkExtension, SystemConfiguration, CryptoKit, CoreLocation), which is what
+# makes them safe to link into app extensions.
 #
 # Swift module name is react_native_network_client_session_attributes (CocoaPods
 # replaces the hyphens in the pod name with underscores).
