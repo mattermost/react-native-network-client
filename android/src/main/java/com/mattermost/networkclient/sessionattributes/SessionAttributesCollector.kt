@@ -90,12 +90,9 @@ class SessionAttributesCollector(
         val capabilities = activeNetwork?.let { connectivityManager.getNetworkCapabilities(it) }
 
         val vpnActive = capabilities?.hasTransport(NetworkCapabilities.TRANSPORT_VPN) == true
-        val wifiActive = connectivityManager.allNetworks.any { network ->
-            connectivityManager.getNetworkCapabilities(network)?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) == true
-        }
         val interfaceType = when {
             vpnActive -> "vpn"
-            wifiActive -> "wifi"
+            capabilities?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) == true -> "wifi"
             capabilities?.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) == true -> "cellular"
             capabilities?.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) == true -> "ethernet"
             activeNetwork == null -> ""
@@ -103,9 +100,8 @@ class SessionAttributesCollector(
         }
 
         val ipAddress = resolveIpAddress()
-        val ssid = if (wifiActive) resolveSsid() else ""
 
-        return NetworkSnapshot(interfaceType, ipAddress, vpnActive, ssid)
+        return NetworkSnapshot(interfaceType, ipAddress, vpnActive, resolveSsid())
     }
 
     private fun resolveIpAddress(): String {
