@@ -45,8 +45,8 @@ class WebSocketClientModuleImpl(reactApplicationContext: ReactApplicationContext
             return promise.reject(error)
         }
 
-        if (clients.containsKey(wsUri)) {
-            clients[wsUri]!!.webSocket?.close(1000, null)
+        clients[wsUri]?.let { client ->
+            client.webSocket?.close(1000, null)
             clients.remove(wsUri)
         }
 
@@ -83,9 +83,10 @@ class WebSocketClientModuleImpl(reactApplicationContext: ReactApplicationContext
             return promise.reject(error)
         }
 
-
-        clients[wsUri]!!.webSocket?.close(1000, null)
-        clients.remove(wsUri)
+        clients[wsUri]?.let { client ->
+            client.webSocket?.close(1000, null)
+            clients.remove(wsUri)
+        }
 
         promise.resolve(null)
     }
@@ -98,8 +99,13 @@ class WebSocketClientModuleImpl(reactApplicationContext: ReactApplicationContext
             return promise.reject(error)
         }
 
+        val client = clients[wsUri]
+        if (client == null) {
+            return promise.reject("WebSocket error", "no client for this websocket url")
+        }
+
         try {
-            clients[wsUri]!!.createWebSocket()
+            client.createWebSocket()
             promise.resolve(null)
         } catch (error: Exception) {
             promise.reject(error)
@@ -114,8 +120,13 @@ class WebSocketClientModuleImpl(reactApplicationContext: ReactApplicationContext
             return promise.reject(error)
         }
 
+        val client = clients[wsUri]
+        if (client == null) {
+            return promise.reject("WebSocket error", "no client for this websocket url")
+        }
+
         try {
-            clients[wsUri]!!.webSocket!!.cancel()
+            client.webSocket?.cancel()
             promise.resolve(null)
         } catch (error: Exception) {
             promise.reject(error)
@@ -131,9 +142,18 @@ class WebSocketClientModuleImpl(reactApplicationContext: ReactApplicationContext
         }
 
 
+        val client = clients[wsUri]
+        if (client == null) {
+            return promise.reject("WebSocket error", "no client for this websocket url")
+        }
+
         try {
-            clients[wsUri]!!.webSocket!!.send(data)
-            promise.resolve(null)
+            val sent = client.webSocket?.send(data)
+            if (sent == true) {
+                promise.resolve(null)
+            } else {
+                promise.reject("WebSocket error", "websocket is not connected or failed to send data")
+            }
         } catch (error: Exception) {
             promise.reject(error)
         }
