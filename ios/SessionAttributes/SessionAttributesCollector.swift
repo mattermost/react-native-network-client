@@ -195,13 +195,31 @@ public class SessionAttributesCollector: NSObject {
         }
         defer { freeifaddrs(interfaces) }
 
+        let activeFlags = UInt32(IFF_UP | IFF_RUNNING)
         var ptr = first
         while true {
-            let name = String(cString: ptr.pointee.ifa_name)
-            if name.hasPrefix("utun") || name.hasPrefix("ipsec") || name.hasPrefix("ppp") {
-                return true
+            let interface = ptr.pointee
+            let name = String(cString: interface.ifa_name)
+            if name.hasPrefix("utun") || name.hasPrefix("ipsec") || name.hasPrefix("ppp"),
+               interface.ifa_flags & activeFlags == activeFlags,
+               let ifaAddr = interface.ifa_addr {
+                switch Int32(ifaAddr.pointee.sa_family) {
+                case AF_INET:
+                    return true
+                case AF_INET6:
+                    let bytes = ifaAddr.withMemoryRebound(to: sockaddr_in6.self, capacity: 1) {
+                        $0.pointee.sin6_addr.__u6_addr.__u6_addr8
+                    }
+                    // iOS keeps its own system tunnels up with only a link-local (fe80::/10) address
+                    let isLinkLocal = bytes.0 == 0xfe && bytes.1 & 0xc0 == 0x80
+                    if !isLinkLocal {
+                        return true
+                    }
+                default:
+                    break
+                }
             }
-            guard let next = ptr.pointee.ifa_next else {
+            guard let next = interface.ifa_next else {
                 break
             }
             ptr = next
@@ -223,7 +241,9 @@ public class SessionAttributesCollector: NSObject {
             if let ifaAddr = interface.ifa_addr, ifaAddr.pointee.sa_family == UInt8(AF_INET) {
                 let name = String(cString: interface.ifa_name)
                 if name == "en0" || name == "en1" {
-                    var addr = ifaAddr.pointee
+                    var addr = ifaAddr.withMemoryRebound(to: sockaddr_in.self, capacity: 1) {
+                        $0.pointee.sin_addr
+                    }
                     var buffer = [CChar](repeating: 0, count: Int(INET_ADDRSTRLEN))
                     inet_ntop(AF_INET, &addr, &buffer, socklen_t(INET_ADDRSTRLEN))
                     let ip = String(cString: buffer)
