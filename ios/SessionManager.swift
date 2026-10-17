@@ -132,7 +132,9 @@ public class SessionManager: NSObject {
         invalidateSession(for: baseUrl)
 
         let rootQueue = previousSession.rootQueue
-        let delegate = previousSession.delegate
+        // A shared delegate would route the old session's invalidation callback to the new
+        // session on the wrong queue, which fails Alamofire's dispatchPrecondition.
+        let delegate = ApiClientSessionDelegate()
         let configuration = previousSession.sessionConfiguration
         let previousHeaders = configuration.httpAdditionalHeaders ?? [:]
         let newHeaders = previousHeaders.merging(additionalHeaders) {(_, new) in new}
