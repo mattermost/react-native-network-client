@@ -101,6 +101,7 @@ export enum ApiClientEvents {
     DOWNLOAD_PROGRESS = "ApiClient-DownloadProgress",
     UPLOAD_PROGRESS = "ApiClient-UploadProgress",
     CLIENT_ERROR = "ApiClient-Error",
+    SESSION_ATTRIBUTES_NETWORK_CHANGED = "ApiClient-SessionAttributesNetworkChanged",
 }
 
 export interface Spec extends TurboModule {

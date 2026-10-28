@@ -12,9 +12,38 @@ object SessionAttributesEngine {
     private val store: SessionAttributesStore by lazy { SessionAttributesStore(context) }
     private val collector: SessionAttributesCollector by lazy { SessionAttributesCollector(context, store) }
 
+    private var networkMonitor: SessionAttributesNetworkMonitor? = null
+    @Volatile
+    private var networkChangeListener: ((List<String>) -> Unit)? = null
+
     fun init(appContext: Context) {
         if (!::context.isInitialized) {
             context = appContext.applicationContext
+        }
+    }
+
+    /**
+     * Watches the device network and, when it changes, resets the network attributes
+     * of every enabled server before calling [listener] with those servers' URLs.
+     * Calling it again only replaces the listener.
+     */
+    @Synchronized
+    fun startNetworkMonitor(listener: (List<String>) -> Unit) {
+        networkChangeListener = listener
+        if (networkMonitor != null) {
+            return
+        }
+        networkMonitor = SessionAttributesNetworkMonitor(
+            context,
+            snapshotProvider = { collector.currentNetworkSnapshot() },
+            onChange = ::onNetworkChanged,
+        ).also { it.start() }
+    }
+
+    private fun onNetworkChanged() {
+        val serverUrls = store.resetNetworkFields()
+        if (serverUrls.isNotEmpty()) {
+            networkChangeListener?.invoke(serverUrls)
         }
     }
 
@@ -80,6 +109,8 @@ object SessionAttributesEngine {
             return null
         }
 
+        // Read before collecting, so a network change during collection is detected in markSent.
+        val generation = store.currentNetworkGeneration()
         val state = store.loadState(serverUrl) ?: return null
         if (!state.enabled || state.manifest.isEmpty()) {
             return null
@@ -87,6 +118,7 @@ object SessionAttributesEngine {
 
         val now = System.currentTimeMillis()
         val payload = JSONObject()
+        val sent = mutableListOf<String>()
 
         for (field in state.manifest) {
             val lastSent = state.lastSentAt[field.name]
@@ -102,14 +134,14 @@ object SessionAttributesEngine {
             }
 
             payload.put(field.name, value)
-            state.lastSentAt[field.name] = now
+            sent.add(field.name)
         }
 
-        if (payload.length() == 0) {
+        if (sent.isEmpty()) {
             return null
         }
 
-        store.saveState(serverUrl, state)
+        store.markSent(serverUrl, sent, now, generation)
 
         return Base64.encodeToString(payload.toString().toByteArray(), Base64.NO_WRAP)
     }

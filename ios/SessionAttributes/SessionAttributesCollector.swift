@@ -7,7 +7,7 @@ import Network
 import NetworkExtension
 import SystemConfiguration.CaptiveNetwork
 
-struct NetworkSnapshot {
+struct NetworkSnapshot: Equatable {
     let interfaceType: String
     let ipAddress: String
     let vpnActive: Bool
@@ -26,6 +26,7 @@ public class SessionAttributesCollector: NSObject {
     private var cachedSsid = ""
     private var wifiAvailable = false
     private var locationManager: CLLocationManager?
+    private var networkUpdateHandler: (() -> Void)?
 
     private static let ssidUnavailable = Bundle.main.bundleURL.pathExtension == "appex" && 
         Bundle.main.bundleIdentifier?.contains("NotificationService") ?? false
@@ -55,6 +56,7 @@ public class SessionAttributesCollector: NSObject {
             } else {
                 self.cachedSsid = ""
             }
+            self.networkUpdateHandler?()
         }
         pathMonitor.start(queue: monitorQueue)
 
@@ -64,6 +66,18 @@ public class SessionAttributesCollector: NSObject {
                 manager.delegate = self
                 self.locationManager = manager
             }
+        }
+    }
+
+    /**
+     Calls `handler` on every network path or SSID update, and once right away so the
+     current network can be read as a baseline. The handler runs on the monitor queue,
+     so it must not call `currentNetworkSnapshot()` synchronously.
+     */
+    func setNetworkUpdateHandler(_ handler: @escaping () -> Void) {
+        monitorQueue.async {
+            self.networkUpdateHandler = handler
+            handler()
         }
     }
 
@@ -165,6 +179,8 @@ public class SessionAttributesCollector: NSObject {
                         return
                     }
                     self.cachedSsid = ssid
+                    // The SSID arrives after the path update, so report it as its own update.
+                    self.networkUpdateHandler?()
                 }
             }
             return

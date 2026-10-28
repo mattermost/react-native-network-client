@@ -7,12 +7,14 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.modules.network.ForwardingCookieHandler
 import com.facebook.react.modules.network.ReactCookieJarContainer
+import com.mattermost.networkclient.enums.ApiClientEvents
 import com.mattermost.networkclient.helpers.KeyStoreHelper
 import com.mattermost.networkclient.sessionattributes.SessionAttributesEngine
 import kotlinx.coroutines.flow.first
@@ -34,6 +36,10 @@ class ApiClientModuleImpl(appContext: Context) {
         const val NAME = "ApiClient"
 
         lateinit var context: Context
+        // Events go through the React context. Native code outside React (e.g. push notification
+        // handling) creates its own instance with a plain Context, which must not replace it.
+        @Volatile
+        private var reactContext: ReactApplicationContext? = null
         private val clients = mutableMapOf<HttpUrl, NetworkClient>()
         private val calls = mutableMapOf<String, Call>()
         private lateinit var sharedPreferences: SharedPreferences
@@ -94,15 +100,16 @@ class ApiClientModuleImpl(appContext: Context) {
         }
 
         internal fun sendJSEvent(eventName: String, data: WritableMap?) {
-            val reactApplicationContext = context as? ReactApplicationContext
+            val reactApplicationContext = reactContext
             if (reactApplicationContext?.hasActiveReactInstance() == true) {
                 reactApplicationContext.emitDeviceEvent(eventName, data)
 
             }
         }
 
-        private fun setCtx(reactContext: Context) {
-            context = reactContext
+        private fun setCtx(appContext: Context) {
+            context = appContext
+            (appContext as? ReactApplicationContext)?.let { reactContext = it }
         }
 
         private fun migrateSharedPreferences(reactContext: Context) {
@@ -134,6 +141,11 @@ class ApiClientModuleImpl(appContext: Context) {
     init {
         setCtx(appContext)
         SessionAttributesEngine.init(appContext)
+        SessionAttributesEngine.startNetworkMonitor { serverUrls ->
+            val data = Arguments.createMap()
+            data.putArray("serverUrls", Arguments.fromList(serverUrls))
+            sendJSEvent(ApiClientEvents.SESSION_ATTRIBUTES_NETWORK_CHANGED.event, data)
+        }
         migrateSharedPreferences(appContext)
         setCookieJar(appContext)
     }

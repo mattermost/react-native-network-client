@@ -9,7 +9,23 @@ import Foundation
     private let store = SessionAttributesStore.shared
     private let collector = SessionAttributesCollector.shared
 
-    private override init() {}
+    // The OS reports several updates for a single network switch, so the network is
+    // compared once it has settled. Only touched on networkQueue.
+    private static let networkChangeDebounce: TimeInterval = 1
+    private let networkQueue = DispatchQueue(label: "com.mattermost.networkclient.sessionattributes.networkchange")
+    private var pendingNetworkEvaluation: DispatchWorkItem?
+    private var lastNetworkSnapshot: NetworkSnapshot?
+
+    private override init() {
+        super.init()
+        // Only the app relays network changes to JS, extensions just attach the header.
+        guard Bundle.main.bundleURL.pathExtension != "appex" else {
+            return
+        }
+        collector.setNetworkUpdateHandler { [weak self] in
+            self?.scheduleNetworkEvaluation()
+        }
+    }
 
     @objc public func setEnabled(_ serverUrl: String, enabled: Bool) {
         store.setEnabled(enabled, for: serverUrl)
@@ -54,6 +70,8 @@ import Foundation
     }
 
     @objc public func getOutboundHeader(_ serverUrl: String) -> String? {
+        // Read before collecting, so a network change during collection is detected in markSent.
+        let generation = store.currentNetworkGeneration()
         guard let state = store.loadState(for: serverUrl), state.enabled, !state.manifest.isEmpty else {
             return nil
         }
@@ -61,7 +79,6 @@ import Foundation
         let now = Date().timeIntervalSince1970 * 1000
         let lastSentAt = state.lastSentAt
         var payload: [String: String] = [:]
-        var updatedLastSentAt = lastSentAt
 
         for field in state.manifest {
             let lastSent = lastSentAt[field.name]
@@ -76,14 +93,13 @@ import Foundation
             }
 
             payload[field.name] = value
-            updatedLastSentAt[field.name] = now
         }
 
         guard !payload.isEmpty else {
             return nil
         }
 
-        store.updateLastSentAt(updatedLastSentAt, for: serverUrl)
+        store.markSent(Array(payload.keys), at: now, generation: generation, for: serverUrl)
 
         guard let jsonData = try? JSONSerialization.data(withJSONObject: payload, options: []),
               let jsonString = String(data: jsonData, encoding: .utf8) else {
@@ -91,6 +107,45 @@ import Foundation
         }
 
         return Data(jsonString.utf8).base64EncodedString()
+    }
+
+    private func scheduleNetworkEvaluation() {
+        networkQueue.async {
+            self.pendingNetworkEvaluation?.cancel()
+            let evaluation = DispatchWorkItem { [weak self] in
+                self?.evaluateNetworkChange()
+            }
+            self.pendingNetworkEvaluation = evaluation
+            self.networkQueue.asyncAfter(deadline: .now() + Self.networkChangeDebounce, execute: evaluation)
+        }
+    }
+
+    /**
+     Compares the network with the last one seen and, when it changed, resets the network
+     attributes of every enabled server before posting `networkChangedNotification`. The
+     first reading is only a baseline, and a reading without a network is ignored so a drop
+     and reconnect to the same network does not count as a change. Runs on networkQueue.
+     */
+    private func evaluateNetworkChange() {
+        let snapshot = collector.currentNetworkSnapshot()
+        guard !snapshot.interfaceType.isEmpty else {
+            return
+        }
+        let previous = lastNetworkSnapshot
+        lastNetworkSnapshot = snapshot
+        guard let previous, previous != snapshot else {
+            return
+        }
+
+        let serverUrls = store.resetNetworkFields()
+        guard !serverUrls.isEmpty else {
+            return
+        }
+        NotificationCenter.default.post(
+            name: SessionAttributesConstants.networkChangedNotification,
+            object: nil,
+            userInfo: ["serverUrls": serverUrls]
+        )
     }
 
     private func decodeArray(_ json: String) -> [[String: Any]] {

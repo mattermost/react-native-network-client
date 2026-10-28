@@ -94,6 +94,62 @@ class SessionAttributesTest {
         }
     }
 
+    private data class NetworkSnapshot(
+        val interfaceType: String,
+        val ipAddress: String,
+        val vpnActive: Boolean,
+        val ssid: String,
+    )
+
+    /** Matches NetworkChangeDetector in SessionAttributesNetworkMonitor.kt. */
+    private class NetworkChangeDetector {
+        private var last: NetworkSnapshot? = null
+
+        fun update(snapshot: NetworkSnapshot): Boolean {
+            if (snapshot.interfaceType.isEmpty()) {
+                return false
+            }
+            val previous = last
+            last = snapshot
+            return previous != null && previous != snapshot
+        }
+    }
+
+    /**
+     * Matches the network reset in SessionAttributesStore: resetNetworkFields clears the
+     * network keys' sent time on enabled servers and bumps the generation, and markSent
+     * skips the network keys of a header built before the last network change.
+     */
+    private class InlineNetworkState {
+        class State(var enabled: Boolean, val lastSentAt: MutableMap<String, Long> = mutableMapOf())
+
+        val states = mutableMapOf<String, State>()
+        var networkGeneration = 0L
+            private set
+
+        fun resetNetworkFields(): List<String> {
+            networkGeneration++
+            return states.filterValues { it.enabled }.map { (serverUrl, state) ->
+                NETWORK_KEYS.forEach { state.lastSentAt.remove(it) }
+                serverUrl
+            }
+        }
+
+        fun markSent(serverUrl: String, names: Collection<String>, sentAt: Long, generation: Long) {
+            val state = states[serverUrl]?.takeIf { it.enabled } ?: return
+            val staleNetwork = generation != networkGeneration
+            names.forEach { name ->
+                if (!staleNetwork || name !in NETWORK_KEYS) {
+                    state.lastSentAt[name] = sentAt
+                }
+            }
+        }
+
+        companion object {
+            val NETWORK_KEYS = setOf("client_ip_address", "network_interface_type", "ssid", "vpn_active")
+        }
+    }
+
     // ---------------------------------------------------------------------------
     // Engine TTL logic
     // ---------------------------------------------------------------------------
@@ -302,5 +358,76 @@ class SessionAttributesTest {
         cache.remove("https://server.one")
 
         Assert.assertEquals("state-two", cache.load("https://server.two"))
+    }
+
+    // ---------------------------------------------------------------------------
+    // Network change detection
+    // ---------------------------------------------------------------------------
+
+    private val officeWifi = NetworkSnapshot("wifi", "10.0.0.5", vpnActive = false, ssid = "office")
+
+    @Test
+    fun network_firstSnapshotIsOnlyABaseline() {
+        Assert.assertFalse(NetworkChangeDetector().update(officeWifi))
+    }
+
+    @Test
+    fun network_sameSnapshotIsNotAChange() {
+        val detector = NetworkChangeDetector()
+        detector.update(officeWifi)
+
+        Assert.assertFalse(detector.update(officeWifi.copy()))
+    }
+
+    @Test
+    fun network_anyNetworkAttributeChangeIsAChange() {
+        val changes = listOf(
+            officeWifi.copy(ssid = "home"),
+            officeWifi.copy(ipAddress = "10.0.0.6"),
+            officeWifi.copy(vpnActive = true, interfaceType = "vpn"),
+            officeWifi.copy(interfaceType = "cellular", ssid = ""),
+        )
+
+        changes.forEach { changed ->
+            val detector = NetworkChangeDetector()
+            detector.update(officeWifi)
+            Assert.assertTrue(detector.update(changed))
+        }
+    }
+
+    @Test
+    fun network_reconnectingToTheSameNetworkIsNotAChange() {
+        val detector = NetworkChangeDetector()
+        detector.update(officeWifi)
+
+        Assert.assertFalse(detector.update(NetworkSnapshot("", "", vpnActive = false, ssid = "")))
+        Assert.assertFalse(detector.update(officeWifi))
+    }
+
+    @Test
+    fun network_resetClearsOnlyNetworkKeysOfEnabledServers() {
+        val state = InlineNetworkState()
+        state.states["https://enabled"] = InlineNetworkState.State(
+            enabled = true,
+            lastSentAt = mutableMapOf("ssid" to 1L, "vpn_active" to 1L, "os_version" to 1L),
+        )
+        state.states["https://disabled"] = InlineNetworkState.State(enabled = false)
+
+        val serverUrls = state.resetNetworkFields()
+
+        Assert.assertEquals(listOf("https://enabled"), serverUrls)
+        Assert.assertEquals(mapOf("os_version" to 1L), state.states["https://enabled"]?.lastSentAt)
+    }
+
+    @Test
+    fun network_headerBuiltBeforeAChangeDoesNotMarkNetworkKeysSent() {
+        val state = InlineNetworkState()
+        state.states["https://enabled"] = InlineNetworkState.State(enabled = true)
+        val generation = state.networkGeneration
+
+        state.resetNetworkFields()
+        state.markSent("https://enabled", listOf("ssid", "os_version"), sentAt = 5L, generation = generation)
+
+        Assert.assertEquals(mapOf("os_version" to 5L), state.states["https://enabled"]?.lastSentAt)
     }
 }
