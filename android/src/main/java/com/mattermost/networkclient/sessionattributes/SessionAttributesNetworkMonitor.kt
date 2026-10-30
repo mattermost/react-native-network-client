@@ -51,6 +51,15 @@ class SessionAttributesNetworkMonitor(
         }
     }
 
+    // Separate from [evaluate], which the first callback would otherwise cancel before it runs.
+    private val baseline = Runnable {
+        try {
+            detector.update(snapshotProvider())
+        } catch (e: Exception) {
+            Log.w("NetworkClient", "Failed to read the starting network: ${e.message}")
+        }
+    }
+
     private val callback = object : ConnectivityManager.NetworkCallback() {
         override fun onAvailable(network: Network) = schedule()
         override fun onLost(network: Network) = schedule()
@@ -59,6 +68,9 @@ class SessionAttributesNetworkMonitor(
     }
 
     fun start() {
+        // Takes the baseline right away instead of after the first debounce, so a change
+        // just after starting is still compared against the network attributes were sent on.
+        handler.post(baseline)
         try {
             val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
             // The callback only reschedules on [handler], so it can run on the system thread.
