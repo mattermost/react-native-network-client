@@ -68,6 +68,18 @@ class SessionAttributesNetworkMonitor(
         }
     }
 
+    /** Stops listening and ends the thread. A stopped monitor cannot be started again. */
+    fun stop() {
+        try {
+            val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+            connectivityManager.unregisterNetworkCallback(callback)
+        } catch (e: Exception) {
+            Log.w("NetworkClient", "Failed to stop watching network changes: ${e.message}")
+        }
+        handler.removeCallbacksAndMessages(null)
+        thread.quitSafely()
+    }
+
     private fun schedule() {
         handler.removeCallbacks(evaluate)
         handler.postDelayed(evaluate, DEBOUNCE_MS)

@@ -23,21 +23,32 @@ object SessionAttributesEngine {
     }
 
     /**
-     * Watches the device network and, when it changes, resets the network attributes
-     * of every enabled server before calling [listener] with those servers' URLs.
-     * Calling it again only replaces the listener.
+     * Sets the function called with the URLs of the servers whose network attributes
+     * were reset because the device network changed.
+     */
+    fun setNetworkChangeListener(listener: (List<String>) -> Unit) {
+        networkChangeListener = listener
+    }
+
+    /**
+     * Watches the device network only while a server sends session attributes, so apps
+     * whose servers do not use them never register a network callback. The app sets the
+     * manifest again on every connection, which also resets what was sent, so changes
+     * missed while the monitor was stopped do not matter.
      */
     @Synchronized
-    fun startNetworkMonitor(listener: (List<String>) -> Unit) {
-        networkChangeListener = listener
-        if (networkMonitor != null) {
-            return
+    private fun updateNetworkMonitor() {
+        val shouldRun = store.hasServersSendingAttributes()
+        if (shouldRun && networkMonitor == null) {
+            networkMonitor = SessionAttributesNetworkMonitor(
+                context,
+                snapshotProvider = { collector.currentNetworkSnapshot() },
+                onChange = ::onNetworkChanged,
+            ).also { it.start() }
+        } else if (!shouldRun) {
+            networkMonitor?.stop()
+            networkMonitor = null
         }
-        networkMonitor = SessionAttributesNetworkMonitor(
-            context,
-            snapshotProvider = { collector.currentNetworkSnapshot() },
-            onChange = ::onNetworkChanged,
-        ).also { it.start() }
     }
 
     private fun onNetworkChanged() {
@@ -49,10 +60,12 @@ object SessionAttributesEngine {
 
     fun setEnabled(serverUrl: String, enabled: Boolean) {
         store.setEnabled(serverUrl, enabled)
+        updateNetworkMonitor()
     }
 
     fun removeServer(serverUrl: String) {
         store.removeState(serverUrl)
+        updateNetworkMonitor()
     }
 
     fun setManifest(serverUrl: String, manifestJson: String) {
@@ -73,6 +86,7 @@ object SessionAttributesEngine {
             return
         }
         store.setManifest(serverUrl, fields)
+        updateNetworkMonitor()
     }
 
     fun upsertManifestField(serverUrl: String, fieldJson: String) {
@@ -83,10 +97,12 @@ object SessionAttributesEngine {
             return
         }
         SAField.fromJson(field)?.let { store.upsertField(serverUrl, it) }
+        updateNetworkMonitor()
     }
 
     fun removeManifestField(serverUrl: String, name: String) {
         store.removeField(serverUrl, name)
+        updateNetworkMonitor()
     }
 
     fun setStableValues(valuesJson: String) {

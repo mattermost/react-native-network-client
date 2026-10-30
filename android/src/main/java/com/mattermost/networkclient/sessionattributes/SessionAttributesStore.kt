@@ -174,6 +174,13 @@ class SessionAttributesStore(context: Context) {
         return updates.map { it.first }
     }
 
+    /** Whether any server loaded in this process sends attributes (enabled with a manifest). */
+    fun hasServersSendingAttributes(): Boolean {
+        synchronized(cacheLock) {
+            return stateCache.values.any { it.enabled && it.manifest.isNotEmpty() }
+        }
+    }
+
     fun removeState(serverUrl: String) {
         synchronized(cacheLock) {
             stateCache.remove(serverUrl)

@@ -141,7 +141,7 @@ class ApiClientModuleImpl(appContext: Context) {
     init {
         setCtx(appContext)
         SessionAttributesEngine.init(appContext)
-        SessionAttributesEngine.startNetworkMonitor { serverUrls ->
+        SessionAttributesEngine.setNetworkChangeListener { serverUrls ->
             val data = Arguments.createMap()
             data.putArray("serverUrls", Arguments.fromList(serverUrls))
             sendJSEvent(ApiClientEvents.SESSION_ATTRIBUTES_NETWORK_CHANGED.event, data)
