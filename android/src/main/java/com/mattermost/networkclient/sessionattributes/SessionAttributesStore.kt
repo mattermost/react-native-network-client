@@ -108,6 +108,8 @@ class SessionAttributesStore(context: Context) {
     private val cacheLock = Any()
     private val stateCache = mutableMapOf<String, ServerSessionAttributesState>()
     private var stableValues: Map<String, String>? = null
+    // Bumped on every network change, see markSent.
+    private var networkGeneration = 0L
 
     // Serializes persistence so cache updates reach disk in the order they were made.
     // Only taken by persist()/delete(), which never re-enter it, so the blocking
@@ -125,13 +127,58 @@ class SessionAttributesStore(context: Context) {
         return synchronized(cacheLock) { state.snapshot() }
     }
 
-    fun saveState(serverUrl: String, state: ServerSessionAttributesState) {
+    /**
+     * Records [names] as sent at [sentAt]. A header built before the network changed
+     * ([generation] is stale) carried the old network values, so those keys stay
+     * unsent and go out again on the next request.
+     */
+    fun markSent(serverUrl: String, names: Collection<String>, sentAt: Long, generation: Long) {
+        val state = cachedState(serverUrl) ?: return
         val json = synchronized(cacheLock) {
-            val stored = state.snapshot()
-            stateCache[serverUrl] = stored
-            stored.toJson().toString()
+            // The server was disabled or removed while the header was being built.
+            if (stateCache[serverUrl] !== state || !state.enabled) {
+                return
+            }
+            val staleNetwork = generation != networkGeneration
+            names.forEach { name ->
+                if (!staleNetwork || name !in SessionAttributesConstants.NETWORK_KEYS) {
+                    state.lastSentAt[name] = sentAt
+                }
+            }
+            state.toJson().toString()
         }
         persist(stateAlias(serverUrl), json)
+    }
+
+    fun currentNetworkGeneration(): Long {
+        synchronized(cacheLock) {
+            return networkGeneration
+        }
+    }
+
+    /**
+     * Clears the network attributes' sent time on every enabled server, so the next
+     * request carries the new network values whatever their ttl. Only servers loaded
+     * in this process are covered, which includes every server the app enabled.
+     * Returns the URLs of those servers.
+     */
+    fun resetNetworkFields(): List<String> {
+        val updates = synchronized(cacheLock) {
+            networkGeneration++
+            stateCache.filterValues { it.enabled }.map { (serverUrl, state) ->
+                SessionAttributesConstants.NETWORK_KEYS.forEach { state.lastSentAt.remove(it) }
+                serverUrl to state.toJson().toString()
+            }
+        }
+        updates.forEach { (serverUrl, json) -> persist(stateAlias(serverUrl), json) }
+        return updates.map { it.first }
+    }
+
+    /** Whether any server loaded in this process sends attributes (enabled with a manifest). */
+    fun hasServersSendingAttributes(): Boolean {
+        synchronized(cacheLock) {
+            return stateCache.values.any { it.enabled && it.manifest.isNotEmpty() }
+        }
     }
 
     fun removeState(serverUrl: String) {

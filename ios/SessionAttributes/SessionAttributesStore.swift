@@ -22,6 +22,11 @@ public class SessionAttributesStore {
 
     private let userDefaults: UserDefaults?
     private let queue = DispatchQueue(label: "com.mattermost.networkclient.sessionattributes.store")
+    // States are stored under a hash of the server URL, so the URLs of the servers enabled
+    // in this process are kept here to reset them on a network change.
+    private var enabledServers = Set<String>()
+    // Bumped on every network change, see markSent.
+    private var networkGeneration = 0
 
     private init() {
         let appGroupId = Bundle.main.object(forInfoDictionaryKey: "AppGroupIdentifier") as? String
@@ -66,6 +71,7 @@ public class SessionAttributesStore {
 
     func removeState(for serverUrl: String) {
         queue.sync {
+            enabledServers.remove(serverUrl)
             userDefaults?.removeObject(forKey: stateKey(for: serverUrl))
         }
     }
@@ -74,7 +80,10 @@ public class SessionAttributesStore {
         queue.sync {
             var state = readState(for: serverUrl) ?? ServerSessionAttributesState(enabled: false, manifest: [], lastSentAt: [:])
             state.enabled = enabled
-            if !enabled {
+            if enabled {
+                enabledServers.insert(serverUrl)
+            } else {
+                enabledServers.remove(serverUrl)
                 state.manifest = []
                 state.lastSentAt = [:]
             }
@@ -88,6 +97,7 @@ public class SessionAttributesStore {
             state.enabled = true
             state.manifest = manifest
             state.lastSentAt = [:]
+            enabledServers.insert(serverUrl)
             writeState(state, for: serverUrl)
         }
     }
@@ -118,13 +128,49 @@ public class SessionAttributesStore {
         }
     }
 
-    func updateLastSentAt(_ lastSentAt: [String: Double], for serverUrl: String) {
+    /**
+     Records `names` as sent at `sentAt`. A header built before the network changed
+     (`generation` is stale) carried the old network values, so those keys stay unsent
+     and go out again on the next request.
+     */
+    func markSent(_ names: [String], at sentAt: Double, generation: Int, for serverUrl: String) {
         queue.sync {
-            guard var state = readState(for: serverUrl) else {
+            guard var state = readState(for: serverUrl), state.enabled else {
                 return
             }
-            state.lastSentAt = lastSentAt
+            let staleNetwork = generation != networkGeneration
+            for name in names where !staleNetwork || !SessionAttributesConstants.networkKeys.contains(name) {
+                state.lastSentAt[name] = sentAt
+            }
             writeState(state, for: serverUrl)
+        }
+    }
+
+    func currentNetworkGeneration() -> Int {
+        queue.sync {
+            networkGeneration
+        }
+    }
+
+    /**
+     Clears the network attributes' sent time on every enabled server, so the next request
+     carries the new network values whatever their ttl. Returns the URLs of those servers.
+     */
+    func resetNetworkFields() -> [String] {
+        queue.sync {
+            networkGeneration += 1
+            var serverUrls: [String] = []
+            for serverUrl in enabledServers {
+                guard var state = readState(for: serverUrl), state.enabled else {
+                    continue
+                }
+                for key in SessionAttributesConstants.networkKeys {
+                    state.lastSentAt.removeValue(forKey: key)
+                }
+                writeState(state, for: serverUrl)
+                serverUrls.append(serverUrl)
+            }
+            return serverUrls
         }
     }
 
