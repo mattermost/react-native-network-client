@@ -36,10 +36,6 @@ class ApiClientModuleImpl(appContext: Context) {
         const val NAME = "ApiClient"
 
         lateinit var context: Context
-        // Events go through the React context. Native code outside React (e.g. push notification
-        // handling) creates its own instance with a plain Context, which must not replace it.
-        @Volatile
-        private var reactContext: ReactApplicationContext? = null
         private val clients = mutableMapOf<HttpUrl, NetworkClient>()
         private val calls = mutableMapOf<String, Call>()
         private lateinit var sharedPreferences: SharedPreferences
@@ -100,7 +96,7 @@ class ApiClientModuleImpl(appContext: Context) {
         }
 
         internal fun sendJSEvent(eventName: String, data: WritableMap?) {
-            val reactApplicationContext = reactContext
+            val reactApplicationContext = context as? ReactApplicationContext
             if (reactApplicationContext?.hasActiveReactInstance() == true) {
                 reactApplicationContext.emitDeviceEvent(eventName, data)
 
@@ -108,8 +104,12 @@ class ApiClientModuleImpl(appContext: Context) {
         }
 
         private fun setCtx(appContext: Context) {
+            // Events go through the React context. Native code outside React (e.g. push notification
+            // handling) creates its own instance with a plain Context, which must not replace it.
+            if (appContext !is ReactApplicationContext && ::context.isInitialized && context is ReactApplicationContext) {
+                return
+            }
             context = appContext
-            (appContext as? ReactApplicationContext)?.let { reactContext = it }
         }
 
         private fun migrateSharedPreferences(reactContext: Context) {
