@@ -57,6 +57,12 @@ public class SessionAttributesStore {
         userDefaults?.set(data, forKey: stateKey(for: serverUrl))
     }
 
+    private func clearNetworkSentAt(_ state: inout ServerSessionAttributesState) {
+        for key in SessionAttributesConstants.networkKeys {
+            state.lastSentAt.removeValue(forKey: key)
+        }
+    }
+
     func loadState(for serverUrl: String) -> ServerSessionAttributesState? {
         queue.sync {
             guard var state = readState(for: serverUrl) else {
@@ -66,9 +72,7 @@ public class SessionAttributesStore {
             // server again, so it must be reset on a network change too. The network may also
             // have changed while the app was not running, so its network values go out again.
             if state.enabled && enabledServers.insert(serverUrl).inserted {
-                for key in SessionAttributesConstants.networkKeys {
-                    state.lastSentAt.removeValue(forKey: key)
-                }
+                clearNetworkSentAt(&state)
                 writeState(state, for: serverUrl)
             }
             return state
@@ -93,7 +97,10 @@ public class SessionAttributesStore {
             var state = readState(for: serverUrl) ?? ServerSessionAttributesState(enabled: false, manifest: [], lastSentAt: [:])
             state.enabled = enabled
             if enabled {
-                enabledServers.insert(serverUrl)
+                // First registration in this process, see loadState.
+                if enabledServers.insert(serverUrl).inserted {
+                    clearNetworkSentAt(&state)
+                }
             } else {
                 enabledServers.remove(serverUrl)
                 state.manifest = []
@@ -176,9 +183,7 @@ public class SessionAttributesStore {
                 guard var state = readState(for: serverUrl), state.enabled else {
                     continue
                 }
-                for key in SessionAttributesConstants.networkKeys {
-                    state.lastSentAt.removeValue(forKey: key)
-                }
+                clearNetworkSentAt(&state)
                 writeState(state, for: serverUrl)
                 serverUrls.append(serverUrl)
             }
