@@ -277,6 +277,9 @@ class SessionAttributesStore(context: Context) {
         }
 
         val restored = readState(serverUrl) ?: return null
+        // The network may have changed while the app was not running, so the network values
+        // saved by an earlier launch go out again.
+        SessionAttributesConstants.NETWORK_KEYS.forEach { restored.lastSentAt.remove(it) }
         synchronized(cacheLock) {
             return stateCache.getOrPut(serverUrl) { restored }
         }

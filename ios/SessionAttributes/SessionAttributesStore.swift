@@ -59,11 +59,17 @@ public class SessionAttributesStore {
 
     func loadState(for serverUrl: String) -> ServerSessionAttributesState? {
         queue.sync {
-            let state = readState(for: serverUrl)
+            guard var state = readState(for: serverUrl) else {
+                return nil
+            }
             // A state saved by an earlier launch sends attributes before the app enables the
-            // server again, so it must be reset on a network change too.
-            if state?.enabled == true {
-                enabledServers.insert(serverUrl)
+            // server again, so it must be reset on a network change too. The network may also
+            // have changed while the app was not running, so its network values go out again.
+            if state.enabled && enabledServers.insert(serverUrl).inserted {
+                for key in SessionAttributesConstants.networkKeys {
+                    state.lastSentAt.removeValue(forKey: key)
+                }
+                writeState(state, for: serverUrl)
             }
             return state
         }
