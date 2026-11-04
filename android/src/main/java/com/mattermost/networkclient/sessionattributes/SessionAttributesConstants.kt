@@ -21,4 +21,12 @@ object SessionAttributesConstants {
         const val SERVER_FQDN = "server_fqdn"
         const val SSID = "ssid"
     }
+
+    // Attributes read from the device network, resent as soon as the network changes.
+    val NETWORK_KEYS = setOf(
+        AttributeKey.CLIENT_IP_ADDRESS,
+        AttributeKey.NETWORK_INTERFACE_TYPE,
+        AttributeKey.SSID,
+        AttributeKey.VPN_ACTIVE,
+    )
 }

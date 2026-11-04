@@ -8,6 +8,8 @@ enum ApiEvents: String, CaseIterable {
     case UPLOAD_PROGRESS = "ApiClient-UploadProgress"
     case DOWNLOAD_PROGRESS = "ApiClient-DownloadProgress"
     case CLIENT_ERROR = "ApiClient-Error"
+    // Matches SessionAttributesConstants.networkChangedNotification.
+    case SESSION_ATTRIBUTES_NETWORK_CHANGED = "ApiClient-SessionAttributesNetworkChanged"
 }
 
 extension ApiClientWrapper {

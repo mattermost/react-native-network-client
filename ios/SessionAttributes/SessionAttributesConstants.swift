@@ -24,4 +24,15 @@ public struct SessionAttributesConstants {
         public static let serverFqdn = "server_fqdn"
         public static let ssid = "ssid"
     }
+
+    // Attributes read from the device network, resent as soon as the network changes.
+    public static let networkKeys: Set<String> = [
+        AttributeKey.clientIpAddress,
+        AttributeKey.networkInterfaceType,
+        AttributeKey.ssid,
+        AttributeKey.vpnActive,
+    ]
+
+    // Posted with the reset servers' URLs in userInfo["serverUrls"] when the device network changes.
+    public static let networkChangedNotification = Notification.Name("ApiClient-SessionAttributesNetworkChanged")
 }

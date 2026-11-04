@@ -12,11 +12,18 @@ import react_native_network_client_session_attributes
                                                selector: #selector(self.errorHandler),
                                                name: Notification.Name(ApiEvents.CLIENT_ERROR.rawValue),
                                                object: nil)
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(self.sessionAttributesNetworkChangedHandler),
+                                               name: SessionAttributesConstants.networkChangedNotification,
+                                               object: nil)
     }
-    
+
     deinit {
         NotificationCenter.default.removeObserver(self,
                                                   name: Notification.Name(ApiEvents.CLIENT_ERROR.rawValue),
+                                                  object: nil)
+        NotificationCenter.default.removeObserver(self,
+                                                  name: SessionAttributesConstants.networkChangedNotification,
                                                   object: nil)
         let sessions = SessionManager.default.getAllSessions()
         for session in sessions {
@@ -467,5 +474,14 @@ import react_native_network_client_session_attributes
     func sendErrorEvent(for serverUrl: String, withErrorCode errorCode: Int, withErrorDescription errorDescription: String) {
         delegate?.sendEvent(name: ApiEvents.CLIENT_ERROR.rawValue,
                        result: ["serverUrl": serverUrl, "errorCode": errorCode, "errorDescription": errorDescription])
+    }
+
+    @objc(sessionAttributesNetworkChangedHandler:)
+    func sessionAttributesNetworkChangedHandler(notification: Notification) {
+        guard let serverUrls = notification.userInfo?["serverUrls"] as? [String] else {
+            return
+        }
+        delegate?.sendEvent(name: ApiEvents.SESSION_ATTRIBUTES_NETWORK_CHANGED.rawValue,
+                            result: ["serverUrls": serverUrls])
     }
 }

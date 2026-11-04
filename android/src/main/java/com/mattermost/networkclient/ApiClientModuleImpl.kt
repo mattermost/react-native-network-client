@@ -7,12 +7,14 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.modules.network.ForwardingCookieHandler
 import com.facebook.react.modules.network.ReactCookieJarContainer
+import com.mattermost.networkclient.enums.ApiClientEvents
 import com.mattermost.networkclient.helpers.KeyStoreHelper
 import com.mattermost.networkclient.sessionattributes.SessionAttributesEngine
 import kotlinx.coroutines.flow.first
@@ -101,8 +103,13 @@ class ApiClientModuleImpl(appContext: Context) {
             }
         }
 
-        private fun setCtx(reactContext: Context) {
-            context = reactContext
+        private fun setCtx(appContext: Context) {
+            // Events go through the React context. Native code outside React (e.g. push notification
+            // handling) creates its own instance with a plain Context, which must not replace it.
+            if (appContext !is ReactApplicationContext && ::context.isInitialized && context is ReactApplicationContext) {
+                return
+            }
+            context = appContext
         }
 
         private fun migrateSharedPreferences(reactContext: Context) {
@@ -134,6 +141,11 @@ class ApiClientModuleImpl(appContext: Context) {
     init {
         setCtx(appContext)
         SessionAttributesEngine.init(appContext)
+        SessionAttributesEngine.setNetworkChangeListener { serverUrls ->
+            val data = Arguments.createMap()
+            data.putArray("serverUrls", Arguments.fromList(serverUrls))
+            sendJSEvent(ApiClientEvents.SESSION_ATTRIBUTES_NETWORK_CHANGED.event, data)
+        }
         migrateSharedPreferences(appContext)
         setCookieJar(appContext)
     }

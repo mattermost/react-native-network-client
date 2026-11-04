@@ -12,18 +12,60 @@ object SessionAttributesEngine {
     private val store: SessionAttributesStore by lazy { SessionAttributesStore(context) }
     private val collector: SessionAttributesCollector by lazy { SessionAttributesCollector(context, store) }
 
+    private var networkMonitor: SessionAttributesNetworkMonitor? = null
+    @Volatile
+    private var networkChangeListener: ((List<String>) -> Unit)? = null
+
     fun init(appContext: Context) {
         if (!::context.isInitialized) {
             context = appContext.applicationContext
         }
     }
 
+    /**
+     * Sets the function called with the URLs of the servers whose network attributes
+     * were reset because the device network changed.
+     */
+    fun setNetworkChangeListener(listener: (List<String>) -> Unit) {
+        networkChangeListener = listener
+    }
+
+    /**
+     * Watches the device network only while a server sends session attributes, so apps
+     * whose servers do not use them never register a network callback. The app sets the
+     * manifest again on every connection, which also resets what was sent, so changes
+     * missed while the monitor was stopped do not matter.
+     */
+    @Synchronized
+    private fun updateNetworkMonitor() {
+        val shouldRun = store.hasServersSendingAttributes()
+        if (shouldRun && networkMonitor == null) {
+            networkMonitor = SessionAttributesNetworkMonitor(
+                context,
+                snapshotProvider = { collector.currentNetworkSnapshot() },
+                onChange = ::onNetworkChanged,
+            ).also { it.start() }
+        } else if (!shouldRun) {
+            networkMonitor?.stop()
+            networkMonitor = null
+        }
+    }
+
+    private fun onNetworkChanged() {
+        val serverUrls = store.resetNetworkFields()
+        if (serverUrls.isNotEmpty()) {
+            networkChangeListener?.invoke(serverUrls)
+        }
+    }
+
     fun setEnabled(serverUrl: String, enabled: Boolean) {
         store.setEnabled(serverUrl, enabled)
+        updateNetworkMonitor()
     }
 
     fun removeServer(serverUrl: String) {
         store.removeState(serverUrl)
+        updateNetworkMonitor()
     }
 
     fun setManifest(serverUrl: String, manifestJson: String) {
@@ -44,6 +86,7 @@ object SessionAttributesEngine {
             return
         }
         store.setManifest(serverUrl, fields)
+        updateNetworkMonitor()
     }
 
     fun upsertManifestField(serverUrl: String, fieldJson: String) {
@@ -54,10 +97,12 @@ object SessionAttributesEngine {
             return
         }
         SAField.fromJson(field)?.let { store.upsertField(serverUrl, it) }
+        updateNetworkMonitor()
     }
 
     fun removeManifestField(serverUrl: String, name: String) {
         store.removeField(serverUrl, name)
+        updateNetworkMonitor()
     }
 
     fun setStableValues(valuesJson: String) {
@@ -80,6 +125,8 @@ object SessionAttributesEngine {
             return null
         }
 
+        // Read before collecting, so a network change during collection is detected in markSent.
+        val generation = store.currentNetworkGeneration()
         val state = store.loadState(serverUrl) ?: return null
         if (!state.enabled || state.manifest.isEmpty()) {
             return null
@@ -87,6 +134,7 @@ object SessionAttributesEngine {
 
         val now = System.currentTimeMillis()
         val payload = JSONObject()
+        val sent = mutableListOf<String>()
 
         for (field in state.manifest) {
             val lastSent = state.lastSentAt[field.name]
@@ -102,14 +150,14 @@ object SessionAttributesEngine {
             }
 
             payload.put(field.name, value)
-            state.lastSentAt[field.name] = now
+            sent.add(field.name)
         }
 
-        if (payload.length() == 0) {
+        if (sent.isEmpty()) {
             return null
         }
 
-        store.saveState(serverUrl, state)
+        store.markSent(serverUrl, sent, now, generation)
 
         return Base64.encodeToString(payload.toString().toByteArray(), Base64.NO_WRAP)
     }
