@@ -175,6 +175,7 @@ export interface Spec extends TurboModule {
     upsertSessionAttributesField(serverUrl: string, field: string): void;
     removeSessionAttributesField(serverUrl: string, name: string): void;
     setSessionAttributesStableValues(values: string): void;
+    setSessionAttributesServerValues(serverUrl: string, values: string): void;
     getSessionAttributesHeader(serverUrl: string): string | undefined;
 }
 

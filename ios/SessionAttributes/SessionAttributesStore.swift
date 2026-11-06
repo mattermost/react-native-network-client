@@ -27,6 +27,8 @@ public class SessionAttributesStore {
     private var enabledServers = Set<String>()
     // Bumped on every network change, see markSent.
     private var networkGeneration = 0
+    // Values the app reports per server, keyed by serverKey, see setServerValues.
+    private var serverValues: [String: [String: String]] = [:]
 
     private init() {
         let appGroupId = Bundle.main.object(forInfoDictionaryKey: "AppGroupIdentifier") as? String
@@ -197,6 +199,30 @@ public class SessionAttributesStore {
                 return
             }
             userDefaults?.set(data, forKey: SessionAttributesConstants.stableValuesKey)
+        }
+    }
+
+    /**
+     Replaces the values the app reports for `serverUrl`. Kept in memory apart from the
+     server's state, so a manifest change or removal keeps them; the app sets them again
+     on launch. Each one goes out on the next request whatever its ttl.
+     */
+    func setServerValues(_ values: [String: String], for serverUrl: String) {
+        queue.sync {
+            serverValues[serverKey(serverUrl)] = values.isEmpty ? nil : values
+            guard var state = readState(for: serverUrl), state.enabled else {
+                return
+            }
+            for name in values.keys {
+                state.lastSentAt.removeValue(forKey: name)
+            }
+            writeState(state, for: serverUrl)
+        }
+    }
+
+    func getServerValue(_ name: String, for serverUrl: String) -> String? {
+        queue.sync {
+            serverValues[serverKey(serverUrl)]?[name]
         }
     }
 

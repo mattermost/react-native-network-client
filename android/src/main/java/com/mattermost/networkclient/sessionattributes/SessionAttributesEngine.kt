@@ -119,6 +119,20 @@ object SessionAttributesEngine {
         store.setStableValues(values)
     }
 
+    fun setServerValues(serverUrl: String, valuesJson: String) {
+        val json = try {
+            JSONObject(valuesJson)
+        } catch (e: Exception) {
+            Log.w("NetworkClient", "Ignoring malformed server values for $serverUrl: ${e.message}")
+            return
+        }
+        val values = mutableMapOf<String, String>()
+        json.keys().forEach { key ->
+            values[key] = json.optString(key, "")
+        }
+        store.setServerValues(serverUrl, values)
+    }
+
     fun getOutboundHeader(serverUrl: String): String? {
         if (!::context.isInitialized) {
             Log.w("NetworkClient", "Session attributes requested before init")

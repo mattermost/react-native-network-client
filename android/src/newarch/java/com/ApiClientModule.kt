@@ -170,6 +170,13 @@ class ApiClientModule(reactContext: ReactApplicationContext) : NativeApiClientSp
         implementation.setSessionAttributesStableValues(values)
     }
 
+    override fun setSessionAttributesServerValues(serverUrl: String?, values: String?) {
+        if (serverUrl.isNullOrEmpty() || values == null) {
+            return
+        }
+        implementation.setSessionAttributesServerValues(serverUrl, values)
+    }
+
     override fun getSessionAttributesHeader(serverUrl: String?): String? {
         if (serverUrl.isNullOrEmpty()) {
             return null

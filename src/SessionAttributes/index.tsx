@@ -82,6 +82,23 @@ export const setSessionAttributesStableValues = (
     NativeApiClient.setSessionAttributesStableValues(JSON.stringify(values));
 };
 
+/**
+ * Sets the values the app reports for one server, taking precedence over stable and
+ * natively collected values. Replaces any previous values for that server, so `{}`
+ * clears them. Held in memory apart from the server's manifest, so changing or
+ * removing the manifest keeps them, and each one goes out on the next request to
+ * that server whatever its ttl.
+ */
+export const setSessionAttributesServerValues = (
+    serverUrl: string,
+    values: Record<string, string>,
+): void => {
+    NativeApiClient.setSessionAttributesServerValues(
+        serverUrl,
+        JSON.stringify(values),
+    );
+};
+
 export const getSessionAttributesHeader = (
     serverUrl: string,
 ): string | undefined => {

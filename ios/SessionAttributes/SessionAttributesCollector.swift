@@ -82,6 +82,10 @@ public class SessionAttributesCollector: NSObject {
     }
 
     func collect(_ name: String, serverUrl: String) -> String {
+        if let serverValue = store.getServerValue(name, for: serverUrl), !serverValue.isEmpty {
+            return serverValue
+        }
+
         if let stableValue = store.getStableValue(name), !stableValue.isEmpty {
             return stableValue
         }

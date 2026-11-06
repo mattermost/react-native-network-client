@@ -426,6 +426,10 @@ class ApiClientModuleImpl(appContext: Context) {
         SessionAttributesEngine.setStableValues(values)
     }
 
+    fun setSessionAttributesServerValues(serverUrl: String, values: String) {
+        SessionAttributesEngine.setServerValues(serverUrl, values)
+    }
+
     fun getSessionAttributesHeader(serverUrl: String): String? {
         return SessionAttributesEngine.getOutboundHeader(serverUrl)
     }

@@ -69,6 +69,13 @@ import Foundation
         store.setStableValues(values)
     }
 
+    @objc public func setServerValues(_ serverUrl: String, valuesJson: String) {
+        guard let dictionary = decodeObject(valuesJson) else {
+            return
+        }
+        store.setServerValues(dictionary.compactMapValues { $0 as? String }, for: serverUrl)
+    }
+
     @objc public func getOutboundHeader(_ serverUrl: String) -> String? {
         // Read before collecting, so a network change during collection is detected in markSent.
         let generation = store.currentNetworkGeneration()

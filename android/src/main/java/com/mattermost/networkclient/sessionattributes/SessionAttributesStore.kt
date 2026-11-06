@@ -108,6 +108,8 @@ class SessionAttributesStore(context: Context) {
     private val cacheLock = Any()
     private val stateCache = mutableMapOf<String, ServerSessionAttributesState>()
     private var stableValues: Map<String, String>? = null
+    // Values the app reports per server, keyed by serverKey, see setServerValues.
+    private val serverValues = mutableMapOf<String, Map<String, String>>()
     // Bumped on every network change, see markSent.
     private var networkGeneration = 0L
 
@@ -248,6 +250,34 @@ class SessionAttributesStore(context: Context) {
             stableValues = values.toMap()
         }
         persist(SessionAttributesConstants.STABLE_VALUES_ALIAS, json.toString())
+    }
+
+    /**
+     * Replaces the values the app reports for [serverUrl]. Kept in memory apart from the
+     * server's state, so a manifest change or removal keeps them; the app sets them again
+     * on launch. Each one goes out on the next request whatever its ttl.
+     */
+    fun setServerValues(serverUrl: String, values: Map<String, String>) {
+        val state = cachedState(serverUrl)
+        val json = synchronized(cacheLock) {
+            if (values.isEmpty()) {
+                serverValues.remove(serverKey(serverUrl))
+            } else {
+                serverValues[serverKey(serverUrl)] = values.toMap()
+            }
+            if (state == null || stateCache[serverUrl] !== state || !state.enabled) {
+                return
+            }
+            values.keys.forEach { state.lastSentAt.remove(it) }
+            state.toJson().toString()
+        }
+        persist(stateAlias(serverUrl), json)
+    }
+
+    fun getServerValue(serverUrl: String, name: String): String? {
+        synchronized(cacheLock) {
+            return serverValues[serverKey(serverUrl)]?.get(name)?.takeIf { it.isNotEmpty() }
+        }
     }
 
     fun getStableValue(name: String): String? {
