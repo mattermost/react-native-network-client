@@ -173,7 +173,14 @@ internal class NetworkClient(private val context: Context, private val baseUrl: 
         configureSsl()
 
         if (cookieJar != null) {
-            builder.cookieJar(cookieJar)
+            val excludedCookies = getExcludedCookies(options)
+            builder.cookieJar(object : CookieJar by cookieJar {
+                override fun saveFromResponse(url: HttpUrl, cookies: List<Cookie>) =
+                    cookieJar.saveFromResponse(url, cookies.filterNot { it.name in excludedCookies })
+            })
+            if (excludedCookies.isNotEmpty()) {
+                clearCookies(excludedCookies.toList())
+            }
         }
 
         if (options != null && options.hasKey("sessionConfiguration")) {
@@ -490,6 +497,15 @@ internal class NetworkClient(private val context: Context, private val baseUrl: 
         if (options != null && options.hasKey(("headers"))) {
             addClientHeaders(options.getMap("headers")?.toWritableMap())
         }
+    }
+
+    private fun getExcludedCookies(options: ReadableMap?): Set<String> {
+        if (options != null && options.hasKey("excludedCookies")) {
+            val excludedCookies = options.getArray("excludedCookies")!!
+            return excludedCookies.toArrayList().filterIsInstance<String>().toSet()
+        }
+
+        return emptySet()
     }
 
     private fun getBearerTokenInterceptor(options: ReadableMap?): BearerTokenInterceptor? {
@@ -813,8 +829,6 @@ internal class NetworkClient(private val context: Context, private val baseUrl: 
         }
     }
 
-    fun expireAuthCookie() = clearCookies(listOf("MMAUTHTOKEN"))
-
     private fun clearCookies(cookieNames: List<String>? = null) {
         if (baseUrl == null)
             return
@@ -822,8 +836,12 @@ internal class NetworkClient(private val context: Context, private val baseUrl: 
         val domain = baseUrl.toString()
         val cookieManager = CookieManager.getInstance()
         val names = cookieNames ?: cookieManager.getCookie(domain)?.split(";")?.map { it.substringBefore("=").trim() } ?: return
-        val path = baseUrl.encodedPath.trimEnd('/').ifEmpty { "/" }
-        names.forEach { cookieManager.setCookie(domain, "$it=; Max-Age=0; Path=$path") }
+        val paths = setOf(baseUrl.encodedPath.trimEnd('/').ifEmpty { "/" }, "/")
+        for (name in names) {
+            for (path in paths) {
+                cookieManager.setCookie(domain, "$name=; Max-Age=0; Path=$path")
+            }
+        }
         cookieManager.flush()
     }
 

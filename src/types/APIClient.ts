@@ -151,6 +151,7 @@ export type APIClientConfiguration = {
     retryPolicyConfiguration?: RetryPolicyConfiguration;
     requestAdapterConfiguration?: RequestAdapterConfiguration;
     clientP12Configuration?: ClientP12Configuration;
+    excludedCookies?: string[];
 };
 
 export type ProgressEvent = {

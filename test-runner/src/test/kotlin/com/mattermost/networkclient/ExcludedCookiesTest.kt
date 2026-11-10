@@ -7,7 +7,7 @@ import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
-class AuthTokenCookieFilterTest {
+class ExcludedCookiesTest {
 
     private class RecordingJar : CookieJar {
         val stored = mutableListOf<Cookie>()
@@ -15,21 +15,21 @@ class AuthTokenCookieFilterTest {
         override fun loadForRequest(url: HttpUrl): List<Cookie> = stored
     }
 
-    private fun withoutAuthTokenCookie(delegate: CookieJar): CookieJar = object : CookieJar by delegate {
+    private fun excluding(names: Set<String>, delegate: CookieJar): CookieJar = object : CookieJar by delegate {
         override fun saveFromResponse(url: HttpUrl, cookies: List<Cookie>) =
-            delegate.saveFromResponse(url, cookies.filterNot { it.name == "MMAUTHTOKEN" })
+            delegate.saveFromResponse(url, cookies.filterNot { it.name in names })
     }
 
     @Test
-    fun savingResponseThatSetsAuthTokenPersistsOnlyCsrfAndUserId() {
+    fun savingResponseDropsOnlyCookiesNamedInExcludedCookies() {
         val url = "https://example.com".toHttpUrl()
         val recording = RecordingJar()
-        val cookies = listOf("MMAUTHTOKEN", "MMCSRF", "MMUSERID").map {
+        val cookies = listOf("excluded", "kept1", "kept2").map {
             Cookie.Builder().name(it).value("v").domain("example.com").build()
         }
 
-        withoutAuthTokenCookie(recording).saveFromResponse(url, cookies)
+        excluding(setOf("excluded"), recording).saveFromResponse(url, cookies)
 
-        assertEquals(listOf("MMCSRF", "MMUSERID"), recording.stored.map { it.name })
+        assertEquals(listOf("kept1", "kept2"), recording.stored.map { it.name })
     }
 }
