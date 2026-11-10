@@ -813,18 +813,18 @@ internal class NetworkClient(private val context: Context, private val baseUrl: 
         }
     }
 
-    private fun clearCookies() {
+    fun expireAuthCookie() = clearCookies(listOf("MMAUTHTOKEN"))
+
+    private fun clearCookies(cookieNames: List<String>? = null) {
         if (baseUrl == null)
             return
 
         val domain = baseUrl.toString()
         val cookieManager = CookieManager.getInstance()
-        val cookieString = cookieManager.getCookie(domain) ?: return
-        val cookies = cookieString.split(";").toTypedArray()
-        for (i in cookies.indices) {
-            val cookieParts = cookies[i].split("=").toTypedArray()
-            cookieManager.setCookie(domain, cookieParts[0].trim { it <= ' ' } + "=; Expires=Thurs, 1 Jan 1970 12:00:00 GMT")
-        }
+        val names = cookieNames ?: cookieManager.getCookie(domain)?.split(";")?.map { it.substringBefore("=").trim() } ?: return
+        val path = baseUrl.encodedPath.trimEnd('/').ifEmpty { "/" }
+        names.forEach { cookieManager.setCookie(domain, "$it=; Max-Age=0; Path=$path") }
+        cookieManager.flush()
     }
 
     private fun getCertificateFingerPrint(certInputStream: InputStream): String {

@@ -20,6 +20,8 @@ import com.mattermost.networkclient.sessionattributes.SessionAttributesEngine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import okhttp3.Call
+import okhttp3.Cookie
+import okhttp3.CookieJar
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
@@ -133,8 +135,11 @@ class ApiClientModuleImpl(appContext: Context) {
 
         private fun setCookieJar(@Suppress("UNUSED_PARAMETER") reactContext: Context) {
             // ForwardingCookieHandler no longer requires ReactApplicationContext in RN 0.77+
-            val cookieHandler = ForwardingCookieHandler()
-            cookieJar.setCookieJar(JavaNetCookieJar(cookieHandler))
+            val delegate = JavaNetCookieJar(ForwardingCookieHandler())
+            cookieJar.setCookieJar(object : CookieJar by delegate {
+                override fun saveFromResponse(url: HttpUrl, cookies: List<Cookie>) =
+                    delegate.saveFromResponse(url, cookies.filterNot { it.name == "MMAUTHTOKEN" })
+            })
         }
     }
 
@@ -159,7 +164,9 @@ class ApiClientModuleImpl(appContext: Context) {
         }
 
         try {
-            clients[url] = NetworkClient(context, url, options, cookieJar)
+            val client = NetworkClient(context, url, options, cookieJar)
+            client.expireAuthCookie()
+            clients[url] = client
             promise.resolve(null)
         } catch (error: Exception) {
             promise.reject(error)
