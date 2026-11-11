@@ -45,7 +45,7 @@ import react_native_network_client_session_attributes
 
         let options = JSON(options)
         if options != JSON.null {
-            let configuration = getURLSessionConfiguration(from: options)
+            let configuration = getURLSessionConfiguration(from: options, for: baseUrl)
             let interceptor = getSessionInterceptor(from: options)
             let redirectHandler = Redirector(behavior: .doNotFollow)
             let retryPolicy = getRetryPolicy(from: options)
@@ -413,7 +413,7 @@ import react_native_network_client_session_attributes
         }
     }
     
-    func getURLSessionConfiguration(from options: JSON) -> URLSessionConfiguration {
+    func getURLSessionConfiguration(from options: JSON, for baseUrl: URL) -> URLSessionConfiguration {
         let config = URLSessionConfiguration.af.default
 
         if let headers = options["headers"].dictionaryObject {
@@ -443,6 +443,15 @@ import react_native_network_client_session_attributes
             if sessionOptions["waitsForConnectivity"].exists() {
                 config.waitsForConnectivity = sessionOptions["waitsForConnectivity"].boolValue
             }
+        }
+
+        let excludedCookies = Set(options["excludedCookies"].arrayValue.compactMap { $0.string })
+        if !excludedCookies.isEmpty {
+            let shared = HTTPCookieStorage.shared
+            for cookie in shared.cookies(for: baseUrl) ?? [] where excludedCookies.contains(cookie.name) {
+                shared.deleteCookie(cookie)
+            }
+            config.httpCookieStorage = ExcludingCookieStorage(excluded: excludedCookies)
         }
 
         return config
@@ -483,5 +492,39 @@ import react_native_network_client_session_attributes
         }
         delegate?.sendEvent(name: ApiEvents.SESSION_ATTRIBUTES_NETWORK_CHANGED.rawValue,
                             result: ["serverUrls": serverUrls])
+    }
+}
+
+
+final class ExcludingCookieStorage: HTTPCookieStorage {
+    private let excluded: Set<String>
+
+    init(excluded: Set<String>) {
+        self.excluded = excluded
+        super.init()
+    }
+
+    override var cookies: [HTTPCookie]? { HTTPCookieStorage.shared.cookies }
+
+    override func setCookie(_ cookie: HTTPCookie) {
+        if !excluded.contains(cookie.name) {
+            HTTPCookieStorage.shared.setCookie(cookie)
+        }
+    }
+
+    override func setCookies(_ cookies: [HTTPCookie], for URL: URL?, mainDocumentURL: URL?) {
+        HTTPCookieStorage.shared.setCookies(cookies.filter { !excluded.contains($0.name) }, for: URL, mainDocumentURL: mainDocumentURL)
+    }
+
+    override func storeCookies(_ cookies: [HTTPCookie], for task: URLSessionTask) {
+        HTTPCookieStorage.shared.storeCookies(cookies.filter { !excluded.contains($0.name) }, for: task)
+    }
+
+    override func cookies(for URL: URL) -> [HTTPCookie]? { HTTPCookieStorage.shared.cookies(for: URL) }
+
+    override func deleteCookie(_ cookie: HTTPCookie) { HTTPCookieStorage.shared.deleteCookie(cookie) }
+
+    override func getCookiesFor(_ task: URLSessionTask, completionHandler: @escaping ([HTTPCookie]?) -> Void) {
+        HTTPCookieStorage.shared.getCookiesFor(task, completionHandler: completionHandler)
     }
 }
