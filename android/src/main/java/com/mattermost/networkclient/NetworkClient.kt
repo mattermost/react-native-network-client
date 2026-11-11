@@ -173,7 +173,14 @@ internal class NetworkClient(private val context: Context, private val baseUrl: 
         configureSsl()
 
         if (cookieJar != null) {
-            builder.cookieJar(cookieJar)
+            val excludedCookies = getExcludedCookies(options)
+            builder.cookieJar(object : CookieJar by cookieJar {
+                override fun saveFromResponse(url: HttpUrl, cookies: List<Cookie>) =
+                    cookieJar.saveFromResponse(url, cookies.filterNot { it.name in excludedCookies })
+            })
+            if (excludedCookies.isNotEmpty()) {
+                clearCookies(excludedCookies.toList())
+            }
         }
 
         if (options != null && options.hasKey("sessionConfiguration")) {
@@ -490,6 +497,15 @@ internal class NetworkClient(private val context: Context, private val baseUrl: 
         if (options != null && options.hasKey(("headers"))) {
             addClientHeaders(options.getMap("headers")?.toWritableMap())
         }
+    }
+
+    private fun getExcludedCookies(options: ReadableMap?): Set<String> {
+        if (options != null && options.hasKey("excludedCookies")) {
+            val excludedCookies = options.getArray("excludedCookies")!!
+            return excludedCookies.toArrayList().filterIsInstance<String>().toSet()
+        }
+
+        return emptySet()
     }
 
     private fun getBearerTokenInterceptor(options: ReadableMap?): BearerTokenInterceptor? {
@@ -813,18 +829,20 @@ internal class NetworkClient(private val context: Context, private val baseUrl: 
         }
     }
 
-    private fun clearCookies() {
+    private fun clearCookies(cookieNames: List<String>? = null) {
         if (baseUrl == null)
             return
 
         val domain = baseUrl.toString()
         val cookieManager = CookieManager.getInstance()
-        val cookieString = cookieManager.getCookie(domain) ?: return
-        val cookies = cookieString.split(";").toTypedArray()
-        for (i in cookies.indices) {
-            val cookieParts = cookies[i].split("=").toTypedArray()
-            cookieManager.setCookie(domain, cookieParts[0].trim { it <= ' ' } + "=; Expires=Thurs, 1 Jan 1970 12:00:00 GMT")
+        val names = cookieNames ?: cookieManager.getCookie(domain)?.split(";")?.map { it.substringBefore("=").trim() } ?: return
+        val paths = setOf(baseUrl.encodedPath.trimEnd('/').ifEmpty { "/" }, "/")
+        for (name in names) {
+            for (path in paths) {
+                cookieManager.setCookie(domain, "$name=; Max-Age=0; Path=$path")
+            }
         }
+        cookieManager.flush()
     }
 
     private fun getCertificateFingerPrint(certInputStream: InputStream): String {

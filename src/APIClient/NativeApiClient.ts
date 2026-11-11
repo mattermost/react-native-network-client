@@ -95,6 +95,7 @@ export type ApiClientConfiguration = {
     retryPolicyConfiguration?: RetryPolicyConfiguration;
     requestAdapterConfiguration?: RequestAdapterConfiguration;
     clientP12Configuration?: ClientP12Configuration;
+    excludedCookies?: string[];
 };
 
 export enum ApiClientEvents {

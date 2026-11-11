@@ -46,6 +46,7 @@ const APIClientConfigurationSchema = z.object({
     retryPolicyConfiguration: RetryPolicyConfigurationSchema.optional(),
     requestAdapterConfiguration: RequestAdapterConfigurationSchema.optional(),
     clientP12Configuration: ClientP12ConfigurationSchema.optional(),
+    excludedCookies: z.array(z.string()).optional(),
 });
 
 const RequestOptionsSchema = z.object({
