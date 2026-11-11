@@ -269,9 +269,10 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(getSessionAttributesHeader:(NSString *)se
 -(NSDictionary *) convertClientConfigurationToDictionary: (JS::NativeApiClient::ApiClientConfiguration &)config {
     NSMutableDictionary *dict = [[NSMutableDictionary alloc] init];
     dict[@"headers"] = config.headers();
-    if (config.excludedCookies().has_value()) {
+    auto excludedCookiesConfig = config.excludedCookies();
+    if (excludedCookiesConfig.has_value()) {
         NSMutableArray *excludedCookies = [[NSMutableArray alloc] init];
-        for (NSString *name : config.excludedCookies().value()) {
+        for (NSString *name : *excludedCookiesConfig) {
             [excludedCookies addObject:name];
         }
         dict[@"excludedCookies"] = excludedCookies;
