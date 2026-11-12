@@ -17,6 +17,11 @@ struct ServerSessionAttributesState: Codable {
     var lastSentAt: [String: Double]
 }
 
+struct SendGeneration {
+    let network: Int
+    let serverValues: Int
+}
+
 public class SessionAttributesStore {
     public static let shared = SessionAttributesStore()
 
@@ -29,6 +34,10 @@ public class SessionAttributesStore {
     private var networkGeneration = 0
     // Values the app reports per server, keyed by serverKey, see setServerValues.
     private var serverValues: [String: [String: String]] = [:]
+    // Bumped on every setServerValues call, with per-server/per-key stamps so an
+    // in-flight request never overwrites a cleared lastSentAt entry in markSent.
+    private var serverValuesGeneration = 0
+    private var serverValueGenerations: [String: [String: Int]] = [:]
 
     private init() {
         let appGroupId = Bundle.main.object(forInfoDictionaryKey: "AppGroupIdentifier") as? String
@@ -150,26 +159,30 @@ public class SessionAttributesStore {
     }
 
     /**
-     Records `names` as sent at `sentAt`. A header built before the network changed
-     (`generation` is stale) carried the old network values, so those keys stay unsent
-     and go out again on the next request.
+     Records `names` as sent at `sentAt`. A header built before a network change or a
+     `setServerValues` update (`generation` is stale) carried old values for those keys,
+     so they stay unsent and go out again on the next request.
      */
-    func markSent(_ names: [String], at sentAt: Double, generation: Int, for serverUrl: String) {
+    func markSent(_ names: [String], at sentAt: Double, generation: SendGeneration, for serverUrl: String) {
         queue.sync {
             guard var state = readState(for: serverUrl), state.enabled else {
                 return
             }
-            let staleNetwork = generation != networkGeneration
-            for name in names where !staleNetwork || !SessionAttributesConstants.networkKeys.contains(name) {
-                state.lastSentAt[name] = sentAt
+            let staleNetwork = generation.network != networkGeneration
+            let keyGenerations = serverValueGenerations[serverKey(serverUrl)]
+            for name in names {
+                let staleServerValue = (keyGenerations?[name] ?? 0) > generation.serverValues
+                if (!staleNetwork || !SessionAttributesConstants.networkKeys.contains(name)) && !staleServerValue {
+                    state.lastSentAt[name] = sentAt
+                }
             }
             writeState(state, for: serverUrl)
         }
     }
 
-    func currentNetworkGeneration() -> Int {
+    func currentGeneration() -> SendGeneration {
         queue.sync {
-            networkGeneration
+            SendGeneration(network: networkGeneration, serverValues: serverValuesGeneration)
         }
     }
 
@@ -209,11 +222,23 @@ public class SessionAttributesStore {
      */
     func setServerValues(_ values: [String: String], for serverUrl: String) {
         queue.sync {
-            serverValues[serverKey(serverUrl)] = values.isEmpty ? nil : values
+            let key = serverKey(serverUrl)
+            let previousKeys = Set(serverValues[key]?.keys.map { $0 } ?? [])
+            let affectedKeys = previousKeys.union(values.keys)
+            serverValues[key] = values.isEmpty ? nil : values
+            guard !affectedKeys.isEmpty else {
+                return
+            }
+            serverValuesGeneration += 1
+            var keyGenerations = serverValueGenerations[key] ?? [:]
+            for name in affectedKeys {
+                keyGenerations[name] = serverValuesGeneration
+            }
+            serverValueGenerations[key] = keyGenerations
             guard var state = readState(for: serverUrl), state.enabled else {
                 return
             }
-            for name in values.keys {
+            for name in affectedKeys {
                 state.lastSentAt.removeValue(forKey: name)
             }
             writeState(state, for: serverUrl)

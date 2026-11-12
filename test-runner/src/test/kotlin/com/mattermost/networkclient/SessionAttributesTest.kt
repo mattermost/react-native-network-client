@@ -116,16 +116,24 @@ class SessionAttributesTest {
     }
 
     /**
-     * Matches the network reset in SessionAttributesStore: resetNetworkFields clears the
-     * network keys' sent time on enabled servers and bumps the generation, and markSent
-     * skips the network keys of a header built before the last network change.
+     * Matches the generation and lastSentAt handling in SessionAttributesStore:
+     * resetNetworkFields clears the network keys' sent time on enabled servers,
+     * setServerValues clears the union of previous and replacement server-value keys,
+     * and markSent skips keys updated since the header started collecting.
      */
     private class InlineNetworkState {
+        data class SendGeneration(val network: Long, val serverValues: Long)
         class State(var enabled: Boolean, val lastSentAt: MutableMap<String, Long> = mutableMapOf())
 
         val states = mutableMapOf<String, State>()
+        private val serverValues = mutableMapOf<String, Map<String, String>>()
+        private val serverValueGenerations = mutableMapOf<String, MutableMap<String, Long>>()
         var networkGeneration = 0L
             private set
+        var serverValuesGeneration = 0L
+            private set
+
+        fun currentGeneration() = SendGeneration(networkGeneration, serverValuesGeneration)
 
         fun resetNetworkFields(): List<String> {
             networkGeneration++
@@ -135,11 +143,31 @@ class SessionAttributesTest {
             }
         }
 
-        fun markSent(serverUrl: String, names: Collection<String>, sentAt: Long, generation: Long) {
+        fun setServerValues(serverUrl: String, values: Map<String, String>) {
+            val key = serverUrl.trimEnd('/')
+            val affectedKeys = serverValues[key]?.keys.orEmpty() + values.keys
+            if (values.isEmpty()) {
+                serverValues.remove(key)
+            } else {
+                serverValues[key] = values.toMap()
+            }
+            if (affectedKeys.isEmpty()) {
+                return
+            }
+            serverValuesGeneration++
+            val keyGenerations = serverValueGenerations.getOrPut(key) { mutableMapOf() }
+            affectedKeys.forEach { keyGenerations[it] = serverValuesGeneration }
             val state = states[serverUrl]?.takeIf { it.enabled } ?: return
-            val staleNetwork = generation != networkGeneration
+            affectedKeys.forEach { state.lastSentAt.remove(it) }
+        }
+
+        fun markSent(serverUrl: String, names: Collection<String>, sentAt: Long, generation: SendGeneration) {
+            val state = states[serverUrl]?.takeIf { it.enabled } ?: return
+            val staleNetwork = generation.network != networkGeneration
+            val keyGenerations = serverValueGenerations[serverUrl.trimEnd('/')]
             names.forEach { name ->
-                if (!staleNetwork || name !in NETWORK_KEYS) {
+                val staleServerValue = (keyGenerations?.get(name) ?: 0L) > generation.serverValues
+                if ((!staleNetwork || name !in NETWORK_KEYS) && !staleServerValue) {
                     state.lastSentAt[name] = sentAt
                 }
             }
@@ -423,11 +451,49 @@ class SessionAttributesTest {
     fun network_headerBuiltBeforeAChangeDoesNotMarkNetworkKeysSent() {
         val state = InlineNetworkState()
         state.states["https://enabled"] = InlineNetworkState.State(enabled = true)
-        val generation = state.networkGeneration
+        val generation = state.currentGeneration()
 
         state.resetNetworkFields()
         state.markSent("https://enabled", listOf("ssid", "os_version"), sentAt = 5L, generation = generation)
 
         Assert.assertEquals(mapOf("os_version" to 5L), state.states["https://enabled"]?.lastSentAt)
+    }
+
+    @Test
+    fun serverValues_clearsTimestampsForAddedAndRemovedKeys() {
+        val state = InlineNetworkState()
+        state.states["https://enabled"] = InlineNetworkState.State(
+            enabled = true,
+            lastSentAt = mutableMapOf("biometric_authenticated" to 1L, "custom" to 1L, "os_version" to 1L),
+        )
+
+        state.setServerValues("https://enabled", mapOf("biometric_authenticated" to "true", "custom" to "v1"))
+        state.states["https://enabled"]!!.lastSentAt["biometric_authenticated"] = 2L
+        state.states["https://enabled"]!!.lastSentAt["custom"] = 2L
+
+        // Omitting `custom` and later clearing with `{}` must invalidate removed keys too.
+        state.setServerValues("https://enabled", mapOf("biometric_authenticated" to "true"))
+        Assert.assertEquals(mapOf("os_version" to 1L), state.states["https://enabled"]?.lastSentAt)
+
+        state.states["https://enabled"]!!.lastSentAt["biometric_authenticated"] = 3L
+        state.setServerValues("https://enabled", emptyMap())
+        Assert.assertEquals(mapOf("os_version" to 1L), state.states["https://enabled"]?.lastSentAt)
+    }
+
+    @Test
+    fun serverValues_headerBuiltBeforeUpdateDoesNotMarkUpdatedKeysSent() {
+        val state = InlineNetworkState()
+        state.states["https://one"] = InlineNetworkState.State(enabled = true)
+        state.states["https://two"] = InlineNetworkState.State(enabled = true)
+        state.setServerValues("https://one", mapOf("biometric_authenticated" to "false"))
+
+        val generation = state.currentGeneration()
+        state.setServerValues("https://one", mapOf("biometric_authenticated" to "true"))
+
+        state.markSent("https://one", listOf("biometric_authenticated", "os_version"), sentAt = 5L, generation = generation)
+        state.markSent("https://two", listOf("biometric_authenticated", "os_version"), sentAt = 5L, generation = generation)
+
+        Assert.assertEquals(mapOf("os_version" to 5L), state.states["https://one"]?.lastSentAt)
+        Assert.assertEquals(mapOf("biometric_authenticated" to 5L, "os_version" to 5L), state.states["https://two"]?.lastSentAt)
     }
 }

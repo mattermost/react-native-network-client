@@ -139,8 +139,8 @@ object SessionAttributesEngine {
             return null
         }
 
-        // Read before collecting, so a network change during collection is detected in markSent.
-        val generation = store.currentNetworkGeneration()
+        // Read before collecting, so a network or server-value change during collection is detected in markSent.
+        val generation = store.currentGeneration()
         val state = store.loadState(serverUrl) ?: return null
         if (!state.enabled || state.manifest.isEmpty()) {
             return null
