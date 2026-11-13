@@ -289,8 +289,6 @@ class SessionAttributesStore(context: Context) {
      */
     fun setServerValues(serverUrl: String, values: Map<String, String>) {
         val url = normalizedUrl(serverUrl)
-        val state = cachedState(url)
-        val previous = cachedServerValues(url)
         val valuesJson = if (values.isEmpty()) {
             null
         } else {
@@ -299,6 +297,8 @@ class SessionAttributesStore(context: Context) {
             }.toString()
         }
         synchronized(persistLock) {
+            val state = cachedState(url)
+            val previous = cachedServerValues(url)
             val stateJson = synchronized(cacheLock) {
                 val key = serverKey(url)
                 val affectedKeys = (serverValues[key] ?: previous).keys + values.keys
