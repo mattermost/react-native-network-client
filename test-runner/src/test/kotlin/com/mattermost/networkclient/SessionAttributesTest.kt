@@ -159,12 +159,12 @@ class SessionAttributesTest {
             } else {
                 backingServerValues[key] = values.toMap()
             }
-            val state = states[serverUrl]?.takeIf { it.enabled } ?: return
+            val state = states[key]?.takeIf { it.enabled } ?: return
             affectedKeys.forEach { state.lastSentAt.remove(it) }
         }
 
         fun markSent(serverUrl: String, names: Collection<String>, sentAt: Long, generation: Long) {
-            val state = states[serverUrl]?.takeIf { it.enabled } ?: return
+            val state = states[serverUrl.trimEnd('/')]?.takeIf { it.enabled } ?: return
             val staleNetwork = generation != networkGeneration
             names.forEach { name ->
                 if (!staleNetwork || name !in NETWORK_KEYS) {
@@ -476,7 +476,7 @@ class SessionAttributesTest {
         Assert.assertEquals(mapOf("os_version" to 1L), state.states["https://enabled"]?.lastSentAt)
 
         state.states["https://enabled"]!!.lastSentAt["biometric_authenticated"] = 3L
-        state.setServerValues("https://enabled", emptyMap())
+        state.setServerValues("https://enabled/", emptyMap())
         Assert.assertEquals(mapOf("os_version" to 1L), state.states["https://enabled"]?.lastSentAt)
     }
 
