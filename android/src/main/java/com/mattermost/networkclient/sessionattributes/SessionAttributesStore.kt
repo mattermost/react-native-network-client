@@ -103,11 +103,6 @@ private val Context.sessionAttributesDataStore: DataStore<Preferences> by prefer
 class SessionAttributesStore(context: Context) {
     private val appContext = context.applicationContext
 
-    data class SendGeneration(
-        val network: Long,
-        val serverValues: Long,
-    )
-
     // Guards the in-memory caches only, so the request path never blocks on
     // DataStore reads or KeyStore crypto while the lock is held.
     private val cacheLock = Any()
@@ -117,10 +112,6 @@ class SessionAttributesStore(context: Context) {
     private val serverValues = mutableMapOf<String, Map<String, String>>()
     // Bumped on every network change, see markSent.
     private var networkGeneration = 0L
-    // Bumped on every setServerValues call, with per-server/per-key stamps so an
-    // in-flight request never overwrites a cleared lastSentAt entry in markSent.
-    private var serverValuesGeneration = 0L
-    private val serverValueGenerations = mutableMapOf<String, MutableMap<String, Long>>()
 
     // Serializes persistence so cache updates reach disk in the order they were made.
     // Only taken by persist()/delete(), which never re-enter it, so the blocking
@@ -139,22 +130,20 @@ class SessionAttributesStore(context: Context) {
     }
 
     /**
-     * Records [names] as sent at [sentAt]. A header built before a network change or a
-     * [setServerValues] update ([generation] is stale) carried old values for those keys,
-     * so they stay unsent and go out again on the next request.
+     * Records [names] as sent at [sentAt]. A header built before the network changed
+     * ([generation] is stale) carried the old network values, so those keys stay
+     * unsent and go out again on the next request.
      */
-    fun markSent(serverUrl: String, names: Collection<String>, sentAt: Long, generation: SendGeneration) {
+    fun markSent(serverUrl: String, names: Collection<String>, sentAt: Long, generation: Long) {
         val state = cachedState(serverUrl) ?: return
         val json = synchronized(cacheLock) {
             // The server was disabled or removed while the header was being built.
             if (stateCache[serverUrl] !== state || !state.enabled) {
                 return
             }
-            val staleNetwork = generation.network != networkGeneration
-            val keyGenerations = serverValueGenerations[serverKey(serverUrl)]
+            val staleNetwork = generation != networkGeneration
             names.forEach { name ->
-                val staleServerValue = (keyGenerations?.get(name) ?: 0L) > generation.serverValues
-                if ((!staleNetwork || name !in SessionAttributesConstants.NETWORK_KEYS) && !staleServerValue) {
+                if (!staleNetwork || name !in SessionAttributesConstants.NETWORK_KEYS) {
                     state.lastSentAt[name] = sentAt
                 }
             }
@@ -163,12 +152,9 @@ class SessionAttributesStore(context: Context) {
         persist(stateAlias(serverUrl), json)
     }
 
-    fun currentGeneration(): SendGeneration {
+    fun currentNetworkGeneration(): Long {
         synchronized(cacheLock) {
-            return SendGeneration(
-                network = networkGeneration,
-                serverValues = serverValuesGeneration,
-            )
+            return networkGeneration
         }
     }
 
@@ -267,38 +253,54 @@ class SessionAttributesStore(context: Context) {
     }
 
     /**
-     * Replaces the values the app reports for [serverUrl]. Kept in memory apart from the
-     * server's state, so a manifest change or removal keeps them; the app sets them again
-     * on launch. Each one goes out on the next request whatever its ttl.
+     * Replaces the values the app reports for [serverUrl]. Persisted in the shared store
+     * under its own key so a manifest change or removal keeps them. Each changed or
+     * removed key goes out on the next request whatever its ttl.
      */
     fun setServerValues(serverUrl: String, values: Map<String, String>) {
         val state = cachedState(serverUrl)
-        val json = synchronized(cacheLock) {
-            val key = serverKey(serverUrl)
-            val affectedKeys = serverValues[key]?.keys.orEmpty() + values.keys
-            if (values.isEmpty()) {
-                serverValues.remove(key)
-            } else {
-                serverValues[key] = values.toMap()
-            }
-            if (affectedKeys.isEmpty()) {
-                return
-            }
-            serverValuesGeneration++
-            val keyGenerations = serverValueGenerations.getOrPut(key) { mutableMapOf() }
-            affectedKeys.forEach { keyGenerations[it] = serverValuesGeneration }
-            if (state == null || stateCache[serverUrl] !== state || !state.enabled) {
-                return
-            }
-            affectedKeys.forEach { state.lastSentAt.remove(it) }
-            state.toJson().toString()
+        val previous = cachedServerValues(serverUrl)
+        val valuesJson = if (values.isEmpty()) {
+            null
+        } else {
+            JSONObject().apply {
+                values.forEach { (k, v) -> put(k, v) }
+            }.toString()
         }
-        persist(stateAlias(serverUrl), json)
+        val stateJson = synchronized(cacheLock) {
+            val key = serverKey(serverUrl)
+            val affectedKeys = (serverValues[key] ?: previous).keys + values.keys
+            serverValues[key] = values.toMap()
+            if (affectedKeys.isNotEmpty() && state != null && stateCache[serverUrl] === state && state.enabled) {
+                affectedKeys.forEach { state.lastSentAt.remove(it) }
+                state.toJson().toString()
+            } else {
+                null
+            }
+        }
+        if (valuesJson == null) {
+            delete(serverValuesAlias(serverUrl))
+        } else {
+            persist(serverValuesAlias(serverUrl), valuesJson)
+        }
+        if (stateJson != null) {
+            persist(stateAlias(serverUrl), stateJson)
+        }
     }
 
     fun getServerValue(serverUrl: String, name: String): String? {
+        return cachedServerValues(serverUrl)[name]?.takeIf { it.isNotEmpty() }
+    }
+
+    private fun cachedServerValues(serverUrl: String): Map<String, String> {
+        val key = serverKey(serverUrl)
         synchronized(cacheLock) {
-            return serverValues[serverKey(serverUrl)]?.get(name)?.takeIf { it.isNotEmpty() }
+            serverValues[key]?.let { return it }
+        }
+
+        val restored = readServerValues(serverUrl)
+        synchronized(cacheLock) {
+            return serverValues.getOrPut(key) { restored }
         }
     }
 
@@ -316,6 +318,10 @@ class SessionAttributesStore(context: Context) {
 
     private fun stateAlias(serverUrl: String): String {
         return "${SessionAttributesConstants.STORE_PREFIX}${serverKey(serverUrl)}-${SessionAttributesConstants.STATE_ALIAS_SUFFIX}"
+    }
+
+    private fun serverValuesAlias(serverUrl: String): String {
+        return "${SessionAttributesConstants.STORE_PREFIX}${serverKey(serverUrl)}-${SessionAttributesConstants.SERVER_VALUES_ALIAS_SUFFIX}"
     }
 
     /**
@@ -354,6 +360,17 @@ class SessionAttributesStore(context: Context) {
             json.keys().asSequence().associateWith { json.optString(it, "") }
         } catch (e: Exception) {
             Log.w("NetworkClient", "Discarding unreadable stable values: ${e.message}")
+            emptyMap()
+        }
+    }
+
+    private fun readServerValues(serverUrl: String): Map<String, String> {
+        val raw = readValue(serverValuesAlias(serverUrl)) ?: return emptyMap()
+        return try {
+            val json = JSONObject(raw)
+            json.keys().asSequence().associateWith { json.optString(it, "") }
+        } catch (e: Exception) {
+            Log.w("NetworkClient", "Discarding unreadable server values: ${e.message}")
             emptyMap()
         }
     }

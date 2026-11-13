@@ -77,8 +77,8 @@ import Foundation
     }
 
     @objc public func getOutboundHeader(_ serverUrl: String) -> String? {
-        // Read before collecting, so a network or server-value change during collection is detected in markSent.
-        let generation = store.currentGeneration()
+        // Read before collecting, so a network change during collection is detected in markSent.
+        let generation = store.currentNetworkGeneration()
         guard let state = store.loadState(for: serverUrl), state.enabled, !state.manifest.isEmpty else {
             return nil
         }

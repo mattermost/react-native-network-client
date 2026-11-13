@@ -6,6 +6,7 @@ import Foundation
 public struct SessionAttributesConstants {
     public static let headerName = "X-MM-Session-Attributes"
     public static let storePrefix = "sa_"
+    public static let serverValuesPrefix = "sa_server_values_"
     public static let stableValuesKey = "sa_stable_values"
     public static let managedConfigKey = "com.apple.configuration.managed"
     public static let isDeviceManagedKey = "isDeviceManaged"

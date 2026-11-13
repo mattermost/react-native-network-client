@@ -116,24 +116,30 @@ class SessionAttributesTest {
     }
 
     /**
-     * Matches the generation and lastSentAt handling in SessionAttributesStore:
-     * resetNetworkFields clears the network keys' sent time on enabled servers,
-     * setServerValues clears the union of previous and replacement server-value keys,
-     * and markSent skips keys updated since the header started collecting.
+     * Matches the network reset and server-value handling in SessionAttributesStore:
+     * resetNetworkFields clears the network keys' sent time on enabled servers and bumps
+     * networkGeneration, and setServerValues persists per-server values and clears the
+     * union of previous and replacement server-value keys.
      */
     private class InlineNetworkState {
-        data class SendGeneration(val network: Long, val serverValues: Long)
         class State(var enabled: Boolean, val lastSentAt: MutableMap<String, Long> = mutableMapOf())
 
         val states = mutableMapOf<String, State>()
+        val backingServerValues = mutableMapOf<String, Map<String, String>>()
         private val serverValues = mutableMapOf<String, Map<String, String>>()
-        private val serverValueGenerations = mutableMapOf<String, MutableMap<String, Long>>()
+        var backingReads = 0
+            private set
         var networkGeneration = 0L
             private set
-        var serverValuesGeneration = 0L
-            private set
 
-        fun currentGeneration() = SendGeneration(networkGeneration, serverValuesGeneration)
+        fun getServerValue(serverUrl: String, name: String): String? {
+            val key = serverUrl.trimEnd('/')
+            val cached = serverValues.getOrPut(key) {
+                backingReads++
+                backingServerValues[key] ?: emptyMap()
+            }
+            return cached[name]?.takeIf { it.isNotEmpty() }
+        }
 
         fun resetNetworkFields(): List<String> {
             networkGeneration++
@@ -145,29 +151,23 @@ class SessionAttributesTest {
 
         fun setServerValues(serverUrl: String, values: Map<String, String>) {
             val key = serverUrl.trimEnd('/')
-            val affectedKeys = serverValues[key]?.keys.orEmpty() + values.keys
+            val previous = serverValues[key] ?: backingServerValues[key].orEmpty()
+            val affectedKeys = previous.keys + values.keys
+            serverValues[key] = values.toMap()
             if (values.isEmpty()) {
-                serverValues.remove(key)
+                backingServerValues.remove(key)
             } else {
-                serverValues[key] = values.toMap()
+                backingServerValues[key] = values.toMap()
             }
-            if (affectedKeys.isEmpty()) {
-                return
-            }
-            serverValuesGeneration++
-            val keyGenerations = serverValueGenerations.getOrPut(key) { mutableMapOf() }
-            affectedKeys.forEach { keyGenerations[it] = serverValuesGeneration }
             val state = states[serverUrl]?.takeIf { it.enabled } ?: return
             affectedKeys.forEach { state.lastSentAt.remove(it) }
         }
 
-        fun markSent(serverUrl: String, names: Collection<String>, sentAt: Long, generation: SendGeneration) {
+        fun markSent(serverUrl: String, names: Collection<String>, sentAt: Long, generation: Long) {
             val state = states[serverUrl]?.takeIf { it.enabled } ?: return
-            val staleNetwork = generation.network != networkGeneration
-            val keyGenerations = serverValueGenerations[serverUrl.trimEnd('/')]
+            val staleNetwork = generation != networkGeneration
             names.forEach { name ->
-                val staleServerValue = (keyGenerations?.get(name) ?: 0L) > generation.serverValues
-                if ((!staleNetwork || name !in NETWORK_KEYS) && !staleServerValue) {
+                if (!staleNetwork || name !in NETWORK_KEYS) {
                     state.lastSentAt[name] = sentAt
                 }
             }
@@ -451,7 +451,7 @@ class SessionAttributesTest {
     fun network_headerBuiltBeforeAChangeDoesNotMarkNetworkKeysSent() {
         val state = InlineNetworkState()
         state.states["https://enabled"] = InlineNetworkState.State(enabled = true)
-        val generation = state.currentGeneration()
+        val generation = state.networkGeneration
 
         state.resetNetworkFields()
         state.markSent("https://enabled", listOf("ssid", "os_version"), sentAt = 5L, generation = generation)
@@ -481,19 +481,21 @@ class SessionAttributesTest {
     }
 
     @Test
-    fun serverValues_headerBuiltBeforeUpdateDoesNotMarkUpdatedKeysSent() {
-        val state = InlineNetworkState()
-        state.states["https://one"] = InlineNetworkState.State(enabled = true)
-        state.states["https://two"] = InlineNetworkState.State(enabled = true)
-        state.setServerValues("https://one", mapOf("biometric_authenticated" to "false"))
+    fun serverValues_persistsToBackingStoreAndCachesNegativeLookups() {
+        val writer = InlineNetworkState()
+        writer.setServerValues("https://one/", mapOf("biometric_authenticated" to "true"))
 
-        val generation = state.currentGeneration()
-        state.setServerValues("https://one", mapOf("biometric_authenticated" to "true"))
+        // A second process (e.g. an app extension) restores persisted values from the shared store.
+        val reader = InlineNetworkState()
+        reader.backingServerValues.putAll(writer.backingServerValues)
+        Assert.assertEquals("true", reader.getServerValue("https://one", "biometric_authenticated"))
+        Assert.assertEquals(1, reader.backingReads)
 
-        state.markSent("https://one", listOf("biometric_authenticated", "os_version"), sentAt = 5L, generation = generation)
-        state.markSent("https://two", listOf("biometric_authenticated", "os_version"), sentAt = 5L, generation = generation)
-
-        Assert.assertEquals(mapOf("os_version" to 5L), state.states["https://one"]?.lastSentAt)
-        Assert.assertEquals(mapOf("biometric_authenticated" to 5L, "os_version" to 5L), state.states["https://two"]?.lastSentAt)
+        // Clearing removes the persisted entry and caches emptyMap() without re-reading disk.
+        reader.setServerValues("https://one", emptyMap())
+        Assert.assertTrue(reader.backingServerValues.isEmpty())
+        Assert.assertNull(reader.getServerValue("https://one", "biometric_authenticated"))
+        Assert.assertNull(reader.getServerValue("https://one", "biometric_authenticated"))
+        Assert.assertEquals(1, reader.backingReads)
     }
 }
