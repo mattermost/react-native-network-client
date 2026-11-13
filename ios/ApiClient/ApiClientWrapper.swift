@@ -367,6 +367,10 @@ import react_native_network_client_session_attributes
         SessionAttributesEngine.shared.setStableValues(values)
     }
 
+    @objc public func setSessionAttributesServerValues(_ serverUrl: String, values: String) {
+        SessionAttributesEngine.shared.setServerValues(serverUrl, valuesJson: values)
+    }
+
     @objc public func getSessionAttributesHeader(_ serverUrl: String) -> String? {
         return SessionAttributesEngine.shared.getOutboundHeader(serverUrl)
     }

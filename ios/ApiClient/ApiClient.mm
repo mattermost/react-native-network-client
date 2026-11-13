@@ -128,6 +128,11 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(setSessionAttributesStableValues:(NSStrin
     return nil;
 }
 
+RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(setSessionAttributesServerValues:(NSString *)serverUrl values:(NSString *)values) {
+    [wrapper setSessionAttributesServerValues:serverUrl values:values];
+    return nil;
+}
+
 RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(getSessionAttributesHeader:(NSString *)serverUrl) {
     return [wrapper getSessionAttributesHeader:serverUrl];
 }
@@ -249,6 +254,10 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(getSessionAttributesHeader:(NSString *)se
 
 - (void)setSessionAttributesStableValues:(NSString *)values {
     [wrapper setSessionAttributesStableValues:values];
+}
+
+- (void)setSessionAttributesServerValues:(NSString *)serverUrl values:(NSString *)values {
+    [wrapper setSessionAttributesServerValues:serverUrl values:values];
 }
 
 - (NSString *)getSessionAttributesHeader:(NSString *)serverUrl {

@@ -116,16 +116,30 @@ class SessionAttributesTest {
     }
 
     /**
-     * Matches the network reset in SessionAttributesStore: resetNetworkFields clears the
-     * network keys' sent time on enabled servers and bumps the generation, and markSent
-     * skips the network keys of a header built before the last network change.
+     * Matches the network reset and server-value handling in SessionAttributesStore:
+     * resetNetworkFields clears the network keys' sent time on enabled servers and bumps
+     * networkGeneration, and setServerValues persists per-server values and clears the
+     * union of previous and replacement server-value keys.
      */
     private class InlineNetworkState {
         class State(var enabled: Boolean, val lastSentAt: MutableMap<String, Long> = mutableMapOf())
 
         val states = mutableMapOf<String, State>()
+        val backingServerValues = mutableMapOf<String, Map<String, String>>()
+        private val serverValues = mutableMapOf<String, Map<String, String>>()
+        var backingReads = 0
+            private set
         var networkGeneration = 0L
             private set
+
+        fun getServerValue(serverUrl: String, name: String): String? {
+            val key = serverUrl.trimEnd('/')
+            val cached = serverValues.getOrPut(key) {
+                backingReads++
+                backingServerValues[key] ?: emptyMap()
+            }
+            return cached[name]?.takeIf { it.isNotEmpty() }
+        }
 
         fun resetNetworkFields(): List<String> {
             networkGeneration++
@@ -135,8 +149,22 @@ class SessionAttributesTest {
             }
         }
 
+        fun setServerValues(serverUrl: String, values: Map<String, String>) {
+            val key = serverUrl.trimEnd('/')
+            val previous = serverValues[key] ?: backingServerValues[key].orEmpty()
+            val affectedKeys = previous.keys + values.keys
+            serverValues[key] = values.toMap()
+            if (values.isEmpty()) {
+                backingServerValues.remove(key)
+            } else {
+                backingServerValues[key] = values.toMap()
+            }
+            val state = states[key]?.takeIf { it.enabled } ?: return
+            affectedKeys.forEach { state.lastSentAt.remove(it) }
+        }
+
         fun markSent(serverUrl: String, names: Collection<String>, sentAt: Long, generation: Long) {
-            val state = states[serverUrl]?.takeIf { it.enabled } ?: return
+            val state = states[serverUrl.trimEnd('/')]?.takeIf { it.enabled } ?: return
             val staleNetwork = generation != networkGeneration
             names.forEach { name ->
                 if (!staleNetwork || name !in NETWORK_KEYS) {
@@ -429,5 +457,45 @@ class SessionAttributesTest {
         state.markSent("https://enabled", listOf("ssid", "os_version"), sentAt = 5L, generation = generation)
 
         Assert.assertEquals(mapOf("os_version" to 5L), state.states["https://enabled"]?.lastSentAt)
+    }
+
+    @Test
+    fun serverValues_clearsTimestampsForAddedAndRemovedKeys() {
+        val state = InlineNetworkState()
+        state.states["https://enabled"] = InlineNetworkState.State(
+            enabled = true,
+            lastSentAt = mutableMapOf("biometric_authenticated" to 1L, "custom" to 1L, "os_version" to 1L),
+        )
+
+        state.setServerValues("https://enabled", mapOf("biometric_authenticated" to "true", "custom" to "v1"))
+        state.states["https://enabled"]!!.lastSentAt["biometric_authenticated"] = 2L
+        state.states["https://enabled"]!!.lastSentAt["custom"] = 2L
+
+        // Omitting `custom` and later clearing with `{}` must invalidate removed keys too.
+        state.setServerValues("https://enabled", mapOf("biometric_authenticated" to "true"))
+        Assert.assertEquals(mapOf("os_version" to 1L), state.states["https://enabled"]?.lastSentAt)
+
+        state.states["https://enabled"]!!.lastSentAt["biometric_authenticated"] = 3L
+        state.setServerValues("https://enabled/", emptyMap())
+        Assert.assertEquals(mapOf("os_version" to 1L), state.states["https://enabled"]?.lastSentAt)
+    }
+
+    @Test
+    fun serverValues_persistsToBackingStoreAndCachesNegativeLookups() {
+        val writer = InlineNetworkState()
+        writer.setServerValues("https://one/", mapOf("biometric_authenticated" to "true"))
+
+        // A second process (e.g. an app extension) restores persisted values from the shared store.
+        val reader = InlineNetworkState()
+        reader.backingServerValues.putAll(writer.backingServerValues)
+        Assert.assertEquals("true", reader.getServerValue("https://one", "biometric_authenticated"))
+        Assert.assertEquals(1, reader.backingReads)
+
+        // Clearing removes the persisted entry and caches emptyMap() without re-reading disk.
+        reader.setServerValues("https://one", emptyMap())
+        Assert.assertTrue(reader.backingServerValues.isEmpty())
+        Assert.assertNull(reader.getServerValue("https://one", "biometric_authenticated"))
+        Assert.assertNull(reader.getServerValue("https://one", "biometric_authenticated"))
+        Assert.assertEquals(1, reader.backingReads)
     }
 }

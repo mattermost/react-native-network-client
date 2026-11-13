@@ -4,6 +4,7 @@ object SessionAttributesConstants {
     const val HEADER_NAME = "X-MM-Session-Attributes"
     const val STORE_PREFIX = "sa_"
     const val STATE_ALIAS_SUFFIX = "SA_STATE"
+    const val SERVER_VALUES_ALIAS_SUFFIX = "SA_SERVER_VALUES"
     const val STABLE_VALUES_ALIAS = "SA_STABLE_VALUES"
     const val IS_DEVICE_MANAGED_KEY = "isDeviceManaged"
     const val IS_SUPERVISED_KEY = "isSupervised"

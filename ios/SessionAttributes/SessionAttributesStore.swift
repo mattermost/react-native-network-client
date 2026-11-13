@@ -33,14 +33,41 @@ public class SessionAttributesStore {
         userDefaults = appGroupId != nil ? UserDefaults(suiteName: appGroupId) : UserDefaults.standard
     }
 
+    private func normalizedUrl(_ serverUrl: String) -> String {
+        return serverUrl.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+    }
+
     func serverKey(_ serverUrl: String) -> String {
-        let normalized = serverUrl.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        let normalized = normalizedUrl(serverUrl)
         let digest = SHA256.hash(data: Data(normalized.utf8))
         return digest.compactMap { String(format: "%02x", $0) }.joined()
     }
 
     private func stateKey(for serverUrl: String) -> String {
         return "\(SessionAttributesConstants.storePrefix)state_\(serverKey(serverUrl))"
+    }
+
+    private func serverValuesKey(for serverUrl: String) -> String {
+        return "\(SessionAttributesConstants.serverValuesPrefix)\(serverKey(serverUrl))"
+    }
+
+    private func readServerValues(for serverUrl: String) -> [String: String]? {
+        guard let data = userDefaults?.object(forKey: serverValuesKey(for: serverUrl)) as? Data else {
+            return nil
+        }
+        return try? JSONDecoder().decode([String: String].self, from: data)
+    }
+
+    private func writeServerValues(_ values: [String: String], for serverUrl: String) {
+        let storageKey = serverValuesKey(for: serverUrl)
+        if values.isEmpty {
+            userDefaults?.removeObject(forKey: storageKey)
+            return
+        }
+        guard let data = try? JSONEncoder().encode(values) else {
+            return
+        }
+        userDefaults?.set(data, forKey: storageKey)
     }
 
     private func readState(for serverUrl: String) -> ServerSessionAttributesState? {
@@ -65,15 +92,16 @@ public class SessionAttributesStore {
 
     func loadState(for serverUrl: String) -> ServerSessionAttributesState? {
         queue.sync {
-            guard var state = readState(for: serverUrl) else {
+            let url = normalizedUrl(serverUrl)
+            guard var state = readState(for: url) else {
                 return nil
             }
             // A state saved by an earlier launch sends attributes before the app enables the
             // server again, so it must be reset on a network change too. The network may also
             // have changed while the app was not running, so its network values go out again.
-            if state.enabled && enabledServers.insert(serverUrl).inserted {
+            if state.enabled && enabledServers.insert(url).inserted {
                 clearNetworkSentAt(&state)
-                writeState(state, for: serverUrl)
+                writeState(state, for: url)
             }
             return state
         }
@@ -81,43 +109,46 @@ public class SessionAttributesStore {
 
     func saveState(_ state: ServerSessionAttributesState, for serverUrl: String) {
         queue.sync {
-            writeState(state, for: serverUrl)
+            writeState(state, for: normalizedUrl(serverUrl))
         }
     }
 
     func removeState(for serverUrl: String) {
         queue.sync {
-            enabledServers.remove(serverUrl)
-            userDefaults?.removeObject(forKey: stateKey(for: serverUrl))
+            let url = normalizedUrl(serverUrl)
+            enabledServers.remove(url)
+            userDefaults?.removeObject(forKey: stateKey(for: url))
         }
     }
 
     func setEnabled(_ enabled: Bool, for serverUrl: String) {
         queue.sync {
-            var state = readState(for: serverUrl) ?? ServerSessionAttributesState(enabled: false, manifest: [], lastSentAt: [:])
+            let url = normalizedUrl(serverUrl)
+            var state = readState(for: url) ?? ServerSessionAttributesState(enabled: false, manifest: [], lastSentAt: [:])
             state.enabled = enabled
             if enabled {
                 // First registration in this process, see loadState.
-                if enabledServers.insert(serverUrl).inserted {
+                if enabledServers.insert(url).inserted {
                     clearNetworkSentAt(&state)
                 }
             } else {
-                enabledServers.remove(serverUrl)
+                enabledServers.remove(url)
                 state.manifest = []
                 state.lastSentAt = [:]
             }
-            writeState(state, for: serverUrl)
+            writeState(state, for: url)
         }
     }
 
     func setManifest(_ manifest: [SAField], for serverUrl: String) {
         queue.sync {
-            var state = readState(for: serverUrl) ?? ServerSessionAttributesState(enabled: true, manifest: [], lastSentAt: [:])
+            let url = normalizedUrl(serverUrl)
+            var state = readState(for: url) ?? ServerSessionAttributesState(enabled: true, manifest: [], lastSentAt: [:])
             state.enabled = true
             state.manifest = manifest
             state.lastSentAt = [:]
-            enabledServers.insert(serverUrl)
-            writeState(state, for: serverUrl)
+            enabledServers.insert(url)
+            writeState(state, for: url)
         }
     }
 
@@ -197,6 +228,34 @@ public class SessionAttributesStore {
                 return
             }
             userDefaults?.set(data, forKey: SessionAttributesConstants.stableValuesKey)
+        }
+    }
+
+    /**
+     Replaces the values the app reports for `serverUrl`. Persisted in the shared store
+     under its own key so app extensions can read them and a manifest change or removal
+     keeps them. Each changed or removed key goes out on the next request whatever its ttl.
+     */
+    func setServerValues(_ values: [String: String], for serverUrl: String) {
+        queue.sync {
+            let previousKeys = Set(readServerValues(for: serverUrl)?.keys.map { $0 } ?? [])
+            let affectedKeys = previousKeys.union(values.keys)
+            writeServerValues(values, for: serverUrl)
+            guard !affectedKeys.isEmpty,
+                  var state = readState(for: serverUrl),
+                  state.enabled else {
+                return
+            }
+            for name in affectedKeys {
+                state.lastSentAt.removeValue(forKey: name)
+            }
+            writeState(state, for: serverUrl)
+        }
+    }
+
+    func getServerValue(_ name: String, for serverUrl: String) -> String? {
+        queue.sync {
+            readServerValues(for: serverUrl)?[name]
         }
     }
 

@@ -108,6 +108,8 @@ class SessionAttributesStore(context: Context) {
     private val cacheLock = Any()
     private val stateCache = mutableMapOf<String, ServerSessionAttributesState>()
     private var stableValues: Map<String, String>? = null
+    // Values the app reports per server, keyed by serverKey, see setServerValues.
+    private val serverValues = mutableMapOf<String, Map<String, String>>()
     // Bumped on every network change, see markSent.
     private var networkGeneration = 0L
 
@@ -116,8 +118,10 @@ class SessionAttributesStore(context: Context) {
     // DataStore write cannot deadlock.
     private val persistLock = Any()
 
+    private fun normalizedUrl(serverUrl: String): String = serverUrl.trimEnd('/')
+
     fun serverKey(serverUrl: String): String {
-        val normalized = serverUrl.trimEnd('/')
+        val normalized = normalizedUrl(serverUrl)
         val digest = MessageDigest.getInstance("SHA-256").digest(normalized.toByteArray())
         return digest.joinToString("") { "%02x".format(it) }
     }
@@ -133,10 +137,11 @@ class SessionAttributesStore(context: Context) {
      * unsent and go out again on the next request.
      */
     fun markSent(serverUrl: String, names: Collection<String>, sentAt: Long, generation: Long) {
-        val state = cachedState(serverUrl) ?: return
+        val url = normalizedUrl(serverUrl)
+        val state = cachedState(url) ?: return
         val json = synchronized(cacheLock) {
             // The server was disabled or removed while the header was being built.
-            if (stateCache[serverUrl] !== state || !state.enabled) {
+            if (stateCache[url] !== state || !state.enabled) {
                 return
             }
             val staleNetwork = generation != networkGeneration
@@ -147,7 +152,7 @@ class SessionAttributesStore(context: Context) {
             }
             state.toJson().toString()
         }
-        persist(stateAlias(serverUrl), json)
+        persist(stateAlias(url), json)
     }
 
     fun currentNetworkGeneration(): Long {
@@ -182,14 +187,16 @@ class SessionAttributesStore(context: Context) {
     }
 
     fun removeState(serverUrl: String) {
+        val url = normalizedUrl(serverUrl)
         synchronized(cacheLock) {
-            stateCache.remove(serverUrl)
+            stateCache.remove(url)
         }
-        delete(stateAlias(serverUrl))
+        delete(stateAlias(url))
     }
 
     fun setEnabled(serverUrl: String, enabled: Boolean) {
-        val existing = cachedState(serverUrl)
+        val url = normalizedUrl(serverUrl)
+        val existing = cachedState(url)
         val json = synchronized(cacheLock) {
             val state = existing ?: ServerSessionAttributesState(false, mutableListOf(), mutableMapOf())
             state.enabled = enabled
@@ -197,27 +204,29 @@ class SessionAttributesStore(context: Context) {
                 state.manifest.clear()
                 state.lastSentAt.clear()
             }
-            stateCache[serverUrl] = state
+            stateCache[url] = state
             state.toJson().toString()
         }
-        persist(stateAlias(serverUrl), json)
+        persist(stateAlias(url), json)
     }
 
     fun setManifest(serverUrl: String, manifest: List<SAField>) {
-        val existing = cachedState(serverUrl)
+        val url = normalizedUrl(serverUrl)
+        val existing = cachedState(url)
         val json = synchronized(cacheLock) {
             val state = existing ?: ServerSessionAttributesState(true, mutableListOf(), mutableMapOf())
             state.enabled = true
             state.manifest = manifest.toMutableList()
             state.lastSentAt.clear()
-            stateCache[serverUrl] = state
+            stateCache[url] = state
             state.toJson().toString()
         }
-        persist(stateAlias(serverUrl), json)
+        persist(stateAlias(url), json)
     }
 
     fun upsertField(serverUrl: String, field: SAField) {
-        val state = cachedState(serverUrl)?.takeIf { it.enabled } ?: return
+        val url = normalizedUrl(serverUrl)
+        val state = cachedState(url)?.takeIf { it.enabled } ?: return
         val json = synchronized(cacheLock) {
             val index = state.manifest.indexOfFirst { it.name == field.name }
             if (index == -1) {
@@ -228,17 +237,18 @@ class SessionAttributesStore(context: Context) {
             state.lastSentAt.remove(field.name)
             state.toJson().toString()
         }
-        persist(stateAlias(serverUrl), json)
+        persist(stateAlias(url), json)
     }
 
     fun removeField(serverUrl: String, name: String) {
-        val state = cachedState(serverUrl)?.takeIf { it.enabled } ?: return
+        val url = normalizedUrl(serverUrl)
+        val state = cachedState(url)?.takeIf { it.enabled } ?: return
         val json = synchronized(cacheLock) {
             state.manifest.removeAll { it.name == name }
             state.lastSentAt.remove(name)
             state.toJson().toString()
         }
-        persist(stateAlias(serverUrl), json)
+        persist(stateAlias(url), json)
     }
 
     fun setStableValues(values: Map<String, String>) {
@@ -248,6 +258,59 @@ class SessionAttributesStore(context: Context) {
             stableValues = values.toMap()
         }
         persist(SessionAttributesConstants.STABLE_VALUES_ALIAS, json.toString())
+    }
+
+    /**
+     * Replaces the values the app reports for [serverUrl]. Persisted in the shared store
+     * under its own key so a manifest change or removal keeps them. Each changed or
+     * removed key goes out on the next request whatever its ttl.
+     */
+    fun setServerValues(serverUrl: String, values: Map<String, String>) {
+        val url = normalizedUrl(serverUrl)
+        val state = cachedState(url)
+        val previous = cachedServerValues(url)
+        val valuesJson = if (values.isEmpty()) {
+            null
+        } else {
+            JSONObject().apply {
+                values.forEach { (k, v) -> put(k, v) }
+            }.toString()
+        }
+        val stateJson = synchronized(cacheLock) {
+            val key = serverKey(url)
+            val affectedKeys = (serverValues[key] ?: previous).keys + values.keys
+            serverValues[key] = values.toMap()
+            if (affectedKeys.isNotEmpty() && state != null && stateCache[url] === state && state.enabled) {
+                affectedKeys.forEach { state.lastSentAt.remove(it) }
+                state.toJson().toString()
+            } else {
+                null
+            }
+        }
+        if (valuesJson == null) {
+            delete(serverValuesAlias(url))
+        } else {
+            persist(serverValuesAlias(url), valuesJson)
+        }
+        if (stateJson != null) {
+            persist(stateAlias(url), stateJson)
+        }
+    }
+
+    fun getServerValue(serverUrl: String, name: String): String? {
+        return cachedServerValues(serverUrl)[name]?.takeIf { it.isNotEmpty() }
+    }
+
+    private fun cachedServerValues(serverUrl: String): Map<String, String> {
+        val key = serverKey(serverUrl)
+        synchronized(cacheLock) {
+            serverValues[key]?.let { return it }
+        }
+
+        val restored = readServerValues(serverUrl)
+        synchronized(cacheLock) {
+            return serverValues.getOrPut(key) { restored }
+        }
     }
 
     fun getStableValue(name: String): String? {
@@ -266,22 +329,27 @@ class SessionAttributesStore(context: Context) {
         return "${SessionAttributesConstants.STORE_PREFIX}${serverKey(serverUrl)}-${SessionAttributesConstants.STATE_ALIAS_SUFFIX}"
     }
 
+    private fun serverValuesAlias(serverUrl: String): String {
+        return "${SessionAttributesConstants.STORE_PREFIX}${serverKey(serverUrl)}-${SessionAttributesConstants.SERVER_VALUES_ALIAS_SUFFIX}"
+    }
+
     /**
      * Returns the cached state for [serverUrl], restoring it from disk on the first
      * access. The returned instance is the cached one, so callers that mutate it must
      * do so while holding [cacheLock].
      */
     private fun cachedState(serverUrl: String): ServerSessionAttributesState? {
+        val url = normalizedUrl(serverUrl)
         synchronized(cacheLock) {
-            stateCache[serverUrl]?.let { return it }
+            stateCache[url]?.let { return it }
         }
 
-        val restored = readState(serverUrl) ?: return null
+        val restored = readState(url) ?: return null
         // The network may have changed while the app was not running, so the network values
         // saved by an earlier launch go out again.
         SessionAttributesConstants.NETWORK_KEYS.forEach { restored.lastSentAt.remove(it) }
         synchronized(cacheLock) {
-            return stateCache.getOrPut(serverUrl) { restored }
+            return stateCache.getOrPut(url) { restored }
         }
     }
 
@@ -302,6 +370,17 @@ class SessionAttributesStore(context: Context) {
             json.keys().asSequence().associateWith { json.optString(it, "") }
         } catch (e: Exception) {
             Log.w("NetworkClient", "Discarding unreadable stable values: ${e.message}")
+            emptyMap()
+        }
+    }
+
+    private fun readServerValues(serverUrl: String): Map<String, String> {
+        val raw = readValue(serverValuesAlias(serverUrl)) ?: return emptyMap()
+        return try {
+            val json = JSONObject(raw)
+            json.keys().asSequence().associateWith { json.optString(it, "") }
+        } catch (e: Exception) {
+            Log.w("NetworkClient", "Discarding unreadable server values: ${e.message}")
             emptyMap()
         }
     }
