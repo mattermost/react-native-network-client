@@ -27,6 +27,7 @@ class SessionAttributesCollector(
     private val fqdnCache = ConcurrentHashMap<String, String>()
 
     fun collect(name: String, serverUrl: String): String {
+        store.getServerValue(serverUrl, name)?.let { return it }
         store.getStableValue(name)?.let { return it }
 
         val snapshot = currentNetworkSnapshot()

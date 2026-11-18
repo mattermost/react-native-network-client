@@ -103,6 +103,11 @@ class ApiClientModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     }
 
     @ReactMethod(isBlockingSynchronousMethod = true)
+    fun setSessionAttributesServerValues(serverUrl: String, values: String) {
+        implementation.setSessionAttributesServerValues(serverUrl, values)
+    }
+
+    @ReactMethod(isBlockingSynchronousMethod = true)
     fun getSessionAttributesHeader(serverUrl: String): String? {
         return implementation.getSessionAttributesHeader(serverUrl)
     }
