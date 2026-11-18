@@ -82,6 +82,15 @@ jobs:
           ref: ${{ github.ref_name }}
           fetch-depth: 0
           token: ${{ secrets.MATTERMOST_BUILD_GH_TOKEN }}
+      - name: Verify branch matches validated commit
+        env:
+          EXPECTED_SHA: ${{ github.sha }}
+        run: |
+          ACTUAL_SHA="$(git rev-parse HEAD)"
+          if [ "$ACTUAL_SHA" != "$EXPECTED_SHA" ]; then
+            echo "::error::Branch advanced from $EXPECTED_SHA to $ACTUAL_SHA during validation. Re-run the workflow."
+            exit 1
+          fi
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 22
