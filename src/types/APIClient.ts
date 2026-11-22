@@ -128,6 +128,7 @@ export type SessionConfiguration = {
     cancelRequestsOnUnauthorized?: boolean;
     trustSelfSignedServerCertificate?: boolean;
     collectMetrics?: boolean;
+    serverCa?: string;
 };
 
 export type RetryPolicyConfiguration = {

@@ -16,6 +16,7 @@ type WebSocketClientConfiguration = Readonly<{
     enableCompression?: boolean;
     clientP12Configuration?: ClientP12Configuration;
     trustSelfSignedServerCertificate?: boolean;
+    serverCa?: string;
 }>;
 
 export enum WebSocketEvents {

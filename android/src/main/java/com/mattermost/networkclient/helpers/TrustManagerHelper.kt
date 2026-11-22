@@ -1,7 +1,9 @@
 package com.mattermost.networkclient.helpers
 
 import android.os.Build
+import java.io.ByteArrayInputStream
 import java.security.KeyStore
+import java.security.cert.CertificateFactory
 import javax.net.ssl.KeyManager
 import javax.net.ssl.KeyManagerFactory
 import javax.net.ssl.TrustManagerFactory
@@ -14,16 +16,27 @@ object TrustManagerHelper {
      * AndroidCAStore on API 24+ includes certificates installed via Settings → Security →
      * Install certificate (e.g. corporate CAs deployed by MDM).
      */
-    fun buildTrustManager(): X509TrustManager {
+    fun buildTrustManager(ca: String?): X509TrustManager {
         val trustManagerFactory = TrustManagerFactory.getInstance(
             TrustManagerFactory.getDefaultAlgorithm()
         )
 
         // AndroidCAStore on API 24+ includes both system and user-installed CAs.
-        val keyStore = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            KeyStore.getInstance("AndroidCAStore").apply { load(null) }
+        val keyStore: KeyStore?
+        if (ca != null) {
+            keyStore = KeyStore.getInstance(KeyStore.getDefaultType())
+            keyStore.load(null, "".toCharArray())
+
+            val certificateFactory = CertificateFactory.getInstance("X.509")
+            val certificates = certificateFactory.generateCertificates(ByteArrayInputStream(ca.toByteArray()))
+            for ((index, certificate) in certificates.withIndex()) {
+                keyStore.setCertificateEntry("$index", certificate)
+            }
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            keyStore = KeyStore.getInstance("AndroidCAStore")
+            keyStore.load(null)
         } else {
-            null
+            keyStore = null
         }
         trustManagerFactory.init(keyStore)
 
