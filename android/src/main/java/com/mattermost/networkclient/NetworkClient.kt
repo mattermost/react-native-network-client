@@ -30,14 +30,17 @@ import okhttp3.RequestBody.Companion.toRequestBody
 
 import org.json.JSONArray
 import org.json.JSONObject
+import java.io.ByteArrayInputStream
 import java.io.File
 import java.io.IOException
 import java.io.InputStream
 import java.net.URI
+import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
 import java.security.cert.CertificateException
 import java.security.cert.CertificateFactory
 import java.security.cert.X509Certificate
+import java.security.KeyStore
 import java.util.Collections
 import java.util.Locale
 import javax.net.ssl.HttpsURLConnection
@@ -58,6 +61,7 @@ internal class NetworkClient(private val context: Context, private val baseUrl: 
     var webSocket: WebSocket? = null
 
     private var trustSelfSignedServerCertificate = false
+    private var serverCa: String? = null
     private val builder: OkHttpClient.Builder = OkHttpClient().newBuilder()
     private val emittedCertErrorHosts: MutableSet<String> = Collections.synchronizedSet(mutableSetOf())
     private var shouldCollectMetrics: Boolean = false
@@ -143,6 +147,7 @@ internal class NetworkClient(private val context: Context, private val baseUrl: 
     private fun applyGenericClientBuilderConfiguration() {
         builder.followRedirects(true)
         builder.followSslRedirects(true)
+        configureSsl()
     }
 
     private fun applyClientBuilderConfiguration(options: ReadableMap?, cookieJar: CookieJar?) {
@@ -663,6 +668,19 @@ internal class NetworkClient(private val context: Context, private val baseUrl: 
                 ApiClientModuleImpl.sendJSEvent(ApiClientEvents.CLIENT_ERROR.event, data)
             }
         }
+
+        // serverCa (PEM, one or more certificates) can be at the top level (WebSocketClient)
+        // or nested under sessionConfiguration (APIClient), like trustSelfSignedServerCertificate.
+        if (options.hasKey("serverCa")) {
+            serverCa = options.getString("serverCa")
+        }
+
+        if (options.hasKey("sessionConfiguration")) {
+            val cfg = options.getMap("sessionConfiguration")!!
+            if (cfg.hasKey("serverCa")) {
+                serverCa = cfg.getString("serverCa")
+            }
+        }
     }
 
     // Applies the SSL socket factory to the builder. Call after applyClientSslConfiguration().
@@ -680,7 +698,7 @@ internal class NetworkClient(private val context: Context, private val baseUrl: 
             clientCertKeyStore?.first,
             clientCertKeyStore?.second
         )
-        val trustManager = getTrustManager(TrustManagerHelper.buildTrustManager())
+        val trustManager = getTrustManager(TrustManagerHelper.buildTrustManager(serverCa))
         val sslContext = javax.net.ssl.SSLContext.getInstance("TLS")
         sslContext.init(keyManagers, arrayOf(trustManager), java.security.SecureRandom())
         return Pair(sslContext.socketFactory, trustManager)

@@ -18,6 +18,7 @@ const SessionConfigurationSchema = z.object({
     httpMaximumConnectionsPerHost: z.number().optional(),
     cancelRequestsOnUnauthorized: z.boolean().optional(),
     trustSelfSignedServerCertificate: z.boolean().optional(),
+    serverCa: z.string().optional(),
 });
 
 const RetryPolicyConfigurationSchema = z.object({
