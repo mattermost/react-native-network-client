@@ -75,4 +75,78 @@ describe("WebSocketClient", () => {
             encoded,
         );
     });
+    describe("serverCa", () => {
+        const PEM =
+            "-----BEGIN CERTIFICATE-----\nMIIBszCCAVmgAwIBAgIUTest\n-----END CERTIFICATE-----\n";
+
+        it("should pass serverCa to the native client", async () => {
+            const url = nextUrl();
+
+            await getOrCreateWebSocketClient(url, {
+                headers: { origin: "wss://mattermost.example.com" },
+                timeoutInterval: 30000,
+                serverCa: PEM,
+            });
+
+            expect(mockNativeClient.ensureClientFor).toHaveBeenCalledWith(url, {
+                headers: { origin: "wss://mattermost.example.com" },
+                timeoutInterval: 30000,
+                serverCa: PEM,
+            });
+        });
+
+        it("should not add serverCa when it is not configured", async () => {
+            const url = nextUrl();
+
+            await getOrCreateWebSocketClient(url, { timeoutInterval: 30000 });
+
+            const [, nativeConfig] =
+                mockNativeClient.ensureClientFor.mock.calls[0];
+            expect(nativeConfig).not.toHaveProperty("serverCa");
+        });
+
+        it("should accept a wss URL to an IP-only server with a custom CA", async () => {
+            const url = "wss://10.20.30.40/api/v4/websocket";
+
+            const { created } = await getOrCreateWebSocketClient(url, {
+                serverCa: PEM,
+            });
+
+            expect(created).toBe(true);
+            expect(mockNativeClient.ensureClientFor).toHaveBeenCalledWith(url, {
+                serverCa: PEM,
+            });
+        });
+
+        it("should keep the original serverCa for an existing client", async () => {
+            // The client is cached by URL, so a new CA needs invalidate() first.
+            const url = nextUrl();
+            await getOrCreateWebSocketClient(url, { serverCa: PEM });
+
+            const { created } = await getOrCreateWebSocketClient(url, {
+                serverCa: "another CA",
+            });
+
+            expect(created).toBe(false);
+            expect(mockNativeClient.ensureClientFor).toHaveBeenCalledTimes(1);
+        });
+
+        it("should apply a new serverCa after the client is invalidated", async () => {
+            const url = nextUrl();
+            const { client } = await getOrCreateWebSocketClient(url, {
+                serverCa: PEM,
+            });
+            await client.invalidate();
+
+            const { created } = await getOrCreateWebSocketClient(url, {
+                serverCa: "another CA",
+            });
+
+            expect(created).toBe(true);
+            expect(mockNativeClient.ensureClientFor).toHaveBeenLastCalledWith(
+                url,
+                { serverCa: "another CA" },
+            );
+        });
+    });
 });

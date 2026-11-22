@@ -669,6 +669,8 @@ internal class NetworkClient(private val context: Context, private val baseUrl: 
             }
         }
 
+        // serverCa (PEM, one or more certificates) can be at the top level (WebSocketClient)
+        // or nested under sessionConfiguration (APIClient), like trustSelfSignedServerCertificate.
         if (options.hasKey("serverCa")) {
             serverCa = options.getString("serverCa")
         }
