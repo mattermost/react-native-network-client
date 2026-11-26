@@ -14,6 +14,16 @@ dependencies {
 }
 
 sourceSets {
+    main {
+        kotlin {
+            // Production sources free of Android dependencies, compiled and tested as-is.
+            srcDir("../android/src/main/java")
+            include(
+                "com/mattermost/networkclient/interceptors/BearerTokenInterceptor.kt",
+                "com/mattermost/networkclient/interceptors/TokenStore.kt",
+            )
+        }
+    }
     test {
         kotlin {
             srcDir("src/test/kotlin")

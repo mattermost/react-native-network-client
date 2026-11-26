@@ -16,6 +16,7 @@ import com.facebook.react.modules.network.ForwardingCookieHandler
 import com.facebook.react.modules.network.ReactCookieJarContainer
 import com.mattermost.networkclient.enums.ApiClientEvents
 import com.mattermost.networkclient.helpers.KeyStoreHelper
+import com.mattermost.networkclient.interceptors.TokenStore
 import com.mattermost.networkclient.sessionattributes.SessionAttributesEngine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
@@ -67,6 +68,12 @@ class ApiClientModuleImpl(appContext: Context) {
                     preferences[stringPreferencesKey(alias)] = encryptedValue
                 }
             }
+            aliasTokenCache[alias] = value
+        }
+
+        internal val tokenStore = object : TokenStore {
+            override fun retrieve(alias: String) = retrieveValue(alias)
+            override fun store(value: String, alias: String) = storeValue(value, alias)
         }
 
         internal fun retrieveValue(alias: String): String? {

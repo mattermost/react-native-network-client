@@ -513,7 +513,7 @@ internal class NetworkClient(private val context: Context, private val baseUrl: 
             val requestAdapterConfiguration = options.getMap("requestAdapterConfiguration")!!
             if (requestAdapterConfiguration.hasKey("bearerAuthTokenResponseHeader")) {
                 val bearerAuthTokenResponseHeader = requestAdapterConfiguration.getString("bearerAuthTokenResponseHeader")!!
-                return BearerTokenInterceptor(tokenAlias, bearerAuthTokenResponseHeader)
+                return BearerTokenInterceptor(tokenAlias, bearerAuthTokenResponseHeader, ApiClientModuleImpl.tokenStore)
             }
         }
 
