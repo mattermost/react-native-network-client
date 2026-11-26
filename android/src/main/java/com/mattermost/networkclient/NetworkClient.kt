@@ -67,6 +67,7 @@ internal class NetworkClient(private val context: Context, private val baseUrl: 
     private val baseUrlHash = baseUrlString.sha256()
     private val tokenAlias = "$baseUrlHash-TOKEN"
     private val p12Alias = "$baseUrlHash-P12"
+    private var bearerTokenInterceptor: BearerTokenInterceptor? = null
 
     companion object RequestRetriesExhausted {
         private val requestRetriesExhausted: HashMap<Response, Boolean?> = hashMapOf()
@@ -156,10 +157,8 @@ internal class NetworkClient(private val context: Context, private val baseUrl: 
         builder.addInterceptor(RuntimeInterceptor(this, "retry"))
         builder.addInterceptor(RuntimeInterceptor(this, "timeout"))
 
-        val bearerTokenInterceptor = getBearerTokenInterceptor(options)
-        if (bearerTokenInterceptor != null) {
-            builder.addInterceptor(bearerTokenInterceptor)
-        }
+        bearerTokenInterceptor = getBearerTokenInterceptor(options)
+        bearerTokenInterceptor?.let { builder.addInterceptor(it) }
 
         val sessionAttributesInterceptor = getSessionAttributesInterceptor(options)
         if (sessionAttributesInterceptor != null) {
@@ -395,7 +394,12 @@ internal class NetworkClient(private val context: Context, private val baseUrl: 
         cancelAllRequests()
         clearCache()
         clearCookies()
-        ApiClientModuleImpl.deleteValue(tokenAlias)
+        val interceptor = bearerTokenInterceptor
+        if (interceptor != null) {
+            interceptor.invalidate()
+        } else {
+            ApiClientModuleImpl.deleteValue(tokenAlias)
+        }
         ApiClientModuleImpl.deleteValue(p12Alias)
         KeyStoreHelper.deleteClientCertificates(p12Alias)
     }
@@ -513,7 +517,7 @@ internal class NetworkClient(private val context: Context, private val baseUrl: 
             val requestAdapterConfiguration = options.getMap("requestAdapterConfiguration")!!
             if (requestAdapterConfiguration.hasKey("bearerAuthTokenResponseHeader")) {
                 val bearerAuthTokenResponseHeader = requestAdapterConfiguration.getString("bearerAuthTokenResponseHeader")!!
-                return BearerTokenInterceptor(tokenAlias, bearerAuthTokenResponseHeader)
+                return BearerTokenInterceptor(tokenAlias, bearerAuthTokenResponseHeader, ApiClientModuleImpl.tokenStore)
             }
         }
 

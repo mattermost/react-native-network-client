@@ -15,7 +15,9 @@ import com.facebook.react.bridge.WritableMap
 import com.facebook.react.modules.network.ForwardingCookieHandler
 import com.facebook.react.modules.network.ReactCookieJarContainer
 import com.mattermost.networkclient.enums.ApiClientEvents
+import com.mattermost.networkclient.helpers.CachingTokenStore
 import com.mattermost.networkclient.helpers.KeyStoreHelper
+import com.mattermost.networkclient.interceptors.TokenStore
 import com.mattermost.networkclient.sessionattributes.SessionAttributesEngine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
@@ -42,7 +44,6 @@ class ApiClientModuleImpl(appContext: Context) {
         private const val SHARED_PREFERENCES_NAME = "APIClientPreferences"
         private const val DATASTORE_NAME = "APIClientDataStore"
         internal val cookieJar = ReactCookieJarContainer()
-        private val aliasTokenCache = mutableMapOf<String, String?>()
 
         private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = DATASTORE_NAME)
 
@@ -60,40 +61,33 @@ class ApiClientModuleImpl(appContext: Context) {
             return null
         }
 
-        internal fun storeValue(value: String, alias: String) {
-            val encryptedValue = KeyStoreHelper.encryptData(value)
-            runBlocking {
-                context.dataStore.edit { preferences ->
-                    preferences[stringPreferencesKey(alias)] = encryptedValue
+        internal val tokenStore: TokenStore = CachingTokenStore(
+            read = { alias ->
+                runBlocking { context.dataStore.data.first()[stringPreferencesKey(alias)] }
+                    ?.let { KeyStoreHelper.decryptData(it) }
+            },
+            write = { value, alias ->
+                val encryptedValue = KeyStoreHelper.encryptData(value)
+                runBlocking {
+                    context.dataStore.edit { preferences ->
+                        preferences[stringPreferencesKey(alias)] = encryptedValue
+                    }
                 }
-            }
-        }
-
-        internal fun retrieveValue(alias: String): String? {
-            val cacheData = this.aliasTokenCache[alias]
-            if (cacheData != null) {
-                return cacheData
-            }
-
-            return runBlocking {
-                val encryptedData = context.dataStore.data.first()[stringPreferencesKey(alias)]
-                if (encryptedData != null) {
-                    val data = KeyStoreHelper.decryptData(encryptedData)
-                    aliasTokenCache[alias] = data
-                    return@runBlocking data
+            },
+            remove = { alias ->
+                runBlocking {
+                    context.dataStore.edit { preferences ->
+                        preferences.remove(stringPreferencesKey(alias))
+                    }
                 }
-                null
-            }
-        }
+            },
+        )
 
-        internal fun deleteValue(alias: String) {
-            runBlocking {
-                context.dataStore.edit { preferences ->
-                    preferences.remove(stringPreferencesKey(alias))
-                }
-                aliasTokenCache.remove(alias)
-            }
-        }
+        internal fun storeValue(value: String, alias: String) = tokenStore.store(value, alias)
+
+        internal fun retrieveValue(alias: String): String? = tokenStore.retrieve(alias)
+
+        internal fun deleteValue(alias: String) = tokenStore.delete(alias)
 
         internal fun sendJSEvent(eventName: String, data: WritableMap?) {
             val reactApplicationContext = context as? ReactApplicationContext
