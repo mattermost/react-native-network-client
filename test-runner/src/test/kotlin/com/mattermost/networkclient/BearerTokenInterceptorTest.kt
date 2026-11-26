@@ -11,18 +11,29 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
 
 class BearerTokenInterceptorTest {
 
-    private class RecordingTokenStore(initial: String? = null) : TokenStore {
+    private class RecordingTokenStore(initial: String? = null, private val beforeStore: () -> Unit = {}) : TokenStore {
+        @Volatile
         var value: String? = initial
-        var writes = 0
+        private val writeCount = AtomicInteger()
+        val writes: Int get() = writeCount.get()
 
         override fun retrieve(alias: String): String? = value
 
         override fun store(value: String, alias: String) {
+            beforeStore()
             this.value = value
-            writes++
+            writeCount.incrementAndGet()
+        }
+
+        override fun delete(alias: String) {
+            value = null
         }
     }
 
@@ -40,10 +51,15 @@ class BearerTokenInterceptorTest {
         server.shutdown()
     }
 
-    private fun execute(store: TokenStore, authorization: String? = null, response: MockResponse = MockResponse()): String? {
+    private fun execute(
+        store: TokenStore,
+        authorization: String? = null,
+        response: MockResponse = MockResponse(),
+        interceptor: BearerTokenInterceptor = BearerTokenInterceptor(alias, "token", store),
+    ): String? {
         server.enqueue(response)
         val client = OkHttpClient.Builder()
-            .addInterceptor(BearerTokenInterceptor(alias, "token", store))
+            .addInterceptor(interceptor)
             .build()
         val request = Request.Builder().url(server.url("/api/v4/users/me")).apply {
             authorization?.let { header("Authorization", it) }
@@ -119,5 +135,102 @@ class BearerTokenInterceptorTest {
         execute(store, response = MockResponse().addHeader("Token", "login-token"))
 
         assertEquals("login-token", store.value)
+    }
+
+    @Test
+    fun storesTheCallersTokenWhenTheSchemeIsUpperCase() {
+        val store = RecordingTokenStore()
+
+        val sent = execute(store, authorization = "BEARER sso-token")
+
+        assertEquals("BEARER sso-token", sent)
+        assertEquals("sso-token", store.value)
+    }
+
+    @Test
+    fun invalidateDeletesTheStoredToken() {
+        val store = RecordingTokenStore(initial = "stored-token")
+        val interceptor = BearerTokenInterceptor(alias, "token", store)
+
+        interceptor.invalidate()
+
+        assertNull(store.value)
+    }
+
+    @Test
+    fun doesNotStoreTheCallersTokenAfterInvalidation() {
+        val store = RecordingTokenStore()
+        val interceptor = BearerTokenInterceptor(alias, "token", store)
+        interceptor.invalidate()
+
+        val sent = execute(store, authorization = "Bearer late-token", interceptor = interceptor)
+
+        assertEquals("Bearer late-token", sent)
+        assertNull(store.value)
+        assertEquals(0, store.writes)
+    }
+
+    @Test
+    fun doesNotStoreTheResponseTokenAfterInvalidation() {
+        val store = RecordingTokenStore()
+        val interceptor = BearerTokenInterceptor(alias, "token", store)
+        interceptor.invalidate()
+
+        execute(store, response = MockResponse().addHeader("Token", "late-token"), interceptor = interceptor)
+
+        assertNull(store.value)
+    }
+
+    @Test
+    fun anInFlightRequestCannotRestoreTheTokenAfterInvalidation() {
+        val storing = CountDownLatch(1)
+        val releaseStore = CountDownLatch(1)
+        val store = RecordingTokenStore(beforeStore = {
+            storing.countDown()
+            releaseStore.await(5, TimeUnit.SECONDS)
+        })
+        val interceptor = BearerTokenInterceptor(alias, "token", store)
+
+        val request = Thread { execute(store, authorization = "Bearer in-flight-token", interceptor = interceptor) }.apply { start() }
+        storing.await(5, TimeUnit.SECONDS)
+        val logout = Thread { interceptor.invalidate() }.apply { start() }
+        logout.join(100)
+        releaseStore.countDown()
+        request.join()
+        logout.join()
+
+        assertNull(store.value)
+    }
+
+    @Test
+    fun concurrentRequestsWithTheSameNewTokenStoreItOnce() {
+        val store = RecordingTokenStore(beforeStore = { Thread.sleep(20) })
+        val client = OkHttpClient.Builder()
+            .addInterceptor(BearerTokenInterceptor(alias, "token", store))
+            .build()
+        val threads = 16
+        repeat(threads) { server.enqueue(MockResponse()) }
+        val pool = Executors.newFixedThreadPool(threads)
+        val start = CountDownLatch(1)
+
+        val futures = (1..threads).map {
+            pool.submit {
+                start.await()
+                val request = Request.Builder()
+                    .url(server.url("/api/v4/users/me"))
+                    .header("Authorization", "BEARER sso-token")
+                    .build()
+                client.newCall(request).execute().close()
+            }
+        }
+        start.countDown()
+        try {
+            futures.forEach { it.get(30, TimeUnit.SECONDS) }
+        } finally {
+            pool.shutdownNow()
+        }
+
+        assertEquals("sso-token", store.value)
+        assertEquals(1, store.writes)
     }
 }

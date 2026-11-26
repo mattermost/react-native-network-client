@@ -9,6 +9,11 @@ class BearerTokenInterceptor(
         private val bearerAuthTokenResponseHeader: String,
         private val tokenStore: TokenStore,
 ) : Interceptor {
+    private val lock = Any()
+
+    @Volatile
+    private var invalidated = false
+
     @Throws(IOException::class)
     override fun intercept(chain: Interceptor.Chain): Response {
         var request = chain.request()
@@ -22,9 +27,7 @@ class BearerTokenInterceptor(
         if (requestToken != null) {
             // Sessions that never return the token header (e.g. SSO) are only known to the
             // caller. Keep its token so native-only requests, like push receipts, can use it.
-            if (requestToken != tokenStore.retrieve(alias)) {
-                tokenStore.store(requestToken, alias)
-            }
+            persist(requestToken)
         } else {
             val storedToken = tokenStore.retrieve(alias)
             if (storedToken != null) {
@@ -37,10 +40,29 @@ class BearerTokenInterceptor(
         val response = chain.proceed(request)
         val responseToken = response.headers[bearerAuthTokenResponseHeader]
         if (responseToken != null) {
-            tokenStore.store(responseToken, alias)
+            persist(responseToken)
         }
 
         return response
+    }
+
+    fun invalidate() {
+        synchronized(lock) {
+            invalidated = true
+            tokenStore.delete(alias)
+        }
+    }
+
+    private fun persist(token: String) {
+        if (invalidated || token == tokenStore.retrieve(alias)) {
+            return
+        }
+
+        synchronized(lock) {
+            if (!invalidated && token != tokenStore.retrieve(alias)) {
+                tokenStore.store(token, alias)
+            }
+        }
     }
 
     companion object {
